@@ -26,9 +26,10 @@ Copyright/licensing:
 
 import re
 import logging
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 import six
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
 
 WHITESPACE_REGEX = re.compile('\s')
 NON_NUMERIC_REGEX = re.compile("[^0-9]")  # or "\D"
@@ -46,13 +47,13 @@ def is_valid_nhs_number(n):
         http://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp  # noqa
     """
     if not isinstance(n, six.integer_types):
-        logger.debug("is_valid_nhs_number: parameter was not of integer type")
+        log.debug("is_valid_nhs_number: parameter was not of integer type")
         return False
     try:
         s = str(n)
         # Not 10 digits long?
         if len(s) != 10:
-            logger.debug("is_valid_nhs_number: not 10 digits")
+            log.debug("is_valid_nhs_number: not 10 digits")
             return False
 
         main_digits = [int(s[i]) for i in range(9)]
@@ -73,18 +74,18 @@ def is_valid_nhs_number(n):
             expected_check_digit = 0
         # 6. If it's 10, the number is invalid
         if expected_check_digit == 10:
-            logger.debug("is_valid_nhs_number: calculated check digit invalid")
+            log.debug("is_valid_nhs_number: calculated check digit invalid")
             return False
         # 7. If it doesn't match the check digit, it's invalid
         if expected_check_digit != actual_check_digit:
-            logger.debug("is_valid_nhs_number: check digit mismatch")
+            log.debug("is_valid_nhs_number: check digit mismatch")
             return False
         # 8. Hooray!
         return True
 
     except:
         # Something went wrong.
-        logger.debug("is_valid_nhs_number: exception thrown")
+        log.debug("is_valid_nhs_number: exception thrown")
         return False
 
 
@@ -99,7 +100,7 @@ def nhs_number_from_text_or_none(s):
     # None in, None out.
     FUNCNAME = "nhs_number_from_text_or_none: "
     if not s:
-        logger.debug(FUNCNAME + "incoming parameter was None")
+        log.debug(FUNCNAME + "incoming parameter was None")
         return None
 
     try:
@@ -109,24 +110,24 @@ def nhs_number_from_text_or_none(s):
         s = WHITESPACE_REGEX.sub("", s)  # replaces all instances
         # Contains non-numeric characters?
         if NON_NUMERIC_REGEX.search(s):
-            logger.debug(FUNCNAME + "contains non-numeric characters")
+            log.debug(FUNCNAME + "contains non-numeric characters")
             return None
         # Not 10 digits long?
         if len(s) != 10:
-            logger.debug(FUNCNAME + "not 10 digits long")
+            log.debug(FUNCNAME + "not 10 digits long")
             return None
 
         # (b) Validation
         n = int(s)
         if not is_valid_nhs_number(n):
-            logger.debug(FUNCNAME + "failed validation")
+            log.debug(FUNCNAME + "failed validation")
             return None
 
         # Happy!
         return n
 
     except:
-        logger.debug(FUNCNAME + "exception thrown")
+        log.debug(FUNCNAME + "exception thrown")
         return None
 
 

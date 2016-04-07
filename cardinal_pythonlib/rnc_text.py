@@ -44,8 +44,8 @@ def output_csv(filehandle, values):
 
 def get_what_follows_raw(s, prefix, onlyatstart=True, stripwhitespace=True):
     prefixstart = string.find(s, prefix)
-    if ((prefixstart == 0 and onlyatstart)
-            or (prefixstart != -1 and not onlyatstart)):
+    if ((prefixstart == 0 and onlyatstart) or
+            (prefixstart != -1 and not onlyatstart)):
         # substring found
         resultstart = prefixstart + len(prefix)
         result = s[resultstart:]

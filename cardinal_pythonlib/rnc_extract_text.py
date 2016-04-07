@@ -75,8 +75,8 @@ import xml.etree
 import zipfile
 
 import logging
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
 
 # =============================================================================
 # Constants
@@ -116,7 +116,7 @@ def get_file_contents(filename=None, blob=None):
 def get_cmd_output(*args, **kwargs):
     """Returns text output of a command."""
     encoding = kwargs.get("encoding", ENCODING)
-    logger.debug("get_cmd_output(): args = {}".format(repr(args)))
+    log.debug("get_cmd_output(): args = {}".format(repr(args)))
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
     stdout, stderr = p.communicate()
     return stdout.decode(encoding, errors='ignore')
@@ -344,7 +344,7 @@ def document_to_text(filename=None, blob=None, extension=None):
     extension = extension.lower()
 
     # Ensure blob is an appropriate type
-    logger.debug(
+    log.debug(
         "filename: {}, blob type: {}, blob length: {}, extension: {}".format(
             filename,
             type(blob),
@@ -386,7 +386,7 @@ def main():
         parser.print_help(sys.stderr)
         return
     logging.basicConfig()
-    logger.setLevel(logging.DEBUG)
+    log.setLevel(logging.DEBUG)
     result = document_to_text(filename=args.inputfile)
     if result is None:
         return

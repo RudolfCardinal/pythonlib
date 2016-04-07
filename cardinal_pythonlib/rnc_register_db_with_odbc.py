@@ -113,24 +113,24 @@ def create_and_register_access97_db(filename, dsn, description):
     fullfilename = os.path.abspath(filename)
     create_string = fullfilename + " General"
     # ... filename, space, sort order ("General" for English)
-    return (create_user_dsn(access_driver, CREATE_DB3=create_string)
-            and register_access_db(filename, dsn, description))
+    return (create_user_dsn(access_driver, CREATE_DB3=create_string) and
+            register_access_db(filename, dsn, description))
 
 
 def create_and_register_access2000_db(filename, dsn, description):
     fullfilename = os.path.abspath(filename)
     create_string = fullfilename + " General"
     # ... filename, space, sort order ("General" for English)
-    return (create_user_dsn(access_driver, CREATE_DB4=create_string)
-            and register_access_db(filename, dsn, description))
+    return (create_user_dsn(access_driver, CREATE_DB4=create_string) and
+            register_access_db(filename, dsn, description))
 
 
 def create_and_register_access_db(filename, dsn, description):
     fullfilename = os.path.abspath(filename)
     create_string = fullfilename + " General"
     # ... filename, space, sort order ("General" for English)
-    return (create_user_dsn(access_driver, CREATE_DB=create_string)
-            and register_access_db(filename, dsn, description))
+    return (create_user_dsn(access_driver, CREATE_DB=create_string) and
+            register_access_db(filename, dsn, description))
     # likely defaults to Access 2000
 
 

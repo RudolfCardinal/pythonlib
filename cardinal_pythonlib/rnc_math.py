@@ -30,10 +30,11 @@ Copyright/licensing:
 
 from __future__ import division, print_function, absolute_import
 import logging
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 import numpy as np  # PYTHON 3: sudo pip3 install numpy
 import sys
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
 
 # =============================================================================
 # Constants
@@ -62,8 +63,8 @@ def softmax(x, b=1.0):
     # http://www.faqs.org/faqs/ai-faq/neural-nets/part2/section-12.html#b
     if products.max() > sys.float_info.max_exp:
         # ... max_exp for base e; max_10_exp for base 10
-        logger.warn("OVERFLOW in softmax(): x = {}, b = {}, constant = {}, "
-                    "x*b - constant = {}".format(x, b, constant, products))
+        log.warn("OVERFLOW in softmax(): x = {}, b = {}, constant = {}, "
+                 "x*b - constant = {}".format(x, b, constant, products))
         # map the maximum to 1, other things to zero
         n = len(x)
         index_of_max = np.argmax(products)

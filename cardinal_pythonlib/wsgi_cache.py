@@ -25,9 +25,9 @@ Copyright/licensing:
 """
 
 import logging
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
-# logger.setLevel(logging.DEBUG)
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+# log.setLevel(logging.DEBUG)
 
 
 # =============================================================================
@@ -52,7 +52,7 @@ class DisableClientSideCachingMiddleware(object):
 
         def custom_start_response(status, headers, exc_info=None):
             add_never_cache_headers(headers)
-            logger.debug("HTTP status {}, headers {}".format(status, headers))
+            log.debug("HTTP status {}, headers {}".format(status, headers))
             return start_response(status, headers, exc_info)
 
         return self.app(environ, custom_start_response)

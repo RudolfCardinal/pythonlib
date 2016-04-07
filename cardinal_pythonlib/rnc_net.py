@@ -22,9 +22,8 @@ Copyright/licensing:
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
-"""
 
-"""
+NOTES:
 - ping requires root to create ICMP sockets in Linux
 - the /bin/ping command doesn't need root (because it has the setuid bit set)
 - For Linux, it's best to use the system ping.

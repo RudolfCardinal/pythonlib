@@ -32,12 +32,13 @@ import email.mime.multipart
 import email.header
 import email.utils
 import logging
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 import os
 import re
 import smtplib
 import sys
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
 
 
 # =============================================================================
@@ -74,7 +75,7 @@ def send_email(sender,
         msgbody = email.mime.text.MIMEText(body, "html", charset)
     else:
         errmsg = "send_email: unknown content_type"
-        logger.error(errmsg)
+        log.error(errmsg)
         return (False, errmsg)
 
     # Make message
@@ -92,7 +93,7 @@ def send_email(sender,
     try:
         if attachment_filenames is not None:
             if verbose:
-                logger.debug("attachment_filenames: {}".format(
+                log.debug("attachment_filenames: {}".format(
                     attachment_filenames))
             for f in attachment_filenames:
                 part = email.mime.base.MIMEBase("application", "octet-stream")
@@ -103,14 +104,14 @@ def send_email(sender,
                     'attachment; filename="%s"' % os.path.basename(f)
                 )
                 msg.attach(part)
-        if (attachment_binaries is not None
-                and attachment_binary_filenames is not None
-                and (
+        if (attachment_binaries is not None and
+                attachment_binary_filenames is not None and
+                (
                     len(attachment_binaries) ==
                     len(attachment_binary_filenames)
                 )):
             if verbose:
-                logger.debug("attachment_binary_filenames: {}".format(
+                log.debug("attachment_binary_filenames: {}".format(
                     attachment_binary_filenames))
             for i in range(len(attachment_binaries)):
                 blob = attachment_binaries[i]
@@ -124,7 +125,7 @@ def send_email(sender,
                 msg.attach(part)
     except:
         errmsg = "send_email: Failed to attach files"
-        logger.error(errmsg)
+        log.error(errmsg)
         return (False, errmsg)
 
     # Connect
@@ -133,7 +134,7 @@ def send_email(sender,
     except:
         errmsg = "send_email: Failed to connect to host {}, port {}".format(
             host, port)
-        logger.error(errmsg)
+        log.error(errmsg)
         return (False, errmsg)
     try:
         session.ehlo()
@@ -141,7 +142,7 @@ def send_email(sender,
         session.ehlo()
     except:
         errmsg = "send_email: Failed to initiate TLS"
-        logger.error(errmsg)
+        log.error(errmsg)
         return (False, errmsg)
 
     # Log in
@@ -149,7 +150,7 @@ def send_email(sender,
         session.login(user, password)
     except:
         errmsg = "send_email: Failed to login as user {}".format(user)
-        logger.error(errmsg)
+        log.error(errmsg)
         return (False, errmsg)
 
     # Send
@@ -157,7 +158,7 @@ def send_email(sender,
         session.sendmail(sender, recipient, msg.as_string())
     except Exception as e:
         errmsg = "send_email: Failed to send e-mail: exception: " + str(e)
-        logger.error(errmsg)
+        log.error(errmsg)
         return (False, errmsg)
 
     # Log out
@@ -190,7 +191,7 @@ def get_email_domain(email):
 
 if __name__ == '__main__':
     logging.basicConfig()
-    logger.setLevel(logging.DEBUG)
+    log.setLevel(logging.DEBUG)
     parser = argparse.ArgumentParser(
         description="Send an e-mail from the command line.")
     parser.add_argument("sender", action="store",
@@ -229,8 +230,8 @@ if __name__ == '__main__':
         verbose=args.verbose,
     )
     if result:
-        logger.info("Success")
+        log.info("Success")
     else:
-        logger.info("Failure")
-        # logger.error(msg)
+        log.info("Failure")
+        # log.error(msg)
     sys.exit(0 if result else 1)

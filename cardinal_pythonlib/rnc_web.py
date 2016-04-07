@@ -31,12 +31,14 @@ import cgi
 import dateutil.parser
 import dateutil.tz
 import logging
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 import os
 import re
 import six
 import sys
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+
 
 # =============================================================================
 # Constants
@@ -111,7 +113,7 @@ def debug_form_contents(form, to_stderr=True, to_logger=False):
         if to_stderr:
             sys.stderr.write(text)
         if to_logger:
-            logger.info(text)
+            log.info(text)
     # But note also: cgi.print_form(form)
 
 
@@ -208,19 +210,18 @@ def get_cgi_parameter_filename_and_file(form, key):
     """Extracts a file's name and contents from a "file" input in a CGI form,
     or (None, None) if no such file was uploaded."""
     if not (key in form):
-        logger.warning('get_cgi_parameter_file: form has no '
-                       'key {}'.format(key))
+        log.warning('get_cgi_parameter_file: form has no key {}'.format(key))
         return (None, None)
     fileitem = form[key]  # a nested FieldStorage instance; see
     # http://docs.python.org/2/library/cgi.html#using-the-cgi-module
     if isinstance(fileitem, cgi.MiniFieldStorage):
-        logger.warning('get_cgi_parameter_file: MiniFieldStorage found - did '
-                       'you forget to set enctype="multipart/form-data" in '
-                       'your form?')
+        log.warning('get_cgi_parameter_file: MiniFieldStorage found - did you '
+                    'forget to set enctype="multipart/form-data" in '
+                    'your form?')
         return (None, None)
     if not isinstance(fileitem, cgi.FieldStorage):
-        logger.warning('get_cgi_parameter_file: no FieldStorage instance with '
-                       'key {} found'.format(key))
+        log.warning('get_cgi_parameter_file: no FieldStorage instance with '
+                    'key {} found'.format(key))
         return (None, None)
     if fileitem.filename and fileitem.file:  # can check "file" or "filename"
         return (fileitem.filename, fileitem.file.read())
@@ -230,11 +231,11 @@ def get_cgi_parameter_filename_and_file(form, key):
         # return get_cgi_parameter_str(form, key) # contents of the file
     # Otherwise, information about problems:
     if not fileitem.file:
-        logger.warning('get_cgi_parameter_file: fileitem has no file')
+        log.warning('get_cgi_parameter_file: fileitem has no file')
     elif not fileitem.filename:
-        logger.warning('get_cgi_parameter_file: fileitem has no filename')
+        log.warning('get_cgi_parameter_file: fileitem has no filename')
     else:
-        logger.warning('get_cgi_parameter_file: unknown failure reason')
+        log.warning('get_cgi_parameter_file: unknown failure reason')
     return (None, None)
 
     # "If a field represents an uploaded file, accessing the value
@@ -346,7 +347,7 @@ def pdf_result(pdf_binary, extraheaders=None, filename=None):
     contenttype = 'application/pdf'
     if filename:
         contenttype += '; filename="{}"'.format(filename)
-    # logger.debug("type(pdf_binary): {}".format(type(pdf_binary)))
+    # log.debug("type(pdf_binary): {}".format(type(pdf_binary)))
     if six.PY3:
         return (contenttype, extraheaders, pdf_binary)
     else:

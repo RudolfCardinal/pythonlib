@@ -27,10 +27,11 @@ Copyright/licensing:
 import io
 import numpy
 import sys
-if sys.version_info > (3,):
-    buffer = memoryview
 
 from . import rnc_web
+
+if sys.version_info > (3,):
+    buffer = memoryview
 
 
 # =============================================================================

@@ -147,9 +147,6 @@ import binascii
 import datetime
 import re
 import logging
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
-logger.setLevel(logging.INFO)
 import six
 from six.moves import range
 import time
@@ -188,6 +185,10 @@ if not PYMYSQL_AVAILABLE:
         MYSQLDB_AVAILABLE = True
     except ImportError:
         pass
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+log.setLevel(logging.INFO)
 
 # =============================================================================
 # Constants
@@ -489,8 +490,8 @@ class MySQL(Flavour):
 
     @classmethod
     def mysql_table_using_barracuda(cls, db, tablename):
-        if (not cls.mysql_using_file_per_table(db)
-                or not cls.mysql_using_innodb_barracuda(db)):
+        if (not cls.mysql_using_file_per_table(db) or
+                not cls.mysql_using_innodb_barracuda(db)):
             return False
         sql = """
             SELECT engine, row_format
@@ -744,14 +745,14 @@ def set_verbose_logging(verbose):
 
 
 def set_loglevel(level):
-    logger.setLevel(level)
+    log.setLevel(level)
 
 
 def debug_sql(sql, *args):
-    """Writes SQL and arguments to the logger."""
-    logger.debug("SQL: %s" % sql)
+    """Writes SQL and arguments to the log."""
+    log.debug("SQL: %s" % sql)
     if args:
-        logger.debug("Args: %r" % args)  # %r is repr()
+        log.debug("Args: %r" % args)  # %r is repr()
 
 
 def delimit(x, delims):
@@ -891,11 +892,11 @@ def debug_object(obj):
 
 def dump_database_object(obj, fieldlist):
     """Prints key/value pairs for an object's dictionary."""
-    logger.info(_LINE_EQUALS)
-    logger.info(u"DUMP OF: {}".format(obj))
+    log.info(_LINE_EQUALS)
+    log.info(u"DUMP OF: {}".format(obj))
     for f in fieldlist:
-        logger.info(u"{f}: {v}".format(f=f, v=getattr(obj, f)))
-    logger.info(_LINE_EQUALS)
+        log.info(u"{f}: {v}".format(f=f, v=getattr(obj, f)))
+    log.info(_LINE_EQUALS)
 
 
 def assign_from_list(obj, fieldlist, valuelist):
@@ -940,10 +941,10 @@ def blank_object(obj, fieldlist):
 
 
 def debug_query_result(rows):
-    """Writes a query result to the logger."""
-    logger.info("Retrieved {} rows".format(len(rows)))
+    """Writes a query result to the log."""
+    log.info("Retrieved {} rows".format(len(rows)))
     for i in range(len(rows)):
-        logger.info("Row {}: {}".format(i, rows[i]))
+        log.info("Row {}: {}".format(i, rows[i]))
 
 
 # =============================================================================
@@ -1004,25 +1005,25 @@ SQLTYPES_DATETIME_OTHER = [
 SQLTYPES_DATETIME_ALL = SQLTYPES_WITH_DATE + SQLTYPES_DATETIME_OTHER
 
 SQLTYPES_ALL = (
-    SQLTYPES_INTEGER
-    + SQLTYPES_FLOAT
-    + SQLTYPES_OTHER_NUMERIC
-    + SQLTYPES_TEXT
-    + SQLTYPES_BINARY
-    + SQLTYPES_DATETIME_ALL
+    SQLTYPES_INTEGER +
+    SQLTYPES_FLOAT +
+    SQLTYPES_OTHER_NUMERIC +
+    SQLTYPES_TEXT +
+    SQLTYPES_BINARY +
+    SQLTYPES_DATETIME_ALL
 )
 # Could be more comprehensive!
 
 SQLTYPES_NOT_TEXT = (
-    SQLTYPES_INTEGER
-    + SQLTYPES_FLOAT
-    + SQLTYPES_OTHER_NUMERIC
-    + SQLTYPES_DATETIME_ALL
+    SQLTYPES_INTEGER +
+    SQLTYPES_FLOAT +
+    SQLTYPES_OTHER_NUMERIC +
+    SQLTYPES_DATETIME_ALL
 )
 SQLTYPES_NUMERIC = (
-    SQLTYPES_INTEGER
-    + SQLTYPES_FLOAT
-    + SQLTYPES_OTHER_NUMERIC
+    SQLTYPES_INTEGER +
+    SQLTYPES_FLOAT +
+    SQLTYPES_OTHER_NUMERIC
 )
 
 
@@ -1103,7 +1104,7 @@ def _convert_java_binary(rs, col):
     # https://msdn.microsoft.com/en-us/library/ms378813(v=sql.110).aspx
     # http://stackoverflow.com/questions/2920364/checking-for-a-null-int-value-from-a-java-resultset  # noqa
     v = None
-    logger.debug("_convert_java_binary: converting...")
+    log.debug("_convert_java_binary: converting...")
     time1 = time.time()
     try:
         # ---------------------------------------------------------------------
@@ -1141,9 +1142,9 @@ def _convert_java_binary(rs, col):
         v = binascii.unhexlify(j_hexstr)
     finally:
         time2 = time.time()
-        logger.debug("... done (in {} seconds)".format(time2 - time1))
+        log.debug("... done (in {} seconds)".format(time2 - time1))
         # if v:
-        #     logger.debug("_convert_java_binary: type={}, length={}".format(
+        #     log.debug("_convert_java_binary: type={}, length={}".format(
         #         type(v), len(v)))
         return v
 
@@ -1199,7 +1200,7 @@ def reconfigure_jaydebeapi():
             converters = jaydebeapi._DEFAULT_CONVERTERS
         else:
             # Older version, e.g. prior to 0.2.0
-            logger.warning("Old jaydebeapi version")
+            log.warning("Old jaydebeapi version")
             converters = jaydebeapi.dbapi2._DEFAULT_CONVERTERS
     except:
         raise AssertionError(
@@ -1264,7 +1265,7 @@ def create_database_mysql(database,
     cursor = con.cursor()
     debug_sql(sql)
     cursor.execute(sql)
-    logger.info("Created database {}".format(database))
+    log.info("Created database {}".format(database))
     return True
 
 
@@ -1298,7 +1299,7 @@ def add_master_user_mysql(database,
     cursor = con.cursor()
     debug_sql(sql)
     cursor.execute(sql)
-    logger.info("Added master user {} to database {}".format(
+    log.info("Added master user {} to database {}".format(
         new_user, database))
 
 
@@ -1438,7 +1439,7 @@ class DatabaseSupporter:
             ex=type(e).__name__,
             msg=str(e),
         )
-        logger.exception(err)
+        log.exception(err)
         raise NoDatabaseError(err)
 
     def connect(self,
@@ -1520,9 +1521,10 @@ class DatabaseSupporter:
         self.autocommit = autocommit
 
         # Report intent
-        logger.info("Opening database: engine={e}, interface={i}, "
-                    "use_unicode={u}, autocommit={a}".format(
-                        e=engine, i=interface, u=use_unicode, a=autocommit))
+        log.info(
+            "Opening database: engine={e}, interface={i}, "
+            "use_unicode={u}, autocommit={a}".format(
+                e=engine, i=interface, u=use_unicode, a=autocommit))
 
         # Interface
         if interface == INTERFACE_MYSQL:
@@ -1570,7 +1572,7 @@ class DatabaseSupporter:
             converters[DateTimeType] = DateTime2literal_RNC
             # See also:
             #   http://stackoverflow.com/questions/11053941
-            logger.info(
+            log.info(
                 "{i} connect: host={h}, port={p}, user={u}, "
                 "database={d}".format(
                     i=interface, h=host, p=port, u=user, d=database))
@@ -1605,7 +1607,7 @@ class DatabaseSupporter:
             # http://stackoverflow.com/questions/6001104
 
         elif engine == ENGINE_MYSQL and interface == INTERFACE_ODBC:
-            logger.info(
+            log.info(
                 "ODBC connect: DRIVER={dr};SERVER={s};PORT={p};"
                 "DATABASE={db};USER={u};PASSWORD=[censored]".format(
                     dr=driver, s=host, p=port, u=user, d=database))
@@ -1627,7 +1629,7 @@ class DatabaseSupporter:
             driver_args = [url, user, password]
             jars = None
             libs = None
-            logger.info(
+            log.info(
                 "JDBC connect: jclassname={jclassname}, "
                 "url={url}, user={user}, password=[censored]".format(
                     jclassname=jclassname,
@@ -1641,16 +1643,16 @@ class DatabaseSupporter:
             # SQL Server:
             # http://code.google.com/p/pyodbc/wiki/ConnectionStrings
             if odbc_connection_string:
-                logger.info("Using raw ODBC connection string [censored]")
+                log.info("Using raw ODBC connection string [censored]")
                 connectstring = odbc_connection_string
             elif dsn:
-                logger.info(
+                log.info(
                     "ODBC connect: DSN={dsn};UID={u};PWD=[censored]".format(
                         dsn=dsn, u=user))
                 connectstring = "DSN={};UID={};PWD={}".format(dsn, user,
                                                               password)
             else:
-                logger.info(
+                log.info(
                     "ODBC connect: DRIVER={dr};SERVER={s};DATABASE={db};"
                     "UID={u};PWD=[censored]".format(
                         dr=driver, s=host, db=database, u=user))
@@ -1688,7 +1690,7 @@ class DatabaseSupporter:
             nvp['password'] = '[censored]'
             url_censored = urlstem + ';'.join(
                 '{}={}'.format(x, y) for x, y in six.iteritems(nvp))
-            logger.info(
+            log.info(
                 'jdbc connect: jclassname={jclassname}, url = {url}'.format(
                     jclassname=jclassname,
                     url=url_censored
@@ -1702,7 +1704,7 @@ class DatabaseSupporter:
 
         elif engine == ENGINE_ACCESS and interface == INTERFACE_ODBC:
             dsn = "DSN={}".format(dsn)
-            logger.info("ODBC connect: DSN={}".format(dsn))
+            log.info("ODBC connect: DSN={}".format(dsn))
             self.db = pyodbc.connect(dsn)
             self.db.autocommit = autocommit
             # http://stackoverflow.com/questions/1063770
@@ -1724,7 +1726,7 @@ class DatabaseSupporter:
             # ... which should have had its connectors altered by
             #     reconfigure_jaydebeapi()
         except Exception as e:
-            logger.error(self.flavour.jdbc_error_help())
+            log.error(self.flavour.jdbc_error_help())
             self.reraise_connection_exception(e)
         # http://almostflan.com/2012/03/01/turning-off-autocommit-in-jaydebeapi/  # noqa
         self.db.jconn.setAutoCommit(autocommit)
@@ -1876,13 +1878,13 @@ class DatabaseSupporter:
         """Commits the transaction."""
         self.ensure_db_open()
         self.db.commit()
-        logger.debug("commit")
+        log.debug("commit")
 
     def rollback(self):
         """Rolls back the transaction."""
         self.ensure_db_open()
         self.db.rollback()
-        logger.debug("rollback")
+        log.debug("rollback")
 
     def insert_record(self, table, fields, values,
                       update_on_duplicate_key=False):
@@ -1897,17 +1899,17 @@ class DatabaseSupporter:
             sql = get_sql_insert(table, fields, self.get_delims())
         sql = self.localize_sql(sql)
         new_pk = None
-        logger.debug("About to insert_record with SQL template: " + sql)
+        log.debug("About to insert_record with SQL template: " + sql)
         try:
             cursor = self.db.cursor()
             debug_sql(sql, values)
             cursor.execute(sql, values)
             # ... binds the placeholders (?, %s) to values in the process
             new_pk = get_pk_of_last_insert(cursor)
-            logger.debug("Record inserted.")
+            log.debug("Record inserted.")
             return new_pk
         except:
-            logger.exception("insert_record: Failed to insert record.")
+            log.exception("insert_record: Failed to insert record.")
             raise
 
     def insert_record_by_fieldspecs_with_values(self, table, fieldspeclist):
@@ -1942,17 +1944,16 @@ class DatabaseSupporter:
             placeholders=",".join(["?"]*n)
         )
         query = self.localize_sql(query)
-        logger.debug("About to insert_record_by_dict with SQL template: "
-                     + query)
+        log.debug("About to insert_record_by_dict with SQL template: " + query)
         try:
             cursor = self.db.cursor()
             debug_sql(query, args)
             cursor.execute(query, args)
             new_pk = get_pk_of_last_insert(cursor)
-            logger.debug("Record inserted.")
+            log.debug("Record inserted.")
             return new_pk
         except:
-            logger.exception("insert_record_by_dict: Failed to insert record.")
+            log.exception("insert_record_by_dict: Failed to insert record.")
             raise
 
     def insert_multiple_records(self, table, fields, records):
@@ -1962,19 +1963,17 @@ class DatabaseSupporter:
         self.ensure_db_open()
         sql = self.localize_sql(get_sql_insert(table, fields,
                                                self.get_delims()))
-        logger.debug("About to insert multiple records with SQL template: "
-                     + sql)
+        log.debug("About to insert multiple records with SQL template: " + sql)
         try:
             cursor = self.db.cursor()
             debug_sql(sql, records)
             cursor.executemany(sql, records)
             # ... binds the placeholders (?, %s) to values in the process
             # http://www.python.org/dev/peps/pep-0249/
-            logger.debug("Records inserted.")
+            log.debug("Records inserted.")
             return cursor.rowcount
         except:
-            logger.exception("insert_multiple_records: Failed to insert "
-                             "records.")
+            log.exception("insert_multiple_records: Failed to insert records.")
             raise
 
     def db_exec_with_cursor(self, cursor, sql, *args):
@@ -1986,7 +1985,7 @@ class DatabaseSupporter:
             cursor.execute(sql, args)
             return cursor.rowcount
         except:
-            logger.exception("db_exec_with_cursor: SQL was: " + sql)
+            log.exception("db_exec_with_cursor: SQL was: " + sql)
             raise
         # MySQLdb:
         #   cursor.execute("SELECT * FROM blah WHERE field=%s", (value,))
@@ -2016,7 +2015,7 @@ class DatabaseSupporter:
             cursor.execute(sql)
             return cursor.rowcount
         except:
-            logger.exception("db_exec_literal: SQL was: " + sql)
+            log.exception("db_exec_literal: SQL was: " + sql)
             raise
 
     def get_literal_sql_with_arguments(self, query, *args):
@@ -2048,7 +2047,7 @@ class DatabaseSupporter:
         try:
             return cursor.fetchone()
         except:
-            logger.exception("fetchone: SQL was: " + sql)
+            log.exception("fetchone: SQL was: " + sql)
             raise
 
     def fetchall(self, sql, *args):
@@ -2060,7 +2059,7 @@ class DatabaseSupporter:
             rows = cursor.fetchall()
             return rows
         except:
-            logger.exception("fetchall: SQL was: " + sql)
+            log.exception("fetchall: SQL was: " + sql)
             raise
 
     def gen_fetchall(self, sql, *args):
@@ -2074,7 +2073,7 @@ class DatabaseSupporter:
                 yield row
                 row = cursor.fetchone()
         except:
-            logger.exception("gen_fetchall: SQL was: " + sql)
+            log.exception("gen_fetchall: SQL was: " + sql)
             raise
 
     def gen_fetchfirst(self, sql, *args):
@@ -2088,7 +2087,7 @@ class DatabaseSupporter:
                 yield row[0]
                 row = cursor.fetchone()
         except:
-            logger.exception("gen_fetchfirst: SQL was: " + sql)
+            log.exception("gen_fetchfirst: SQL was: " + sql)
             raise
 
     def fetchall_with_fieldnames(self, sql, *args):
@@ -2101,7 +2100,7 @@ class DatabaseSupporter:
             fieldnames = [i[0] for i in cursor.description]
             return (rows, fieldnames)
         except:
-            logger.exception("fetchall_with_fieldnames: SQL was: " + sql)
+            log.exception("fetchall_with_fieldnames: SQL was: " + sql)
             raise
 
     def fetchall_as_dictlist(self, sql, *args):
@@ -2118,7 +2117,7 @@ class DatabaseSupporter:
                 dictlist.append(dict(zip(fieldnames, r)))
             return dictlist
         except:
-            logger.exception("fetchall_as_dictlist: SQL was: " + sql)
+            log.exception("fetchall_as_dictlist: SQL was: " + sql)
             raise
 
     def fetchallfirstvalues(self, sql, *args):
@@ -2134,7 +2133,7 @@ class DatabaseSupporter:
         try:
             return [i[0] for i in cursor.description]
         except:
-            logger.exception("fetch_fieldnames: SQL was: " + sql)
+            log.exception("fetch_fieldnames: SQL was: " + sql)
             raise
 
     def count_where(self, table, wheredict=None):
@@ -2155,15 +2154,15 @@ class DatabaseSupporter:
     def does_row_exist(self, table, field, value):
         """Checks for the existence of a record by a single field (typically a
         PK)."""
-        sql = ("SELECT COUNT(*) FROM " + self.delimit(table)
-               + " WHERE " + self.delimit(field) + "=?")
+        sql = ("SELECT COUNT(*) FROM " + self.delimit(table) +
+               " WHERE " + self.delimit(field) + "=?")
         row = self.fetchone(sql, value)
         return True if row[0] >= 1 else False
 
     def delete_by_field(self, table, field, value):
         """Deletes all records where "field" is "value"."""
-        sql = ("DELETE FROM " + self.delimit(table)
-               + " WHERE " + self.delimit(field) + "=?")
+        sql = ("DELETE FROM " + self.delimit(table) +
+               " WHERE " + self.delimit(field) + "=?")
         return self.db_exec(sql, value)
 
     # -------------------------------------------------------------------------
@@ -2238,7 +2237,7 @@ class DatabaseSupporter:
                 for k in wheredict.keys()
             ])
             whereargs = wheredict.values()
-            # logger.debug("fetch_all_objects_from_db_where: sql = " + sql)
+            # log.debug("fetch_all_objects_from_db_where: sql = " + sql)
             pklist = self.fetchallfirstvalues(sql, *whereargs)
         else:
             pklist = self.fetchallfirstvalues(sql)
@@ -2470,23 +2469,21 @@ class DatabaseSupporter:
     def drop_table(self, tablename):
         """Drops a table. Use caution!"""
         sql = "DROP TABLE IF EXISTS {}".format(tablename)
-        logger.info("Dropping table " + tablename +
-                    " (ignore any warning here)")
+        log.info("Dropping table " + tablename + " (ignore any warning here)")
         return self.db_exec_literal(sql)
 
     def drop_view(self, viewname):
         """Drops a view."""
         sql = "DROP VIEW IF EXISTS {}".format(viewname)
-        logger.info("Dropping view " + viewname +
-                    " (ignore any warning here)")
+        log.info("Dropping view " + viewname + " (ignore any warning here)")
         return self.db_exec_literal(sql)
 
     def make_table(self, tablename, fieldspeclist, dynamic=False,
                    compressed=False):
         """Makes a table, if it doesn't already exist."""
         if self.table_exists(tablename):
-            logger.info("Skipping creation of table " + tablename
-                        + " (already exists)")
+            log.info("Skipping creation of table " + tablename +
+                     " (already exists)")
             return
         if not self.is_mysql():
             dynamic = False
@@ -2503,19 +2500,19 @@ class DatabaseSupporter:
             dynamic="ROW_FORMAT=DYNAMIC" if dynamic else "",
             compressed="ROW_FORMAT=COMPRESSED" if compressed else "",
         )
-        logger.info("Creating table " + tablename)
+        log.info("Creating table " + tablename)
         return self.db_exec_literal(sql)
 
     def rename_table(self, from_table, to_table):
         """Renames a table. MySQL-specific."""
         if not self.table_exists(from_table):
-            logger.info("Skipping renaming of table " + from_table +
-                        " (doesn't exist)")
+            log.info("Skipping renaming of table " + from_table +
+                     " (doesn't exist)")
             return
         if self.table_exists(to_table):
             raise RuntimeError("Can't rename table {} to {}: destination "
                                "already exists!".format(from_table, to_table))
-        logger.info("Renaming table {} to {}".format(from_table, to_table))
+        log.info("Renaming table {} to {}".format(from_table, to_table))
         sql = "RENAME TABLE {} TO {}".format(from_table, to_table)
         return self.db_exec_literal(sql)
 
@@ -2523,13 +2520,13 @@ class DatabaseSupporter:
         """Adds a column to an existing table."""
         sql = "ALTER TABLE {} ADD COLUMN {}".format(
             tablename, self.fielddefsql_from_fieldspec(fieldspec))
-        logger.info(sql)
+        log.info(sql)
         return self.db_exec_literal(sql)
 
     def drop_column(self, tablename, fieldname):
         """Drops (deletes) a column from an existing table."""
         sql = "ALTER TABLE {} DROP COLUMN {}".format(tablename, fieldname)
-        logger.info(sql)
+        log.info(sql)
         return self.db_exec_literal(sql)
 
     def modify_column_if_table_exists(self, tablename, fieldname, newdef):
@@ -2541,7 +2538,7 @@ class DatabaseSupporter:
             field=fieldname,
             newdef=newdef
         )
-        logger.info(sql)
+        log.info(sql)
         return self.db_exec_literal(sql)
 
     def change_column_if_table_exists(self, tablename, oldfieldname,
@@ -2557,7 +2554,7 @@ class DatabaseSupporter:
             new=newfieldname,
             newdef=newdef,
         )
-        logger.info(sql)
+        log.info(sql)
         return self.db_exec_literal(sql)
 
     def create_or_update_table(self, tablename, fieldspeclist,
@@ -2591,10 +2588,10 @@ class DatabaseSupporter:
         superfluous_fieldnames = fields_in_db - desired_fieldnames
         for f in superfluous_fieldnames:
             if drop_superfluous_columns:
-                logger.warn("... dropping superfluous field: " + f)
+                log.warn("... dropping superfluous field: " + f)
                 self.drop_column(tablename, f)
             else:
-                logger.warn("... superfluous field (ignored): " + f)
+                log.warn("... superfluous field (ignored): " + f)
 
         # 4. Make indexes, if some have been requested:
         for fs in fieldspeclist:
@@ -2633,7 +2630,7 @@ class DatabaseSupporter:
         return self.flavour.get_comment(self, table, column)
 
     def debug_query(self, sql, *args):
-        """Executes SQL and writes the result to the logger."""
+        """Executes SQL and writes the result to the log."""
         rows = self.fetchall(sql, *args)
         debug_query_result(rows)
 
@@ -2657,9 +2654,9 @@ class DatabaseSupporter:
         has_pk_already = True if row[0] >= 1 else False
         drop_pk_if_exists = " DROP PRIMARY KEY," if has_pk_already else ""
         fieldlist = ",".join([self.delimit(f) for f in fieldnames])
-        sql = ("ALTER TABLE " + self.delimit(table)
-               + drop_pk_if_exists
-               + " ADD PRIMARY KEY(" + fieldlist + ")")
+        sql = ("ALTER TABLE " + self.delimit(table) +
+               drop_pk_if_exists +
+               " ADD PRIMARY KEY(" + fieldlist + ")")
         # http://stackoverflow.com/questions/8859353
         return self.db_exec(sql)
 
@@ -2689,7 +2686,7 @@ class DatabaseSupporter:
 
     def mysql_convert_table_to_barracuda(self, tablename, compressed=False):
         self.flavour.mysql_convert_table_to_barracuda(
-            self, tablename, logger=logger, compressed=compressed)
+            self, tablename, logger=log, compressed=compressed)
 
     def mysql_using_innodb_strict_mode(self):
         return self.flavour.mysql_using_innodb_strict_mode(self)
@@ -2704,7 +2701,7 @@ class DatabaseSupporter:
     def is_read_only(self):
         """Does the user have read-only access to the database?
         This is a safety check, but should NOT be the only safety check!"""
-        return self.flavour.is_read_only(self, logger=logger)
+        return self.flavour.is_read_only(self, logger=log)
 
     # =========================================================================
     # Debugging
@@ -2717,7 +2714,7 @@ class DatabaseSupporter:
             return
         if self.db_pythonlib != PYTHONLIB_JAYDEBEAPI:
             return
-        logger.info("Calling Java garbage collector...")
+        log.info("Calling Java garbage collector...")
         rt = jpype.java.lang.Runtime.getRuntime()
         rt.gc()
-        logger.info("... done")
+        log.info("... done")

@@ -28,16 +28,19 @@ Copyright/licensing:
 from __future__ import division, print_function, absolute_import
 import io
 import logging
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 import os
-import PyPDF2  # sudo pip install PyPDF2 // sudo pip3 install PyPDF2
 import sys
-if sys.version_info > (3,):
-    buffer = memoryview
 import tempfile
 
+import PyPDF2  # sudo pip install PyPDF2 // sudo pip3 install PyPDF2
+
 # SEE ALSO CONDITIONAL/OPTIONAL IMPORTS AT THE END.
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+
+if sys.version_info > (3,):
+    buffer = memoryview
 
 # =============================================================================
 # Ancillary functions for PDFs
@@ -65,7 +68,7 @@ def set_processor(new_processor=WEASYPRINT, wkhtmltopdf_filename=None):
     processor = new_processor
     global _wkhtmltopdf_filename
     _wkhtmltopdf_filename = wkhtmltopdf_filename
-    logger.info("PDF processor set to: " + processor)
+    log.info("PDF processor set to: " + processor)
 
 
 def pdf_from_html(html, header_html=None, footer_html=None,
@@ -192,7 +195,7 @@ def append_pdf(input_pdf, output_writer):
 
 if __name__ == '__main__':
     logging.basicConfig()
-    logger.setLevel(logging.DEBUG)
+    log.setLevel(logging.DEBUG)
 
 # =============================================================================
 # Conditional/optional imports
@@ -204,30 +207,30 @@ WEASYPRINT_AVAILABLE = False
 
 # Preference 1
 try:
-    logger.debug("trying pdfkit...")
+    log.debug("trying pdfkit...")
     import pdfkit  # sudo apt-get install wkhtmltopdf; sudo pip install pdfkit
-    logger.debug("pdfkit: loaded")
+    log.debug("pdfkit: loaded")
     PDFKIT_AVAILABLE = True
 except ImportError:
-    logger.debug("pdfkit: failed to load")
+    log.debug("pdfkit: failed to load")
 
 if PDFKIT_AVAILABLE:
-    logger.debug("pdfkit found, so skipping other PDF rendering engines")
+    log.debug("pdfkit found, so skipping other PDF rendering engines")
 else:
     try:
         import xhtml2pdf.document  # sudo easy_install pip; sudo pip install xhtml2pdf  # noqa
-        logger.debug("xhtml2pdf: loaded")
+        log.debug("xhtml2pdf: loaded")
         XHTML2PDF_AVAILABLE = True
     except ImportError:
-        logger.debug("xhtml2pdf: failed to load")
+        log.debug("xhtml2pdf: failed to load")
 
     try:
-        logger.debug("trying weasyprint...")
+        log.debug("trying weasyprint...")
         import weasyprint
-        logger.debug("weasyprint: loaded")
+        log.debug("weasyprint: loaded")
         WEASYPRINT_AVAILABLE = True
     except ImportError:
-        logger.debug("weasyprint: failed to load")
+        log.debug("weasyprint: failed to load")
 
 if not any([XHTML2PDF_AVAILABLE, WEASYPRINT_AVAILABLE, PDFKIT_AVAILABLE]):
     raise RuntimeError("No PDF engine (xhtml2pdf, weasyprint, pdfkit) "
