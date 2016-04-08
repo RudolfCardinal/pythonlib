@@ -1,1 +1,4 @@
 *.pyc
+dist/*
+cardinal_pythonlib.egg-info/*
+
