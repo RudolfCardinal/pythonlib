@@ -57,10 +57,10 @@ JDBC types:
     The object returned by JPype is a Python version of Java's java.lang.Long
     class. To get the value out of it, use the value attribute:
 
-        >>> n = java.lang.Long(44)
-        >>> n
+    n = java.lang.Long(44)
+    n
         <jpype._jclass.java.lang.Long object at 0x2377390>
-        >>> n.value
+    n.value
         44L
 
     JayDeBeApi contains a dict (_DEFAULT_CONVERTERS) that maps types it
@@ -148,43 +148,47 @@ import datetime
 import re
 import logging
 import six
+# noinspection PyUnresolvedReferences
 from six.moves import range
 import time
 
 # 1. An ODBC driver
 try:
-    import pyodbc  # Python 2: "sudo pip install pyodbc"; Python 3: "sudo pip3 install pyodbc"  # noqa
-    PYODBC_AVAILABLE = True
+    # noinspection PyPackageRequirements
+    import pyodbc  # pip install pyodbc
 except ImportError:
-    PYODBC_AVAILABLE = False
+    pyodbc = None
 
 # 2. A JDBC driver
 try:
-    import jaydebeapi  # Python 2: "sudo pip install jaydebeapi"; Python 3: "sudo pip3 install jaydebeapi"  # noqa
+    # noinspection PyPackageRequirements
+    import jaydebeapi  # pip install jaydebeapi
+    # noinspection PyPackageRequirements
     import jpype
-    JDBC_AVAILABLE = True
 except ImportError:
-    JDBC_AVAILABLE = False
+    jaydebeapi = None
+    jpype = None
 
 # 3. A direct MySQL driver
 try:
-    import pymysql  # Python 2: "sudo pip install PyMySQL"; Python 3: "sudo pip3 install PyMySQL"  # noqa
+    # noinspection PyPackageRequirements
+    import pymysql  # pip install PyMySQL
     # pymysql.converters is automatically available now
     mysql = pymysql
-    PYMYSQL_AVAILABLE = True
 except ImportError:
-    PYMYSQL_AVAILABLE = False
+    pymysql = None
+    mysql = None
 
-MYSQLDB_AVAILABLE = False
-if not PYMYSQL_AVAILABLE:
+if not pymysql:
     try:
         import MySQLdb  # Python 2 (Debian): "sudo apt-get install python-mysqldb"  # noqa
         import MySQLdb.converters  # needs manual import
         import _mysql
         mysql = MySQLdb
-        MYSQLDB_AVAILABLE = True
     except ImportError:
-        pass
+        MySQLdb = None
+        _mysql = None
+        mysql = None
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -233,7 +237,7 @@ class Flavour(object):
 
     @classmethod
     def delims(cls):
-        return ("[", "]")
+        return "[", "]"
 
     @classmethod
     def current_schema_expr(cls):
@@ -286,7 +290,7 @@ class Flavour(object):
         return None
 
     @classmethod
-    def get_system_variable(self, db, varname):
+    def get_system_variable(cls, db, varname):
         """Returns a database system variable."""
         return None
 
@@ -330,7 +334,7 @@ class Access(Flavour):
 
     @classmethod
     def delims(cls):
-        return ("[", "]")
+        return "[", "]"
 
     @classmethod
     def get_all_table_names(cls, db):
@@ -394,7 +398,7 @@ class MySQL(Flavour):
 
     @classmethod
     def delims(cls):
-        return ("`", "`")
+        return "`", "`"
 
     @classmethod
     def current_schema_expr(cls):
@@ -475,7 +479,7 @@ class MySQL(Flavour):
             db.schema, table, column)
 
     @classmethod
-    def get_system_variable(self, db, varname):
+    def get_system_variable(cls, db, varname):
         sql = "SELECT @@{varname}".format(varname=varname)
         # http://dev.mysql.com/doc/refman/5.5/en/using-system-variables.html
         return db.fetchvalue(sql)
@@ -543,11 +547,11 @@ class MySQL(Flavour):
     def is_read_only(cls, db, logger=None):
         """Do we have read-only access?"""
 
-        def convert_enums(row):
+        def convert_enums(row_):
             # All these columns are of type enum('N', 'Y');
             # https://dev.mysql.com/doc/refman/5.0/en/enum.html
             return [True if x == 'Y' else (False if x == 'N' else None)
-                    for x in row]
+                    for x in row_]
 
         # 1. Check per-database privileges.
         # We don't check SELECT privileges. We're just trying to ensure
@@ -633,7 +637,7 @@ class SQLServer(Flavour):
 
     @classmethod
     def delims(cls):
-        return ("[", "]")
+        return "[", "]"
 
     @classmethod
     def current_schema_expr(cls):
@@ -852,7 +856,7 @@ def sql_dequote_string(s):
     return s.replace("''", "'")
 
 
-def DateTime2literal_RNC(d, c):
+def datetime2literal_rnc(d, c):
     """Format a DateTime object as something MySQL will actually accept."""
     # dt = d.strftime("%Y-%m-%d %H:%M:%S")
     # ... can fail with e.g.
@@ -860,6 +864,7 @@ def DateTime2literal_RNC(d, c):
     #   require year >= 1900
     # http://stackoverflow.com/questions/10263956
     dt = d.isoformat(" ")
+    # noinspection PyArgumentList
     return _mysql.string_literal(dt, c)
 
 
@@ -1031,14 +1036,14 @@ def split_long_sqltype(datatype_long):
     datatype_short = datatype_long.split("(")[0].strip()
     find_open = datatype_long.find("(")
     find_close = datatype_long.find(")")
-    if find_open >= 0 and find_close > find_open:
+    if 0 <= find_open < find_close:
         try:
             length = int(datatype_long[find_open + 1:find_close])
-        except:  # e.g. for "VARCHAR(MAX)"
+        except (TypeError, IndexError, ValueError):  # e.g. for "VARCHAR(MAX)"
             length = None
     else:
         length = None
-    return (datatype_short, length)
+    return datatype_short, length
 
 
 def is_sqltype_valid(datatype_long):
@@ -1182,7 +1187,7 @@ def _convert_java_datetime(rs, col):
 
 
 def reconfigure_jaydebeapi():
-    if not JDBC_AVAILABLE:
+    if not jaydebeapi:
         return
     # The types used as keys below MUST be in java.sql.Types -- search for
     # _init_types() calls in jaydebeapi's __init__.py. If not, this bit
@@ -1197,10 +1202,12 @@ def reconfigure_jaydebeapi():
     try:
         if hasattr(jaydebeapi, "_DEFAULT_CONVERTERS"):
             # Recent version of jaydebeapi, e.g. 0.2.0
+            # noinspection PyProtectedMember
             converters = jaydebeapi._DEFAULT_CONVERTERS
         else:
             # Older version, e.g. prior to 0.2.0
             log.warning("Old jaydebeapi version")
+            # noinspection PyProtectedMember
             converters = jaydebeapi.dbapi2._DEFAULT_CONVERTERS
     except:
         raise AssertionError(
@@ -1310,6 +1317,16 @@ def add_master_user_mysql(database,
 class DatabaseConfig(object):
     def __init__(self, parser, section):
         self.section = section
+        self.engine = None
+        self.interface = None
+        self.host = None
+        self.port = None
+        self.db = None
+        self.dsn = None
+        self.odbc_connection_string = None
+        self.user = None
+        self.password = None
+
         if not parser.has_section(section):
             raise ValueError("config missing section: " + section)
         options = [
@@ -1334,8 +1351,6 @@ class DatabaseConfig(object):
             if parser.has_option(section, o):
                 value = parser.get(section, o)
                 setattr(self, o, value)
-            else:
-                setattr(self, o, None)
         self.port = int(self.port) if self.port else None
         self.check_valid()
 
@@ -1363,7 +1378,7 @@ class DatabaseConfig(object):
             if self.odbc_connection_string:
                 pass  # this is OK
             elif self.dsn:
-                if (not self.user or not self.password):
+                if not self.user or not self.password:
                     raise ValueError(
                         "Missing SQL Server details: user or password")
             else:
@@ -1373,6 +1388,7 @@ class DatabaseConfig(object):
                         "Missing SQL Server details: host, user, or password")
 
     def get_database(self, autocommit=False, securely=True):
+        # noinspection PyBroadException
         try:
             db = DatabaseSupporter()
             db.connect(
@@ -1398,6 +1414,7 @@ class DatabaseConfig(object):
 
 
 def get_database_from_configparser(parser, section, securely=True):
+    # noinspection PyBroadException
     try:  # guard this bit to prevent any password leakage
         dbc = DatabaseConfig(parser, section)
         db = dbc.get_database(securely=securely)
@@ -1409,8 +1426,6 @@ def get_database_from_configparser(parser, section, securely=True):
                 "concealed for security reasons".format(section))
         else:
             raise
-    finally:
-        dbc = None
 
 
 # =============================================================================
@@ -1528,18 +1543,18 @@ class DatabaseSupporter:
 
         # Interface
         if interface == INTERFACE_MYSQL:
-            if PYMYSQL_AVAILABLE:
+            if pymysql:
                 self.db_pythonlib = PYTHONLIB_PYMYSQL
-            elif MYSQLDB_AVAILABLE:
+            elif MySQLdb:
                 self.db_pythonlib = PYTHONLIB_MYSQLDB
             else:
                 raise ImportError(_MSG_MYSQL_DRIVERS_UNAVAILABLE)
         elif interface == INTERFACE_ODBC:
-            if not PYODBC_AVAILABLE:
+            if not pyodbc:
                 raise ImportError(_MSG_PYODBC_UNAVAILABLE)
             self.db_pythonlib = PYTHONLIB_PYODBC
         elif interface == INTERFACE_JDBC:
-            if not JDBC_AVAILABLE:
+            if not jaydebeapi:
                 raise ImportError(_MSG_JDBC_UNAVAILABLE)
             if host is None:
                 raise ValueError("Missing host parameter")
@@ -1567,9 +1582,9 @@ class DatabaseSupporter:
             # and starts producing e.g.
             #   '2014-01-03 18:15:51.842097+00:00'.
             # Let's fix that...
-            DateTimeType = datetime.datetime  # as per MySQLdb times.py
+            datetimetype = datetime.datetime  # as per MySQLdb times.py
             converters = mysql.converters.conversions.copy()
-            converters[DateTimeType] = DateTime2literal_RNC
+            converters[datetimetype] = datetime2literal_rnc
             # See also:
             #   http://stackoverflow.com/questions/11053941
             log.info(
@@ -1586,9 +1601,11 @@ class DatabaseSupporter:
                 use_unicode=use_unicode,
                 conv=converters
             )
+            # noinspection PyCallingNonCallable
             self.db.autocommit(autocommit)
             # http://mysql-python.sourceforge.net/MySQLdb.html
             # http://dev.mysql.com/doc/refman/5.0/en/mysql-autocommit.html
+            # https://github.com/PyMySQL/PyMySQL/blob/master/pymysql/connections.py  # noqa
 
             # MySQL character sets and collations:
             #   http://dev.mysql.com/doc/refman/5.1/en/charset.html
@@ -1610,11 +1627,12 @@ class DatabaseSupporter:
             log.info(
                 "ODBC connect: DRIVER={dr};SERVER={s};PORT={p};"
                 "DATABASE={db};USER={u};PASSWORD=[censored]".format(
-                    dr=driver, s=host, p=port, u=user, d=database))
+                    dr=driver, s=host, p=port,
+                    db=database, u=user))
             dsn = (
                 "DRIVER={0};SERVER={1};PORT={2};DATABASE={3};"
-                "USER={4};PASSWORD={5}".format(driver, host, port,
-                                               database, user, password)
+                "USER={4};PASSWORD={5}".format(driver, host, port, database,
+                                               user, password)
             )
             self.db = pyodbc.connect(dsn)
             self.db.autocommit = autocommit
@@ -1898,7 +1916,6 @@ class DatabaseSupporter:
         else:
             sql = get_sql_insert(table, fields, self.get_delims())
         sql = self.localize_sql(sql)
-        new_pk = None
         log.debug("About to insert_record with SQL template: " + sql)
         try:
             cursor = self.db.cursor()
@@ -2098,7 +2115,7 @@ class DatabaseSupporter:
         try:
             rows = cursor.fetchall()
             fieldnames = [i[0] for i in cursor.description]
-            return (rows, fieldnames)
+            return rows, fieldnames
         except:
             log.exception("fetchall_with_fieldnames: SQL was: " + sql)
             raise
@@ -2399,15 +2416,18 @@ class DatabaseSupporter:
     # Fieldspec lists
     # -------------------------------------------------------------------------
 
-    def fieldnames_from_fieldspeclist(self, fieldspeclist):
+    @staticmethod
+    def fieldnames_from_fieldspeclist(fieldspeclist):
         """Returns fieldnames from a field specification list."""
         return [x["name"] for x in fieldspeclist]
 
-    def fieldname_from_fieldspec(self, fieldspec):
+    @staticmethod
+    def fieldname_from_fieldspec(fieldspec):
         """Returns a fieldname from a field specification."""
         return fieldspec["name"]
 
-    def fielddefsql_from_fieldspec(self, fieldspec):
+    @staticmethod
+    def fielddefsql_from_fieldspec(fieldspec):
         """Returns SQL fragment to define a field."""
         sql = fieldspec["name"] + " " + fieldspec["sqltype"]
         if "notnull" in fieldspec and fieldspec["notnull"]:
@@ -2430,7 +2450,8 @@ class DatabaseSupporter:
             for x in fieldspeclist
         ])
 
-    def fieldspec_subset_by_name(self, fieldspeclist, fieldnames):
+    @staticmethod
+    def fieldspec_subset_by_name(fieldspeclist, fieldnames):
         """Returns a subset of the fieldspecs matching the fieldnames list."""
         result = []
         for x in fieldspeclist:
@@ -2710,7 +2731,7 @@ class DatabaseSupporter:
     def java_garbage_collect(self):
         # http://stackoverflow.com/questions/1903041
         # http://docs.oracle.com/javase/7/docs/api/java/lang/Runtime.html
-        if not JDBC_AVAILABLE:
+        if not jaydebeapi:
             return
         if self.db_pythonlib != PYTHONLIB_JAYDEBEAPI:
             return

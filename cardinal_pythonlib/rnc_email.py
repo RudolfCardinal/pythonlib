@@ -76,7 +76,7 @@ def send_email(sender,
     else:
         errmsg = "send_email: unknown content_type"
         log.error(errmsg)
-        return (False, errmsg)
+        return False, errmsg
 
     # Make message
     msg = email.mime.multipart.MIMEMultipart()
@@ -90,6 +90,7 @@ def send_email(sender,
     msg.attach(msgbody)
 
     # Attachments
+    # noinspection PyBroadException
     try:
         if attachment_filenames is not None:
             if verbose:
@@ -126,45 +127,45 @@ def send_email(sender,
     except:
         errmsg = "send_email: Failed to attach files"
         log.error(errmsg)
-        return (False, errmsg)
+        return False, errmsg
 
     # Connect
     try:
         session = smtplib.SMTP(host, port)
-    except:
+    except smtplib.SMTPException:
         errmsg = "send_email: Failed to connect to host {}, port {}".format(
             host, port)
         log.error(errmsg)
-        return (False, errmsg)
+        return False, errmsg
     try:
         session.ehlo()
         session.starttls()
         session.ehlo()
-    except:
+    except smtplib.SMTPException:
         errmsg = "send_email: Failed to initiate TLS"
         log.error(errmsg)
-        return (False, errmsg)
+        return False, errmsg
 
     # Log in
     try:
         session.login(user, password)
-    except:
+    except smtplib.SMTPException:
         errmsg = "send_email: Failed to login as user {}".format(user)
         log.error(errmsg)
-        return (False, errmsg)
+        return False, errmsg
 
     # Send
     try:
         session.sendmail(sender, recipient, msg.as_string())
-    except Exception as e:
+    except smtplib.SMTPException as e:
         errmsg = "send_email: Failed to send e-mail: exception: " + str(e)
         log.error(errmsg)
-        return (False, errmsg)
+        return False, errmsg
 
     # Log out
     session.quit()
 
-    return (True, "Success")
+    return True, "Success"
 
 # =============================================================================
 # Misc
@@ -173,23 +174,23 @@ def send_email(sender,
 _SIMPLE_EMAIL_REGEX = re.compile("[^@]+@[^@]+\.[^@]+")
 
 
-def is_email_valid(email):
+def is_email_valid(email_):
     """Performs a very basic check that a string appears to be an e-mail
     address."""
     # Very basic checks!
-    return _SIMPLE_EMAIL_REGEX.match(email)
+    return _SIMPLE_EMAIL_REGEX.match(email_)
 
 
-def get_email_domain(email):
+def get_email_domain(email_):
     """Returns the domain part of an e-mail address."""
-    return email.split("@")[1]
+    return email_.split("@")[1]
 
 
 # =============================================================================
 # Parse command line
 # =============================================================================
 
-if __name__ == '__main__':
+def main():
     logging.basicConfig()
     log.setLevel(logging.DEBUG)
     parser = argparse.ArgumentParser(
@@ -235,3 +236,7 @@ if __name__ == '__main__':
         log.info("Failure")
         # log.error(msg)
     sys.exit(0 if result else 1)
+
+
+if __name__ == '__main__':
+    main()

@@ -30,7 +30,8 @@ Copyright/licensing:
 
 from __future__ import division, print_function, absolute_import
 import logging
-import numpy as np  # PYTHON 3: sudo pip3 install numpy
+# noinspection PyPackageRequirements
+import numpy as np  # pip install numpy
 import sys
 
 log = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ EQUALS_SEPARATOR = "=" * 79
 # =============================================================================
 
 def softmax(x, b=1.0):
-    # x: vector of values
+    # x: vector (numpy.array) of values
     # b: exploration parameter, or inverse temperature [Daw2009], or 1/t where:
     # t: temperature (towards infinity: all actions equally likely;
     #       towards zero: probability of action with highest value tends to 1)
@@ -61,6 +62,7 @@ def softmax(x, b=1.0):
     products = x * b - constant
     # ... softmax is invariant to addition of a constant: Daw article and
     # http://www.faqs.org/faqs/ai-faq/neural-nets/part2/section-12.html#b
+    # noinspection PyUnresolvedReferences
     if products.max() > sys.float_info.max_exp:
         # ... max_exp for base e; max_10_exp for base 10
         log.warn("OVERFLOW in softmax(): x = {}, b = {}, constant = {}, "
@@ -71,6 +73,7 @@ def softmax(x, b=1.0):
         answer = np.zeros(n)
         answer[index_of_max] = 1.0
     else:
+        # noinspection PyUnresolvedReferences
         exponented = np.exp(products)
         answer = exponented / np.sum(exponented)
     return answer

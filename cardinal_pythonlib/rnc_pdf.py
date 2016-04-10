@@ -32,25 +32,80 @@ import os
 import sys
 import tempfile
 
-import PyPDF2  # sudo pip install PyPDF2 // sudo pip3 install PyPDF2
+# noinspection PyPackageRequirements
+import PyPDF2  # pip install PyPDF2
 
-# SEE ALSO CONDITIONAL/OPTIONAL IMPORTS AT THE END.
+# =============================================================================
+# Conditional/optional imports
+# =============================================================================
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
-if sys.version_info > (3,):
-    buffer = memoryview
+pdfkit = None
+xhtml2pdf = None
+weasyprint = None
+
+# Preference 1
+try:
+    log.debug("trying pdfkit...")
+    # noinspection PyPackageRequirements
+    import pdfkit  # sudo apt-get install wkhtmltopdf; sudo pip install pdfkit
+    log.debug("pdfkit: loaded")
+except ImportError:
+    pdfkit = None
+    log.debug("pdfkit: failed to load")
+
+if pdfkit:
+    log.debug("pdfkit found, so skipping other PDF rendering engines")
+else:
+    try:
+        # noinspection PyPackageRequirements
+        import xhtml2pdf  # pip install xhtml2pdf
+        # noinspection PyPackageRequirements
+        import xhtml2pdf.document  # pip install xhtml2pdf
+        log.debug("xhtml2pdf: loaded")
+    except ImportError:
+        xhtml2pdf = None
+        log.debug("xhtml2pdf: failed to load")
+
+    try:
+        log.debug("trying weasyprint...")
+        # noinspection PyPackageRequirements
+        import weasyprint
+        log.debug("weasyprint: loaded")
+    except ImportError:
+        weasyprint = None
+        log.debug("weasyprint: failed to load")
 
 # =============================================================================
-# Ancillary functions for PDFs
+# Onwards
 # =============================================================================
+
+if not any([xhtml2pdf, weasyprint, pdfkit]):
+    raise RuntimeError("No PDF engine (xhtml2pdf, weasyprint, pdfkit) "
+                       "available; can't load")
 
 XHTML2PDF = "xhtml2pdf"
 WEASYPRINT = "weasyprint"
 PDFKIT = "pdfkit"
 _wkhtmltopdf_filename = None
 
+if pdfkit:
+    processor = PDFKIT  # the best
+elif weasyprint:
+    processor = WEASYPRINT  # imperfect tables
+else:
+    processor = XHTML2PDF  # simple/slow
+
+if sys.version_info > (3,):
+    # noinspection PyShadowingBuiltins
+    buffer = memoryview
+
+
+# =============================================================================
+# Ancillary functions for PDFs
+# =============================================================================
 
 def set_processor(new_processor=WEASYPRINT, wkhtmltopdf_filename=None):
     """Set the PDF processor."""
@@ -58,11 +113,11 @@ def set_processor(new_processor=WEASYPRINT, wkhtmltopdf_filename=None):
     if new_processor not in [XHTML2PDF, WEASYPRINT, PDFKIT]:
         raise AssertionError("rnc_pdf.set_pdf_processor: invalid PDF processor"
                              " specified")
-    if new_processor == WEASYPRINT and not WEASYPRINT_AVAILABLE:
+    if new_processor == WEASYPRINT and not weasyprint:
         raise RuntimeError("rnc_pdf: Weasyprint requested, but not available")
-    if new_processor == XHTML2PDF and not XHTML2PDF_AVAILABLE:
+    if new_processor == XHTML2PDF and not xhtml2pdf:
         raise RuntimeError("rnc_pdf: xhtml2pdf requested, but not available")
-    if new_processor == PDFKIT and not PDFKIT_AVAILABLE:
+    if new_processor == PDFKIT and not pdfkit:
         raise RuntimeError("rnc_pdf: pdfkit requested, but not available")
     global processor
     processor = new_processor
@@ -196,49 +251,3 @@ def append_pdf(input_pdf, output_writer):
 if __name__ == '__main__':
     logging.basicConfig()
     log.setLevel(logging.DEBUG)
-
-# =============================================================================
-# Conditional/optional imports
-# =============================================================================
-
-PDFKIT_AVAILABLE = False
-XHTML2PDF_AVAILABLE = False
-WEASYPRINT_AVAILABLE = False
-
-# Preference 1
-try:
-    log.debug("trying pdfkit...")
-    import pdfkit  # sudo apt-get install wkhtmltopdf; sudo pip install pdfkit
-    log.debug("pdfkit: loaded")
-    PDFKIT_AVAILABLE = True
-except ImportError:
-    log.debug("pdfkit: failed to load")
-
-if PDFKIT_AVAILABLE:
-    log.debug("pdfkit found, so skipping other PDF rendering engines")
-else:
-    try:
-        import xhtml2pdf.document  # sudo easy_install pip; sudo pip install xhtml2pdf  # noqa
-        log.debug("xhtml2pdf: loaded")
-        XHTML2PDF_AVAILABLE = True
-    except ImportError:
-        log.debug("xhtml2pdf: failed to load")
-
-    try:
-        log.debug("trying weasyprint...")
-        import weasyprint
-        log.debug("weasyprint: loaded")
-        WEASYPRINT_AVAILABLE = True
-    except ImportError:
-        log.debug("weasyprint: failed to load")
-
-if not any([XHTML2PDF_AVAILABLE, WEASYPRINT_AVAILABLE, PDFKIT_AVAILABLE]):
-    raise RuntimeError("No PDF engine (xhtml2pdf, weasyprint, pdfkit) "
-                       "available; can't load")
-
-if PDFKIT_AVAILABLE:
-    processor = PDFKIT  # the best
-elif WEASYPRINT_AVAILABLE:
-    processor = WEASYPRINT  # imperfect tables
-else:
-    processor = XHTML2PDF  # simple/slow

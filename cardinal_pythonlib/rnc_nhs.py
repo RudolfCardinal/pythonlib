@@ -49,44 +49,38 @@ def is_valid_nhs_number(n):
     if not isinstance(n, six.integer_types):
         log.debug("is_valid_nhs_number: parameter was not of integer type")
         return False
-    try:
-        s = str(n)
-        # Not 10 digits long?
-        if len(s) != 10:
-            log.debug("is_valid_nhs_number: not 10 digits")
-            return False
-
-        main_digits = [int(s[i]) for i in range(9)]
-        actual_check_digit = int(s[9])  # tenth digit
-
-        # 1. Multiply each of the first nine digits by the corresponding
-        #    digit weighting.
-        # 2. Sum the results.
-        # 3. Take remainder after division by 11.
-        remainder = sum([
-            d * f
-            for (d, f) in zip(main_digits, DIGIT_WEIGHTINGS)
-        ]) % 11
-        # 4. Subtract the remainder from 11
-        expected_check_digit = 11 - remainder
-        # 5. If this is 11, use 0 instead
-        if expected_check_digit == 11:
-            expected_check_digit = 0
-        # 6. If it's 10, the number is invalid
-        if expected_check_digit == 10:
-            log.debug("is_valid_nhs_number: calculated check digit invalid")
-            return False
-        # 7. If it doesn't match the check digit, it's invalid
-        if expected_check_digit != actual_check_digit:
-            log.debug("is_valid_nhs_number: check digit mismatch")
-            return False
-        # 8. Hooray!
-        return True
-
-    except:
-        # Something went wrong.
-        log.debug("is_valid_nhs_number: exception thrown")
+    s = str(n)
+    # Not 10 digits long?
+    if len(s) != 10:
+        log.debug("is_valid_nhs_number: not 10 digits")
         return False
+
+    main_digits = [int(s[i]) for i in range(9)]
+    actual_check_digit = int(s[9])  # tenth digit
+
+    # 1. Multiply each of the first nine digits by the corresponding
+    #    digit weighting.
+    # 2. Sum the results.
+    # 3. Take remainder after division by 11.
+    remainder = sum([
+        d * f
+        for (d, f) in zip(main_digits, DIGIT_WEIGHTINGS)
+    ]) % 11
+    # 4. Subtract the remainder from 11
+    expected_check_digit = 11 - remainder
+    # 5. If this is 11, use 0 instead
+    if expected_check_digit == 11:
+        expected_check_digit = 0
+    # 6. If it's 10, the number is invalid
+    if expected_check_digit == 10:
+        log.debug("is_valid_nhs_number: calculated check digit invalid")
+        return False
+    # 7. If it doesn't match the check digit, it's invalid
+    if expected_check_digit != actual_check_digit:
+        log.debug("is_valid_nhs_number: check digit mismatch")
+        return False
+    # 8. Hooray!
+    return True
 
 
 def nhs_number_from_text_or_none(s):
@@ -98,37 +92,32 @@ def nhs_number_from_text_or_none(s):
            data_field_notes/n/nhs_number_de.asp?shownav=0
     """
     # None in, None out.
-    FUNCNAME = "nhs_number_from_text_or_none: "
+    funcname = "nhs_number_from_text_or_none: "
     if not s:
-        log.debug(FUNCNAME + "incoming parameter was None")
+        log.debug(funcname + "incoming parameter was None")
         return None
 
-    try:
-        # (a) If it's not a 10-digit number, bye-bye.
+    # (a) If it's not a 10-digit number, bye-bye.
 
-        # Remove whitespace
-        s = WHITESPACE_REGEX.sub("", s)  # replaces all instances
-        # Contains non-numeric characters?
-        if NON_NUMERIC_REGEX.search(s):
-            log.debug(FUNCNAME + "contains non-numeric characters")
-            return None
-        # Not 10 digits long?
-        if len(s) != 10:
-            log.debug(FUNCNAME + "not 10 digits long")
-            return None
-
-        # (b) Validation
-        n = int(s)
-        if not is_valid_nhs_number(n):
-            log.debug(FUNCNAME + "failed validation")
-            return None
-
-        # Happy!
-        return n
-
-    except:
-        log.debug(FUNCNAME + "exception thrown")
+    # Remove whitespace
+    s = WHITESPACE_REGEX.sub("", s)  # replaces all instances
+    # Contains non-numeric characters?
+    if NON_NUMERIC_REGEX.search(s):
+        log.debug(funcname + "contains non-numeric characters")
         return None
+    # Not 10 digits long?
+    if len(s) != 10:
+        log.debug(funcname + "not 10 digits long")
+        return None
+
+    # (b) Validation
+    n = int(s)
+    if not is_valid_nhs_number(n):
+        log.debug(funcname + "failed validation")
+        return None
+
+    # Happy!
+    return n
 
 
 def generate_random_nhs_number():
@@ -137,7 +126,7 @@ def generate_random_nhs_number():
     check_digit = 10  # NHS numbers with this check digit are all invalid
     while check_digit == 10:
         digits = [random.randint(1, 9)]  # don't start with a zero
-        digits.extend([random.randint(0, 9) for x in range(8)])
+        digits.extend([random.randint(0, 9) for _ in range(8)])
         # ... length now 9
         check_digit = 11 - (sum([
             d * f
@@ -147,6 +136,7 @@ def generate_random_nhs_number():
         # ... 11 - that yields something in the range 1-11
         if check_digit == 11:
             check_digit = 0
+    # noinspection PyUnboundLocalVariable
     digits.append(check_digit)
     return int("".join([str(d) for d in digits]))
 

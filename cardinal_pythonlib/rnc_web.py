@@ -195,7 +195,7 @@ def get_cgi_parameter_datetime(form, key):
         if d.tzinfo is None:  # as it will be
             d = d.replace(tzinfo=dateutil.tz.tzlocal())
         return d
-    except:
+    except ValueError:
         return None
 
 
@@ -211,20 +211,20 @@ def get_cgi_parameter_filename_and_file(form, key):
     or (None, None) if no such file was uploaded."""
     if not (key in form):
         log.warning('get_cgi_parameter_file: form has no key {}'.format(key))
-        return (None, None)
+        return None, None
     fileitem = form[key]  # a nested FieldStorage instance; see
     # http://docs.python.org/2/library/cgi.html#using-the-cgi-module
     if isinstance(fileitem, cgi.MiniFieldStorage):
         log.warning('get_cgi_parameter_file: MiniFieldStorage found - did you '
                     'forget to set enctype="multipart/form-data" in '
                     'your form?')
-        return (None, None)
+        return None, None
     if not isinstance(fileitem, cgi.FieldStorage):
         log.warning('get_cgi_parameter_file: no FieldStorage instance with '
                     'key {} found'.format(key))
-        return (None, None)
+        return None, None
     if fileitem.filename and fileitem.file:  # can check "file" or "filename"
-        return (fileitem.filename, fileitem.file.read())
+        return fileitem.filename, fileitem.file.read()
         # as per
         # http://upsilon.cc/~zack/teaching/0607/techweb/02-python-cgi.pdf
         # Alternative:
@@ -236,7 +236,7 @@ def get_cgi_parameter_filename_and_file(form, key):
         log.warning('get_cgi_parameter_file: fileitem has no filename')
     else:
         log.warning('get_cgi_parameter_file: unknown failure reason')
-    return (None, None)
+    return None, None
 
     # "If a field represents an uploaded file, accessing the value
     # via the value attribute or the getvalue() method reads the
@@ -249,7 +249,7 @@ def get_cgi_parameter_filename_and_file(form, key):
 def cgi_parameter_exists(form, key):
     """Does a CGI form contain the key?"""
     s = get_cgi_parameter_str(form, key)
-    return (s is not None)
+    return s is not None
 
 
 def checkbox_checked(b):
@@ -278,6 +278,7 @@ def option_selected(variable, testvalue):
 def getenv_escaped(key, default=None):
     """Returns an environment variable's value, CGI-escaped, or None."""
     value = os.getenv(key, default)
+    # noinspection PyDeprecation
     return cgi.escape(value) if value is not None else None
 
 
@@ -285,14 +286,15 @@ def getconfigvar_escaped(config, section, key):
     """Returns a CGI-escaped version of the value read from an INI file using
     ConfigParser, or None."""
     value = config.get(section, key)
+    # noinspection PyDeprecation
     return cgi.escape(value) if value is not None else None
 
 
-def get_cgi_fieldstorage_from_wsgi_env(env, includeQueryString=True):
+def get_cgi_fieldstorage_from_wsgi_env(env, include_query_string=True):
     """Returns a cgi.FieldStorage object from the WSGI environment."""
     # http://stackoverflow.com/questions/530526/accessing-post-data-from-wsgi
     post_env = env.copy()
-    if not includeQueryString:
+    if not include_query_string:
         post_env['QUERY_STRING'] = ''
     form = cgi.FieldStorage(
         fp=env['wsgi.input'],
@@ -349,9 +351,9 @@ def pdf_result(pdf_binary, extraheaders=None, filename=None):
         contenttype += '; filename="{}"'.format(filename)
     # log.debug("type(pdf_binary): {}".format(type(pdf_binary)))
     if six.PY3:
-        return (contenttype, extraheaders, pdf_binary)
+        return contenttype, extraheaders, pdf_binary
     else:
-        return (contenttype, extraheaders, str(pdf_binary))
+        return contenttype, extraheaders, str(pdf_binary)
 
 
 def zip_result(zip_binary, extraheaders=None, filename=None):
@@ -365,21 +367,21 @@ def zip_result(zip_binary, extraheaders=None, filename=None):
     if filename:
         contenttype += '; filename="{}"'.format(filename)
     if six.PY3:
-        return (contenttype, extraheaders, zip_binary)
+        return contenttype, extraheaders, zip_binary
     else:
-        return (contenttype, extraheaders, str(zip_binary))
+        return contenttype, extraheaders, str(zip_binary)
 
 
 def html_result(html, extraheaders=None):
     """Returns (contenttype, extraheaders, data) tuple for UTF-8 HTML."""
     extraheaders = extraheaders or []
-    return ('text/html; charset=utf-8', extraheaders, html.encode("utf-8"))
+    return 'text/html; charset=utf-8', extraheaders, html.encode("utf-8")
 
 
 def xml_result(xml, extraheaders=None):
     """Returns (contenttype, extraheaders, data) tuple for UTF-8 XML."""
     extraheaders = extraheaders or []
-    return ('text/xml; charset=utf-8', extraheaders, xml.encode("utf-8"))
+    return 'text/xml; charset=utf-8', extraheaders, xml.encode("utf-8")
 
 
 def text_result(text, extraheaders=None, filename=None):
@@ -392,7 +394,7 @@ def text_result(text, extraheaders=None, filename=None):
     contenttype = 'text/plain; charset=utf-8'
     if filename:
         contenttype += '; filename="{}"'.format(filename)
-    return (contenttype, extraheaders, text.encode("utf-8"))
+    return contenttype, extraheaders, text.encode("utf-8")
 
 
 def tsv_result(text, extraheaders=None, filename=None):
@@ -405,7 +407,7 @@ def tsv_result(text, extraheaders=None, filename=None):
     contenttype = 'text/tab-separated-values; charset=utf-8'
     if filename:
         contenttype += '; filename="{}"'.format(filename)
-    return (contenttype, extraheaders, text.encode("utf-8"))
+    return contenttype, extraheaders, text.encode("utf-8")
 
 
 # =============================================================================
@@ -468,11 +470,13 @@ def webify(v, preserve_newlines=True):
         return ""
     if not isinstance(v, six.string_types):
         v = str(v)
+    # noinspection PyDeprecation
     return cgi.escape(v).replace("\n", nl).replace("\\n", nl)
 
 
 def websafe(value):
     """Makes a string safe for inclusion in ASCII-encoded HTML."""
+    # noinspection PyDeprecation
     return cgi.escape(value).encode('ascii', 'xmlcharrefreplace')
     # http://stackoverflow.com/questions/1061697
 

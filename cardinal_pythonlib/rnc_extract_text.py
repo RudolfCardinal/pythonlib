@@ -54,8 +54,10 @@ See also:
 
 from __future__ import division, print_function, absolute_import
 import argparse
+# noinspection PyPackageRequirements
 import bs4  # pip install beautifulsoup4
 # import cStringIO
+# noinspection PyPackageRequirements
 import docx  # pip install python-docx (NOT docx)
 import io
 import os
@@ -63,6 +65,7 @@ import os
 # import pdfminer.converter  # pip install pdfminer
 # import pdfminer.layout  # pip install pdfminer
 # import pdfminer.pdfpage   # pip install pdfminer
+# noinspection PyPackageRequirements
 import prettytable  # pip install PrettyTable
 # import pyth.plugins.rtf15.reader  # sudo apt-get install python-pyth
 # import pyth.plugins.plaintext.writer  # sudo apt-get install python-pyth
@@ -71,7 +74,7 @@ import subprocess
 import sys
 # import texttable  # ... can't deal with Unicode properly
 import textwrap
-import xml.etree
+from xml.etree import cElementTree as ElementTree
 import zipfile
 
 import logging
@@ -202,13 +205,13 @@ def convert_docx_to_text(filename=None, blob=None, width=80, min_col_width=15):
     #    https://python-docx.readthedocs.org/en/latest/
     #    http://stackoverflow.com/questions/25228106
     # -------------------------------------------------------------------------
-    def process_docx_simple_text(text, width):
-        if width:
-            return '\n'.join(textwrap.wrap(text, width=width))
+    def process_docx_simple_text(text, width_):
+        if width_:
+            return '\n'.join(textwrap.wrap(text, width=width_))
         else:
             return text
 
-    def process_docx_table(table, width):
+    def process_docx_table(table, width_):
         ncols = 1
         for row in table.rows:
             ncols = max(ncols, len(row.cells))
@@ -222,7 +225,7 @@ def convert_docx_to_text(filename=None, blob=None, width=80, min_col_width=15):
         )
         pt.align = 'l'
         pt.valign = 't'
-        pt.max_width = max(width // ncols, min_col_width)
+        pt.max_width = max(width_ // ncols, min_col_width)
         for row in table.rows:
             ncols = max(ncols, len(row.cells))
             ptrow = []
@@ -234,15 +237,15 @@ def convert_docx_to_text(filename=None, blob=None, width=80, min_col_width=15):
             pt.add_row(ptrow)
         return pt.get_string()
 
-    def gen_text(document, width):
-        for paragraph in document.paragraphs:
-            yield process_docx_simple_text(paragraph.text, width)
-        for table in document.tables:
-            yield process_docx_table(table, width)
+    def gen_text(doc, width_):
+        for paragraph in doc.paragraphs:
+            yield process_docx_simple_text(paragraph.text, width_)
+        for table in doc.tables:
+            yield process_docx_table(table, width_)
 
     with get_filelikeobject(filename, blob) as fp:
         document = docx.Document(fp)
-        return '\n\n'.join(gen_text(document, width=width))
+        return '\n\n'.join(gen_text(document, width_=width))
 
 
 def convert_odt_to_text(filename=None, blob=None):
@@ -252,7 +255,7 @@ def convert_odt_to_text(filename=None, blob=None):
     # KeyError: "There is no item named 'word/document.xml' in the archive"
     with get_filelikeobject(filename, blob) as fp:
         z = zipfile.ZipFile(fp)
-        tree = xml.etree.cElementTree.fromstring(z.read('content.xml'))
+        tree = ElementTree.fromstring(z.read('content.xml'))
         # ... may raise zipfile.BadZipfile
         textlist = []
         for element in tree.iter():

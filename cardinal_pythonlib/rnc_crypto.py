@@ -25,8 +25,9 @@ Copyright/licensing:
 """
 
 import base64
+# noinspection PyPackageRequirements
 import bcrypt  # PYTHON 2/UBUNTU: sudo apt-get install python-bcrypt  // PYTHON3/UBUNTU: sudo apt-get install python3-bcrypt  # noqa
-# import Crypto.Random  # sudo pip install pycrypto
+# import Crypto.Random  # pip install pycrypto
 import hashlib
 import os
 
@@ -90,7 +91,7 @@ def is_password_valid(plaintextpw, storedhash):
         h = bcrypt.hashpw(plaintextpw, storedhash)
     except ValueError:  # e.g. ValueError: invalid salt
         return False
-    return (h == storedhash)
+    return h == storedhash
 
 
 # =============================================================================

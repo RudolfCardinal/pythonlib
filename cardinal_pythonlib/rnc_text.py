@@ -25,7 +25,6 @@ Copyright/licensing:
 """
 
 import csv
-import string
 import datetime
 
 
@@ -43,16 +42,16 @@ def output_csv(filehandle, values):
 
 
 def get_what_follows_raw(s, prefix, onlyatstart=True, stripwhitespace=True):
-    prefixstart = string.find(s, prefix)
+    prefixstart = s.find(prefix)
     if ((prefixstart == 0 and onlyatstart) or
             (prefixstart != -1 and not onlyatstart)):
         # substring found
         resultstart = prefixstart + len(prefix)
         result = s[resultstart:]
         if stripwhitespace:
-            result = string.strip(result)
-        return (True, result)
-    return (False, "")
+            result = result.strip()
+        return True, result
+    return False, ""
 
 
 def get_what_follows(strings, prefix, onlyatstart=True, stripwhitespace=True,
@@ -66,7 +65,7 @@ def get_what_follows(strings, prefix, onlyatstart=True, stripwhitespace=True,
         return ""
     else:
         for i in range(1, len(strings)):  # i indexes the second of a pair
-            if string.find(strings[i-1], precedingline) == 0:
+            if strings[i-1].find(precedingline) == 0:
                 # ... if found at the start
                 (found, result) = get_what_follows_raw(strings[i], prefix,
                                                        onlyatstart,
@@ -79,9 +78,9 @@ def get_what_follows(strings, prefix, onlyatstart=True, stripwhitespace=True,
 def get_string(strings, prefix, ignoreleadingcolon=False, precedingline=""):
     s = get_what_follows(strings, prefix, precedingline=precedingline)
     if ignoreleadingcolon:
-        f = string.find(s, ":")
+        f = s.find(":")
         if f != -1:
-            s = string.strip(s[f+1:])
+            s = s[f+1:].strip()
     if len(s) == 0:
         return None
     return s
@@ -92,20 +91,20 @@ def get_string_relative(strings, prefix1, delta, prefix2,
     """Finds line beginning prefix1. Moves delta lines. Returns end of line
     beginning prefix2, if found."""
     for firstline in range(0, len(strings)):
-        if string.find(strings[firstline], prefix1) == 0:  # if found...
+        if strings[firstline].find(prefix1) == 0:  # if found...
             secondline = firstline + delta
             if secondline < 0 or secondline >= len(strings):
                 continue
-            if string.find(strings[secondline], prefix2) == 0:
+            if strings[secondline].find(prefix2) == 0:
                 s = strings[secondline][len(prefix2):]
                 if stripwhitespace:
-                    s = string.strip(s)
+                    s = s.strip()
                 if ignoreleadingcolon:
-                    f = string.find(s, ":")
+                    f = s.find(":")
                     if f != -1:
-                        s = string.strip(s[f+1:])
+                        s = s[f+1:].strip()
                     if stripwhitespace:
-                        s = string.strip(s)
+                        s = s.strip()
                 if len(s) == 0:
                     return None
                 return s
@@ -124,24 +123,24 @@ def get_float(strings, prefix, ignoreleadingcolon=False, precedingline=""):
                                     precedingline=precedingline))
 
 
-def get_int_raw(str):
-    if str is None:
+def get_int_raw(s):
+    if s is None:
         return None
-    return int(str)
+    return int(s)
 
 
-def get_bool_raw(str):
-    if str == "Y" or str == "y":
+def get_bool_raw(s):
+    if s == "Y" or s == "y":
         return True
-    elif str == "N" or str == "n":
+    elif s == "N" or s == "n":
         return False
     return None
 
 
-def get_float_raw(str):
-    if str is None:
+def get_float_raw(s):
+    if s is None:
         return None
-    return float(str)
+    return float(s)
 
 
 def get_bool(strings, prefix, ignoreleadingcolon=False, precedingline=""):
@@ -191,14 +190,14 @@ def find_line_beginning(strings, linestart):
                 return i
         return -1
     for i in range(len(strings)):
-        if string.find(strings[i], linestart) == 0:
+        if strings[i].find(linestart) == 0:
             return i
     return -1
 
 
 def find_line_containing(strings, contents):
     for i in range(len(strings)):
-        if string.find(strings[i], contents) != -1:
+        if strings[i].find(contents) != -1:
             return i
     return -1
 
@@ -222,8 +221,8 @@ def get_lines_from_to(strings, firstlinestart, list_of_lastline_starts):
     return strings[start_index:end_index]
 
 
-def is_empty_string(str):
-    return (len(string.strip(str)) == 0)
+def is_empty_string(s):
+    return len(s.strip(s)) == 0
 
 
 def csv_to_list_of_fields(lines, csvheader, quotechar='"'):
@@ -242,7 +241,7 @@ def csv_to_list_of_dicts(lines, csvheader, quotechar='"'):
     # an empty line marks the end of the block
     csvlines = get_lines_from_to(lines, csvheader, [None])[1:]
     # ... remove the CSV header
-    headerfields = string.split(csvheader, sep=",")
+    headerfields = csvheader.split(",")
     reader = csv.reader(csvlines, quotechar=quotechar)
     for fields in reader:
         row = {}  # empty dictionary
@@ -259,9 +258,9 @@ def dictlist_convert_to_string(dict_list, key):
             d[key] = None
 
 
-def dictlist_convert_to_datetime(dict_list, key, DATETIME_FORMAT_STRING):
+def dictlist_convert_to_datetime(dict_list, key, datetime_format_string):
     for d in dict_list:
-        d[key] = datetime.datetime.strptime(d[key], DATETIME_FORMAT_STRING)
+        d[key] = datetime.datetime.strptime(d[key], datetime_format_string)
 
 
 def dictlist_convert_to_int(dict_list, key):

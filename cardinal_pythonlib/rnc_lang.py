@@ -28,6 +28,7 @@ import importlib
 import logging
 import pkgutil
 import six
+# noinspection PyUnresolvedReferences
 from six.moves import range
 
 log = logging.getLogger(__name__)
@@ -60,10 +61,10 @@ class AttrDict(dict):
 # =============================================================================
 
 def merge_dicts(*dict_args):
-    '''
+    """
     Given any number of dicts, shallow copy and merge into a new dict,
     precedence goes to key value pairs in latter dicts.
-    '''
+    """
     # http://stackoverflow.com/questions/38987
     result = {}
     for dictionary in dict_args:
@@ -82,11 +83,11 @@ def convert_to_bool(x, default=None):
         return default
     try:
         return int(x) != 0
-    except:
+    except (TypeError, ValueError):
         pass
     try:
         return float(x) != 0
-    except:
+    except (TypeError, ValueError):
         pass
     if not isinstance(x, six.string_types):
         raise Exception("Unknown thing being converted to bool: {}".format(x))
@@ -124,7 +125,7 @@ def convert_attrs_to_int(obj, attrs, default=None):
         value = getattr(obj, a)
         try:
             value = int(value)
-        except:
+        except (TypeError, ValueError):
             value = default
         setattr(obj, a, value)
 
@@ -164,6 +165,7 @@ def import_submodules(package, recursive=True):
     """ Import all submodules of a module, recursively, including subpackages
 
     :param package: package (name or actual module)
+    :param recursive: import submodules too
     :type package: str | module
     :rtype: dict[str, types.ModuleType]
     """

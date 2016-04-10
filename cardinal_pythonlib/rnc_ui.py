@@ -28,6 +28,7 @@ Copyright/licensing:
 import errno
 import getpass
 import os
+# noinspection PyUnresolvedReferences
 from six.moves import input
 import sys
 if sys.version_info > (3,):
@@ -37,8 +38,10 @@ if sys.version_info > (3,):
     filedialog = tkinter.filedialog
 else:
     # Python 2
+    # noinspection PyUnresolvedReferences
     import Tkinter
     tkinter = Tkinter
+    # noinspection PyUnresolvedReferences
     import tkFileDialog
     filedialog = tkFileDialog
 
@@ -46,9 +49,9 @@ else:
 def ask_user(prompt, default=None, to_unicode=False):
     """Prompts the user, with a default. Returns str or unicode."""
     if default is None:
-        prompt = prompt + ": "
+        prompt += ": "
     else:
-        prompt = prompt + " [" + default + "]: "
+        prompt += " [" + default + "]: "
     result = input(prompt.encode(sys.stdout.encoding))
     if to_unicode:
         result = result.decode(sys.stdin.encoding)

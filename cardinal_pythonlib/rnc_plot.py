@@ -25,12 +25,14 @@ Copyright/licensing:
 """
 
 import io
+# noinspection PyPackageRequirements
 import numpy
 import sys
 
 from . import rnc_web
 
 if sys.version_info > (3,):
+    # noinspection PyShadowingBuiltins
     buffer = memoryview
 
 
@@ -104,6 +106,7 @@ def logistic(x, k, theta):
     """Standard logistic function."""
     if x is None or k is None or theta is None:
         return None
+    # noinspection PyUnresolvedReferences
     return 1 / (1 + numpy.exp(-k * (x - theta)))
 
 
@@ -111,4 +114,5 @@ def inv_logistic(y, k, theta):
     """Inverse standard logistic function."""
     if y is None or k is None or theta is None:
         return None
+    # noinspection PyUnresolvedReferences
     return (numpy.log((1 / y) - 1) / -k) + theta

@@ -27,6 +27,7 @@ Copyright/licensing:
 from __future__ import print_function
 import codecs
 import six
+# noinspection PyUnresolvedReferences
 from six.moves import reload_module
 import sys
 
@@ -40,13 +41,15 @@ def fix_windows_utf8_output():
     if six.PY3:
         return
     reload_module(sys)
+    # noinspection PyUnresolvedReferences
     sys.setdefaultencoding('utf-8')
     # print sys.getdefaultencoding()
 
     if sys.platform == 'win32':
         try:
             import win32console
-        except:
+        except ImportError:
+            win32console = None
             print(
                 "Python Win32 Extensions module is required.\n "
                 "You can download it from "
@@ -56,10 +59,10 @@ def fix_windows_utf8_output():
         # win32console implementation  of SetConsoleCP does not return a value
         # CP_UTF8 = 65001
         win32console.SetConsoleCP(65001)
-        if (win32console.GetConsoleCP() != 65001):
+        if win32console.GetConsoleCP() != 65001:
             raise RuntimeError("Cannot set console codepage to 65001 (UTF-8)")
         win32console.SetConsoleOutputCP(65001)
-        if (win32console.GetConsoleOutputCP() != 65001):
+        if win32console.GetConsoleOutputCP() != 65001:
             raise RuntimeError("Cannot set console output codepage to 65001 "
                                "(UTF-8)")
 
