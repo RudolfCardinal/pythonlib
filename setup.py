@@ -88,4 +88,12 @@ setup(
     install_requires=[
         'six',  # Python 2/3 compatibility
     ],
+
+    entry_points={
+        'console_scripts': [
+            # Format is 'script=module:function".
+            'rnc_email=cardinal_pythonlib.rnc_email:main',
+            'rnc_extract_text=cardinal_pythonlib.rnc_extract_text:main',
+        ],
+    },
 )

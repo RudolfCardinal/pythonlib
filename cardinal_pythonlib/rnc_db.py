@@ -154,10 +154,13 @@ import time
 
 # 1. An ODBC driver
 try:
-    # noinspection PyPackageRequirements
-    import pyodbc  # pip install pyodbc
+    import pypyodbc as pyodbc  # pip install pypyodbc
 except ImportError:
-    pyodbc = None
+    try:
+        # noinspection PyPackageRequirements
+        import pyodbc  # pip install pyodbc; has C prerequisites
+    except ImportError:
+        pyodbc = None
 
 # 2. A JDBC driver
 try:
@@ -181,7 +184,7 @@ except ImportError:
 
 if not pymysql:
     try:
-        import MySQLdb  # Python 2 (Debian): "sudo apt-get install python-mysqldb"  # noqa
+        import MySQLdb  # pip install [mysql-python | mysqlclient]
         import MySQLdb.converters  # needs manual import
         import _mysql
         mysql = MySQLdb
@@ -204,7 +207,7 @@ _CONNECTION_ERROR_MSG = "Failed to connect. {ex}: {msg}"
 _LINE_EQUALS = "=" * 79
 _MSG_JDBC_UNAVAILABLE = "Python jaydebeapi module not available"
 _MSG_MYSQL_DRIVERS_UNAVAILABLE = (
-    "Python PyMySQL (Python 2/3) and MySQLdb (Python 2) modules unavailable")
+    "Python PyMySQL and MySQLdb/mysqlclient modules unavailable")
 _MSG_NO_FLAVOUR = "No database flavour specified"
 _MSG_PYODBC_UNAVAILABLE = "Python pyodbc module not available"
 

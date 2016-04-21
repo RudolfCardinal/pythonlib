@@ -59,7 +59,11 @@ def truncate_date_to_first_of_month(dt):
 
 
 def coerce_to_date(x):
-    """Ensure an object is a datetime, or coerce to one, or raise."""
+    """
+    Ensure an object is a datetime, or coerce to one, or raise (ValueError or
+    OverflowError, as per
+    http://dateutil.readthedocs.org/en/latest/parser.html).
+    """
     if x is None:
         return None
     if isinstance(x, datetime.datetime):
