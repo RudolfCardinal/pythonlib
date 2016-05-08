@@ -648,6 +648,23 @@ def convert_anything_to_text(filename=None, blob=None):
 # Decider
 # =============================================================================
 
+ext_map = {
+    # Functions must be of the form func(filename, blob):
+    '.doc': convert_doc_to_text,
+    '.dot': convert_doc_to_text,
+    '.docm': convert_docx_to_text,
+    '.docx': convert_docx_to_text,
+    '.html': convert_html_to_text,
+    '.htm': convert_html_to_text,
+    '.log': get_file_contents,
+    '.odt': convert_odt_to_text,
+    '.pdf': convert_pdf_to_txt,
+    '.rtf': convert_rtf_to_text,
+    '.xml': convert_xml_to_text,
+    '.txt': get_file_contents,
+}
+
+
 def document_to_text(filename=None, blob=None, extension=None):
     """Pass either a filename or a binary object.
     - Raises an exception for malformed arguments, missing files, bad
@@ -676,26 +693,13 @@ def document_to_text(filename=None, blob=None, extension=None):
             extension))
 
     # Choose method
-    if extension in [".doc", ".dot"]:
-        return convert_doc_to_text(filename, blob)
-    elif extension in [".docx", ".docm"]:
-        return convert_docx_to_text(filename, blob)
-    elif extension in [".odt"]:
-        return convert_odt_to_text(filename, blob)
-    elif extension in [".pdf"]:
-        return convert_pdf_to_txt(filename, blob)
-    elif extension in [".html", ".htm"]:
-        return convert_html_to_text(filename, blob)
-    elif extension in [".xml"]:
-        return convert_xml_to_text(filename, blob)
-    elif extension in [".log", ".txt"]:
-        return get_file_contents(filename, blob)
-    elif extension in [".rtf"]:
-        return convert_rtf_to_text(filename, blob)
-    else:
+    func = ext_map.get(extension)
+    if func is None:
         log.warning("Unknown filetype: {}; using generic tool".format(
             extension))
         return convert_anything_to_text(filename, blob)
+    else:
+        return func(filename, blob)
 
 
 # =============================================================================

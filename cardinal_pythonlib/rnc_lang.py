@@ -120,13 +120,16 @@ def convert_attrs_to_lowercase(obj, attrs):
         setattr(obj, a, value.lower())
 
 
+def convert_to_int(x, default=None):
+    try:
+        return int(x)
+    except (TypeError, ValueError):
+        return default
+
+
 def convert_attrs_to_int(obj, attrs, default=None):
     for a in attrs:
-        value = getattr(obj, a)
-        try:
-            value = int(value)
-        except (TypeError, ValueError):
-            value = default
+        value = convert_to_int(getattr(obj, a), default=default)
         setattr(obj, a, value)
 
 
