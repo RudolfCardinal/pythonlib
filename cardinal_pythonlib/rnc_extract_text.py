@@ -142,7 +142,9 @@ else:
         'antiword': shutil.which('antiword'),  # sudo apt-get install antiword
         'pdftotext': shutil.which('pdftotext'),  # core part of Linux?
         'strings': shutil.which('strings'),  # part of standard Unix
-        'strings2': shutil.which('strings2'),  # Windows: http://split-code.com/strings2.html
+        'strings2': shutil.which('strings2'),
+        # ... Windows: https://technet.microsoft.com/en-us/sysinternals/strings.aspx  # noqa
+        # ... Windows: http://split-code.com/strings2.html
         'unrtf': shutil.which('unrtf'),  # sudo apt-get install unrtf
     }
 
