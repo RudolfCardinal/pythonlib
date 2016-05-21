@@ -134,6 +134,7 @@ if six.PY2:
         'antiword': 'antiword',
         'pdftotext': 'pdftotext',
         'strings': 'strings',
+        'strings2': 'strings2',
         'unrtf': 'unrtf',
     }
 else:
@@ -141,6 +142,7 @@ else:
         'antiword': shutil.which('antiword'),  # sudo apt-get install antiword
         'pdftotext': shutil.which('pdftotext'),  # core part of Linux?
         'strings': shutil.which('strings'),  # part of standard Unix
+        'strings2': shutil.which('strings2'),  # Windows: http://split-code.com/strings2.html
         'unrtf': shutil.which('unrtf'),  # sudo apt-get install unrtf
     }
 
@@ -230,6 +232,18 @@ def convert_pdf_to_txt(filename=None, blob=None):
         return text
     else:
         raise AssertionError("No PDF-reading tool available")
+
+
+def availability_pdf():
+    pdftotext = tools['pdftotext']
+    if pdftotext:
+        return True
+    elif pdfminer:
+        log.warning("PDF conversion: pdftotext missing; "
+                    "using pdfminer (less efficient)")
+        return True
+    else:
+        return False
 
 
 # =============================================================================
@@ -613,6 +627,18 @@ def convert_rtf_to_text(filename=None, blob=None):
         raise AssertionError("No RTF-reading tool available")
 
 
+def availability_rtf():
+    unrtf = tools['unrtf']
+    if unrtf:
+        return True
+    elif pyth:
+        log.warning("RTF conversion: unrtf missing; "
+                    "using pyth (less efficient)")
+        return True
+    else:
+        return False
+
+
 # =============================================================================
 # DOC
 # =============================================================================
@@ -628,13 +654,18 @@ def convert_doc_to_text(filename=None, blob=None):
         raise AssertionError("No DOC-reading tool available")
 
 
+def availability_doc():
+    antiword = tools['antiword']
+    return bool(antiword)
+
+
 # =============================================================================
 # Anything
 # =============================================================================
 
 def convert_anything_to_text(filename=None, blob=None):
     # strings is a standard Unix command to get text from any old rubbish
-    strings = tools['strings']
+    strings = tools['strings'] or tools['strings2']
     if strings:
         if filename:
             return get_cmd_output(strings, filename)
@@ -644,24 +675,70 @@ def convert_anything_to_text(filename=None, blob=None):
         raise AssertionError("No fallback string-reading tool available")
 
 
+def availability_anything():
+    strings = tools['strings'] or tools['strings2']
+    return bool(strings)
+
+
 # =============================================================================
 # Decider
 # =============================================================================
 
 ext_map = {
-    # Functions must be of the form func(filename, blob):
-    '.doc': convert_doc_to_text,
-    '.dot': convert_doc_to_text,
-    '.docm': convert_docx_to_text,
-    '.docx': convert_docx_to_text,
-    '.html': convert_html_to_text,
-    '.htm': convert_html_to_text,
-    '.log': get_file_contents,
-    '.odt': convert_odt_to_text,
-    '.pdf': convert_pdf_to_txt,
-    '.rtf': convert_rtf_to_text,
-    '.xml': convert_xml_to_text,
-    '.txt': get_file_contents,
+    # Converter functions must be of the form func(filename, blob):
+    # Availability must be either a boolean or a function that takes no params.
+    '.doc': {
+        'converter': convert_doc_to_text,
+        'availability': availability_doc,
+    },
+    '.dot': {
+        'converter': convert_doc_to_text,
+        'availability': availability_doc,
+    },
+    '.docm': {
+        'converter': convert_docx_to_text,
+        'availability': True,
+    },
+    '.docx': {
+        'converter': convert_docx_to_text,
+        'availability': True,
+    },
+    '.html': {
+        'converter': convert_html_to_text,
+        'availability': True,
+    },
+    '.htm': {
+        'converter': convert_html_to_text,
+        'availability': True,
+    },
+    '.log': {
+        'converter': get_file_contents,
+        'availability': True,
+    },
+    '.odt': {
+        'converter': convert_odt_to_text,
+        'availability': True,
+    },
+    '.pdf': {
+        'converter': convert_pdf_to_txt,
+        'availability': availability_pdf,
+    },
+    '.rtf': {
+        'converter': convert_rtf_to_text,
+        'availability': availability_rtf,
+    },
+    '.xml': {
+        'converter': convert_xml_to_text,
+        'availability': True,
+    },
+    '.txt': {
+        'converter': get_file_contents,
+        'availability': True,
+    },
+    None: {  # fallback
+        'converter': convert_anything_to_text,
+        'availability': availability_anything,
+    },
 }
 
 
@@ -693,13 +770,35 @@ def document_to_text(filename=None, blob=None, extension=None):
             extension))
 
     # Choose method
-    func = ext_map.get(extension)
-    if func is None:
+    info = ext_map.get(extension)
+    if info is None:
         log.warning("Unknown filetype: {}; using generic tool".format(
             extension))
-        return convert_anything_to_text(filename, blob)
+        info = ext_map[None]
+    func = info['converter']
+    return func(filename, blob)
+
+
+def is_text_extractor_available(extension):
+    if extension is not None:
+        extension = extension.lower()
+    info = ext_map.get(extension)
+    if info is None:
+        return False
+    availability = info['availability']
+    if type(availability) == bool:
+        return availability
+    elif callable(availability):
+        return availability()
     else:
-        return func(filename, blob)
+        raise ValueError(
+            "Bad information object for extension: {}".format(extension))
+
+
+def require_text_extractor(extension):
+    if not is_text_extractor_available(extension):
+        raise ValueError(
+            "No text extractor available for extension: {}".format(extension))
 
 
 # =============================================================================
@@ -707,15 +806,26 @@ def document_to_text(filename=None, blob=None, extension=None):
 # =============================================================================
 
 def main():
+    logging.basicConfig(level=logging.DEBUG)
     parser = argparse.ArgumentParser()
-    parser.add_argument("inputfile", nargs="?",
-                        help="Input file name")
+    parser.add_argument("inputfile", nargs="?", help="Input file name")
+    parser.add_argument(
+        "--availability", nargs='*',
+        help="File extensions to check availability for (use a '.' prefix, "
+             "and use the special extension 'None' to check the fallback "
+             "processor")
     args = parser.parse_args()
+    if args.availability:
+        for ext in args.availability:
+            if ext.lower() == 'none':
+                ext = None
+            available = is_text_extractor_available(ext)
+            print("Extractor for extension {} present: {}".format(ext,
+                                                                  available))
+        return
     if not args.inputfile:
         parser.print_help(sys.stderr)
         return
-    logging.basicConfig()
-    log.setLevel(logging.DEBUG)
     result = document_to_text(filename=args.inputfile)
     if result is None:
         return
