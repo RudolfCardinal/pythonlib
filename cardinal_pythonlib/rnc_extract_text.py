@@ -123,6 +123,8 @@ log.addHandler(logging.NullHandler())
 # Constants
 # =============================================================================
 
+DEFAULT_WIDTH = 120
+DEFAULT_MIN_COL_WIDTH = 15
 ENCODING = "utf-8"
 
 # =============================================================================
@@ -203,8 +205,8 @@ def get_cmd_output_from_stdin(stdint_content_binary, *args, **kwargs):
 # PDF
 # =============================================================================
 
-# noinspection PyUnresolvedReferences
-def convert_pdf_to_txt(filename=None, blob=None):
+# noinspection PyUnresolvedReferences,PyUnusedLocal
+def convert_pdf_to_txt(filename=None, blob=None, **kwargs):
     """Pass either a filename or a binary object."""
     pdftotext = tools['pdftotext']
     if pdftotext:  # External command method
@@ -263,7 +265,7 @@ def docx_process_simple_text(text, width):
         return text
 
 
-def docx_process_table(table, width, min_col_width):
+def docx_process_table(table, width, min_col_width, plain=False):
     """
     Structure:
         table
@@ -273,7 +275,44 @@ def docx_process_table(table, width, min_col_width):
                         .text
     That's the structure of a docx.table.Table object, but also of our homebrew
     creation, CustomDocxTable.
+
+    The 'plain' option optimizes for natural language processing, by:
+    - removing vertical lines:
+
+        +-------------+-------------+
+        | AAA AAA     | BBB BBB     |
+        | AAA AAA     | BBB BBB     |
+        +-------------+-------------+
+
+        becomes
+
+        -----------------------------
+          AAA AAA       BBB BBB
+          AAA AAA       BBB BBB
+        -----------------------------
+
+    - and offsetting cells:
+
+        AAA AAA     BBB BBB     CCC CCC
+        AAA AAA     BBB BBB     CCC CCC
+
+        becomes
+
+        AAA AAA
+        AAA AAA
+                    BBB BBB
+                    BBB BBB
+                                CCC CCC
+                                CCC CCC
+
     """
+
+    def get_cell_text(cell_):
+        cellparagraphs = [paragraph.text.strip()
+                          for paragraph in cell_.paragraphs]
+        cellparagraphs = [x for x in cellparagraphs if x]
+        return '\n\n'.join(cellparagraphs)
+
     ncols = 1
     for row in table.rows:
         ncols = max(ncols, len(row.cells))
@@ -283,20 +322,28 @@ def docx_process_table(table, width, min_col_width):
         header=False,
         border=True,
         hrules=prettytable.ALL,
-        vrules=prettytable.ALL,
+        vrules=prettytable.NONE if plain else prettytable.ALL,
     )
     pt.align = 'l'
     pt.valign = 't'
     pt.max_width = max(width // ncols, min_col_width)
-    for row in table.rows:
-        ncols = max(ncols, len(row.cells))
-        ptrow = []
-        for cell in row.cells:
-            cellparagraphs = [paragraph.text.strip()
-                              for paragraph in cell.paragraphs]
-            cellparagraphs = [x for x in cellparagraphs if x]
-            ptrow.append('\n\n'.join(cellparagraphs))
-        pt.add_row(ptrow)
+    if plain:
+        for row in table.rows:
+            for i, cell in enumerate(row.cells):
+                n_before = i
+                n_after = len(row.cells) - i - 1
+                ptrow = (
+                    [''] * n_before +
+                    [get_cell_text(cell)] +
+                    [''] * n_after
+                )
+                pt.add_row(ptrow)
+    else:
+        for row in table.rows:
+            ptrow = []
+            for cell in row.cells:
+                ptrow.append(get_cell_text(cell))
+            pt.add_row(ptrow)
     return pt.get_string()
 
 
@@ -482,8 +529,9 @@ def docx_table_from_xml_node(table_node, level, **kwargs):
     return docx_process_table(table, **kwargs)
 
 
-def convert_docx_to_text(filename=None, blob=None,
-                         width=120, min_col_width=15):
+# noinspection PyUnusedLocal
+def convert_docx_to_text(filename=None, blob=None, width=DEFAULT_WIDTH,
+                         min_col_width=15, plain=False, **kwargs):
     """
     Pass either a filename or a binary object.
 
@@ -544,8 +592,10 @@ def convert_docx_to_text(filename=None, blob=None,
         text = ''
         with get_filelikeobject(filename, blob) as fp:
             for xml in gen_xml_files_from_docx(fp):
-                text += docx_text_from_xml(xml, width=width,
-                                           min_col_width=min_col_width)
+                text += docx_text_from_xml(xml,
+                                           width=width,
+                                           min_col_width=min_col_width,
+                                           plain=plain)
         return text
     elif docx:
         with get_filelikeobject(filename, blob) as fp:
@@ -566,7 +616,8 @@ def convert_docx_to_text(filename=None, blob=None,
 # ODT
 # =============================================================================
 
-def convert_odt_to_text(filename=None, blob=None):
+# noinspection PyUnusedLocal
+def convert_odt_to_text(filename=None, blob=None, **kwargs):
     """Pass either a filename or a binary object."""
     # We can't use exactly the same method as for DOCX files, using docx:
     # sometimes that works, but sometimes it falls over with:
@@ -586,7 +637,8 @@ def convert_odt_to_text(filename=None, blob=None):
 # HTML
 # =============================================================================
 
-def convert_html_to_text(filename=None, blob=None):
+# noinspection PyUnusedLocal
+def convert_html_to_text(filename=None, blob=None, **kwargs):
     with get_filelikeobject(filename, blob) as fp:
         soup = bs4.BeautifulSoup(fp)
         return soup.get_text()
@@ -597,7 +649,8 @@ def convert_html_to_text(filename=None, blob=None):
 # =============================================================================
 
 
-def convert_xml_to_text(filename=None, blob=None):
+# noinspection PyUnusedLocal
+def convert_xml_to_text(filename=None, blob=None, **kwargs):
     with get_filelikeobject(filename, blob) as fp:
         soup = bs4.BeautifulStoneSoup(fp)
         return soup.get_text()
@@ -608,8 +661,8 @@ def convert_xml_to_text(filename=None, blob=None):
 # =============================================================================
 
 
-# noinspection PyUnresolvedReferences
-def convert_rtf_to_text(filename=None, blob=None):
+# noinspection PyUnresolvedReferences,PyUnusedLocal
+def convert_rtf_to_text(filename=None, blob=None, **kwargs):
     unrtf = tools['unrtf']
     if unrtf:  # Best
         if filename:
@@ -645,13 +698,16 @@ def availability_rtf():
 # DOC
 # =============================================================================
 
-def convert_doc_to_text(filename=None, blob=None):
+# noinspection PyUnusedLocal
+def convert_doc_to_text(filename=None, blob=None, width=DEFAULT_WIDTH,
+                        **kwargs):
     antiword = tools['antiword']
     if antiword:
         if filename:
-            return get_cmd_output(antiword, filename)
+            return get_cmd_output(antiword, '-w', str(width), filename)
         else:
-            return get_cmd_output_from_stdin(blob, antiword, '-')
+            return get_cmd_output_from_stdin(blob, antiword, '-w',
+                                             str(width), '-')
     else:
         raise AssertionError("No DOC-reading tool available")
 
@@ -665,7 +721,8 @@ def availability_doc():
 # Anything
 # =============================================================================
 
-def convert_anything_to_text(filename=None, blob=None):
+# noinspection PyUnusedLocal
+def convert_anything_to_text(filename=None, blob=None, **kwargs):
     # strings is a standard Unix command to get text from any old rubbish
     strings = tools['strings'] or tools['strings2']
     if strings:
@@ -687,7 +744,7 @@ def availability_anything():
 # =============================================================================
 
 ext_map = {
-    # Converter functions must be of the form func(filename, blob):
+    # Converter functions must be of the form func(filename, blob, **kwargs):
     # Availability must be either a boolean or a function that takes no params.
     '.doc': {
         'converter': convert_doc_to_text,
@@ -744,8 +801,10 @@ ext_map = {
 }
 
 
-def document_to_text(filename=None, blob=None, extension=None):
-    """Pass either a filename or a binary object.
+def document_to_text(filename=None, blob=None, extension=None, plain=False,
+                     width=DEFAULT_WIDTH, min_col_width=DEFAULT_MIN_COL_WIDTH):
+    """
+    Pass either a filename or a binary object.
     - Raises an exception for malformed arguments, missing files, bad
       filetypes, etc.
     - Returns a string if the file was processed (potentially an empty string).
@@ -778,7 +837,12 @@ def document_to_text(filename=None, blob=None, extension=None):
             extension))
         info = ext_map[None]
     func = info['converter']
-    return func(filename, blob)
+    kwargs = {
+        'plain': plain,
+        'width': width,
+        'min_col_width': min_col_width,
+    }
+    return func(filename, blob, **kwargs)
 
 
 def is_text_extractor_available(extension):
@@ -816,6 +880,18 @@ def main():
         help="File extensions to check availability for (use a '.' prefix, "
              "and use the special extension 'None' to check the fallback "
              "processor")
+    parser.add_argument(
+        "--plain", action="store_true",
+        help="Keep it plain: minimize layout (e.g. of tables) and maximize "
+             "the likelihood of source sentence flowing properly in the "
+             "output (e.g. for natural language processing).")
+    parser.add_argument(
+        "--width", type=int, default=DEFAULT_WIDTH,
+        help="Word wrapping width (default {})".format(DEFAULT_WIDTH))
+    parser.add_argument(
+        "--min-col-width", type=int, default=DEFAULT_MIN_COL_WIDTH,
+        help="Minimum column width for tables (default {})".format(
+            DEFAULT_MIN_COL_WIDTH))
     args = parser.parse_args()
     if args.availability:
         for ext in args.availability:
@@ -828,7 +904,9 @@ def main():
     if not args.inputfile:
         parser.print_help(sys.stderr)
         return
-    result = document_to_text(filename=args.inputfile)
+    result = document_to_text(
+        filename=args.inputfile, plain=args.plain,
+        width=args.width, min_col_width=args.min_col_width)
     if result is None:
         return
     elif six.PY2 and isinstance(result, six.text_type):
@@ -839,3 +917,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+# *** antiword -w width
