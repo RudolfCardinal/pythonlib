@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Support functions for user interaction.
@@ -31,6 +31,7 @@ import os
 # noinspection PyUnresolvedReferences
 from six.moves import input
 import sys
+from typing import Optional
 if sys.version_info > (3,):
     # Python 3
     import tkinter
@@ -46,7 +47,9 @@ else:
     filedialog = tkFileDialog
 
 
-def ask_user(prompt, default=None, to_unicode=False):
+def ask_user(prompt: str,
+             default: str = None,
+             to_unicode: bool = False) -> Optional[str]:
     """Prompts the user, with a default. Returns str or unicode."""
     if default is None:
         prompt += ": "
@@ -58,12 +61,14 @@ def ask_user(prompt, default=None, to_unicode=False):
     return result if len(result) > 0 else default
 
 
-def ask_user_password(prompt):
+def ask_user_password(prompt: str) -> str:
     """Read a password from the console."""
     return getpass.getpass(prompt + ": ")
 
 
-def get_save_as_filename(defaultfilename, defaultextension, title="Save As"):
+def get_save_as_filename(defaultfilename: str,
+                         defaultextension: str,
+                         title: str = "Save As") -> str:
     """Provides a GUI "Save As" dialogue and returns the filename."""
     root = tkinter.Tk()  # create and get Tk topmost window
     # (don't do this too early; the command prompt loses focus)
@@ -79,7 +84,9 @@ def get_save_as_filename(defaultfilename, defaultextension, title="Save As"):
     return filename
 
 
-def get_open_filename(defaultfilename, defaultextension, title="Open"):
+def get_open_filename(defaultfilename: str,
+                      defaultextension: str,
+                      title: str = "Open") -> str:
     """Provides a GUI "Open" dialogue and returns the filename."""
     root = tkinter.Tk()  # create and get Tk topmost window
     # (don't do this too early; the command prompt loses focus)
@@ -95,7 +102,7 @@ def get_open_filename(defaultfilename, defaultextension, title="Open"):
     return filename
 
 
-def mkdir_p(path):
+def mkdir_p(path: str) -> None:
     """Makes a directory if it doesn't exist."""
     try:
         os.makedirs(path)

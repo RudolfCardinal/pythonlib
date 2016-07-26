@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Miscellaneous mathematical functions
@@ -50,7 +50,8 @@ EQUALS_SEPARATOR = "=" * 79
 # Softmax
 # =============================================================================
 
-def softmax(x, b=1.0):
+def softmax(x: np.array,
+            b: float = 1.0) -> float:
     # x: vector (numpy.array) of values
     # b: exploration parameter, or inverse temperature [Daw2009], or 1/t where:
     # t: temperature (towards infinity: all actions equally likely;

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Support functions for date/time.
@@ -34,31 +34,33 @@ import pytz  # pip install pytz
 # Date/time functions
 # =============================================================================
 
-def format_datetime(d, fmt, default=None):
+def format_datetime(d: datetime.datetime,
+                    fmt: str,
+                    default: str = None) -> str:
     """Format a datetime with a format string, or return default if None."""
     if d is None:
         return default
     return d.strftime(fmt)
 
 
-def get_now_utc():
+def get_now_utc() -> datetime.datetime:
     """Get the time now in the UTC timezone."""
     return datetime.datetime.now(pytz.utc)
 
 
-def get_now_utc_notz():
+def get_now_utc_notz() -> datetime.datetime:
     """Get the UTC time now, but with no timezone information."""
     return get_now_utc().replace(tzinfo=None)
 
 
-def truncate_date_to_first_of_month(dt):
+def truncate_date_to_first_of_month(dt) -> datetime.datetime:
     """Change the day to the first of the month."""
     if dt is None:
         return None
     return dt.replace(day=1)
 
 
-def coerce_to_date(x):
+def coerce_to_date(x) -> datetime.datetime:
     """
     Ensure an object is a datetime, or coerce to one, or raise (ValueError or
     OverflowError, as per

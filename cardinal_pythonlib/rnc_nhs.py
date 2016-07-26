@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Support functions regarding NHS numbers, etc.
@@ -26,29 +26,57 @@ Copyright/licensing:
 
 import re
 import logging
-import six
+import random
+from typing import List, Optional, Union
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
-WHITESPACE_REGEX = re.compile('\s')
-NON_NUMERIC_REGEX = re.compile("[^0-9]")  # or "\D"
-DIGIT_WEIGHTINGS = [10, 9, 8, 7, 6, 5, 4, 3, 2]
-
 
 # =============================================================================
-# NHS numbers
+# NHS number validation
 # =============================================================================
 
-def is_valid_nhs_number(n):
+NHS_DIGIT_WEIGHTINGS = [10, 9, 8, 7, 6, 5, 4, 3, 2]
+
+
+def nhs_check_digit(ninedigits: Union[str, List[Union[str, int]]]) -> int:
+    """
+    Calculates an NHS number check digit.
+    ninedigits: string or list
+
+    1. Multiply each of the first nine digits by the corresponding
+       digit weighting (see NHS_DIGIT_WEIGHTINGS).
+    2. Sum the results.
+    3. Take remainder after division by 11.
+    4. Subtract the remainder from 11
+    5. If this is 11, use 0 instead
+    If it's 10, the number is invalid
+    If it doesn't match the actual check digit, the number is invalid
+    """
+    if len(ninedigits) != 9 or not all(str(x).isdigit() for x in ninedigits):
+        raise ValueError("bad string to nhs_check_digit")
+    check_digit = 11 - (sum([
+        int(d) * f
+        for (d, f) in zip(ninedigits, NHS_DIGIT_WEIGHTINGS)
+    ]) % 11)
+    # ... % 11 yields something in the range 0-10
+    # ... 11 - that yields something in the range 1-11
+    if check_digit == 11:
+        check_digit = 0
+    return check_digit
+
+
+def is_valid_nhs_number(n: int) -> bool:
     """
     Validates an integer as an NHS number.
     Checksum details are at
         http://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp  # noqa
     """
-    if not isinstance(n, six.integer_types):
+    if not isinstance(n, int):
         log.debug("is_valid_nhs_number: parameter was not of integer type")
         return False
+
     s = str(n)
     # Not 10 digits long?
     if len(s) != 10:
@@ -57,33 +85,46 @@ def is_valid_nhs_number(n):
 
     main_digits = [int(s[i]) for i in range(9)]
     actual_check_digit = int(s[9])  # tenth digit
-
-    # 1. Multiply each of the first nine digits by the corresponding
-    #    digit weighting.
-    # 2. Sum the results.
-    # 3. Take remainder after division by 11.
-    remainder = sum([
-        d * f
-        for (d, f) in zip(main_digits, DIGIT_WEIGHTINGS)
-    ]) % 11
-    # 4. Subtract the remainder from 11
-    expected_check_digit = 11 - remainder
-    # 5. If this is 11, use 0 instead
-    if expected_check_digit == 11:
-        expected_check_digit = 0
-    # 6. If it's 10, the number is invalid
+    expected_check_digit = nhs_check_digit(main_digits)
     if expected_check_digit == 10:
         log.debug("is_valid_nhs_number: calculated check digit invalid")
         return False
-    # 7. If it doesn't match the check digit, it's invalid
     if expected_check_digit != actual_check_digit:
         log.debug("is_valid_nhs_number: check digit mismatch")
         return False
-    # 8. Hooray!
+    # Hooray!
     return True
 
 
-def nhs_number_from_text_or_none(s):
+def generate_random_nhs_number() -> int:
+    """Returns a random valid NHS number, as an int."""
+    check_digit = 10  # NHS numbers with this check digit are all invalid
+    while check_digit == 10:
+        digits = [random.randint(1, 9)]  # don't start with a zero
+        digits.extend([random.randint(0, 9) for _ in range(8)])
+        # ... length now 9
+        check_digit = nhs_check_digit(digits)
+    # noinspection PyUnboundLocalVariable
+    digits.append(check_digit)
+    return int("".join([str(d) for d in digits]))
+
+
+def test_nhs_rng(n: int = 100) -> None:
+    """Tests the NHS random number generator."""
+    for i in range(n):
+        x = generate_random_nhs_number()
+        assert is_valid_nhs_number(x), "Invalid NHS number: {}".format(x)
+
+
+# =============================================================================
+# Get an NHS number out of text
+# =============================================================================
+
+WHITESPACE_REGEX = re.compile('\s')
+NON_NUMERIC_REGEX = re.compile("[^0-9]")  # or "\D"
+
+
+def nhs_number_from_text_or_none(s: str) -> Optional[int]:
     """Returns a validated NHS number (as an integer) from a string, or None.
     It's a 10-digit number, so note that database 32-bit INT values are
     insufficient; use BIGINT. Python will handle large integers happily.
@@ -118,31 +159,3 @@ def nhs_number_from_text_or_none(s):
 
     # Happy!
     return n
-
-
-def generate_random_nhs_number():
-    """Returns a random valid NHS number, as an int."""
-    import random
-    check_digit = 10  # NHS numbers with this check digit are all invalid
-    while check_digit == 10:
-        digits = [random.randint(1, 9)]  # don't start with a zero
-        digits.extend([random.randint(0, 9) for _ in range(8)])
-        # ... length now 9
-        check_digit = 11 - (sum([
-            d * f
-            for (d, f) in zip(digits, DIGIT_WEIGHTINGS)
-        ]) % 11)
-        # ... % 11 yields something in the range 0-10
-        # ... 11 - that yields something in the range 1-11
-        if check_digit == 11:
-            check_digit = 0
-    # noinspection PyUnboundLocalVariable
-    digits.append(check_digit)
-    return int("".join([str(d) for d in digits]))
-
-
-def test_nhs_rng(n=100):
-    """Tests the NHS random number generator."""
-    for i in range(n):
-        x = generate_random_nhs_number()
-        assert is_valid_nhs_number(x), "Invalid NHS number: {}".format(x)

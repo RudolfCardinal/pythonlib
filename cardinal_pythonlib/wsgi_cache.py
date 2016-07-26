@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """WSGI middleware to disable client-side caching.

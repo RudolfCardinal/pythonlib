@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Support functions involving cryptography.
@@ -29,7 +29,9 @@ import base64
 import bcrypt  # PYTHON 2/UBUNTU: sudo apt-get install python-bcrypt  // PYTHON3/UBUNTU: sudo apt-get install python3-bcrypt  # noqa
 # import Crypto.Random  # pip install pycrypto
 import hashlib
+import hmac
 import os
+from typing import Any, Callable
 
 import six
 
@@ -41,7 +43,7 @@ import six
 BCRYPT_DEFAULT_LOG_ROUNDS = 12  # bcrypt default; work factor is 2^this.
 
 
-def create_base64encoded_randomness(num_bytes):
+def create_base64encoded_randomness(num_bytes: int) -> str:
     """Create num_bytes of random data.
     Result is encoded in a string with URL-safe base64 encoding.
     Used (for example) to generate session tokens.
@@ -61,7 +63,8 @@ def create_base64encoded_randomness(num_bytes):
 # http://codahale.com/how-to-safely-store-a-password/
 
 
-def hash_password(plaintextpw, log_rounds=BCRYPT_DEFAULT_LOG_ROUNDS):
+def hash_password(plaintextpw: str,
+                  log_rounds: int = BCRYPT_DEFAULT_LOG_ROUNDS) -> str:
     """Makes a hashed password (using a new salt) using bcrypt.
 
     The hashed password includes the salt at its start, so no need to store a
@@ -72,7 +75,7 @@ def hash_password(plaintextpw, log_rounds=BCRYPT_DEFAULT_LOG_ROUNDS):
     return hashedpw
 
 
-def is_password_valid(plaintextpw, storedhash):
+def is_password_valid(plaintextpw: str, storedhash: str) -> bool:
     """Checks if a plaintext password matches a stored hash.
 
     Uses bcrypt. The stored hash includes its own incorporated salt.
@@ -95,33 +98,84 @@ def is_password_valid(plaintextpw, storedhash):
 
 
 # =============================================================================
-# Hashers
+# Base classes
 # =============================================================================
 
 class GenericHasher(object):
-    def __init__(self, hashfunc, salt):
+    def hash(self, raw: Any) -> str:
+        """The public interface to a hasher."""
+        raise NotImplementedError()
+
+
+# =============================================================================
+# Simple salted hashers.
+# Note that these are vulnerable to attack: if an attacker knows a
+# (message, digest) pair, it may be able to calculate another.
+# See https://benlog.com/2008/06/19/dont-hash-secrets/ and
+# http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.134.8430
+# +++ You should use HMAC instead if the thing you are hashing is secret. +++
+# =============================================================================
+
+class GenericSaltedHasher(GenericHasher):
+    def __init__(self, hashfunc: Callable[[bytes], Any], salt: str) -> None:
         self.hashfunc = hashfunc
-        self.salt = salt
+        self.salt_bytes = salt.encode('utf-8')
 
-    def hash(self, raw):
-        raw = str(raw)
-        return self.hashfunc(self.salt + raw).hexdigest()
-
-
-class MD5Hasher(GenericHasher):
-    def __init__(self, salt):
-        super(MD5Hasher, self).__init__(hashlib.md5, salt)
+    def hash(self, raw: Any) -> str:
+        raw_bytes = str(raw).encode('utf-8')
+        return self.hashfunc(self.salt_bytes + raw_bytes).hexdigest()
 
 
-class SHA256Hasher(GenericHasher):
-    def __init__(self, salt):
-        super(SHA256Hasher, self).__init__(hashlib.sha256, salt)
+class MD5Hasher(GenericSaltedHasher):
+    """MD5 is cryptographically FLAWED; avoid."""
+    def __init__(self, salt: str) -> None:
+        super().__init__(hashlib.md5, salt)
 
 
-class SHA512Hasher(GenericHasher):
-    def __init__(self, salt):
-        super(SHA512Hasher, self).__init__(hashlib.sha512, salt)
+class SHA256Hasher(GenericSaltedHasher):
+    def __init__(self, salt: str) -> None:
+        super().__init__(hashlib.sha256, salt)
 
+
+class SHA512Hasher(GenericSaltedHasher):
+    def __init__(self, salt: str) -> None:
+        super().__init__(hashlib.sha512, salt)
+
+
+# =============================================================================
+# HMAC hashers. Better, if what you are hashing is secret.
+# =============================================================================
+
+class GenericHmacHasher(GenericHasher):
+    def __init__(self, digestmod: Any, key: str) -> None:
+        self.key_bytes = key.encode('utf-8')
+        self.digestmod = digestmod
+
+    def hash(self, raw: Any) -> str:
+        raw_bytes = str(raw).encode('utf-8')
+        hmac_obj = hmac.new(key=self.key_bytes, msg=raw_bytes,
+                            digestmod=self.digestmod)
+        return hmac_obj.hexdigest()
+
+
+class HmacMD5Hasher(GenericHmacHasher):
+    def __init__(self, key: str) -> None:
+        super().__init__(hashlib.md5, key)
+
+
+class HmacSHA256Hasher(GenericHmacHasher):
+    def __init__(self, key: str) -> None:
+        super().__init__(hashlib.sha256, key)
+
+
+class HmacSHA512Hasher(GenericHmacHasher):
+    def __init__(self, key: str) -> None:
+        super().__init__(hashlib.sha512, key)
+
+
+# =============================================================================
+# Testing functions/notes
+# =============================================================================
 
 if False:
     TEST_NO_COLLISIONS = """

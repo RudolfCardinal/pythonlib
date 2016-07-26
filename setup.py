@@ -71,8 +71,8 @@ setup(
         'Natural Language :: English',
 
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
+        # 'Programming Language :: Python :: 2',
+        # 'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
@@ -85,9 +85,9 @@ setup(
 
     packages=['cardinal_pythonlib'],
 
-    install_requires=[
-        'six',  # Python 2/3 compatibility
-    ],
+    # install_requires=[
+    #     'six',  # Python 2/3 compatibility
+    # ],
 
     entry_points={
         'console_scripts': [

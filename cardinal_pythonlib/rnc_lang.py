@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Support functions to do with the core language.
@@ -24,9 +24,12 @@ Copyright/licensing:
     limitations under the License.
 """
 
+from enum import Enum
 import importlib
 import logging
 import pkgutil
+from typing import Any, Dict, Iterable, List, Union
+from types import ModuleType
 import six
 # noinspection PyUnresolvedReferences
 from six.moves import range
@@ -40,7 +43,7 @@ log.addHandler(logging.NullHandler())
 # enum
 # =============================================================================
 
-def enum(**enums):
+def enum(**enums: Any) -> Enum:
     """Enum support, as at http://stackoverflow.com/questions/36932"""
     return type('Enum', (), enums)
 
@@ -51,7 +54,7 @@ def enum(**enums):
 
 class AttrDict(dict):
     # http://stackoverflow.com/questions/4984647
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
 
@@ -60,7 +63,7 @@ class AttrDict(dict):
 # Other dictionary operations
 # =============================================================================
 
-def merge_dicts(*dict_args):
+def merge_dicts(*dict_args: Dict) -> Dict:
     """
     Given any number of dicts, shallow copy and merge into a new dict,
     precedence goes to key value pairs in latter dicts.
@@ -76,7 +79,7 @@ def merge_dicts(*dict_args):
 # Helper functions
 # =============================================================================
 
-def convert_to_bool(x, default=None):
+def convert_to_bool(x: Any, default: bool = None) -> bool:
     if isinstance(x, bool):
         return x
     if not x:  # None, zero, blank string...
@@ -99,12 +102,14 @@ def convert_to_bool(x, default=None):
     raise Exception("Unknown thing being converted to bool: {}".format(x))
 
 
-def convert_attrs_to_bool(obj, attrs, default=None):
+def convert_attrs_to_bool(obj: Any,
+                          attrs: Iterable[str],
+                          default: bool = None) -> None:
     for a in attrs:
         setattr(obj, a, convert_to_bool(getattr(obj, a), default=default))
 
 
-def convert_attrs_to_uppercase(obj, attrs):
+def convert_attrs_to_uppercase(obj: Any, attrs: Iterable[str]) -> None:
     for a in attrs:
         value = getattr(obj, a)
         if value is None:
@@ -112,7 +117,7 @@ def convert_attrs_to_uppercase(obj, attrs):
         setattr(obj, a, value.upper())
 
 
-def convert_attrs_to_lowercase(obj, attrs):
+def convert_attrs_to_lowercase(obj: Any, attrs: Iterable[str]) -> None:
     for a in attrs:
         value = getattr(obj, a)
         if value is None:
@@ -120,38 +125,40 @@ def convert_attrs_to_lowercase(obj, attrs):
         setattr(obj, a, value.lower())
 
 
-def convert_to_int(x, default=None):
+def convert_to_int(x: Any, default: int = None) -> int:
     try:
         return int(x)
     except (TypeError, ValueError):
         return default
 
 
-def convert_attrs_to_int(obj, attrs, default=None):
+def convert_attrs_to_int(obj: Any,
+                         attrs: Iterable[str],
+                         default: int = None) -> None:
     for a in attrs:
         value = convert_to_int(getattr(obj, a), default=default)
         setattr(obj, a, value)
 
 
-def raise_if_attr_blank(obj, attrs):
+def raise_if_attr_blank(obj: Any, attrs: Iterable[str]) -> None:
     for a in attrs:
         value = getattr(obj, a)
         if value is None or value is "":
             raise Exception("Blank attribute: {}".format(a))
 
 
-def count_bool(blist):
+def count_bool(blist: Iterable[Any]) -> int:
     return sum([1 if x else 0 for x in blist])
 
 
-def chunks(l, n):
+def chunks(l: List[Any], n: int) -> Iterable[List[Any]]:
     """ Yield successive n-sized chunks from l.
     """
     for i in range(0, len(l), n):
         yield l[i:i + n]
 
 
-def is_integer(s):
+def is_integer(s: Any) -> bool:
     try:
         int(s)
         return True
@@ -163,7 +170,8 @@ def is_integer(s):
 # Module management
 # =============================================================================
 
-def import_submodules(package, recursive=True):
+def import_submodules(package: Union[str, ModuleType],
+                      recursive: bool = True) -> Dict[str, ModuleType]:
     # http://stackoverflow.com/questions/3365740/how-to-import-all-submodules
     """ Import all submodules of a module, recursively, including subpackages
 

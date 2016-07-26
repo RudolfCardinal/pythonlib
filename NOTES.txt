@@ -12,3 +12,6 @@ Checkers:
 - pep8 FILE  # Cosmetics
 - pyflakes FILE  # Python 2
 - python3 -m pyflakes FILE  # Python 3
+
+2016-07-26: type checking added; now Python 3 only.
+- Python 3.4 with "pip install typing" or Python 3.5 stdlib.

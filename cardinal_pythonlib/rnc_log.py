@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Support functions for logging.
@@ -48,14 +48,16 @@ OR THIS SORT OF THING:
 import logging
 
 
-def remove_all_logger_handlers(logger):
+def remove_all_logger_handlers(logger: logging.Logger) -> None:
     """Remove all handlers from a logger."""
     while logger.handlers:
         h = logger.handlers[0]
         logger.removeHandler(h)
 
 
-def reset_logformat(logger, fmt, datefmt='%Y-%m-%d %H:%M:%S'):
+def reset_logformat(logger: logging.Logger,
+                    fmt: str,
+                    datefmt: str = '%Y-%m-%d %H:%M:%S') -> None:
     """Create a new formatter and apply it to the logger."""
     # logging.basicConfig() won't reset the formatter if another module
     # has called it, so always set the formatter like this.
@@ -67,7 +69,9 @@ def reset_logformat(logger, fmt, datefmt='%Y-%m-%d %H:%M:%S'):
     logger.propagate = False
 
 
-def reset_logformat_timestamped(logger, extraname="", level=logging.INFO):
+def reset_logformat_timestamped(logger: logging.Logger,
+                                extraname: str = "",
+                                level: int = logging.INFO) -> None:
     """Apply a simple time-stamped log format to an existing logger, and set
     its loglevel to either DEBUG or INFO."""
     namebit = extraname + ":" if extraname else ""

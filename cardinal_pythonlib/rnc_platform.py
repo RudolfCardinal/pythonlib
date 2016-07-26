@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Support for platform-specific problems.
@@ -37,7 +37,7 @@ import sys
 # =============================================================================
 # http://stackoverflow.com/questions/5419
 
-def fix_windows_utf8_output():
+def fix_windows_utf8_output() -> None:
     if six.PY3:
         return
     reload_module(sys)
@@ -72,7 +72,7 @@ def fix_windows_utf8_output():
     # You can't use "global sys.stdout"; that raises an error
 
 
-def test_windows_utf8_output():
+def test_windows_utf8_output() -> None:
     print(u"This is an Е乂αmp١ȅ testing Unicode support using Arabic, Latin, "
           u"Cyrillic, Greek, Hebrew and CJK code points.\n")
 

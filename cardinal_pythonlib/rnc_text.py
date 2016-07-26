@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Textfile results storage.
@@ -26,9 +26,12 @@ Copyright/licensing:
 
 import csv
 import datetime
+from typing import Any, Dict, io, Iterable, List, Optional, Sequence, Tuple
 
 
-def produce_csv_output(filehandle, fields, values):
+def produce_csv_output(filehandle: io.TextIO,
+                       fields: Sequence[str],
+                       values: Iterable[str]) -> None:
     """Produce CSV output, without using csv.writer, so the log can be used for
     lots of things."""
     output_csv(filehandle, fields)
@@ -36,12 +39,15 @@ def produce_csv_output(filehandle, fields, values):
         output_csv(filehandle, row)
 
 
-def output_csv(filehandle, values):
+def output_csv(filehandle: io.TextIO, values: Iterable[str]) -> None:
     line = ",".join(values)
     filehandle.write(line + "\n")
 
 
-def get_what_follows_raw(s, prefix, onlyatstart=True, stripwhitespace=True):
+def get_what_follows_raw(s: str,
+                         prefix: str,
+                         onlyatstart: bool = True,
+                         stripwhitespace: bool = True) -> Tuple[bool, str]:
     prefixstart = s.find(prefix)
     if ((prefixstart == 0 and onlyatstart) or
             (prefixstart != -1 and not onlyatstart)):
@@ -54,8 +60,11 @@ def get_what_follows_raw(s, prefix, onlyatstart=True, stripwhitespace=True):
     return False, ""
 
 
-def get_what_follows(strings, prefix, onlyatstart=True, stripwhitespace=True,
-                     precedingline=""):
+def get_what_follows(strings: Sequence[str],
+                     prefix: str,
+                     onlyatstart: bool = True,
+                     stripwhitespace: bool = True,
+                     precedingline: str = "") -> str:
     if not precedingline:
         for s in strings:
             (found, result) = get_what_follows_raw(s, prefix, onlyatstart,
@@ -75,7 +84,10 @@ def get_what_follows(strings, prefix, onlyatstart=True, stripwhitespace=True,
         return ""
 
 
-def get_string(strings, prefix, ignoreleadingcolon=False, precedingline=""):
+def get_string(strings: Sequence[str],
+               prefix: str,
+               ignoreleadingcolon: bool = False,
+               precedingline: str = "") -> Optional[str]:
     s = get_what_follows(strings, prefix, precedingline=precedingline)
     if ignoreleadingcolon:
         f = s.find(":")
@@ -86,8 +98,12 @@ def get_string(strings, prefix, ignoreleadingcolon=False, precedingline=""):
     return s
 
 
-def get_string_relative(strings, prefix1, delta, prefix2,
-                        ignoreleadingcolon=False, stripwhitespace=True):
+def get_string_relative(strings: Sequence[str],
+                        prefix1: str,
+                        delta: str,
+                        prefix2: str,
+                        ignoreleadingcolon: bool = False,
+                        stripwhitespace: bool = True) -> Optional[str]:
     """Finds line beginning prefix1. Moves delta lines. Returns end of line
     beginning prefix2, if found."""
     for firstline in range(0, len(strings)):
@@ -111,25 +127,31 @@ def get_string_relative(strings, prefix1, delta, prefix2,
     return None
 
 
-def get_int(strings, prefix, ignoreleadingcolon=False, precedingline=""):
+def get_int(strings: Sequence[str],
+            prefix: str,
+            ignoreleadingcolon: bool = False,
+            precedingline: str = "") -> Optional[int]:
     return get_int_raw(get_string(strings, prefix,
                                   ignoreleadingcolon=ignoreleadingcolon,
                                   precedingline=precedingline))
 
 
-def get_float(strings, prefix, ignoreleadingcolon=False, precedingline=""):
+def get_float(strings: Sequence[str],
+              prefix: str,
+              ignoreleadingcolon: bool = False,
+              precedingline: str = "") -> Optional[float]:
     return get_float_raw(get_string(strings, prefix,
                                     ignoreleadingcolon=ignoreleadingcolon,
                                     precedingline=precedingline))
 
 
-def get_int_raw(s):
+def get_int_raw(s: str) -> Optional[int]:
     if s is None:
         return None
     return int(s)
 
 
-def get_bool_raw(s):
+def get_bool_raw(s: str) -> Optional[bool]:
     if s == "Y" or s == "y":
         return True
     elif s == "N" or s == "n":
@@ -137,41 +159,56 @@ def get_bool_raw(s):
     return None
 
 
-def get_float_raw(s):
+def get_float_raw(s: str) -> Optional[float]:
     if s is None:
         return None
     return float(s)
 
 
-def get_bool(strings, prefix, ignoreleadingcolon=False, precedingline=""):
+def get_bool(strings: Sequence[str],
+             prefix: str,
+             ignoreleadingcolon: bool = False,
+             precedingline: str = "") -> Optional[bool]:
     return get_bool_raw(get_string(strings, prefix,
                                    ignoreleadingcolon=ignoreleadingcolon,
                                    precedingline=precedingline))
 
 
-def get_bool_relative(strings, prefix1, delta, prefix2,
-                      ignoreleadingcolon=False):
+def get_bool_relative(strings: Sequence[str],
+                      prefix1: str,
+                      delta: str,
+                      prefix2: str,
+                      ignoreleadingcolon: bool = False) -> Optional[bool]:
     return get_bool_raw(get_string_relative(
         strings, prefix1, delta, prefix2,
         ignoreleadingcolon=ignoreleadingcolon))
 
 
-def get_float_relative(strings, prefix1, delta, prefix2,
-                       ignoreleadingcolon=False):
+def get_float_relative(strings: Sequence[str],
+                       prefix1: str,
+                       delta: str,
+                       prefix2: str,
+                       ignoreleadingcolon: bool = False) -> Optional[float]:
     return get_float_raw(get_string_relative(
         strings, prefix1, delta, prefix2,
         ignoreleadingcolon=ignoreleadingcolon))
 
 
-def get_int_relative(strings, prefix1, delta, prefix2,
-                     ignoreleadingcolon=False):
+def get_int_relative(strings: Sequence[str],
+                     prefix1: str,
+                     delta: str,
+                     prefix2: str,
+                     ignoreleadingcolon: bool = False) -> Optional[int]:
     return get_int_raw(get_string_relative(
         strings, prefix1, delta, prefix2,
         ignoreleadingcolon=ignoreleadingcolon))
 
 
-def get_datetime(strings, prefix, datetime_format_string,
-                 ignoreleadingcolon=False, precedingline=""):
+def get_datetime(strings: Sequence[str],
+                 prefix: str,
+                 datetime_format_string: str,
+                 ignoreleadingcolon: bool = False,
+                 precedingline: str = "") -> Optional[datetime.datetime]:
     x = get_string(strings, prefix, ignoreleadingcolon=ignoreleadingcolon,
                    precedingline=precedingline)
     if len(x) == 0:
@@ -183,7 +220,8 @@ def get_datetime(strings, prefix, datetime_format_string,
     return d
 
 
-def find_line_beginning(strings, linestart):
+def find_line_beginning(strings: Sequence[str],
+                        linestart: Optional[str]) -> int:
     if linestart is None:  # match an empty line
         for i in range(len(strings)):
             if is_empty_string(strings[i]):
@@ -195,14 +233,17 @@ def find_line_beginning(strings, linestart):
     return -1
 
 
-def find_line_containing(strings, contents):
+def find_line_containing(strings: Sequence[str], contents: str) -> int:
     for i in range(len(strings)):
         if strings[i].find(contents) != -1:
             return i
     return -1
 
 
-def get_lines_from_to(strings, firstlinestart, list_of_lastline_starts):
+def get_lines_from_to(strings: Sequence[str],
+                      firstlinestart: str,
+                      list_of_lastline_starts: Iterable[Optional[str]]) \
+        -> List[str]:
     """Takes a list of strings. Returns a list of strings FROM firstlinestart
     (inclusive) TO one of list_of_lastline_starts (exclusive).
 
@@ -221,11 +262,13 @@ def get_lines_from_to(strings, firstlinestart, list_of_lastline_starts):
     return strings[start_index:end_index]
 
 
-def is_empty_string(s):
+def is_empty_string(s: str) -> bool:
     return len(s.strip(s)) == 0
 
 
-def csv_to_list_of_fields(lines, csvheader, quotechar='"'):
+def csv_to_list_of_fields(lines: Sequence[str],
+                          csvheader: str,
+                          quotechar: str = '"') -> List[str]:
     data = []
     # an empty line marks the end of the block
     csvlines = get_lines_from_to(lines, csvheader, [None])[1:]
@@ -236,7 +279,9 @@ def csv_to_list_of_fields(lines, csvheader, quotechar='"'):
     return data
 
 
-def csv_to_list_of_dicts(lines, csvheader, quotechar='"'):
+def csv_to_list_of_dicts(lines: Sequence[str],
+                         csvheader: str,
+                         quotechar: str = '"') -> List[str]:
     data = []  # empty list
     # an empty line marks the end of the block
     csvlines = get_lines_from_to(lines, csvheader, [None])[1:]
@@ -251,19 +296,21 @@ def csv_to_list_of_dicts(lines, csvheader, quotechar='"'):
     return data
 
 
-def dictlist_convert_to_string(dict_list, key):
+def dictlist_convert_to_string(dict_list: Iterable[Dict], key: str) -> None:
     for d in dict_list:
         d[key] = str(d[key])
         if d[key] == "":
             d[key] = None
 
 
-def dictlist_convert_to_datetime(dict_list, key, datetime_format_string):
+def dictlist_convert_to_datetime(dict_list: Iterable[Dict],
+                                 key: str,
+                                 datetime_format_string: str) -> None:
     for d in dict_list:
         d[key] = datetime.datetime.strptime(d[key], datetime_format_string)
 
 
-def dictlist_convert_to_int(dict_list, key):
+def dictlist_convert_to_int(dict_list: Iterable[Dict], key: str) -> None:
     for d in dict_list:
         try:
             d[key] = int(d[key])
@@ -271,7 +318,7 @@ def dictlist_convert_to_int(dict_list, key):
             d[key] = None
 
 
-def dictlist_convert_to_float(dict_list, key):
+def dictlist_convert_to_float(dict_list: Iterable[Dict], key: str) -> None:
     for d in dict_list:
         try:
             d[key] = float(d[key])
@@ -279,17 +326,17 @@ def dictlist_convert_to_float(dict_list, key):
             d[key] = None
 
 
-def dictlist_convert_to_bool(dict_list, key):
+def dictlist_convert_to_bool(dict_list: Iterable[Dict], key: str) -> None:
     for d in dict_list:
         # d[key] = True if d[key] == "Y" else False
         d[key] = 1 if d[key] == "Y" else 0
 
 
-def dictlist_replace(dict_list, key, value):
+def dictlist_replace(dict_list: Iterable[Dict], key: str, value: Any) -> None:
     for d in dict_list:
         d[key] = value
 
 
-def dictlist_wipe_key(dict_list, key):
+def dictlist_wipe_key(dict_list: Iterable[Dict], key: str) -> None:
     for d in dict_list:
         d.pop(key, None)

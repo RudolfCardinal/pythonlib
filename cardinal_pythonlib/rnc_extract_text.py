@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 """
 Converts a bunch of stuff to text, either from external files or from in-memory
@@ -66,6 +66,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
+from typing import io, Iterator, List, Union
 from xml.etree import ElementTree as ElementTree
 # ... cElementTree used to be the fast implementation; now ElementTree is fast
 # and cElementTree is deprecated; see
@@ -160,7 +161,8 @@ def update_external_tools(tooldict):
 # Support functions
 # =============================================================================
 
-def get_filelikeobject(filename=None, blob=None):
+def get_filelikeobject(filename: str = None,
+                       blob: bytes = None) -> io.BinaryIO:
     """Guard the use of this function with 'with'."""
     if not filename and not blob:
         raise ValueError("no filename and no blob")
@@ -172,7 +174,7 @@ def get_filelikeobject(filename=None, blob=None):
         return io.BytesIO(blob)
 
 
-def get_file_contents(filename=None, blob=None):
+def get_file_contents(filename: str = None, blob: bytes = None) -> bytes:
     """Returns binary contents of a file, or blob."""
     if not filename and not blob:
         raise ValueError("no filename and no blob")
@@ -184,7 +186,7 @@ def get_file_contents(filename=None, blob=None):
         return f.read()
 
 
-def get_cmd_output(*args, **kwargs):
+def get_cmd_output(*args, **kwargs) -> str:
     """Returns text output of a command."""
     encoding = kwargs.get("encoding", ENCODING)
     log.debug("get_cmd_output(): args = {}".format(repr(args)))
@@ -193,7 +195,8 @@ def get_cmd_output(*args, **kwargs):
     return stdout.decode(encoding, errors='ignore')
 
 
-def get_cmd_output_from_stdin(stdint_content_binary, *args, **kwargs):
+def get_cmd_output_from_stdin(stdint_content_binary: bytes,
+                              *args, **kwargs) -> str:
     """Returns text output of a command, passing binary data in via stdin."""
     encoding = kwargs.get("encoding", ENCODING)
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -206,7 +209,8 @@ def get_cmd_output_from_stdin(stdint_content_binary, *args, **kwargs):
 # =============================================================================
 
 # noinspection PyUnresolvedReferences,PyUnusedLocal
-def convert_pdf_to_txt(filename=None, blob=None, **kwargs):
+def convert_pdf_to_txt(filename: str = None, blob: bytes = None,
+                       **kwargs) -> str:
     """Pass either a filename or a binary object."""
     pdftotext = tools['pdftotext']
     if pdftotext:  # External command method
@@ -238,7 +242,7 @@ def convert_pdf_to_txt(filename=None, blob=None, **kwargs):
         raise AssertionError("No PDF-reading tool available")
 
 
-def availability_pdf():
+def availability_pdf() -> bool:
     pdftotext = tools['pdftotext']
     if pdftotext:
         return True
@@ -255,17 +259,159 @@ def availability_pdf():
 # =============================================================================
 
 # -----------------------------------------------------------------------------
+# In a D.I.Y. fashion
+# -----------------------------------------------------------------------------
+# DOCX specification: http://www.ecma-international.org/news/TC45_current_work/TC45_available_docs.htm  # noqa
+
+DOCX_HEADER_FILE_REGEX = re.compile('word/header[0-9]*.xml')
+DOCX_DOC_FILE = 'word/document.xml'
+DOCX_FOOTER_FILE_REGEX = re.compile('word/footer[0-9]*.xml')
+DOCX_SCHEMA_URL = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'  # noqa
+
+
+def docx_qn(tagroot):
+    return '{{{}}}{}'.format(DOCX_SCHEMA_URL, tagroot)
+
+
+DOCX_TEXT = docx_qn('t')
+DOCX_TABLE = docx_qn('tbl')  # https://github.com/python-openxml/python-docx/blob/master/docx/table.py  # noqa
+DOCX_TAB = docx_qn('tab')
+DOCX_NEWLINES = [docx_qn('br'), docx_qn('cr')]
+DOCX_NEWPARA = docx_qn('p')
+DOCX_TABLE_ROW = docx_qn('tr')
+DOCX_TABLE_CELL = docx_qn('tc')
+
+
+def gen_xml_files_from_docx(fp: io.BinaryIO) -> Iterator[str]:
+    z = zipfile.ZipFile(fp)
+    filelist = z.namelist()
+    for filename in filelist:
+        if DOCX_HEADER_FILE_REGEX.match(filename):
+            yield z.read(filename).decode("utf8")
+    yield z.read(DOCX_DOC_FILE)
+    for filename in filelist:
+        if DOCX_FOOTER_FILE_REGEX.match(filename):
+            yield z.read(filename).decode("utf8")
+
+
+def docx_text_from_xml(xml: str, **kwargs) -> str:
+    root = ElementTree.fromstring(xml)
+    return docx_text_from_xml_node(root, 0, **kwargs)
+
+
+def docx_text_from_xml_node(node: ElementTree.Element,
+                            level: int,
+                            **kwargs) -> str:
+    text = ''
+    # log.debug("Level {}, tag {}".format(level, node.tag))
+    if node.tag == DOCX_TEXT:
+        text += node.text or ''
+    elif node.tag == DOCX_TAB:
+        text += '\t'
+    elif node.tag in DOCX_NEWLINES:
+        text += '\n'
+    elif node.tag == DOCX_NEWPARA:
+        text += '\n\n'
+
+    if node.tag == DOCX_TABLE:
+        text += '\n\n' + docx_table_from_xml_node(node, level, **kwargs)
+    else:
+        for child in node:
+            text += docx_text_from_xml_node(child, level + 1, **kwargs)
+    return text
+
+
+class CustomDocxParagraph(object):
+    def __init__(self, text: str = '') -> None:
+        self.text = text or ''
+
+    def __repr__(self) -> str:
+        return "CustomDocxParagraph(text={})".format(repr(self.text))
+
+
+class CustomDocxTableCell(object):
+    def __init__(self, paragraphs: List[CustomDocxParagraph] = None) -> None:
+        self.paragraphs = paragraphs or []
+
+    def add_paragraph(self, text: str) -> None:
+        self.paragraphs.append(CustomDocxParagraph(text))
+
+    def __repr__(self) -> str:
+        return "CustomDocxTableCell(paragraphs={})".format(
+            repr(self.paragraphs))
+
+
+class CustomDocxTableRow(object):
+    def __init__(self, cells: List[CustomDocxTableCell] = None) -> None:
+        self.cells = cells or []
+
+    def add_cell(self, cell: CustomDocxTableCell) -> None:
+        self.cells.append(cell)
+
+    def new_cell(self) -> None:
+        self.cells.append(CustomDocxTableCell())
+
+    def add_paragraph(self, text: str) -> None:
+        self.cells[-1].add_paragraph(text)
+
+    def __repr__(self) -> str:
+        return "CustomDocxTableRow(cells={})".format(repr(self.cells))
+
+
+class CustomDocxTable(object):
+    def __init__(self, rows: List[CustomDocxTableRow] = None) -> None:
+        self.rows = rows or []
+
+    def add_row(self, row: CustomDocxTableRow) -> None:
+        self.rows.append(row)
+
+    def new_row(self) -> None:
+        self.rows.append(CustomDocxTableRow())
+
+    def new_cell(self) -> None:
+        self.rows[-1].new_cell()
+
+    def add_paragraph(self, text: str) -> None:
+        self.rows[-1].add_paragraph(text)
+
+    def __repr__(self) -> str:
+        return "CustomDocxTable(rows={})".format(repr(self.rows))
+
+
+def docx_table_from_xml_node(table_node: ElementTree.Element,
+                             level: int,
+                             **kwargs) -> str:
+    table = CustomDocxTable()
+    for row_node in table_node:
+        if row_node.tag != DOCX_TABLE_ROW:
+            continue
+        table.new_row()
+        for cell_node in row_node:
+            if cell_node.tag != DOCX_TABLE_CELL:
+                continue
+            table.new_cell()
+            for para_node in cell_node:
+                text = docx_text_from_xml_node(para_node, level, **kwargs)
+                if text:
+                    table.add_paragraph(text)
+    return docx_process_table(table, **kwargs)
+
+
+# -----------------------------------------------------------------------------
 # Generic
 # -----------------------------------------------------------------------------
 
-def docx_process_simple_text(text, width):
+def docx_process_simple_text(text: str, width: int) -> str:
     if width:
         return '\n'.join(textwrap.wrap(text, width=width))
     else:
         return text
 
 
-def docx_process_table(table, width, min_col_width, plain=False):
+def docx_process_table(table: Union[docx.table.Table, CustomDocxTable],
+                       width: int,
+                       min_col_width: int,
+                       plain: bool = False) -> str:
     """
     Structure:
         table
@@ -353,7 +499,9 @@ def docx_process_table(table, width, min_col_width, plain=False):
 
 
 # noinspection PyProtectedMember
-def docx_docx_iter_block_items(parent):
+def docx_docx_iter_block_items(
+        parent: Union[docx.document.Document, docx.table._Cell]) \
+        -> Iterator[Union[docx.text.paragraph.Paragraph, docx.table.Table]]:
     """
     https://github.com/python-openxml/python-docx/issues/40
 
@@ -380,7 +528,10 @@ def docx_docx_iter_block_items(parent):
             yield docx.table.Table(child, parent)
 
 
-def docx_docx_gen_text(doc, width, min_col_width, in_order=True):
+def docx_docx_gen_text(doc: docx.Document,
+                       width: int,
+                       min_col_width: int,
+                       in_order: bool = True) -> Iterator[str]:
     if in_order:
         for thing in docx_docx_iter_block_items(doc):
             if isinstance(thing, docx.text.paragraph.Paragraph):
@@ -394,144 +545,13 @@ def docx_docx_gen_text(doc, width, min_col_width, in_order=True):
             yield docx_process_table(table, width, min_col_width)
 
 
-# -----------------------------------------------------------------------------
-# In a D.I.Y. fashion
-# -----------------------------------------------------------------------------
-# DOCX specification: http://www.ecma-international.org/news/TC45_current_work/TC45_available_docs.htm  # noqa
-
-DOCX_HEADER_FILE_REGEX = re.compile('word/header[0-9]*.xml')
-DOCX_DOC_FILE = 'word/document.xml'
-DOCX_FOOTER_FILE_REGEX = re.compile('word/footer[0-9]*.xml')
-DOCX_SCHEMA_URL = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'  # noqa
-
-
-def docx_qn(tagroot):
-    return '{{{}}}{}'.format(DOCX_SCHEMA_URL, tagroot)
-
-
-DOCX_TEXT = docx_qn('t')
-DOCX_TABLE = docx_qn('tbl')  # https://github.com/python-openxml/python-docx/blob/master/docx/table.py  # noqa
-DOCX_TAB = docx_qn('tab')
-DOCX_NEWLINES = [docx_qn('br'), docx_qn('cr')]
-DOCX_NEWPARA = docx_qn('p')
-DOCX_TABLE_ROW = docx_qn('tr')
-DOCX_TABLE_CELL = docx_qn('tc')
-
-
-def gen_xml_files_from_docx(fp):
-    z = zipfile.ZipFile(fp)
-    filelist = z.namelist()
-    for filename in filelist:
-        if DOCX_HEADER_FILE_REGEX.match(filename):
-            yield z.read(filename)
-    yield z.read(DOCX_DOC_FILE)
-    for filename in filelist:
-        if DOCX_FOOTER_FILE_REGEX.match(filename):
-            yield z.read(filename)
-
-
-def docx_text_from_xml(xml, **kwargs):
-    root = ElementTree.fromstring(xml)
-    return docx_text_from_xml_node(root, 0, **kwargs)
-
-
-def docx_text_from_xml_node(node, level, **kwargs):
-    text = ''
-    # log.debug("Level {}, tag {}".format(level, node.tag))
-    if node.tag == DOCX_TEXT:
-        text += node.text or ''
-    elif node.tag == DOCX_TAB:
-        text += '\t'
-    elif node.tag in DOCX_NEWLINES:
-        text += '\n'
-    elif node.tag == DOCX_NEWPARA:
-        text += '\n\n'
-
-    if node.tag == DOCX_TABLE:
-        text += '\n\n' + docx_table_from_xml_node(node, level, **kwargs)
-    else:
-        for child in node:
-            text += docx_text_from_xml_node(child, level + 1, **kwargs)
-    return text
-
-
-class CustomDocxTable(object):
-    def __init__(self, rows=None):
-        self.rows = rows or []
-
-    def add_row(self, row):
-        self.rows.append(row)
-
-    def new_row(self):
-        self.rows.append(CustomDocxTableRow())
-
-    def new_cell(self):
-        self.rows[-1].new_cell()
-
-    def add_paragraph(self, text):
-        self.rows[-1].add_paragraph(text)
-
-    def __repr__(self):
-        return "CustomDocxTable(rows={})".format(repr(self.rows))
-
-
-class CustomDocxTableRow(object):
-    def __init__(self, cells=None):
-        self.cells = cells or []
-
-    def add_cell(self, cell):
-        self.cells.append(cell)
-
-    def new_cell(self):
-        self.cells.append(CustomDocxTableCell())
-
-    def add_paragraph(self, text):
-        self.cells[-1].add_paragraph(text)
-
-    def __repr__(self):
-        return "CustomDocxTableRow(cells={})".format(repr(self.cells))
-
-
-class CustomDocxTableCell(object):
-    def __init__(self, paragraphs=None):
-        self.paragraphs = paragraphs or []
-
-    def add_paragraph(self, text):
-        self.paragraphs.append(CustomDocxParagraph(text))
-
-    def __repr__(self):
-        return "CustomDocxTableCell(paragraphs={})".format(
-            repr(self.paragraphs))
-
-
-class CustomDocxParagraph(object):
-    def __init__(self, text=''):
-        self.text = text or ''
-
-    def __repr__(self):
-        return "CustomDocxParagraph(text={})".format(repr(self.text))
-
-
-def docx_table_from_xml_node(table_node, level, **kwargs):
-    table = CustomDocxTable()
-    for row_node in table_node:
-        if row_node.tag != DOCX_TABLE_ROW:
-            continue
-        table.new_row()
-        for cell_node in row_node:
-            if cell_node.tag != DOCX_TABLE_CELL:
-                continue
-            table.new_cell()
-            for para_node in cell_node:
-                text = docx_text_from_xml_node(para_node, level, **kwargs)
-                if text:
-                    table.add_paragraph(text)
-    return docx_process_table(table, **kwargs)
-
-
 # noinspection PyUnusedLocal
-def convert_docx_to_text(filename=None, blob=None, width=DEFAULT_WIDTH,
-                         min_col_width=15, plain=False, **kwargs):
+def convert_docx_to_text(filename: str = None,
+                         blob: bytes = None,
+                         width: int = DEFAULT_WIDTH,
+                         min_col_width: int = 15,
+                         plain: bool = False,
+                         **kwargs) -> str:
     """
     Pass either a filename or a binary object.
 
@@ -617,7 +637,9 @@ def convert_docx_to_text(filename=None, blob=None, width=DEFAULT_WIDTH,
 # =============================================================================
 
 # noinspection PyUnusedLocal
-def convert_odt_to_text(filename=None, blob=None, **kwargs):
+def convert_odt_to_text(filename: str = None,
+                        blob: bytes = None,
+                        **kwargs) -> str:
     """Pass either a filename or a binary object."""
     # We can't use exactly the same method as for DOCX files, using docx:
     # sometimes that works, but sometimes it falls over with:
@@ -638,7 +660,9 @@ def convert_odt_to_text(filename=None, blob=None, **kwargs):
 # =============================================================================
 
 # noinspection PyUnusedLocal
-def convert_html_to_text(filename=None, blob=None, **kwargs):
+def convert_html_to_text(filename: str = None,
+                         blob: bytes = None,
+                         **kwargs) -> str:
     with get_filelikeobject(filename, blob) as fp:
         soup = bs4.BeautifulSoup(fp)
         return soup.get_text()
@@ -648,9 +672,10 @@ def convert_html_to_text(filename=None, blob=None, **kwargs):
 # XML
 # =============================================================================
 
-
 # noinspection PyUnusedLocal
-def convert_xml_to_text(filename=None, blob=None, **kwargs):
+def convert_xml_to_text(filename: str = None,
+                        blob: bytes = None,
+                        **kwargs) -> str:
     with get_filelikeobject(filename, blob) as fp:
         soup = bs4.BeautifulStoneSoup(fp)
         return soup.get_text()
@@ -660,9 +685,10 @@ def convert_xml_to_text(filename=None, blob=None, **kwargs):
 # RTF
 # =============================================================================
 
-
 # noinspection PyUnresolvedReferences,PyUnusedLocal
-def convert_rtf_to_text(filename=None, blob=None, **kwargs):
+def convert_rtf_to_text(filename: str = None,
+                        blob: bytes = None,
+                        **kwargs) -> str:
     unrtf = tools['unrtf']
     if unrtf:  # Best
         if filename:
@@ -682,7 +708,7 @@ def convert_rtf_to_text(filename=None, blob=None, **kwargs):
         raise AssertionError("No RTF-reading tool available")
 
 
-def availability_rtf():
+def availability_rtf() -> bool:
     unrtf = tools['unrtf']
     if unrtf:
         return True
@@ -699,8 +725,10 @@ def availability_rtf():
 # =============================================================================
 
 # noinspection PyUnusedLocal
-def convert_doc_to_text(filename=None, blob=None, width=DEFAULT_WIDTH,
-                        **kwargs):
+def convert_doc_to_text(filename: str = None,
+                        blob: bytes = None,
+                        width: int = DEFAULT_WIDTH,
+                        **kwargs) -> str:
     antiword = tools['antiword']
     if antiword:
         if filename:
@@ -712,7 +740,7 @@ def convert_doc_to_text(filename=None, blob=None, width=DEFAULT_WIDTH,
         raise AssertionError("No DOC-reading tool available")
 
 
-def availability_doc():
+def availability_doc() -> bool:
     antiword = tools['antiword']
     return bool(antiword)
 
@@ -722,7 +750,9 @@ def availability_doc():
 # =============================================================================
 
 # noinspection PyUnusedLocal
-def convert_anything_to_text(filename=None, blob=None, **kwargs):
+def convert_anything_to_text(filename: str = None,
+                             blob: bytes = None,
+                             **kwargs) -> str:
     # strings is a standard Unix command to get text from any old rubbish
     strings = tools['strings'] or tools['strings2']
     if strings:
@@ -734,7 +764,7 @@ def convert_anything_to_text(filename=None, blob=None, **kwargs):
         raise AssertionError("No fallback string-reading tool available")
 
 
-def availability_anything():
+def availability_anything() -> bool:
     strings = tools['strings'] or tools['strings2']
     return bool(strings)
 
@@ -801,8 +831,12 @@ ext_map = {
 }
 
 
-def document_to_text(filename=None, blob=None, extension=None, plain=False,
-                     width=DEFAULT_WIDTH, min_col_width=DEFAULT_MIN_COL_WIDTH):
+def document_to_text(filename: str = None,
+                     blob: bytes = None,
+                     extension: str = None,
+                     plain: bool = False,
+                     width: int = DEFAULT_WIDTH,
+                     min_col_width: int = DEFAULT_MIN_COL_WIDTH) -> str:
     """
     Pass either a filename or a binary object.
     - Raises an exception for malformed arguments, missing files, bad
@@ -845,7 +879,7 @@ def document_to_text(filename=None, blob=None, extension=None, plain=False,
     return func(filename, blob, **kwargs)
 
 
-def is_text_extractor_available(extension):
+def is_text_extractor_available(extension: str) -> bool:
     if extension is not None:
         extension = extension.lower()
     info = ext_map.get(extension)
@@ -861,7 +895,7 @@ def is_text_extractor_available(extension):
             "Bad information object for extension: {}".format(extension))
 
 
-def require_text_extractor(extension):
+def require_text_extractor(extension: str) -> None:
     if not is_text_extractor_available(extension):
         raise ValueError(
             "No text extractor available for extension: {}".format(extension))
@@ -871,7 +905,7 @@ def require_text_extractor(extension):
 # main, for command-line use
 # =============================================================================
 
-def main():
+def main() -> None:
     logging.basicConfig(level=logging.DEBUG)
     parser = argparse.ArgumentParser()
     parser.add_argument("inputfile", nargs="?", help="Input file name")

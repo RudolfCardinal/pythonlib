@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Support for plotting.
@@ -28,6 +28,7 @@ import io
 # noinspection PyPackageRequirements
 import numpy
 import sys
+from types import ModuleType
 
 from . import rnc_web
 
@@ -45,7 +46,9 @@ if sys.version_info > (3,):
 # You could make a PDF and append it, though that would (without further
 # effort) lack the patient headers.
 
-def png_img_html_from_pyplot_figure(fig, dpi=100, extra_html_class=None):
+def png_img_html_from_pyplot_figure(fig,  # matplotlib.figure.Figure
+                                    dpi: int = 100,
+                                    extra_html_class: str = None) -> str:
     """Converts a pyplot figure to an HTML IMG tag with encapsulated PNG."""
     if fig is None:
         return ""
@@ -62,7 +65,7 @@ def png_img_html_from_pyplot_figure(fig, dpi=100, extra_html_class=None):
     return rnc_web.get_png_img_html(pngblob, extra_html_class)
 
 
-def svg_html_from_pyplot_figure(fig):
+def svg_html_from_pyplot_figure(fig) -> str:
     """Converts a pyplot figure to an SVG tag."""
     if fig is None:
         return ""
@@ -76,7 +79,8 @@ def svg_html_from_pyplot_figure(fig):
 # Plotting
 # =============================================================================
 
-def set_matplotlib_fontsize(matplotlib, fontsize=12):
+def set_matplotlib_fontsize(matplotlib: ModuleType,
+                            fontsize: int = 12) -> None:
     """Sets the current font size within the matplotlib library."""
     font = {
         # http://stackoverflow.com/questions/3899980
@@ -102,7 +106,9 @@ def set_matplotlib_fontsize(matplotlib, fontsize=12):
 # Maths
 # =============================================================================
 
-def logistic(x, k, theta):
+def logistic(x: float,
+             k: float,
+             theta: float) -> float:
     """Standard logistic function."""
     if x is None or k is None or theta is None:
         return None
@@ -110,7 +116,9 @@ def logistic(x, k, theta):
     return 1 / (1 + numpy.exp(-k * (x - theta)))
 
 
-def inv_logistic(y, k, theta):
+def inv_logistic(y: float,
+                 k: float,
+                 theta: float) -> None:
     """Inverse standard logistic function."""
     if y is None or k is None or theta is None:
         return None

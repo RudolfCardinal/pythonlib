@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Creates/registers an Access database via ODBC.
@@ -64,40 +64,44 @@ access_driver = "Microsoft Access Driver (*.mdb)"
 nul = chr(0)
 
 
-def create_sys_dsn(driver, **kw):
+def create_sys_dsn(driver: str, **kw) -> bool:
     """Create a  system DSN
     Parameters:
         driver - ODBC driver name
         kw - Driver attributes
     Returns:
-        0 - DSN not created
-        1 - DSN created
+        False [from 0] - DSN not created
+        True [from 1] - DSN created
     """
     attributes = []
     for attr in kw.keys():
         attributes.append("%s=%s" % (attr, kw[attr]))
-    return ctypes.windll.ODBCCP32.SQLConfigDataSource(0, ODBC_ADD_SYS_DSN,
-                                                      driver,
-                                                      nul.join(attributes))
+    return bool(
+        ctypes.windll.ODBCCP32.SQLConfigDataSource(0, ODBC_ADD_SYS_DSN,
+                                                   driver,
+                                                   nul.join(attributes))
+    )
 
 
-def create_user_dsn(driver, **kw):
+def create_user_dsn(driver: str, **kw) -> bool:
     """Create a user DSN
     Parameters:
         driver - ODBC driver name
         kw - Driver attributes
     Returns:
-        0 - DSN not created
-        1 - DSN created
+        False [from 0] - DSN not created
+        True [from 1] - DSN created
     """
     attributes = []
     for attr in kw.keys():
         attributes.append("%s=%s" % (attr, kw[attr]))
-    return ctypes.windll.ODBCCP32.SQLConfigDataSource(0, ODBC_ADD_DSN, driver,
-                                                      nul.join(attributes))
+    return bool(
+        ctypes.windll.ODBCCP32.SQLConfigDataSource(0, ODBC_ADD_DSN, driver,
+                                                   nul.join(attributes))
+    )
 
 
-def register_access_db(fullfilename, dsn, description):
+def register_access_db(fullfilename: str, dsn: str, description: str) -> bool:
     directory = os.path.dirname(fullfilename)
     return create_sys_dsn(
         access_driver,
@@ -109,7 +113,9 @@ def register_access_db(fullfilename, dsn, description):
     )
 
 
-def create_and_register_access97_db(filename, dsn, description):
+def create_and_register_access97_db(filename: str,
+                                    dsn: str,
+                                    description: str) -> bool:
     fullfilename = os.path.abspath(filename)
     create_string = fullfilename + " General"
     # ... filename, space, sort order ("General" for English)
@@ -117,7 +123,9 @@ def create_and_register_access97_db(filename, dsn, description):
             register_access_db(filename, dsn, description))
 
 
-def create_and_register_access2000_db(filename, dsn, description):
+def create_and_register_access2000_db(filename: str,
+                                      dsn: str,
+                                      description: str) -> bool:
     fullfilename = os.path.abspath(filename)
     create_string = fullfilename + " General"
     # ... filename, space, sort order ("General" for English)
@@ -125,7 +133,9 @@ def create_and_register_access2000_db(filename, dsn, description):
             register_access_db(filename, dsn, description))
 
 
-def create_and_register_access_db(filename, dsn, description):
+def create_and_register_access_db(filename: str,
+                                  dsn: str,
+                                  description: str) -> bool:
     fullfilename = os.path.abspath(filename)
     create_string = fullfilename + " General"
     # ... filename, space, sort order ("General" for English)

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Support functions to serve PDFs from CGI scripts.
@@ -31,9 +31,10 @@ import logging
 import os
 import sys
 import tempfile
+from typing import Any, Dict, Union
 
 # noinspection PyPackageRequirements
-import PyPDF2  # pip install PyPDF2
+from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
 
 # =============================================================================
 # Conditional/optional imports
@@ -107,7 +108,8 @@ if sys.version_info > (3,):
 # Ancillary functions for PDFs
 # =============================================================================
 
-def set_processor(new_processor=WEASYPRINT, wkhtmltopdf_filename=None):
+def set_processor(new_processor: str = WEASYPRINT,
+                  wkhtmltopdf_filename: str = None) -> None:
     """Set the PDF processor."""
     global processor
     if new_processor not in [XHTML2PDF, WEASYPRINT, PDFKIT]:
@@ -126,8 +128,11 @@ def set_processor(new_processor=WEASYPRINT, wkhtmltopdf_filename=None):
     log.info("PDF processor set to: " + processor)
 
 
-def pdf_from_html(html, header_html=None, footer_html=None,
-                  wkhtmltopdf_options=None, file_encoding="utf-8"):
+def pdf_from_html(html: str,
+                  header_html: str = None,
+                  footer_html: str = None,
+                  wkhtmltopdf_options: Dict[str, Any] = None,
+                  file_encoding: str = "utf-8"):
     """
     Takes HTML and returns a PDF (as a buffer in Python 2, or a memoryview
     in Python 3).
@@ -138,6 +143,7 @@ def pdf_from_html(html, header_html=None, footer_html=None,
     """
     if processor == XHTML2PDF:
         memfile = io.BytesIO()
+        # noinspection PyUnresolvedReferences
         xhtml2pdf.document.pisaDocument(html, memfile)
         # ... returns a document, but we don't use it, so we don't store it to
         # stop pychecker complaining
@@ -203,7 +209,7 @@ def pdf_from_html(html, header_html=None, footer_html=None,
         raise AssertionError("Unknown PDF engine")
 
 
-def pdf_from_writer(writer):
+def pdf_from_writer(writer: Union[PdfFileWriter, PdfFileMerger]) -> bytes:
     """Extracts a PDF (as a buffer) from a PyPDF2 writer."""
     memfile = io.BytesIO()
     writer.write(memfile)
@@ -211,7 +217,7 @@ def pdf_from_writer(writer):
     return buffer(memfile.read())
 
 
-def serve_pdf_to_stdout(pdf):
+def serve_pdf_to_stdout(pdf: bytes) -> None:
     """Serves a PDF to stdout.
 
     Writes a "Content-Type: application/pdf" header and then the PDF to stdout.
@@ -224,12 +230,12 @@ def serve_pdf_to_stdout(pdf):
     sys.stdout.write(pdf)
 
 
-def make_pdf_writer():
+def make_pdf_writer() -> PdfFileWriter:
     """Creates a PyPDF2 writer."""
-    return PyPDF2.PdfFileWriter()
+    return PdfFileWriter()
 
 
-def append_pdf(input_pdf, output_writer):
+def append_pdf(input_pdf: bytes, output_writer: PdfFileWriter):
     """Appends a PDF to a pyPDF writer."""
     if input_pdf is None:
         return
@@ -237,7 +243,7 @@ def append_pdf(input_pdf, output_writer):
         output_writer.addBlankPage()
         # ... suitable for double-sided printing
     infile = io.BytesIO(input_pdf)
-    reader = PyPDF2.PdfFileReader(infile)
+    reader = PdfFileReader(infile)
     [
         output_writer.addPage(reader.getPage(page_num))
         for page_num in range(reader.numPages)

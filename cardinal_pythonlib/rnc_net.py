@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Network support functions.
@@ -39,7 +39,7 @@ import subprocess
 import sys
 
 
-def ping(hostname, timeout_s=5):
+def ping(hostname: str, timeout_s: int = 5) -> bool:
     if sys.platform == "win32":
         timeout_ms = timeout_s * 1000
         args = [

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Sends e-mails from the command line.
@@ -36,6 +36,7 @@ import os
 import re
 import smtplib
 import sys
+from typing import Iterable, Tuple
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -45,21 +46,21 @@ log.addHandler(logging.NullHandler())
 # Send e-mail
 # =============================================================================
 
-def send_email(sender,
-               recipient,
-               subject,
-               body,
-               host,
-               user,
-               password,
-               port=None,
-               use_tls=True,
-               content_type="text/plain",
-               attachment_filenames=None,
-               attachment_binaries=None,
-               attachment_binary_filenames=None,
-               charset="utf8",
-               verbose=False):
+def send_email(sender: str,
+               recipient: str,
+               subject: str,
+               body: str,
+               host: str,
+               user: str,
+               password: str,
+               port: int = None,
+               use_tls: bool = True,
+               content_type: str = "text/plain",
+               attachment_filenames: Iterable[str] = None,
+               attachment_binaries: Iterable[bytes] = None,
+               attachment_binary_filenames: Iterable[str] = None,
+               charset: str = "utf8",
+               verbose: bool = False) -> Tuple[bool, str]:
     """Sends an e-mail in text/html format using SMTP via TLS."""
     # http://segfault.in/2010/12/sending-gmail-from-python/
     # http://stackoverflow.com/questions/64505
@@ -96,6 +97,7 @@ def send_email(sender,
             if verbose:
                 log.debug("attachment_filenames: {}".format(
                     attachment_filenames))
+            # noinspection PyTypeChecker
             for f in attachment_filenames:
                 part = email.mime.base.MIMEBase("application", "octet-stream")
                 part.set_payload(open(f, "rb").read())
@@ -174,14 +176,14 @@ def send_email(sender,
 _SIMPLE_EMAIL_REGEX = re.compile("[^@]+@[^@]+\.[^@]+")
 
 
-def is_email_valid(email_):
+def is_email_valid(email_: str) -> bool:
     """Performs a very basic check that a string appears to be an e-mail
     address."""
     # Very basic checks!
     return _SIMPLE_EMAIL_REGEX.match(email_)
 
 
-def get_email_domain(email_):
+def get_email_domain(email_: str) -> str:
     """Returns the domain part of an e-mail address."""
     return email_.split("@")[1]
 
@@ -190,7 +192,7 @@ def get_email_domain(email_):
 # Parse command line
 # =============================================================================
 
-def main():
+def main() -> None:
     logging.basicConfig()
     log.setLevel(logging.DEBUG)
     parser = argparse.ArgumentParser(

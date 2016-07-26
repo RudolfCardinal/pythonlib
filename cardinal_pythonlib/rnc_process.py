@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf8 -*-
 
 """Support functions for process/external command management.
@@ -26,15 +26,17 @@ Copyright/licensing:
 
 import shlex
 import subprocess
+from typing import io, Sequence
 
 
-def get_external_command_output(command):
+def get_external_command_output(command: str) -> int:
     args = shlex.split(command)
     ret = subprocess.check_output(args)  # this needs Python 2.7 or higher
     return ret
 
 
-def get_pipe_series_output(commands, stdinput=None):
+def get_pipe_series_output(commands: Sequence[str],
+                           stdinput: io.BinaryIO = None) -> bytes:
     # Python arrays indexes are zero-based, i.e. an array is indexed from
     # 0 to len(array)-1.
     # The range/xrange commands, by default, start at 0 and go to one less
