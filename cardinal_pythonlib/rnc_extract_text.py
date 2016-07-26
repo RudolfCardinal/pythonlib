@@ -83,8 +83,17 @@ try:
     import docx.oxml.text.paragraph
     import docx.table
     import docx.text.paragraph
+    DOCX_DOCUMENT_TYPE = "docx.document.Document"
+    DOCX_TABLE_TYPE = Union["docx.table.Table", "CustomDocxTable"]
+    DOCX_CONTAINER_TYPE = Union[DOCX_DOCUMENT_TYPE, "docx.table._Cell"]
+    DOCX_BLOCK_ITEM_TYPE = Union["docx.text.paragraph.Paragraph",
+                                 "docx.table.Table"]
 except ImportError:
     docx = None
+    DOCX_DOCUMENT_TYPE = None
+    DOCX_TABLE_TYPE = "CustomDocxTable"
+    DOCX_CONTAINER_TYPE = None
+    DOCX_BLOCK_ITEM_TYPE = None
 try:
     import docx2txt  # pip install docx2txt
 except ImportError:
@@ -408,7 +417,7 @@ def docx_process_simple_text(text: str, width: int) -> str:
         return text
 
 
-def docx_process_table(table: Union[docx.table.Table, CustomDocxTable],
+def docx_process_table(table: DOCX_TABLE_TYPE,
                        width: int,
                        min_col_width: int,
                        plain: bool = False) -> str:
@@ -499,9 +508,9 @@ def docx_process_table(table: Union[docx.table.Table, CustomDocxTable],
 
 
 # noinspection PyProtectedMember
-def docx_docx_iter_block_items(
-        parent: Union[docx.document.Document, docx.table._Cell]) \
-        -> Iterator[Union[docx.text.paragraph.Paragraph, docx.table.Table]]:
+def docx_docx_iter_block_items(parent: DOCX_CONTAINER_TYPE) \
+        -> Iterator[DOCX_BLOCK_ITEM_TYPE]:
+    # only called if docx loaded
     """
     https://github.com/python-openxml/python-docx/issues/40
 
@@ -528,10 +537,11 @@ def docx_docx_iter_block_items(
             yield docx.table.Table(child, parent)
 
 
-def docx_docx_gen_text(doc: docx.Document,
+def docx_docx_gen_text(doc: DOCX_DOCUMENT_TYPE,
                        width: int,
                        min_col_width: int,
                        in_order: bool = True) -> Iterator[str]:
+    # only called if docx loaded
     if in_order:
         for thing in docx_docx_iter_block_items(doc):
             if isinstance(thing, docx.text.paragraph.Paragraph):

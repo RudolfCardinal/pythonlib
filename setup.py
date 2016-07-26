@@ -85,9 +85,9 @@ setup(
 
     packages=['cardinal_pythonlib'],
 
-    # install_requires=[
-    #     'six',  # Python 2/3 compatibility
-    # ],
+    install_requires=[
+        'six',  # Python 2/3 compatibility
+    ],
 
     entry_points={
         'console_scripts': [
