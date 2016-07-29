@@ -26,7 +26,7 @@ Copyright/licensing:
 
 import shlex
 import subprocess
-from typing import io, Sequence
+from typing import BinaryIO, Sequence
 
 
 def get_external_command_output(command: str) -> int:
@@ -36,7 +36,7 @@ def get_external_command_output(command: str) -> int:
 
 
 def get_pipe_series_output(commands: Sequence[str],
-                           stdinput: io.BinaryIO = None) -> bytes:
+                           stdinput: BinaryIO = None) -> bytes:
     # Python arrays indexes are zero-based, i.e. an array is indexed from
     # 0 to len(array)-1.
     # The range/xrange commands, by default, start at 0 and go to one less

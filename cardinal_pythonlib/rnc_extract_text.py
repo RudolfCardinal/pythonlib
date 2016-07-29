@@ -66,7 +66,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from typing import io, Iterator, List, Union
+from typing import BinaryIO, Iterator, List, Union
 from xml.etree import ElementTree as ElementTree
 # ... cElementTree used to be the fast implementation; now ElementTree is fast
 # and cElementTree is deprecated; see
@@ -171,7 +171,7 @@ def update_external_tools(tooldict):
 # =============================================================================
 
 def get_filelikeobject(filename: str = None,
-                       blob: bytes = None) -> io.BinaryIO:
+                       blob: bytes = None) -> BinaryIO:
     """Guard the use of this function with 'with'."""
     if not filename and not blob:
         raise ValueError("no filename and no blob")
@@ -291,7 +291,7 @@ DOCX_TABLE_ROW = docx_qn('tr')
 DOCX_TABLE_CELL = docx_qn('tc')
 
 
-def gen_xml_files_from_docx(fp: io.BinaryIO) -> Iterator[str]:
+def gen_xml_files_from_docx(fp: BinaryIO) -> Iterator[str]:
     z = zipfile.ZipFile(fp)
     filelist = z.namelist()
     for filename in filelist:
@@ -469,6 +469,7 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
         return '\n\n'.join(cellparagraphs)
 
     ncols = 1
+    # noinspection PyTypeChecker
     for row in table.rows:
         ncols = max(ncols, len(row.cells))
     pt = prettytable.PrettyTable(
@@ -483,6 +484,7 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
     pt.valign = 't'
     pt.max_width = max(width // ncols, min_col_width)
     if plain:
+        # noinspection PyTypeChecker
         for row in table.rows:
             for i, cell in enumerate(row.cells):
                 n_before = i
@@ -494,8 +496,10 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
                 )
                 pt.add_row(ptrow)
     else:
+        # noinspection PyTypeChecker
         for row in table.rows:
             ptrow = []
+            # noinspection PyTypeChecker
             for cell in row.cells:
                 ptrow.append(get_cell_text(cell))
             pt.add_row(ptrow)

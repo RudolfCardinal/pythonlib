@@ -132,7 +132,7 @@ def pdf_from_html(html: str,
                   header_html: str = None,
                   footer_html: str = None,
                   wkhtmltopdf_options: Dict[str, Any] = None,
-                  file_encoding: str = "utf-8"):
+                  file_encoding: str = "utf-8") -> bytes:  # TODO: check type
     """
     Takes HTML and returns a PDF (as a buffer in Python 2, or a memoryview
     in Python 3).

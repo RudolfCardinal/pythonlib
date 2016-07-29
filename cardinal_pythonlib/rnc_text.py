@@ -26,10 +26,10 @@ Copyright/licensing:
 
 import csv
 import datetime
-from typing import Any, Dict, io, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, TextIO, Tuple
 
 
-def produce_csv_output(filehandle: io.TextIO,
+def produce_csv_output(filehandle: TextIO,
                        fields: Sequence[str],
                        values: Iterable[str]) -> None:
     """Produce CSV output, without using csv.writer, so the log can be used for
@@ -39,7 +39,7 @@ def produce_csv_output(filehandle: io.TextIO,
         output_csv(filehandle, row)
 
 
-def output_csv(filehandle: io.TextIO, values: Iterable[str]) -> None:
+def output_csv(filehandle: TextIO, values: Iterable[str]) -> None:
     line = ",".join(values)
     filehandle.write(line + "\n")
 
