@@ -148,9 +148,6 @@ import configparser
 import datetime
 import re
 import logging
-import six
-# noinspection PyUnresolvedReferences
-from six.moves import range
 import time
 from typing import (Any, Container, Dict, Iterable, Iterator, List, Optional,
                     Sequence, Tuple, Type, TypeVar, Union)
@@ -1838,11 +1835,11 @@ class DatabaseSupporter:
             # it's fetched a VARBINARY(MAX) field.
             nvp['selectMethod'] = 'cursor'  # trying this; default is 'direct'
             url = urlstem + ';'.join(
-                '{}={}'.format(x, y) for x, y in six.iteritems(nvp))
+                '{}={}'.format(x, y) for x, y in nvp.items())
 
             nvp['password'] = '[censored]'
             url_censored = urlstem + ';'.join(
-                '{}={}'.format(x, y) for x, y in six.iteritems(nvp))
+                '{}={}'.format(x, y) for x, y in nvp.items())
             log.info(
                 'jdbc connect: jclassname={jclassname}, url = {url}'.format(
                     jclassname=jclassname,
@@ -2089,7 +2086,7 @@ class DatabaseSupporter:
 
     def insert_record_by_dict(self,
                               table: str,
-                              valuedict: Dict[str, Any]) -> None:
+                              valuedict: Dict[str, Any]) -> int:
         """Inserts a record into database, table "table", using a dictionary
         containing field/value mappings. Returns the new PK (or None)."""
         if not valuedict:
@@ -2097,7 +2094,7 @@ class DatabaseSupporter:
         n = len(valuedict)
         fields = []
         args = []
-        for f, v in six.iteritems(valuedict):
+        for f, v in valuedict.items():
             fields.append(self.delimit(f))
             args.append(v)
         query = """

@@ -122,7 +122,6 @@ try:
     import pyth.plugins.plaintext.writer
 except ImportError:
     pyth = None
-import six
 # import texttable  # ... can't deal with Unicode properly
 
 import logging
@@ -141,24 +140,15 @@ ENCODING = "utf-8"
 # External tool map
 # =============================================================================
 
-if six.PY2:
-    tools = {
-        'antiword': 'antiword',
-        'pdftotext': 'pdftotext',
-        'strings': 'strings',
-        'strings2': 'strings2',
-        'unrtf': 'unrtf',
-    }
-else:
-    tools = {
-        'antiword': shutil.which('antiword'),  # sudo apt-get install antiword
-        'pdftotext': shutil.which('pdftotext'),  # core part of Linux?
-        'strings': shutil.which('strings'),  # part of standard Unix
-        'strings2': shutil.which('strings2'),
-        # ... Windows: https://technet.microsoft.com/en-us/sysinternals/strings.aspx  # noqa
-        # ... Windows: http://split-code.com/strings2.html
-        'unrtf': shutil.which('unrtf'),  # sudo apt-get install unrtf
-    }
+tools = {
+    'antiword': shutil.which('antiword'),  # sudo apt-get install antiword
+    'pdftotext': shutil.which('pdftotext'),  # core part of Linux?
+    'strings': shutil.which('strings'),  # part of standard Unix
+    'strings2': shutil.which('strings2'),
+    # ... Windows: https://technet.microsoft.com/en-us/sysinternals/strings.aspx  # noqa
+    # ... Windows: http://split-code.com/strings2.html
+    'unrtf': shutil.which('unrtf'),  # sudo apt-get install unrtf
+}
 
 
 def update_external_tools(tooldict):
@@ -957,8 +947,6 @@ def main() -> None:
         width=args.width, min_col_width=args.min_col_width)
     if result is None:
         return
-    elif six.PY2 and isinstance(result, six.text_type):
-        print(result.encode(ENCODING))
     else:
         print(result)
 

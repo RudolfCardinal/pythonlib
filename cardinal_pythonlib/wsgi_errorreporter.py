@@ -8,7 +8,8 @@
 # Modified to use six.StringIO
 # Latest changes: 6 Jan 2016
 
-import six
+# import six
+from io import StringIO
 import sys
 import cgitb
 
@@ -20,13 +21,10 @@ class ErrorReportingMiddleware(object):
 
     @staticmethod
     def format_exception(exc_info):
-        dummy_file = six.StringIO()
+        dummy_file = StringIO()
         hook = cgitb.Hook(file=dummy_file)
         hook(*exc_info)
-        if six.PY3:
-            return [dummy_file.getvalue().encode('utf-8')]
-        else:
-            return [dummy_file.getvalue()]
+        return [dummy_file.getvalue().encode('utf-8')]
 
     def __call__(self, environ, start_response):
         # noinspection PyBroadException

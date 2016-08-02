@@ -29,7 +29,7 @@ import errno
 import getpass
 import os
 # noinspection PyUnresolvedReferences
-from six.moves import input
+# from six.moves import input
 import sys
 from typing import Optional
 if sys.version_info > (3,):

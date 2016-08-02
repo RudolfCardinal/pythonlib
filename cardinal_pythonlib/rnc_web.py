@@ -35,7 +35,7 @@ import datetime
 import logging
 import os
 import re
-import six
+# import six
 import sys
 from typing import (Any, Callable, Dict, Iterable, List, Optional,
                     Tuple, Union)
@@ -45,6 +45,7 @@ log.addHandler(logging.NullHandler())
 
 HEADERS_TYPE = List[Tuple[str, str]]  # c'd be sequence but we do append them
 WSGI_TUPLE_TYPE = Tuple[str, HEADERS_TYPE, bytes]
+# ... contenttype, extraheaders, output
 
 # =============================================================================
 # Constants
@@ -94,7 +95,7 @@ def is_1(s: str) -> bool:
 
 def number_to_dp(number: Optional[float],
                  dp: int,
-                 default: str = "",
+                 default: Optional[str] = "",
                  en_dash_for_minus: bool = True) -> str:
     """Format number to dp decimal places, optionally using a UTF-8 en dash
     for minus signs."""
@@ -342,10 +343,7 @@ def is_valid_png(blob: Optional[bytes]) -> bool:
 
 def get_png_data_url(blob: Optional[bytes]) -> str:
     """Converts a PNG blob into a local URL encapsulating the PNG."""
-    if six.PY3:
-        return BASE64_PNG_URL_PREFIX + base64.b64encode(blob).decode('ascii')
-    else:
-        return BASE64_PNG_URL_PREFIX + base64.b64encode(blob)
+    return BASE64_PNG_URL_PREFIX + base64.b64encode(blob).decode('ascii')
 
 
 def get_png_img_html(blob: Union[bytes, memoryview],
@@ -378,10 +376,7 @@ def pdf_result(pdf_binary: bytes,
     if filename:
         contenttype += '; filename="{}"'.format(filename)
     # log.debug("type(pdf_binary): {}".format(type(pdf_binary)))
-    if six.PY3:
-        return contenttype, extraheaders, pdf_binary
-    else:
-        return contenttype, extraheaders, str(pdf_binary)
+    return contenttype, extraheaders, pdf_binary
 
 
 def zip_result(zip_binary: bytes,
@@ -396,10 +391,7 @@ def zip_result(zip_binary: bytes,
     contenttype = 'application/zip'
     if filename:
         contenttype += '; filename="{}"'.format(filename)
-    if six.PY3:
-        return contenttype, extraheaders, zip_binary
-    else:
-        return contenttype, extraheaders, str(zip_binary)
+    return contenttype, extraheaders, zip_binary
 
 
 def html_result(html: str,
@@ -523,7 +515,7 @@ def webify(v: Any, preserve_newlines: bool = True) -> str:
     nl = "<br>" if preserve_newlines else " "
     if v is None:
         return ""
-    if not isinstance(v, six.string_types):
+    if not isinstance(v, str):
         v = str(v)
     # noinspection PyDeprecation
     return cgi.escape(v).replace("\n", nl).replace("\\n", nl)

@@ -33,8 +33,6 @@ import hmac
 import os
 from typing import Any, Callable
 
-import six
-
 
 # =============================================================================
 # bcrypt
@@ -53,10 +51,7 @@ def create_base64encoded_randomness(num_bytes: int) -> str:
     # NO # randbytes = M2Crypto.m2.rand_bytes(num_bytes)
     # NO # randbytes = Crypto.Random.get_random_bytes(num_bytes)
     randbytes = os.urandom(num_bytes)  # YES
-    if six.PY3:
-        return base64.urlsafe_b64encode(randbytes).decode('ascii')
-    else:
-        return base64.urlsafe_b64encode(randbytes)
+    return base64.urlsafe_b64encode(randbytes).decode('ascii')
 
 # http://crackstation.net/hashing-security.htm
 # http://www.mindrot.org/projects/py-bcrypt/

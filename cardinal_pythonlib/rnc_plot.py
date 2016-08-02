@@ -26,9 +26,11 @@ Copyright/licensing:
 
 import io
 # noinspection PyPackageRequirements
-import numpy
 import sys
 from types import ModuleType
+from typing import Optional, Union
+
+import numpy
 
 from . import rnc_web
 
@@ -80,7 +82,7 @@ def svg_html_from_pyplot_figure(fig) -> str:
 # =============================================================================
 
 def set_matplotlib_fontsize(matplotlib: ModuleType,
-                            fontsize: int = 12) -> None:
+                            fontsize: Union[int, float] = 12) -> None:
     """Sets the current font size within the matplotlib library."""
     font = {
         # http://stackoverflow.com/questions/3899980
@@ -108,7 +110,7 @@ def set_matplotlib_fontsize(matplotlib: ModuleType,
 
 def logistic(x: float,
              k: float,
-             theta: float) -> float:
+             theta: float) -> Optional[float]:
     """Standard logistic function."""
     if x is None or k is None or theta is None:
         return None
@@ -118,7 +120,7 @@ def logistic(x: float,
 
 def inv_logistic(y: float,
                  k: float,
-                 theta: float) -> None:
+                 theta: float) -> Optional[float]:
     """Inverse standard logistic function."""
     if y is None or k is None or theta is None:
         return None
