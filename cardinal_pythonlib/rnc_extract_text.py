@@ -318,15 +318,19 @@ DOCX_TABLE_CELL = docx_qn('tc')
 
 
 def gen_xml_files_from_docx(fp: BinaryIO) -> Iterator[str]:
-    z = zipfile.ZipFile(fp)
-    filelist = z.namelist()
-    for filename in filelist:
-        if DOCX_HEADER_FILE_REGEX.match(filename):
-            yield z.read(filename).decode("utf8")
-    yield z.read(DOCX_DOC_FILE)
-    for filename in filelist:
-        if DOCX_FOOTER_FILE_REGEX.match(filename):
-            yield z.read(filename).decode("utf8")
+    try:
+        z = zipfile.ZipFile(fp)
+        filelist = z.namelist()
+        for filename in filelist:
+            if DOCX_HEADER_FILE_REGEX.match(filename):
+                yield z.read(filename).decode("utf8")
+        yield z.read(DOCX_DOC_FILE)
+        for filename in filelist:
+            if DOCX_FOOTER_FILE_REGEX.match(filename):
+                yield z.read(filename).decode("utf8")
+    except zipfile.BadZipFile:
+        # Clarify the error:
+        raise zipfile.BadZipFile("File is not a zip file - encrypted DOCX?")
 
 
 def docx_text_from_xml(xml: str, **kwargs) -> str:
@@ -486,6 +490,15 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
                                 CCC CCC
                                 CCC CCC
 
+    - Note also that the grids in DOCX files can have varying number of cells
+      per row, e.g.
+      
+            +---+---+---+
+            | 1 | 2 | 3 |
+            +---+---+---+
+            | 1 | 2 |
+            +---+---+
+
     """
 
     def get_cell_text(cell_) -> str:
@@ -514,12 +527,16 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
         for row in table.rows:
             for i, cell in enumerate(row.cells):
                 n_before = i
-                n_after = len(row.cells) - i - 1
+                n_after = ncols - i - 1
+                # ... use ncols, not len(row.cells), since "cells per row" is
+                #     not constant, but prettytable wants a fixed number.
+                #     (changed in v0.2.8)
                 ptrow = (
                     [''] * n_before +
                     [get_cell_text(cell)] +
                     [''] * n_after
                 )
+                assert(len(ptrow) == ncols)
                 pt.add_row(ptrow)
     else:
         # noinspection PyTypeChecker
@@ -528,6 +545,8 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
             # noinspection PyTypeChecker
             for cell in row.cells:
                 ptrow.append(get_cell_text(cell))
+            ptrow += [''] * (ncols - len(ptrow))  # added in v0.2.8
+            assert (len(ptrow) == ncols)
             pt.add_row(ptrow)
     return pt.get_string()
 
