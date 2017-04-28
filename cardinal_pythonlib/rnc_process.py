@@ -29,7 +29,7 @@ import subprocess
 from typing import BinaryIO, Sequence
 
 
-def get_external_command_output(command: str) -> int:
+def get_external_command_output(command: str) -> bytes:
     args = shlex.split(command)
     ret = subprocess.check_output(args)  # this needs Python 2.7 or higher
     return ret
@@ -43,7 +43,7 @@ def get_pipe_series_output(commands: Sequence[str],
     # than the maximum specified.
 
     # print commands
-    processes = []
+    processes = []  # type: List[subprocess.Popen]
     for i in range(len(commands)):
         if i == 0:  # first processes
             processes.append(

@@ -75,6 +75,11 @@ import zipfile
 
 # noinspection PyPackageRequirements
 import bs4  # pip install beautifulsoup4
+# noinspection PyPackageRequirements
+import prettytable  # pip install PrettyTable
+import semver
+# import texttable  # ... can't deal with Unicode properly
+
 try:
     # noinspection PyPackageRequirements
     import docx  # pip install python-docx (NOT docx) - BUT python-docx requires lxml which has C dependencies  # noqa
@@ -94,10 +99,12 @@ except ImportError:
     DOCX_TABLE_TYPE = "CustomDocxTable"
     DOCX_CONTAINER_TYPE = None
     DOCX_BLOCK_ITEM_TYPE = None
+
 try:
     import docx2txt  # pip install docx2txt
 except ImportError:
     docx2txt = None
+
 try:
     # noinspection PyPackageRequirements
     import pdfminer  # pip install pdfminer
@@ -111,8 +118,7 @@ try:
     import pdfminer.pdfpage
 except ImportError:
     pdfminer = None
-# noinspection PyPackageRequirements
-import prettytable  # pip install PrettyTable
+
 try:
     # noinspection PyPackageRequirements
     import pyth  # pip install pyth (PYTHON 2 ONLY; https://pypi.python.org/pypi/pyth/0.5.4)  # noqa
@@ -122,7 +128,6 @@ try:
     import pyth.plugins.plaintext.writer
 except ImportError:
     pyth = None
-# import texttable  # ... can't deal with Unicode properly
 
 import logging
 log = logging.getLogger(__name__)
@@ -132,6 +137,8 @@ log.addHandler(logging.NullHandler())
 # Constants
 # =============================================================================
 
+AVAILABILITY = 'availability'
+CONVERTER = 'converter'
 DEFAULT_WIDTH = 120
 DEFAULT_MIN_COL_WIDTH = 15
 ENCODING = "utf-8"
@@ -149,6 +156,33 @@ tools = {
     # ... Windows: http://split-code.com/strings2.html
     'unrtf': shutil.which('unrtf'),  # sudo apt-get install unrtf
 }
+
+
+def does_unrtf_support_quiet() -> bool:
+    """
+    The unrtf tool supports the '--quiet' argument from version XXX.
+    """
+    required_unrtf_version = (0, 21, 9)
+    # ... probably: http://hg.savannah.gnu.org/hgweb/unrtf/
+    # ... 0.21.9 definitely supports --quiet
+    # ... 0.19.3 definitely doesn't support it
+    unrtf_filename = shutil.which('unrtf')
+    if not unrtf_filename:
+        return False
+    p = subprocess.Popen(["unrtf", "--version"],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    _, err_bytes = p.communicate()
+    text = err_bytes.decode(sys.getdefaultencoding())
+    lines = text.split()
+    if len(lines) < 1:
+        return False
+    version_str = lines[0]
+    unrtf_version = semver.parse_version_info(version_str)
+    return unrtf_version >= required_unrtf_version
+
+
+UNRTF_SUPPORTS_QUIET = does_unrtf_support_quiet()
 
 
 def update_external_tools(tooldict):
@@ -173,7 +207,9 @@ def get_filelikeobject(filename: str = None,
         return io.BytesIO(blob)
 
 
-def get_file_contents(filename: str = None, blob: bytes = None) -> bytes:
+# noinspection PyUnusedLocal
+def get_file_contents(filename: str = None, blob: bytes = None,
+                      **kwargs) -> bytes:
     """Returns binary contents of a file, or blob."""
     if not filename and not blob:
         raise ValueError("no filename and no blob")
@@ -452,7 +488,7 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
 
     """
 
-    def get_cell_text(cell_):
+    def get_cell_text(cell_) -> str:
         cellparagraphs = [paragraph.text.strip()
                           for paragraph in cell_.paragraphs]
         cellparagraphs = [x for x in cellparagraphs if x]
@@ -488,7 +524,7 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
     else:
         # noinspection PyTypeChecker
         for row in table.rows:
-            ptrow = []
+            ptrow = []  # type: List[str]
             # noinspection PyTypeChecker
             for cell in row.cells:
                 ptrow.append(get_cell_text(cell))
@@ -652,7 +688,7 @@ def convert_odt_to_text(filename: str = None,
         z = zipfile.ZipFile(fp)
         tree = ElementTree.fromstring(z.read('content.xml'))
         # ... may raise zipfile.BadZipfile
-        textlist = []
+        textlist = []  # type: List[str]
         for element in tree.iter():
             if element.text:
                 textlist.append(element.text.strip())
@@ -695,12 +731,14 @@ def convert_rtf_to_text(filename: str = None,
                         **kwargs) -> str:
     unrtf = tools['unrtf']
     if unrtf:  # Best
+        args = [unrtf, '--text', '--nopict']
+        if UNRTF_SUPPORTS_QUIET:
+            args.append('--quiet')
         if filename:
-            return get_cmd_output(
-                unrtf, '--text', '--nopict', '--quiet', filename)
+            args.append(filename)
+            return get_cmd_output(*args)
         else:
-            return get_cmd_output_from_stdin(
-                blob, unrtf, '--text', '--nopict', '--quiet')
+            return get_cmd_output_from_stdin(blob, *args)
     elif pyth:  # Very memory-consuming:
         # https://github.com/brendonh/pyth/blob/master/pyth/plugins/rtf15/reader.py  # noqa
         with get_filelikeobject(filename, blob) as fp:
@@ -781,56 +819,56 @@ ext_map = {
     # Converter functions must be of the form func(filename, blob, **kwargs):
     # Availability must be either a boolean or a function that takes no params.
     '.doc': {
-        'converter': convert_doc_to_text,
-        'availability': availability_doc,
+        CONVERTER: convert_doc_to_text,
+        AVAILABILITY: availability_doc,
     },
     '.dot': {
-        'converter': convert_doc_to_text,
-        'availability': availability_doc,
+        CONVERTER: convert_doc_to_text,
+        AVAILABILITY: availability_doc,
     },
     '.docm': {
-        'converter': convert_docx_to_text,
-        'availability': True,
+        CONVERTER: convert_docx_to_text,
+        AVAILABILITY: True,
     },
     '.docx': {
-        'converter': convert_docx_to_text,
-        'availability': True,
+        CONVERTER: convert_docx_to_text,
+        AVAILABILITY: True,
     },
     '.html': {
-        'converter': convert_html_to_text,
-        'availability': True,
+        CONVERTER: convert_html_to_text,
+        AVAILABILITY: True,
     },
     '.htm': {
-        'converter': convert_html_to_text,
-        'availability': True,
+        CONVERTER: convert_html_to_text,
+        AVAILABILITY: True,
     },
     '.log': {
-        'converter': get_file_contents,
-        'availability': True,
+        CONVERTER: get_file_contents,
+        AVAILABILITY: True,
     },
     '.odt': {
-        'converter': convert_odt_to_text,
-        'availability': True,
+        CONVERTER: convert_odt_to_text,
+        AVAILABILITY: True,
     },
     '.pdf': {
-        'converter': convert_pdf_to_txt,
-        'availability': availability_pdf,
+        CONVERTER: convert_pdf_to_txt,
+        AVAILABILITY: availability_pdf,
     },
     '.rtf': {
-        'converter': convert_rtf_to_text,
-        'availability': availability_rtf,
+        CONVERTER: convert_rtf_to_text,
+        AVAILABILITY: availability_rtf,
     },
     '.xml': {
-        'converter': convert_xml_to_text,
-        'availability': True,
+        CONVERTER: convert_xml_to_text,
+        AVAILABILITY: True,
     },
     '.txt': {
-        'converter': get_file_contents,
-        'availability': True,
+        CONVERTER: get_file_contents,
+        AVAILABILITY: True,
     },
     None: {  # fallback
-        'converter': convert_anything_to_text,
-        'availability': availability_anything,
+        CONVERTER: convert_anything_to_text,
+        AVAILABILITY: availability_anything,
     },
 }
 
@@ -874,7 +912,7 @@ def document_to_text(filename: str = None,
         log.warning("Unknown filetype: {}; using generic tool".format(
             extension))
         info = ext_map[None]
-    func = info['converter']
+    func = info[CONVERTER]
     kwargs = {
         'plain': plain,
         'width': width,
@@ -889,7 +927,7 @@ def is_text_extractor_available(extension: str) -> bool:
     info = ext_map.get(extension)
     if info is None:
         return False
-    availability = info['availability']
+    availability = info[AVAILABILITY]
     if type(availability) == bool:
         return availability
     elif callable(availability):

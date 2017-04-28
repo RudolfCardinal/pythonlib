@@ -269,7 +269,7 @@ def is_empty_string(s: str) -> bool:
 def csv_to_list_of_fields(lines: Sequence[str],
                           csvheader: str,
                           quotechar: str = '"') -> List[str]:
-    data = []
+    data = []  # type: List[str]
     # an empty line marks the end of the block
     csvlines = get_lines_from_to(lines, csvheader, [None])[1:]
     # ... remove the CSV header
@@ -281,15 +281,15 @@ def csv_to_list_of_fields(lines: Sequence[str],
 
 def csv_to_list_of_dicts(lines: Sequence[str],
                          csvheader: str,
-                         quotechar: str = '"') -> List[str]:
-    data = []  # empty list
+                         quotechar: str = '"') -> List[Dict[str, str]]:
+    data = []  # type: List[Dict[str, str]]
     # an empty line marks the end of the block
     csvlines = get_lines_from_to(lines, csvheader, [None])[1:]
     # ... remove the CSV header
     headerfields = csvheader.split(",")
     reader = csv.reader(csvlines, quotechar=quotechar)
     for fields in reader:
-        row = {}  # empty dictionary
+        row = {}  # type: Dict[str, str]
         for f in range(len(headerfields)):
             row[headerfields[f]] = fields[f]
         data.append(row)

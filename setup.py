@@ -60,7 +60,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
@@ -87,6 +87,7 @@ setup(
 
     install_requires=[
         'six',  # Python 2/3 compatibility
+        'semver>=2.7.5',  # semantic versioning; needs to be recent enough to support parse_version_info()  # noqa
     ],
 
     entry_points={

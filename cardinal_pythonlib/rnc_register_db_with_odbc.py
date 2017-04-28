@@ -73,7 +73,7 @@ def create_sys_dsn(driver: str, **kw) -> bool:
         False [from 0] - DSN not created
         True [from 1] - DSN created
     """
-    attributes = []
+    attributes = []  # type: List[str]
     for attr in kw.keys():
         attributes.append("%s=%s" % (attr, kw[attr]))
     return bool(
@@ -92,7 +92,7 @@ def create_user_dsn(driver: str, **kw) -> bool:
         False [from 0] - DSN not created
         True [from 1] - DSN created
     """
-    attributes = []
+    attributes = []  # type: List[str]
     for attr in kw.keys():
         attributes.append("%s=%s" % (attr, kw[attr]))
     return bool(
