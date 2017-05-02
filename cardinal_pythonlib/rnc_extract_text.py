@@ -81,6 +81,11 @@ import semver
 # import texttable  # ... can't deal with Unicode properly
 
 try:
+    import chardet
+except ImportError:
+    chardet = None
+
+try:
     # noinspection PyPackageRequirements
     import docx  # pip install python-docx (NOT docx) - BUT python-docx requires lxml which has C dependencies  # noqa
     import docx.document
@@ -219,6 +224,35 @@ def get_file_contents(filename: str = None, blob: bytes = None,
         return blob
     with open(filename, 'rb') as f:
         return f.read()
+
+
+def get_file_contents_text(filename: str = None, blob: bytes = None,
+                           encoding: str = None,
+                           **kwargs) -> str:
+    """Returns string contents of a file, or blob."""
+    binary_contents = get_file_contents(filename=filename, blob=blob, **kwargs)
+    # 1. Try the encoding the user specified
+    if encoding:
+        try:
+            return binary_contents.decode(encoding)
+        except ValueError:  # of which UnicodeDecodeError is more specific
+            # ... https://docs.python.org/3/library/codecs.html
+            pass
+    # 2. Try the system encoding
+    sysdef = sys.getdefaultencoding()
+    if sysdef != encoding:
+        try:
+            return binary_contents.decode(sysdef)
+        except ValueError:
+            pass
+    # 3. Try the best guess from chardet
+    #    http://chardet.readthedocs.io/en/latest/usage.html
+    if chardet:
+        guess = chardet.detect(binary_contents)
+        if guess['encoding']:
+            return binary_contents.decode(guess['encoding'])
+    raise ValueError("Unknown encoding ({})".format(
+        "filename={}".format(repr(filename)) if filename else "blob"))
 
 
 def get_cmd_output(*args, **kwargs) -> str:
@@ -837,11 +871,11 @@ def availability_anything() -> bool:
 ext_map = {
     # Converter functions must be of the form func(filename, blob, **kwargs):
     # Availability must be either a boolean or a function that takes no params.
-    '.doc': {
-        CONVERTER: convert_doc_to_text,
-        AVAILABILITY: availability_doc,
+    '.csv': {
+        CONVERTER: get_file_contents_text,
+        AVAILABILITY: True,
     },
-    '.dot': {
+    '.doc': {
         CONVERTER: convert_doc_to_text,
         AVAILABILITY: availability_doc,
     },
@@ -853,16 +887,24 @@ ext_map = {
         CONVERTER: convert_docx_to_text,
         AVAILABILITY: True,
     },
-    '.html': {
-        CONVERTER: convert_html_to_text,
-        AVAILABILITY: True,
+    '.dot': {
+        CONVERTER: convert_doc_to_text,
+        AVAILABILITY: availability_doc,
     },
     '.htm': {
         CONVERTER: convert_html_to_text,
         AVAILABILITY: True,
     },
+    '.html': {
+        CONVERTER: convert_html_to_text,
+        AVAILABILITY: True,
+    },
     '.log': {
-        CONVERTER: get_file_contents,
+        CONVERTER: get_file_contents_text,
+        AVAILABILITY: True,
+    },
+    '.msg': {
+        CONVERTER: get_file_contents_text,
         AVAILABILITY: True,
     },
     '.odt': {
@@ -877,12 +919,12 @@ ext_map = {
         CONVERTER: convert_rtf_to_text,
         AVAILABILITY: availability_rtf,
     },
-    '.xml': {
-        CONVERTER: convert_xml_to_text,
+    '.txt': {
+        CONVERTER: get_file_contents_text,
         AVAILABILITY: True,
     },
-    '.txt': {
-        CONVERTER: get_file_contents,
+    '.xml': {
+        CONVERTER: convert_xml_to_text,
         AVAILABILITY: True,
     },
     None: {  # fallback
