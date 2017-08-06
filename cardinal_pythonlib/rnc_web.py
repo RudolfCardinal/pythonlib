@@ -1,15 +1,11 @@
 #!/usr/bin/env python
-# -*- encoding: utf8 -*-
+# cardinal_pythonlib/rnc_web.py
 
-"""Support for web scripts.
+"""
+===============================================================================
+    Copyright (C) 2009-2017 Rudolf Cardinal (rudolf@pobox.com).
 
-Author: Rudolf Cardinal (rudolf@pobox.com)
-Created: October 2012
-Last update: 09 Jan 2016
-
-Copyright/licensing:
-
-    Copyright (C) 2012-2015 Rudolf Cardinal (rudolf@pobox.com).
+    This file is part of cardinal_pythonlib.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,6 +18,10 @@ Copyright/licensing:
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+===============================================================================
+
+Support for web scripts.
+
 """
 
 
@@ -558,7 +558,9 @@ def make_urls_hyperlinks(text: str) -> str:
         )                  # end of match group
     '''
     replace_url = r'<a href="\1">\1</a>'
-    find_email = re.compile('([\w\-\.]+@(\w[\w\-]+\.)+[\w\-]+)')
+    find_email = re.compile('([.\w\-]+@(\w[\w\-]+\.)+[\w\-]+)')
+    # '.' doesn't need escaping inside square brackets
+    # https://stackoverflow.com/questions/10397968/escape-dot-in-a-regex-range
     replace_email = r'<a href="mailto:\1">\1</a>'
     text = re.sub(find_url, replace_url, text)
     text = re.sub(find_email, replace_email, text)

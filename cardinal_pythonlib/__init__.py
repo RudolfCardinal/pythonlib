@@ -1,16 +1,11 @@
 #!/usr/bin/env python
-# -*- encoding: utf8 -*-
+# cardinal_pythonlib/__init__.py
 
 """
-__init__.py
+===============================================================================
+    Copyright (C) 2009-2017 Rudolf Cardinal (rudolf@pobox.com).
 
-Author: Rudolf Cardinal (rudolf@pobox.com)
-Created: 23 June 2015
-Last update: 21 Sep 2015
-
-Copyright/licensing:
-
-    Copyright (C) 2015-2015 Rudolf Cardinal (rudolf@pobox.com).
+    This file is part of cardinal_pythonlib.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -23,7 +18,9 @@ Copyright/licensing:
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
-"""
+===============================================================================
 
-# The mere existence of this file makes Python treat the directory as a
-# package.
+The mere existence of this file makes Python treat the directory as a
+package.
+
+"""

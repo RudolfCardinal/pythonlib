@@ -1,15 +1,11 @@
 #!/usr/bin/env python
-# -*- encoding: utf8 -*-
+# cardinal_pythonlib/rnc_text.py
 
-"""Textfile results storage.
+"""
+===============================================================================
+    Copyright (C) 2009-2017 Rudolf Cardinal (rudolf@pobox.com).
 
-Author: Rudolf Cardinal (rudolf@pobox.com)
-Created: 2009
-Last update: 24 Sep 2015
-
-Copyright/licensing:
-
-    Copyright (C) 2009-2015 Rudolf Cardinal (rudolf@pobox.com).
+    This file is part of cardinal_pythonlib.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,6 +18,10 @@ Copyright/licensing:
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+===============================================================================
+
+Textfile results storage.
+
 """
 
 import csv
@@ -100,7 +100,7 @@ def get_string(strings: Sequence[str],
 
 def get_string_relative(strings: Sequence[str],
                         prefix1: str,
-                        delta: str,
+                        delta: int,
                         prefix2: str,
                         ignoreleadingcolon: bool = False,
                         stripwhitespace: bool = True) -> Optional[str]:
@@ -176,7 +176,7 @@ def get_bool(strings: Sequence[str],
 
 def get_bool_relative(strings: Sequence[str],
                       prefix1: str,
-                      delta: str,
+                      delta: int,
                       prefix2: str,
                       ignoreleadingcolon: bool = False) -> Optional[bool]:
     return get_bool_raw(get_string_relative(
@@ -186,7 +186,7 @@ def get_bool_relative(strings: Sequence[str],
 
 def get_float_relative(strings: Sequence[str],
                        prefix1: str,
-                       delta: str,
+                       delta: int,
                        prefix2: str,
                        ignoreleadingcolon: bool = False) -> Optional[float]:
     return get_float_raw(get_string_relative(
@@ -196,7 +196,7 @@ def get_float_relative(strings: Sequence[str],
 
 def get_int_relative(strings: Sequence[str],
                      prefix1: str,
-                     delta: str,
+                     delta: int,
                      prefix2: str,
                      ignoreleadingcolon: bool = False) -> Optional[int]:
     return get_int_raw(get_string_relative(
@@ -240,7 +240,7 @@ def find_line_containing(strings: Sequence[str], contents: str) -> int:
     return -1
 
 
-def get_lines_from_to(strings: Sequence[str],
+def get_lines_from_to(strings: List[str],
                       firstlinestart: str,
                       list_of_lastline_starts: Iterable[Optional[str]]) \
         -> List[str]:
@@ -266,7 +266,7 @@ def is_empty_string(s: str) -> bool:
     return len(s.strip(s)) == 0
 
 
-def csv_to_list_of_fields(lines: Sequence[str],
+def csv_to_list_of_fields(lines: List[str],
                           csvheader: str,
                           quotechar: str = '"') -> List[str]:
     data = []  # type: List[str]
@@ -279,7 +279,7 @@ def csv_to_list_of_fields(lines: Sequence[str],
     return data
 
 
-def csv_to_list_of_dicts(lines: Sequence[str],
+def csv_to_list_of_dicts(lines: List[str],
                          csvheader: str,
                          quotechar: str = '"') -> List[Dict[str, str]]:
     data = []  # type: List[Dict[str, str]]

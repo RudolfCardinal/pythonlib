@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/wsgi_cache.py
+# cardinal_pythonlib/maths_py.py
 
 """
 ===============================================================================
@@ -20,39 +20,42 @@
     limitations under the License.
 ===============================================================================
 
-WSGI middleware to disable client-side caching.
+Miscellaneous mathematical functions in pure Python.
 
 """
 
 import logging
+import math
+from typing import Optional, Sequence, Union
+
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
-# log.setLevel(logging.DEBUG)
 
 
 # =============================================================================
-# DisableClientSideCachingMiddleware
+# Mean
 # =============================================================================
-# http://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers  # noqa
-# http://stackoverflow.com/questions/3859097/how-to-add-http-headers-in-wsgi-middleware  # noqa
 
-def add_never_cache_headers(headers):
-    headers.append(("Cache-Control", "no-cache, no-store, must-revalidate"))  # HTTP 1.1  # noqa
-    headers.append(("Pragma", "no-cache"))  # HTTP 1.0
-    headers.append(("Expires", "0"))  # Proxies
+def mean(values: Sequence[Union[int, float, None]]) -> Optional[float]:
+    """Return mean of a list of numbers, or None."""
+    total = 0.0  # starting with "0.0" causes automatic conversion to float
+    n = 0
+    for x in values:
+        if x is not None:
+            total += x
+            n += 1
+    return total / n if n > 0 else None
 
 
-class DisableClientSideCachingMiddleware(object):
-    """WSGI middleware to disable client-side caching."""
+# =============================================================================
+# logit
+# =============================================================================
 
-    def __init__(self, app):
-        self.app = app
-
-    def __call__(self, environ, start_response):
-
-        def custom_start_response(status, headers, exc_info=None):
-            add_never_cache_headers(headers)
-            log.debug("HTTP status {}, headers {}".format(status, headers))
-            return start_response(status, headers, exc_info)
-
-        return self.app(environ, custom_start_response)
+def safe_logit(x: Union[float, int]) -> Optional[float]:
+    if x > 1 or x < 0:
+        return None  # can't take log of negative number
+    if x == 1:
+        return float("inf")
+    if x == 0:
+        return float("-inf")
+    return math.log(x / (1 - x))

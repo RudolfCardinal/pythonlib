@@ -3,4 +3,6 @@
 # where pip is your virtualenv version of pip
 # Note also that this file can include others with "-r OTHERFILE".
 
-# six
+# refer to setup.py; see https://caremad.io/2013/07/setup-vs-requirement/
+--index-url https://pypi.python.org/simple/
+-e .

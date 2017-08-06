@@ -74,9 +74,10 @@ setup(
         # 'Programming Language :: Python :: 2',
         # 'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
+        # 'Programming Language :: Python :: 3.2',
+        # 'Programming Language :: Python :: 3.3',
+        # 'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
 
         'Topic :: Software Development :: Libraries',
     ],
@@ -86,8 +87,22 @@ setup(
     packages=['cardinal_pythonlib'],
 
     install_requires=[
-        'six',  # Python 2/3 compatibility
+        # 'six',  # Python 2/3 compatibility
         'semver>=2.7.5',  # semantic versioning; needs to be recent enough to support parse_version_info()  # noqa
+
+        # Then some simple pure Python things, with as few version restrictions as possible:  # noqa
+        'alembic',
+        'arrow',
+        'colorlog',
+        'django',
+        'dogpile.cache',
+        'openpyxl',
+        'pyparsing',
+        'python-dateutil',
+        'pytz',
+        'regex',  # improves upon re
+        'sqlalchemy>=1.2.0b1',
+        'sqlparse',
     ],
 
     entry_points={

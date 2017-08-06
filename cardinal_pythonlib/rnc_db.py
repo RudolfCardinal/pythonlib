@@ -1,15 +1,11 @@
 #!/usr/bin/env python
-# -*- encoding: utf8 -*-
+# cardinal_pythonlib/rnc_db.py
 
-"""Support functions to interface Python to SQL-based databases conveniently.
+"""
+===============================================================================
+    Copyright (C) 2009-2017 Rudolf Cardinal (rudolf@pobox.com).
 
-Author: Rudolf Cardinal (rudolf@pobox.com)
-Created: October 2012
-Last update: 6 Jan 2015
-
-Copyright/licensing:
-
-    Copyright (C) 2012-2015 Rudolf Cardinal (rudolf@pobox.com).
+    This file is part of cardinal_pythonlib.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,6 +18,11 @@ Copyright/licensing:
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+===============================================================================
+
+Support functions to interface Python to SQL-based databases conveniently.
+
+ESSENTIALLY DEFUNCT - use SQLAlchemy instead; it's much better.
 
 Regarding fieldspecs and fieldspec lists:
 
@@ -1016,7 +1017,7 @@ def assign_from_list(obj: T,
         setattr(obj, fieldlist[i], valuelist[i])
 
 
-def create_object_from_list(cls: Type[T],
+def create_object_from_list(cls: Type,
                             fieldlist: Sequence[str],
                             valuelist: Sequence[Any],
                             *args, **kwargs) -> T:
@@ -2390,7 +2391,7 @@ class DatabaseSupporter:
             cls, table, fieldlist, construct_with_pk, None, *args)
 
     def fetch_all_objects_from_db_by_pklist(self,
-                                            cls: Type[T],
+                                            cls: Type,
                                             table: str,
                                             fieldlist: Sequence[str],
                                             pklist: Sequence[Any],
@@ -2819,10 +2820,10 @@ class DatabaseSupporter:
         superfluous_fieldnames = fields_in_db - desired_fieldnames
         for f in superfluous_fieldnames:
             if drop_superfluous_columns:
-                log.warn("... dropping superfluous field: " + f)
+                log.warning("... dropping superfluous field: " + f)
                 self.drop_column(tablename, f)
             else:
-                log.warn("... superfluous field (ignored): " + f)
+                log.warning("... superfluous field (ignored): " + f)
 
         # 4. Make indexes, if some have been requested:
         for fs in fieldspeclist:
