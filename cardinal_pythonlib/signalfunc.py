@@ -64,10 +64,13 @@ def trap_ctrl_c_ctrl_break() -> None:
     #   SIGABRT     abnormal termination
     #   SIGFPE      floating-point error
     #   SIGILL      illegal instruction
-    #   SIGINT      CTRL+C signal
+    #   SIGINT      CTRL+C signal           -- trapped here
     #   SIGSEGV     illegal storage access
-    #   SIGTERM     termination request
-    #   SIGBREAK    CTRL+BREAK
+    #   SIGTERM     termination request     -- trapped here
+    #   SIGBREAK    CTRL+BREAK              -- trapped here under Windows
+    #
+    # In Linux, you also find:
+    #   SIGBUS      bus error / unaligned access
     #
     # To ignore, can do:
     #   signal.signal(signal.SIGINT, signal.SIG_IGN)  # SIG_IGN = "ignore me"

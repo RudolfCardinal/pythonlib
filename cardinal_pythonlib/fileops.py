@@ -32,6 +32,7 @@ import shutil
 from typing import List
 
 log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
 
 
 def mkdir_p(path: str) -> None:

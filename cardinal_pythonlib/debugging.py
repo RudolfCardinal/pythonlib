@@ -24,6 +24,7 @@ Offers the getch() and kbhit() functions.
 
 """
 
+import ctypes
 import inspect
 import logging
 import pdb
@@ -48,6 +49,14 @@ def pdb_run(main_func: Callable[[], None]) -> None:
         type_, value, tb = sys.exc_info()
         traceback.print_exc()
         pdb.post_mortem(tb)
+
+
+def cause_segfault() -> None:
+    """
+    This function will induce a segmentation fault and CRASH the application.
+    Method as per https://docs.python.org/3/library/faulthandler.html
+    """
+    ctypes.string_at(0)  # will crash!
 
 
 # =============================================================================

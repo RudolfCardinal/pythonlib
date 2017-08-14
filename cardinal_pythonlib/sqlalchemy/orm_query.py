@@ -29,6 +29,7 @@ from sqlalchemy.ext.declarative.api import DeclarativeMeta
 from sqlalchemy.orm.query import Query
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import ClauseElement, literal
+from sqlalchemy.sql import func
 from sqlalchemy.sql.selectable import Exists
 
 
@@ -110,3 +111,20 @@ def get_or_create(session: Session,
         instance = model(**params)
         session.add(instance)
         return instance, True
+
+
+# =============================================================================
+# Extend Query to provide an optimized COUNT(*)
+# =============================================================================
+
+# noinspection PyAbstractClass
+class CountStarSpecializedQuery(Query):
+    """
+    Optimizes COUNT(*) queries.
+    See
+        https://stackoverflow.com/questions/12941416/how-to-count-rows-with-select-count-with-sqlalchemy  # noqa
+    """
+    def count_star(self) -> int:
+        count_query = (self.statement.with_only_columns([func.count()])
+                       .order_by(None))
+        return self.session.execute(count_query).scalar()

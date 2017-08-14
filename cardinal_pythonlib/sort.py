@@ -56,7 +56,7 @@ class MinType(object):
         return self is other
 
 
-mintype_singleton = MinType()
+MINTYPE_SINGLETON = MinType()
 
 
 # noinspection PyPep8Naming
@@ -79,7 +79,7 @@ class attrgetter_nonesort:
                 for name in names:
                     obj = getattr(obj, name)
                 if obj is None:  # MODIFIED HERE
-                    return mintype_singleton
+                    return MINTYPE_SINGLETON
                 return obj
 
             self._call = func
@@ -127,7 +127,7 @@ class methodcaller_nonesort:
         # MODIFICATION HERE
         result = getattr(obj, self._name)(*self._args, **self._kwargs)
         if result is None:
-            return mintype_singleton
+            return MINTYPE_SINGLETON
         return result
 
     def __repr__(self):

@@ -65,3 +65,19 @@ def mangle_unicode_to_ascii(s: Any) -> str:
                    .encode('ascii', 'ignore')  # gets rid of accents
                    .decode('ascii')  # back to a string
     )
+
+
+# =============================================================================
+# Making strings and string lists
+# =============================================================================
+
+def strnum(prefix: str, num: int, suffix: str = "") -> str:
+    return "{}{}{}".format(prefix, num, suffix)
+
+
+def strnumlist(prefix: str, numbers: List[int], suffix: str = "") -> List[str]:
+    return ["{}{}{}".format(prefix, num, suffix) for num in numbers]
+
+
+def strseq(prefix: str, first: int, last: int, suffix: str = "") -> List[str]:
+    return [strnum(prefix, n, suffix) for n in range(first, last + 1)]

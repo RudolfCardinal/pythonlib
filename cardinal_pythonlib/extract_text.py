@@ -92,7 +92,7 @@ import zipfile
 import bs4  # pip install beautifulsoup4
 # noinspection PyPackageRequirements
 import prettytable  # pip install PrettyTable
-import semver
+from semantic_version import Version
 # import texttable  # ... can't deal with Unicode properly
 
 try:
@@ -184,7 +184,7 @@ def does_unrtf_support_quiet() -> bool:
     """
     The unrtf tool supports the '--quiet' argument from version XXX.
     """
-    required_unrtf_version = (0, 21, 9)
+    required_unrtf_version = Version("0.21.9")
     # ... probably: http://hg.savannah.gnu.org/hgweb/unrtf/
     # ... 0.21.9 definitely supports --quiet
     # ... 0.19.3 definitely doesn't support it
@@ -200,7 +200,7 @@ def does_unrtf_support_quiet() -> bool:
     if len(lines) < 1:
         return False
     version_str = lines[0]
-    unrtf_version = semver.parse_version_info(version_str)
+    unrtf_version = Version(version_str)
     return unrtf_version >= required_unrtf_version
 
 

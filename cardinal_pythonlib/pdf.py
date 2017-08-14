@@ -91,18 +91,15 @@ class Processors:
     WEASYPRINT = "weasyprint"
     PDFKIT = "pdfkit"
 
-_wkhtmltopdf_filename = "wkhtmltopdf"
+
+_WKHTMLTOPDF_FILENAME = "wkhtmltopdf"
 
 if pdfkit:
-    _processor = Processors.PDFKIT  # the best
+    _DEFAULT_PROCESSOR = Processors.PDFKIT  # the best
 elif weasyprint:
-    _processor = Processors.WEASYPRINT  # imperfect tables
+    _DEFAULT_PROCESSOR = Processors.WEASYPRINT  # imperfect tables
 else:
-    _processor = Processors.XHTML2PDF  # simple/slow
-
-if sys.version_info > (3,):
-    # noinspection PyShadowingBuiltins
-    buffer = memoryview
+    _DEFAULT_PROCESSOR = Processors.XHTML2PDF  # simple/slow
 
 
 # =============================================================================
@@ -158,40 +155,29 @@ class PdfPlan(object):
 # Ancillary functions for PDFs
 # =============================================================================
 
-def set_processor(new_processor: str = Processors.PDFKIT,
-                  wkhtmltopdf_filename: str = None) -> None:
-    """Set the PDF processor."""
-    global _processor
-    if new_processor not in [Processors.XHTML2PDF,
-                             Processors.WEASYPRINT,
-                             Processors.PDFKIT]:
+def assert_processor_available(processor: str) -> None:
+    if processor not in [Processors.XHTML2PDF,
+                         Processors.WEASYPRINT,
+                         Processors.PDFKIT]:
         raise AssertionError("rnc_pdf.set_pdf_processor: invalid PDF processor"
                              " specified")
-    if new_processor == Processors.WEASYPRINT and not weasyprint:
+    if processor == Processors.WEASYPRINT and not weasyprint:
         raise RuntimeError("rnc_pdf: Weasyprint requested, but not available")
-    if new_processor == Processors.XHTML2PDF and not xhtml2pdf:
+    if processor == Processors.XHTML2PDF and not xhtml2pdf:
         raise RuntimeError("rnc_pdf: xhtml2pdf requested, but not available")
-    if new_processor == Processors.PDFKIT and not pdfkit:
+    if processor == Processors.PDFKIT and not pdfkit:
         raise RuntimeError("rnc_pdf: pdfkit requested, but not available")
-    global _processor
-    _processor = new_processor
-
-    if wkhtmltopdf_filename is not None:
-        global _wkhtmltopdf_filename
-        _wkhtmltopdf_filename = wkhtmltopdf_filename
-
-    log.info("Default PDF processor set to: " + _processor)
 
 
 def get_pdf_from_html(html: str,
                       header_html: str = None,
                       footer_html: str = None,
-                      wkhtmltopdf_filename: str = None,
+                      wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
                       wkhtmltopdf_options: Dict[str, Any] = None,
                       file_encoding: str = "utf-8",
                       debug: bool = False,
                       fix_pdfkit_encoding_bug: bool = True,
-                      processor: str = None) -> bytes:
+                      processor: str = _DEFAULT_PROCESSOR) -> bytes:
     """
     Takes HTML and returns a PDF.
 
@@ -203,9 +189,8 @@ def get_pdf_from_html(html: str,
           HTML content to serve as the header/footer (rather than passing it
           within the main HTML).
     """
-    wkhtmltopdf_filename = wkhtmltopdf_filename or _wkhtmltopdf_filename
     wkhtmltopdf_options = wkhtmltopdf_options or {}  # type: Dict[str, Any]
-    processor = processor or _processor
+    assert_processor_available(processor)
 
     if processor == Processors.XHTML2PDF:
         memfile = io.BytesIO()
@@ -276,12 +261,12 @@ def get_pdf_from_html(html: str,
 def pdf_from_html(html: str,
                   header_html: str = None,
                   footer_html: str = None,
-                  wkhtmltopdf_filename: str = None,
+                  wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
                   wkhtmltopdf_options: Dict[str, Any] = None,
                   file_encoding: str = "utf-8",
                   debug: bool = False,
                   fix_pdfkit_encoding_bug: bool = True,
-                  processor: str = None) -> bytes:
+                  processor: str = _DEFAULT_PROCESSOR) -> bytes:
     """Older function name."""
     return get_pdf_from_html(html=html,
                              header_html=header_html,
@@ -294,22 +279,21 @@ def pdf_from_html(html: str,
                              processor=processor)
 
 
-def make_pdf_on_disk_from_html(html: str,
-                               output_path: str,
-                               header_html: str = None,
-                               footer_html: str = None,
-                               wkhtmltopdf_filename: str = None,
-                               wkhtmltopdf_options: Dict[str, Any] = None,
-                               file_encoding: str = "utf-8",
-                               debug: bool = False,
-                               fix_pdfkit_encoding_bug: bool = True,
-                               processor: str = None) -> bool:
+def make_pdf_on_disk_from_html(
+        html: str,
+        output_path: str,
+        header_html: str = None,
+        footer_html: str = None,
+        wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
+        wkhtmltopdf_options: Dict[str, Any] = None,
+        file_encoding: str = "utf-8",
+        debug: bool = False,
+        fix_pdfkit_encoding_bug: bool = True,
+        processor: str = _DEFAULT_PROCESSOR) -> bool:
     """
     Takes HTML and writes a PDF to the file specified by output_path.
     """
-    wkhtmltopdf_filename = wkhtmltopdf_filename or _wkhtmltopdf_filename
     wkhtmltopdf_options = wkhtmltopdf_options or {}  # type: Dict[str, Any]
-    processor = processor or _processor
 
     if processor == Processors.XHTML2PDF:
         with open(output_path, mode='wb') as outfile:

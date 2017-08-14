@@ -31,6 +31,7 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.type_api import TypeEngine
 from sqlalchemy.sql.visitors import VisitableType
+from sqlalchemy.util import OrderedProperties
 
 from cardinal_pythonlib.enumlike import OrderedNamespace
 
@@ -247,14 +248,16 @@ def deepcopy_sqla_object(startobj: object, session: Session,
 
 def gen_columns(obj) -> Generator[Tuple[str, Column], None, None]:
     """
-    Yields tuples of (attr_name, Column) from an object.
+    Yields tuples of (attr_name, Column) from an SQLAlchemy ORM object
+    instance.
     """
     mapper = obj.__mapper__  # type: Mapper
     assert mapper, "gen_columns called on {!r} which is not an " \
                    "SQLAlchemy ORM object".format(obj)
-    if not mapper.columns:
+    colmap = mapper.columns  # type: OrderedProperties
+    if not colmap:
         return
-    for attrname, column in mapper.columns.items():
+    for attrname, column in colmap.items():
         # NB: column.name is the SQL column name, not the attribute name
         yield attrname, column
 
@@ -271,12 +274,17 @@ def gen_columns(obj) -> Generator[Tuple[str, Column], None, None]:
 # =============================================================================
 
 def get_orm_columns(cls: Type) -> List[Column]:
+    """
+    Gets Column objects from an SQLAlchemy ORM class.
+    Does not provide their attribute names.
+    """
     mapper = inspect(cls)  # type: Mapper
     # ... returns InstanceState if called with an ORM object
     #     http://docs.sqlalchemy.org/en/latest/orm/session_state_management.html#session-object-states  # noqa
     # ... returns Mapper if called with an ORM class
     #     http://docs.sqlalchemy.org/en/latest/orm/mapping_api.html#sqlalchemy.orm.mapper.Mapper  # noqa
-    return mapper.columns
+    colmap = mapper.columns  # type: OrderedProperties
+    return colmap.values()
 
 
 def get_orm_column_names(cls: Type, sort: bool = False) -> List[str]:

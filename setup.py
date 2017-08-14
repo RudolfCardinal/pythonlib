@@ -19,7 +19,7 @@ To install in development mode:
 # http://python-packaging-user-guide.readthedocs.org/en/latest/distributing/
 # http://jtushman.github.io/blog/2013/06/17/sharing-code-across-applications-with-python/  # noqa
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
@@ -84,11 +84,11 @@ setup(
 
     keywords='cardinal',
 
-    packages=['cardinal_pythonlib'],
+    packages=find_packages(),  # finds all the .py files in subdirectories
 
     install_requires=[
         # 'six',  # Python 2/3 compatibility
-        'semver>=2.7.5',  # semantic versioning; needs to be recent enough to support parse_version_info()  # noqa
+        'semantic_version',  # semantic versioning
 
         # Then some simple pure Python things, with as few version restrictions as possible:  # noqa
         'alembic',
@@ -97,11 +97,12 @@ setup(
         'django',
         'dogpile.cache',
         'openpyxl',
+        'prettytable',
         'pyparsing',
         'python-dateutil',
         'pytz',
         'regex',  # improves upon re
-        'sqlalchemy>=1.2.0b1',
+        'sqlalchemy',
         'sqlparse',
     ],
 

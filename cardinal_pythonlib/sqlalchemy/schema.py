@@ -29,7 +29,7 @@ from functools import lru_cache
 import io
 import logging
 import re
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, Generator, List, Optional, Type, Union
 
 from sqlalchemy.dialects import mssql, mysql
 from sqlalchemy.engine import Connection, Engine, ResultProxy
@@ -81,35 +81,51 @@ def table_or_view_exists(engine: Engine, table_or_view_name: str) -> bool:
     return table_or_view_name in tables_and_views
 
 
-def get_columns_info(engine: Engine, tablename: str) -> List[Dict]:
+class SqlaColumnInspectionInfo(object):
+    """
+    Clearer way of getting information than the plain dict that SQLAlchemy
+    uses.
+    """
+    def __init__(self, sqla_info_dict: Dict[str, Any]) -> None:
+        """
+        sqla_info_dict: see
+        http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns  # noqa
+        """
+        self.name = sqla_info_dict['name']  # type: str
+        self.type = sqla_info_dict['type']  # type: TypeEngine
+        self.nullable = sqla_info_dict['nullable']  # type: bool
+        self.default = sqla_info_dict['default']  # type: str  # SQL string expression  # noqa
+        self.attrs = sqla_info_dict['attrs']  # type: Dict[str, Any]
+
+
+def gen_columns_info(engine: Engine,
+                     tablename: str) -> Generator[SqlaColumnInspectionInfo,
+                                                  None, None]:
+    # Dictionary structure: see
+    # http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns  # noqa
     insp = Inspector.from_engine(engine)
-    return insp.get_columns(tablename)
+    for d in insp.get_columns(tablename):
+        yield SqlaColumnInspectionInfo(d)
 
 
 def get_column_info(engine: Engine, tablename: str,
-                    columnname: str) -> Optional[Dict]:
-    # Dictionary structure: see
-    # http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns  # noqa
-    columns = get_columns_info(engine, tablename)
-    for x in columns:
-        if x['name'] == columnname:
-            return x
+                    columnname: str) -> Optional[SqlaColumnInspectionInfo]:
+    for info in gen_columns_info(engine, tablename):
+        if info.name == columnname:
+            return info
     return None
 
 
 def get_column_type(engine: Engine, tablename: str,
                     columnname: str) -> Optional[TypeEngine]:
-    # Dictionary structure: see
-    # http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns  # noqa
-    columns = get_columns_info(engine, tablename)
-    for x in columns:
-        if x['name'] == columnname:
-            return x['type']
+    for info in gen_columns_info(engine, tablename):
+        if info.name == columnname:
+            return info.type
     return None
 
 
 def get_column_names(engine: Engine, tablename: str) -> List[str]:
-    return [x['name'] for x in get_columns_info(engine, tablename)]
+    return [info.name for info in gen_columns_info(engine, tablename)]
 
 
 # =============================================================================

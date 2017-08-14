@@ -50,10 +50,13 @@ def get_rows_fieldnames_from_raw_sql(
 # http://stackoverflow.com/questions/12941416
 
 def count_star(session: Union[Session, Engine, Connection],
-               tablename: str) -> int:
+               tablename: str,
+               *criteria: Any) -> int:
     # works if you pass a connection or a session or an engine; all have
     # the execute() method
     query = select([func.count()]).select_from(table(tablename))
+    for criterion in criteria:
+        query = query.where(criterion)
     return session.execute(query).scalar()
 
 
@@ -63,11 +66,14 @@ def count_star(session: Union[Session, Engine, Connection],
 
 def count_star_and_max(session: Union[Session, Engine, Connection],
                        tablename: str,
-                       maxfield: str) -> Tuple[int, Optional[int]]:
+                       maxfield: str,
+                       *criteria: Any) -> Tuple[int, Optional[int]]:
     query = select([
         func.count(),
         func.max(column(maxfield))
     ]).select_from(table(tablename))
+    for criterion in criteria:
+        query = query.where(criterion)
     result = session.execute(query)
     return result.fetchone()  # count, maximum
 
@@ -94,4 +100,3 @@ def exists_plain(session: Session, tablename: str, *criteria: Any) -> bool:
 
     result = session.execute(query).scalar()
     return bool(result)
-

@@ -47,6 +47,12 @@ log.addHandler(logging.NullHandler())
 #       q = sqla_table.insert_on_duplicate().values(destvalues)
 #       session.execute(q)
 
+# =============================================================================
+# NOTE: SQLALCHEMY SUPPORTS THIS NATIVELY AS OF V1.2:
+# =============================================================================
+# http://docs.sqlalchemy.org/en/latest/changelog/migration_12.html
+# http://docs.sqlalchemy.org/en/latest/dialects/mysql.html#mysql-insert-on-duplicate-key-update  # noqa
+
 
 # noinspection PyAbstractClass
 class InsertOnDuplicate(Insert):
