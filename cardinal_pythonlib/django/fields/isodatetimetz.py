@@ -45,7 +45,9 @@ log.addHandler(logging.NullHandler())
 
 def iso_string_to_python_datetime(
         isostring: str) -> Optional[datetime.datetime]:
-    """Takes an ISO-8601 string and returns a datetime."""
+    """
+    Takes an ISO-8601 string and returns a datetime.
+    """
     if not isostring:
         return None  # if you parse() an empty string, you get today's date
     return dateutil.parser.parse(isostring)
@@ -53,11 +55,26 @@ def iso_string_to_python_datetime(
 
 def python_utc_datetime_to_sqlite_strftime_string(
         value: datetime.datetime) -> str:
+    """
+    Converts a Python datetime to a string literal compatible with SQLite,
+    including the millisecond field.
+    """
     millisec_str = str(round(value.microsecond / 1000)).zfill(3)
     return value.strftime("%Y-%m-%d %H:%M:%S") + "." + millisec_str
 
 
 def python_localized_datetime_to_human_iso(value: datetime.datetime) -> str:
+    """
+    Converts a Python datetime that has a timezone to an ISO-8601 string
+    with ":" between the hours and minutes of the timezone.
+
+    Example:
+        >>> import datetime
+        >>> import pytz
+        >>> x = datetime.datetime.now(pytz.utc)
+        >>> python_localized_datetime_to_human_iso(x)
+        '2017-08-21T20:47:18.952971+00:00'
+    """
     s = value.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
     return s[:29] + ":" + s[29:]
 
@@ -68,6 +85,7 @@ def python_localized_datetime_to_human_iso(value: datetime.datetime) -> str:
 
 class IsoDateTimeTzField(models.CharField):
     """
+    Django field for date/time stored in ISO format.
     Microsecond resolution; timezone-aware.
     Example sent TO the database:
         2015-11-11T22:21:37.000000+05:00
@@ -489,22 +507,22 @@ class IsoStringToSourceDate(models.Transform):
 # Testing an ISO-based millisecond-precision date/time field with timezone
 # =============================================================================
 
-# class BlibbleTest(models.Model):
-#     at = IsoDateTimeTzField()
-#
-#     class Meta:
-#         managed = True
-#         db_table = 'consent_test'
-#         verbose_name_plural = "no ideas"
-
 """
 import logging
 logging.basicConfig()
 import datetime
 import dateutil
 import pytz
+from django.db import models
 from django.utils import timezone
-from consent.models import BlibbleTest
+
+class BlibbleTest(models.Model):
+    at = IsoDateTimeTzField()
+    # thing = models.PositiveSmallIntegerField()
+    class Meta:
+        managed = True
+        db_table = 'consent_test'
+        verbose_name_plural = "no ideas"
 
 now = datetime.datetime.now(pytz.utc)
 t = BlibbleTest(at=now)

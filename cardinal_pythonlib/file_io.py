@@ -24,7 +24,18 @@ Support functions for file I/O.
 
 """
 
+import gzip
+from html import escape
+import io
+import logging
+import os
+import shutil
+import subprocess
+import tempfile
 from typing import Iterable, List, TextIO
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
 
 
 # =============================================================================
@@ -41,6 +52,24 @@ def writelines_nl(fileobj: TextIO, lines: Iterable[str]) -> None:
     fileobj.write('\n'.join(lines) + '\n')
 
 
+def write_text(filename: str, text: str) -> None:
+    with open(filename, 'w') as f:
+        print(text, file=f)
+
+
+def write_gzipped_text(basefilename: str, text: str) -> None:
+    # Lintian wants non-timestamped gzip files, or it complains:
+    # https://lintian.debian.org/tags/package-contains-timestamped-gzip.html
+    # See http://stackoverflow.com/questions/25728472/python-gzip-omit-the-original-filename-and-timestamp  # noqa
+    zipfilename = basefilename + '.gz'
+    compresslevel = 9
+    mtime = 0
+    with open(zipfilename, 'wb') as f:
+        with gzip.GzipFile(basefilename, 'wb', compresslevel, f, mtime) as gz:
+            with io.TextIOWrapper(gz) as tw:
+                tw.write(text)
+
+
 # =============================================================================
 # File input
 # =============================================================================
@@ -55,3 +84,40 @@ def get_lines_without_comments(filename: str) -> List[str]:
             if line:
                 lines.append(line)
     return lines
+
+
+# =============================================================================
+# File transformations
+# =============================================================================
+
+def webify_file(srcfilename: str, destfilename: str) -> None:
+    """
+    Rewrites a file from "srcfilename" to "destfilename", HTML-escaping it in
+    the process.
+    """
+    with open(srcfilename) as infile, open(destfilename, 'w') as ofile:
+        for line_ in infile:
+            ofile.write(escape(line_))
+
+
+def remove_gzip_timestamp(filename: str,
+                          gunzip: str = "gunzip",
+                          gzip: str = "gzip") -> None:
+    """
+    Uses external gunzip/gzip tools to remove a gzip timestamp.
+    Necessary for Lintian.
+    """
+    # gzip/gunzip operate on SINGLE files
+    with tempfile.TemporaryDirectory() as dir_:
+        basezipfilename = os.path.basename(filename)
+        newzip = os.path.join(dir_, basezipfilename)
+        with open(newzip, 'wb') as z:
+            log.info(
+                "Removing gzip timestamp: "
+                "{} -> gunzip -c -> gzip -n -> {}".format(
+                    basezipfilename, newzip))
+            p1 = subprocess.Popen([gunzip, "-c", filename],
+                                  stdout=subprocess.PIPE)
+            p2 = subprocess.Popen([gzip, "-n"], stdin=p1.stdout, stdout=z)
+            p2.communicate()
+        shutil.copyfile(newzip, filename)  # copy back

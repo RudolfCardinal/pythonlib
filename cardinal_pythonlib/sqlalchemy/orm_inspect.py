@@ -22,21 +22,29 @@
 """
 
 import logging
-from typing import Generator, List, Tuple, Type, Union
+from typing import Dict, Generator, List, Tuple, Type, TYPE_CHECKING, Union
 
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.base import class_mapper
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.orm.session import Session
-from sqlalchemy.sql.schema import Column
+from sqlalchemy.sql.schema import Column, MetaData
 from sqlalchemy.sql.type_api import TypeEngine
 from sqlalchemy.sql.visitors import VisitableType
 from sqlalchemy.util import OrderedProperties
 
+from cardinal_pythonlib.classes import all_subclasses
 from cardinal_pythonlib.enumlike import OrderedNamespace
+from cardinal_pythonlib.dicts import reversedict
+from cardinal_pythonlib.logs import BraceStyleAdapter
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm.state import InstanceState
+    from sqlalchemy.orm.relationships import RelationshipProperty
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
+log = BraceStyleAdapter(log)
 
 
 # =============================================================================
@@ -106,17 +114,10 @@ class SqlAlchemyAttrDictMixin(object):
 
 
 # =============================================================================
-# deepcopy an SQLAlchemy object
+# Traverse ORM relationships (SQLAlchemy ORM)
 # =============================================================================
-# Use case: object X is in the database; we want to clone it to object Y,
-# which we can then save to the database, i.e. copying all SQLAlchemy field
-# attributes of X except its PK. We also want it to copy anything that is
-# dependent upon X, i.e. traverse relationships.
-#
-# https://groups.google.com/forum/#!topic/sqlalchemy/wb2M_oYkQdY
-# https://groups.google.com/forum/#!searchin/sqlalchemy/cascade%7Csort:date/sqlalchemy/eIOkkXwJ-Ms/JLnpI2wJAAAJ  # noqa
 
-def walk(obj) -> Generator[object, None, None]:
+def walk(obj, debug: bool = False) -> Generator[object, None, None]:
     """
     Starting with a SQLAlchemy ORM object, this function walks a
     relationship tree, yielding each of the objects once.
@@ -128,11 +129,14 @@ def walk(obj) -> Generator[object, None, None]:
         obj = stack.pop(0)
         if obj in seen:
             continue
-        else:
-            seen.add(obj)
-            yield obj
-        insp = inspect(obj)
-        for relationship in insp.mapper.relationships:
+        seen.add(obj)
+        if debug:
+            log.debug("walk: yielding {!r}", obj)
+        yield obj
+        insp = inspect(obj)  # type: InstanceState
+        for relationship in insp.mapper.relationships:  # type: RelationshipProperty  # noqa
+            if debug:
+                log.debug("walk: checking relationship {}", relationship)
             related = getattr(obj, relationship.key)
             if relationship.uselist:
                 stack.extend(related)
@@ -140,54 +144,110 @@ def walk(obj) -> Generator[object, None, None]:
                 stack.append(related)
 
 
-def copy_sqla_object(obj: object, omit_fk: bool = True) -> object:
+# =============================================================================
+# deepcopy an SQLAlchemy object
+# =============================================================================
+# Use case: object X is in the database; we want to clone it to object Y,
+# which we can then save to the database, i.e. copying all SQLAlchemy field
+# attributes of X except its PK. We also want it to copy anything that is
+# dependent upon X, i.e. traverse relationships.
+#
+# https://groups.google.com/forum/#!topic/sqlalchemy/wb2M_oYkQdY
+# https://groups.google.com/forum/#!searchin/sqlalchemy/cascade%7Csort:date/sqlalchemy/eIOkkXwJ-Ms/JLnpI2wJAAAJ  # noqa
+
+def copy_sqla_object(obj: object,
+                     omit_fk: bool = True,
+                     omit_pk: bool = True,
+                     debug: bool = True) -> object:
     """
     Given an SQLAlchemy object, creates a new object (FOR WHICH THE OBJECT
     MUST SUPPORT CREATION USING __init__() WITH NO PARAMETERS), and copies
-    across all attributes, omitting PKs, FKs (by default), and relationship
-    attributes.
+    across all attributes, omitting PKs (by default), FKs (by default), and
+    relationship attributes.
     """
     cls = type(obj)
     mapper = class_mapper(cls)
     newobj = cls()  # not: cls.__new__(cls)
-    pk_keys = set([c.key for c in mapper.primary_key])
     rel_keys = set([c.key for c in mapper.relationships])
-    prohibited = pk_keys | rel_keys
+    prohibited = rel_keys
+    if omit_pk:
+        pk_keys = set([c.key for c in mapper.primary_key])
+        prohibited |= pk_keys
     if omit_fk:
         fk_keys = set([c.key for c in mapper.columns if c.foreign_keys])
         prohibited |= fk_keys
-    log.debug("copy_sqla_object: skipping: {}".format(prohibited))
+    if debug:
+        log.debug("copy_sqla_object: skipping: {}", prohibited)
     for k in [p.key for p in mapper.iterate_properties
               if p.key not in prohibited]:
         try:
             value = getattr(obj, k)
-            log.debug("copy_sqla_object: processing attribute {} = {}".format(
-                k, value))
+            if debug:
+                log.debug("copy_sqla_object: processing attribute {} = {}",
+                          k, value)
             setattr(newobj, k, value)
         except AttributeError:
-            log.debug("copy_sqla_object: failed attribute {}".format(k))
+            if debug:
+                log.debug("copy_sqla_object: failed attribute {}", k)
             pass
     return newobj
 
 
+def rewrite_relationships(oldobj: object,
+                          newobj: object,
+                          objmap: Dict[object, object],
+                          debug: bool = False) -> None:
+    """
+    A utility function only.
+    Used in copying objects between SQLAlchemy sessions.
+
+    Both "oldobj" and "newobj" are SQLAlchemy instances.
+    The instance "newobj" is already a copy of "oldobj" but we wish to rewrite
+    its relationships, according the the map "objmap", which maps old to new
+    objects.
+    """
+    insp = inspect(oldobj)  # type: InstanceState
+    # insp.mapper.relationships is of type
+    # sqlalchemy.utils._collections.ImmutableProperties, which is basically
+    # a sort of AttrDict.
+    for rel in insp.mapper.relationships:
+        if rel.viewonly:
+            continue  # don't attempt to write viewonly relationships  # noqa
+        # The relationship is an abstract object (so getting the
+        # relationship from the old object and from the new, with e.g.
+        # newrel = newinsp.mapper.relationships[oldrel.key],
+        # yield the same object. All we need from it is the key name.
+        rel_key = rel.key  # type: str
+        related_old = getattr(oldobj, rel_key)
+        if rel.uselist:
+            related_new = [objmap[r] for r in related_old]
+        elif related_old is not None:
+            related_new = objmap[related_old]
+        else:
+            related_new = None
+        if debug:
+            log.debug("rewrite_relationships: relationship {} -> {}",
+                      rel_key, related_new)
+        setattr(newobj, rel_key, related_new)
+
+
 def deepcopy_sqla_object(startobj: object, session: Session,
-                         flush: bool = True) -> object:
+                         flush: bool = True, debug: bool = True) -> object:
     """
     For this to succeed, the object must take a __init__ call with no
     arguments. (We can't specify the required args/kwargs, since we are copying
     a tree of arbitrary objects.)
     """
     objmap = {}  # keys = old objects, values = new objects
-    log.debug("deepcopy_sqla_object: pass 1: create new objects")
+    if debug:
+        log.debug("deepcopy_sqla_object: pass 1: create new objects")
+
     # Pass 1: iterate through all objects. (Can't guarantee to get
     # relationships correct until we've done this, since we don't know whether
     # or where the "root" of the PK tree is.)
-    stack = [startobj]
-    while stack:
-        oldobj = stack.pop(0)
-        if oldobj in objmap:  # already seen
-            continue
-        log.debug("deepcopy_sqla_object: copying {}".format(oldobj))
+    for oldobj in walk(startobj, debug=debug):
+        if debug:
+            log.debug("deepcopy_sqla_object: copying {}", oldobj)
         newobj = copy_sqla_object(oldobj)
         # Don't insert the new object into the session here; it may trigger
         # an autoflush as the relationships are queried, and the new objects
@@ -197,46 +257,24 @@ def deepcopy_sqla_object(startobj: object, session: Session,
         # invoked autoflush; consider using a session.no_autoflush block if
         # this flush is occurring prematurely)..."
         objmap[oldobj] = newobj
-        insp = inspect(oldobj)
-        for relationship in insp.mapper.relationships:
-            log.debug("deepcopy_sqla_object: ... relationship: {}".format(
-                relationship))
-            related = getattr(oldobj, relationship.key)
-            if relationship.uselist:
-                stack.extend(related)
-            elif related is not None:
-                stack.append(related)
+
     # Pass 2: set all relationship properties.
-    log.debug("deepcopy_sqla_object: pass 2: set relationships")
+    if debug:
+        log.debug("deepcopy_sqla_object: pass 2: set relationships")
     for oldobj, newobj in objmap.items():
-        log.debug("deepcopy_sqla_object: newobj: {}".format(newobj))
-        insp = inspect(oldobj)
-        # insp.mapper.relationships is of type
-        # sqlalchemy.utils._collections.ImmutableProperties, which is basically
-        # a sort of AttrDict.
-        for relationship in insp.mapper.relationships:
-            # The relationship is an abstract object (so getting the
-            # relationship from the old object and from the new, with e.g.
-            # newrel = newinsp.mapper.relationships[oldrel.key],
-            # yield the same object. All we need from it is the key name.
-            log.debug("deepcopy_sqla_object: ... relationship: {}".format(
-                relationship.key))
-            related_old = getattr(oldobj, relationship.key)
-            if relationship.uselist:
-                related_new = [objmap[r] for r in related_old]
-            elif related_old is not None:
-                related_new = objmap[related_old]
-            else:
-                related_new = None
-            log.debug("deepcopy_sqla_object: ... ... adding: {}".format(
-                related_new))
-            setattr(newobj, relationship.key, related_new)
+        if debug:
+            log.debug("deepcopy_sqla_object: newobj: {}", newobj)
+        rewrite_relationships(oldobj, newobj, objmap, debug=debug)
+
     # Now we can do session insert.
-    log.debug("deepcopy_sqla_object: pass 3: insert into session")
+    if debug:
+        log.debug("deepcopy_sqla_object: pass 3: insert into session")
     for newobj in objmap.values():
         session.add(newobj)
+
     # Done
-    log.debug("deepcopy_sqla_object: done")
+    if debug:
+        log.debug("deepcopy_sqla_object: done")
     if flush:
         session.flush()
     return objmap[startobj]  # returns the new object matching startobj
@@ -249,7 +287,24 @@ def deepcopy_sqla_object(startobj: object, session: Session,
 def gen_columns(obj) -> Generator[Tuple[str, Column], None, None]:
     """
     Yields tuples of (attr_name, Column) from an SQLAlchemy ORM object
-    instance.
+    instance. ALSO works with the corresponding SQLAlchemy ORM class. Examples:
+
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql.schema import Column
+from sqlalchemy.sql.sqltypes import Integer
+
+Base = declarative_base()
+
+class MyClass(Base):
+    __tablename__ = "mytable"
+    pk = Column("pk", Integer, primary_key=True, autoincrement=True)
+    a = Column("a", Integer)
+
+x = MyClass()
+
+list(gen_columns(x))
+list(gen_columns(MyClass))
+
     """
     mapper = obj.__mapper__  # type: Mapper
     assert mapper, "gen_columns called on {!r} which is not an " \
@@ -260,13 +315,47 @@ def gen_columns(obj) -> Generator[Tuple[str, Column], None, None]:
     for attrname, column in colmap.items():
         # NB: column.name is the SQL column name, not the attribute name
         yield attrname, column
-
     # Don't bother using
     #   cls = obj.__class_
     #   for attrname in dir(cls):
     #       cls_attr = getattr(cls, attrname)
     #       # ... because, for columns, these will all be instances of
     #       # sqlalchemy.orm.attributes.InstrumentedAttribute.
+
+
+def get_pk_attrnames(obj) -> List[str]:
+    return [attrname
+            for attrname, column in gen_columns(obj)
+            if column.primary_key]
+
+
+def gen_columns_for_uninstrumented_class(cls: Type) \
+        -> Generator[Tuple[str, Column], None, None]:
+    """
+    Generate (attr_name, Column) tuples from an UNINSTRUMENTED class, i.e. one
+    that does not inherit from declarative_base(). Use this for mixins of that
+    kind.
+
+    SUBOPTIMAL. May produce warnings like:
+    SAWarning: Unmanaged access of declarative attribute id from non-mapped class GenericTabletRecordMixin  # noqa
+
+    Try to use gen_columns() instead.
+    """
+    for attrname in dir(cls):
+        potential_column = getattr(cls, attrname)
+        if isinstance(potential_column, Column):
+            yield attrname, potential_column
+
+
+def attrname_to_colname_dict(cls) -> Dict[str, str]:
+    attr_col = {}  # type: Dict[str, str]
+    for attrname, column in gen_columns(cls):
+        attr_col[attrname] = column.name
+    return attr_col
+
+
+def colname_to_attrname_dict(cls) -> Dict[str, str]:
+    return reversedict(attrname_to_colname_dict(cls))
 
 
 # =============================================================================
@@ -290,3 +379,24 @@ def get_orm_columns(cls: Type) -> List[Column]:
 def get_orm_column_names(cls: Type, sort: bool = False) -> List[str]:
     colnames = [col.name for col in get_orm_columns(cls)]
     return sorted(colnames) if sort else colnames
+
+
+# =============================================================================
+# Inspect metadata (SQLAlchemy ORM)
+# =============================================================================
+
+def get_table_names_from_metadata(metadata: MetaData) -> List[str]:
+    return [table.name for table in metadata.tables.values()]
+
+
+def get_orm_classes_from_base(base: Type) -> List[Type]:
+    return all_subclasses(base)
+
+
+def get_orm_classes_by_table_name_from_base(base: Type) -> Dict[str, Type]:
+    """
+    Given the SQLAlchemy ORM base class, returns a dictionary whose keys are
+    table names and whose values are ORM classes.
+    """
+    # noinspection PyUnresolvedReferences
+    return {cls.__tablename__: cls for cls in get_orm_classes_from_base(base)}

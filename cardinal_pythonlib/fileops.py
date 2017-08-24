@@ -29,34 +29,73 @@ import glob
 import logging
 import os
 import shutil
-from typing import List
+from typing import Any, Callable, List
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
 def mkdir_p(path: str) -> None:
+    """
+    Makes a directory, and any intermediate (parent) directories if required.
+    """
     log.debug("mkdir_p: " + path)
     os.makedirs(path, exist_ok=True)
 
 
-def copyglob(src: str, dest: str, allow_nothing: bool = False) -> None:
+def copyglob(src: str, dest: str, allow_nothing: bool = False,
+             allow_nonfiles: bool = False) -> None:
+    """
+    Copies files whose filenames match the glob "src" into the directory
+    "dest". Raises an error if no files are copied, unless allow_nothing is
+    True.
+    """
     something = False
     for filename in glob.glob(src):
-        shutil.copy(filename, dest)
-        something = True
+        if allow_nonfiles or os.path.isfile(filename):
+            shutil.copy(filename, dest)
+            something = True
     if something or allow_nothing:
         return
     raise ValueError("No files found matching: {}".format(src))
 
 
+def moveglob(src: str, dest: str, allow_nothing: bool = False,
+             allow_nonfiles: bool = False) -> None:
+    """
+    As for copyglob, but moves instead.
+    """
+    something = False
+    for filename in glob.glob(src):
+        if allow_nonfiles or os.path.isfile(filename):
+            shutil.move(filename, dest)
+            something = True
+    if something or allow_nothing:
+        return
+    raise ValueError("No files found matching: {}".format(src))
+
+
+def rmglob(pattern: str) -> None:
+    """
+    Removes all files whose filename matches the glob "pattern".
+    """
+    for f in glob.glob(pattern):
+        os.remove(f)
+
+
 def copytree(src_dir: str, dest_parent: str) -> None:
+    """
+    Copies a directory "src_dir" into the directory "dest_parent".
+    """
     dirname = os.path.basename(os.path.normpath(src_dir))
     dest_dir = os.path.join(dest_parent, dirname)
     shutil.copytree(src_dir, dest_dir)
 
 
 def chown_r(path: str, user: str, group: str) -> None:
+    """
+    Performs a recursive chown.
+    """
     # http://stackoverflow.com/questions/2853723
     for root, dirs, files in os.walk(path):
         for x in dirs:
@@ -65,28 +104,10 @@ def chown_r(path: str, user: str, group: str) -> None:
             shutil.chown(os.path.join(root, x), user, group)
 
 
-def moveglob(src: str, dest: str, allow_nothing: bool = False) -> None:
-    something = False
-    for filename in glob.glob(src):
-        shutil.move(filename, dest)
-        something = True
-    if something or allow_nothing:
-        return
-    raise ValueError("No files found matching: {}".format(src))
-
-
-def rmglob(pattern: str) -> None:
-    for f in glob.glob(pattern):
-        os.remove(f)
-
-
-def purge(path: str, pattern: str) -> None:
-    for f in find(pattern, path):
-        log.info("Deleting {}".format(f))
-        os.remove(f)
-
-
 def find(pattern: str, path: str) -> List[str]:
+    """
+    Finds files in "path" whose filenames match "pattern".
+    """
     result = []
     for root, dirs, files in os.walk(path):
         for name in files:
@@ -95,9 +116,45 @@ def find(pattern: str, path: str) -> List[str]:
     return result
 
 
-def find_first(pattern, path):
+def find_first(pattern: str, path: str) -> str:
+    """
+    Finds first file in "path" whose filename matches "pattern", or raises.
+    """
     try:
         return find(pattern, path)[0]
     except IndexError:
         log.critical('''Couldn't find "{}" in "{}"'''.format(pattern, path))
         raise
+
+
+def purge(path: str, pattern: str) -> None:
+    """
+    Deletes all files in "path" matching "pattern".
+    """
+    for f in find(pattern, path):
+        log.info("Deleting {}".format(f))
+        os.remove(f)
+
+
+def preserve_cwd(func: Callable) -> Callable:
+    """
+    Decorator to preserve the current working directory in calls to the
+    decorated function.
+
+    Example:
+
+        @preserve_cwd
+        def myfunc():
+            os.chdir("/faraway")
+
+        os.chdir("/home")
+        myfunc()
+        assert os.getcwd() == "/home"
+    """
+    # http://stackoverflow.com/questions/169070/python-how-do-i-write-a-decorator-that-restores-the-cwd  # noqa
+    def decorator(*args_, **kwargs) -> Any:
+        cwd = os.getcwd()
+        result = func(*args_, **kwargs)
+        os.chdir(cwd)
+        return result
+    return decorator

@@ -36,6 +36,9 @@ from django.utils.html import escape
 # ... extended to use closures
 
 def disable_bool_icon(fieldname: str, model: Model) -> Callable[[Any], bool]:
+    """
+    Disable boolean icons for a Django ModelAdmin field.
+    """
     # noinspection PyUnusedLocal
     def func(self, obj):
         return getattr(obj, fieldname)
@@ -61,6 +64,9 @@ def admin_view_url(admin_site: AdminSite,
                    obj,
                    view_type: str = "change",
                    current_app: str = None) -> str:
+    """
+    Get a Django admin site URL for an object.
+    """
     app_name = obj._meta.app_label.lower()
     model_name = obj._meta.object_name.lower()
     pk = obj.pk
@@ -79,6 +85,10 @@ def admin_view_fk_link(modeladmin: ModelAdmin,
                        use_str: bool = True,
                        view_type: str = "change",
                        current_app: str = None) -> str:
+    """
+    Get a Django admin site URL for an object that's found from a foreign
+    key in our object of interest.
+    """
     if not hasattr(obj, fkfield):
         return missing
     linked_obj = getattr(obj, fkfield)
@@ -107,6 +117,11 @@ def admin_view_reverse_fk_links(modeladmin: ModelAdmin,
                                 separator: str = "<br>",
                                 view_type: str = "change",
                                 current_app: str = None) -> str:
+    """
+    Get multiple Django admin site URL for multiple objects linked to our
+    object of interest (where the other objects have foreign keys to our
+    object).
+    """
     if not hasattr(obj, reverse_fk_set_field):
         return missing
     linked_objs = getattr(obj, reverse_fk_set_field).all()

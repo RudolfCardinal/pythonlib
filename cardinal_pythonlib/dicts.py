@@ -125,3 +125,23 @@ def set_null_values_in_dict(d: Dict[str, Any],
     for k, v in d.items():
         if v in null_literals:
             d[k] = None
+
+
+def map_keys_to_values(l: List[Any], d: Dict[Any, Any], default: Any = None,
+                       raise_if_missing: bool = False,
+                       omit_if_missing: bool = False) -> List[Any]:
+    """
+    The "d" dictionary contains a key -> value mapping.
+    We start with a list of potential keys in "l", and return a list of
+    corresponding values -- substituting "default" if any are missing,
+    or raising a KeyError if "raise_if_missing", or omitting the entry if
+    "omit_if_missing".
+    """
+    result = []
+    for k in l:
+        if raise_if_missing and k not in d:
+            raise ValueError("Missing key: " + repr(k))
+        if omit_if_missing and k not in d:
+            continue
+        result.append(d.get(k, default))
+    return result

@@ -89,13 +89,17 @@ class SqlaColumnInspectionInfo(object):
     def __init__(self, sqla_info_dict: Dict[str, Any]) -> None:
         """
         sqla_info_dict: see
-        http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns  # noqa
+        - http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns  # noqa
+        - https://bitbucket.org/zzzeek/sqlalchemy/issues/4051/sqlalchemyenginereflectioninspectorget_col  # noqa
         """
+        # log.debug(repr(sqla_info_dict))
         self.name = sqla_info_dict['name']  # type: str
         self.type = sqla_info_dict['type']  # type: TypeEngine
         self.nullable = sqla_info_dict['nullable']  # type: bool
         self.default = sqla_info_dict['default']  # type: str  # SQL string expression  # noqa
-        self.attrs = sqla_info_dict['attrs']  # type: Dict[str, Any]
+        self.attrs = sqla_info_dict.get('attrs', {})  # type: Dict[str, Any]
+        self.comment = sqla_info_dict.get('comment', '')
+        # ... NB not appearing in
 
 
 def gen_columns_info(engine: Engine,

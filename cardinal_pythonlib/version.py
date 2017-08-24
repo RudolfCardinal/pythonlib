@@ -21,7 +21,7 @@
 ===============================================================================
 """
 
-VERSION = '1.0.1'
+VERSION = '1.0.2'
 # Use semantic versioning: http://semver.org/
 
 RECENT_VERSION_HISTORY = """
@@ -51,5 +51,8 @@ First started in 2009.
   
 - 1.0.1, 2017-08-14
   PyPI/setup.py bugfix (not all subpackages were uploaded).
+
+- 1.0.2, 2017-08-20
+  Metaclass functions added.
 
 """

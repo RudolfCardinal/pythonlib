@@ -21,10 +21,15 @@
 ===============================================================================
 """
 
+from typing import TYPE_CHECKING
 import logging
 
 from sqlalchemy.engine.base import Engine
+from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm.session import Session
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine.url import URL
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -35,6 +40,27 @@ log.addHandler(logging.NullHandler())
 # =============================================================================
 
 def get_engine_from_session(dbsession: Session) -> Engine:
+    """
+    Gets the SQLAlchemy Engine from a SQLAlchemy Session.
+    """
     engine = dbsession.bind
     assert isinstance(engine, Engine)
     return engine
+
+
+def get_safe_url_from_engine(engine: Engine) -> str:
+    """
+    Gets a URL from an Engine, obscuring the password.
+    """
+    raw_url = engine.url  # type: str
+    url_obj = make_url(raw_url)  # type: URL
+    return repr(url_obj)
+    # The default repr() implementation calls
+    # self.__to_string__(hide_password=False)
+
+
+def get_safe_url_from_session(dbsession: Session) -> str:
+    """
+    Gets a URL from a Session, obscuring the password.
+    """
+    return get_safe_url_from_engine(get_engine_from_session(dbsession))

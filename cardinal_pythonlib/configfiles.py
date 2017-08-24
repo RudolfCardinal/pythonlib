@@ -28,8 +28,11 @@ from configparser import ConfigParser, NoOptionError
 import logging
 from typing import Any, Callable, Iterable, List
 
+from .logs import BraceStyleAdapter
+
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
+log = BraceStyleAdapter(log)
 
 
 # =============================================================================

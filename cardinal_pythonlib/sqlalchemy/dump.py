@@ -25,12 +25,12 @@ import datetime
 import decimal
 import logging
 import sys
-from typing import Any, Callable, Dict, TextIO, Union
+from typing import Any, Callable, Dict, TextIO, Type, Union
 
 from sqlalchemy.engine import Connectable, create_engine
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine.default import DefaultDialect  # for type hints
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.query import Query
 from sqlalchemy.sql.base import Executable
@@ -42,9 +42,13 @@ from sqlalchemy.sql.sqltypes import DateTime, NullType, String
 from cardinal_pythonlib.file_io import writeline_nl, writelines_nl
 from cardinal_pythonlib.sql.literals import sql_comment
 from cardinal_pythonlib.sqlalchemy.orm_inspect import walk
+from cardinal_pythonlib.sqlalchemy.schema import get_table_names
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
+
+SEP1 = sql_comment("=" * 76)
+SEP2 = sql_comment("-" * 76)
 
 
 # =============================================================================
@@ -87,9 +91,9 @@ def dump_ddl(metadata: MetaData,
     # issuing CREATE ... IF NOT EXISTS?
 
 
-# noinspection PyPep8Naming
-def quick_mapper(table: Table) -> object:
+def quick_mapper(table: Table) -> Type[DeclarativeMeta]:
     # http://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/  # noqa
+    # noinspection PyPep8Naming
     Base = declarative_base()
 
     class GenericMapper(Base):
@@ -231,7 +235,9 @@ def dump_table_as_insert_sql(engine: Engine,
     # https://github.com/plq/scripts/blob/master/pg_dump.py
     log.info("dump_data_as_insert_sql: table_name={}".format(table_name))
     writelines_nl(fileobj, [
+        SEP1,
         sql_comment("Data for table: {}".format(table_name)),
+        SEP2,
         sql_comment("Filters: {}".format(wheredict)),
     ])
     dialect = engine.dialect
@@ -270,14 +276,19 @@ def dump_table_as_insert_sql(engine: Engine,
         for r in cursor:
             row_dict_list.append(dict(r))
         # log.debug("row_dict_list: {}".format(row_dict_list))
-        statement = table.insert().values(row_dict_list)
-        # log.debug("statement: {}".format(repr(statement)))
-        # insert_str = literal_query(statement)
-        insert_str = get_literal_query(statement, bind=engine)
-        # NOT WORKING FOR MULTIROW INSERTS. ONLY SUBSTITUTES FIRST ROW.
-        writeline_nl(fileobj, insert_str)
+        if row_dict_list:
+            statement = table.insert().values(row_dict_list)
+            # log.debug("statement: {}".format(repr(statement)))
+            # insert_str = literal_query(statement)
+            insert_str = get_literal_query(statement, bind=engine)
+            # NOT WORKING FOR MULTIROW INSERTS. ONLY SUBSTITUTES FIRST ROW.
+            writeline_nl(fileobj, insert_str)
+        else:
+            writeline_nl(fileobj, sql_comment("No data!"))
     else:
+        found_one = False
         for r in cursor:
+            found_one = True
             row_dict = dict(r)
             statement = table.insert(values=row_dict)
             # insert_str = literal_query(statement)
@@ -285,7 +296,24 @@ def dump_table_as_insert_sql(engine: Engine,
             # log.debug("row_dict: {}".format(row_dict))
             # log.debug("insert_str: {}".format(insert_str))
             writeline_nl(fileobj, insert_str)
+        if not found_one:
+            writeline_nl(fileobj, sql_comment("No data!"))
+    writeline_nl(fileobj, SEP2)
     log.debug("... done")
+
+
+def dump_database_as_insert_sql(engine: Engine,
+                                fileobj: TextIO = sys.stdout,
+                                include_ddl: bool = False,
+                                multirow: bool = False) -> None:
+    for tablename in get_table_names(engine):
+        dump_table_as_insert_sql(
+            engine=engine,
+            table_name=tablename,
+            fileobj=fileobj,
+            include_ddl=include_ddl,
+            multirow=multirow
+        )
 
 
 def dump_orm_object_as_insert_sql(engine: Engine,

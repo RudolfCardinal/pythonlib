@@ -76,6 +76,11 @@ def main() -> None:
         "--username", default="root",
         help="MySQL user")
     parser.add_argument(
+        "--password", default="root",
+        help="MySQL password (AVOID THIS OPTION IF POSSIBLE; VERY INSECURE; "
+             "VISIBLE TO OTHER PROCESSES; if you don't use it, you'll be "
+             "prompted for the password)")
+    parser.add_argument(
         "--with_drop_create_database", action="store_true",
         help="Include DROP DATABASE and CREATE DATABASE commands")
     parser.add_argument(
@@ -83,7 +88,7 @@ def main() -> None:
         help="Verbose output")
     args = parser.parse_args()
 
-    password = getpass.getpass(
+    password = args.password or getpass.getpass(
         prompt="MySQL password for user {}: ".format(args.username))
 
     output_files = []  # type: List[str]
@@ -98,12 +103,13 @@ def main() -> None:
         now = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
         outfilename = "{db}_{now}{suffix}.sql".format(db=db, now=now,
                                                       suffix=suffix)
-        log.info("Executing: " +
-                 repr(cmdargs(args, password, db, hide_password=True)))
+        display_args = cmdargs(args, password, db, hide_password=True)
+        actual_args = cmdargs(args, password, db)
+        log.info("Executing: " + repr(display_args))
         log.info("Output file: " + repr(outfilename))
         try:
             with open(outfilename, "w") as f:
-                subprocess.check_call(cmdargs(args, password, db), stdout=f)
+                subprocess.check_call(actual_args, stdout=f)
         except subprocess.CalledProcessError:
             os.remove(outfilename)
             log.critical("Failed!")

@@ -21,7 +21,7 @@
 ===============================================================================
 """
 
-from typing import Type, TypeVar
+from typing import List, Type, TypeVar
 
 
 # =============================================================================
@@ -84,8 +84,28 @@ def derived_class_implements_method(derived: Type[T1],
 # =============================================================================
 # https://stackoverflow.com/questions/3862310/how-can-i-find-all-subclasses-of-a-class-given-its-name  # noqa
 
-def all_subclasses(cls):
+def all_subclasses(cls: Type) -> List[Type]:
     return cls.__subclasses__() + [g for s in cls.__subclasses__()
                                    for g in all_subclasses(s)]
 
 
+# =============================================================================
+# Class properties
+# =============================================================================
+
+class ClassProperty(property):
+    # https://stackoverflow.com/questions/128573/using-property-on-classmethods
+    # noinspection PyMethodOverriding
+    def __get__(self, cls, owner):
+        # noinspection PyUnresolvedReferences
+        return self.fget.__get__(None, owner)()
+
+
+# noinspection PyPep8Naming
+class classproperty(object):
+    # https://stackoverflow.com/questions/128573/using-property-on-classmethods
+    def __init__(self, fget):
+        self.fget = fget
+
+    def __get__(self, owner_self, owner_cls):
+        return self.fget(owner_cls)
