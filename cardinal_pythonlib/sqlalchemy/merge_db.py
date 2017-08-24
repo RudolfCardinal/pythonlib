@@ -50,7 +50,7 @@
 
 import logging
 import sys
-from typing import Callable, Dict, List, Tuple, Type
+from typing import Callable, Dict, List, Optional, Tuple, Type
 import unittest
 
 from sqlalchemy.engine import create_engine
@@ -185,11 +185,12 @@ class TableDependency(object):
                                         metadata=metadata)
 
     def __str__(self) -> str:
-        return "TableDependency({!r} depends on {!r})".format(
+        return "{} -> {}".format(
             self.child_tablename, self.parent_tablename)
 
     def __repr__(self) -> str:
-        return str(self)
+        return "TableDependency({!r} depends on {!r})".format(
+            self.child_tablename, self.parent_tablename)
 
     def set_metadata(self, metadata: MetaData) -> None:
         self._parent.set_metadata(metadata)
@@ -220,7 +221,8 @@ class TableDependency(object):
 
 
 def get_all_dependencies(metadata: MetaData,
-                         extra_dependencies: List[TableDependency] = None) \
+                         extra_dependencies: List[TableDependency] = None,
+                         sort: bool = True) \
         -> List[TableDependency]:
     """
     See sort_tables_and_constraints() for method.
@@ -248,10 +250,14 @@ def get_all_dependencies(metadata: MetaData,
                 (parent, table) for parent in table._extra_dependencies
             )
 
-    return [
+    dependencies = [
         TableDependency(parent_table=parent, child_table=child)
         for parent, child in dependencies
     ]
+    if sort:
+        dependencies.sort(key=lambda td_: (td_.parent_tablename,
+                                           td_.child_tablename))
+    return dependencies
 
 
 class TableDependencyClassification(object):
@@ -297,21 +303,26 @@ class TableDependencyClassification(object):
     def circular_description(self) -> str:
         return " -> ".join(t.name for t in self.circular_chain)
 
-    def __str__(self) -> str:
+    @property
+    def description(self) -> str:
         if self.is_parent and self.is_child:
-            description = "parent+child"
+            desc = "parent+child"
         elif self.is_parent:
-            description = "parent"
+            desc = "parent"
         elif self.is_child:
-            description = "child"
+            desc = "child"
         else:
-            description = "standalone"
+            desc = "standalone"
         if self.circular:
-            description += "+CIRCULAR({})".format(self.circular_description)
-        return "{!r}:{}".format(self.table.name, description)
+            desc += "+CIRCULAR({})".format(self.circular_description)
+        return desc
+
+    def __str__(self) -> str:
+        return "{}:{}".format(self.tablename, self.description)
 
     def __repr__(self) -> str:
-        return "TableDependencyClassification({})".format(str(self))
+        return "TableDependencyClassification({!r}:{})".format(
+            self.tablename, self.description)
 
 
 def classify_tables_by_dependency_type(
@@ -381,12 +392,16 @@ def merge_db(base_class: Type,
              dst_session: Session,
              allow_missing_src_tables: bool = True,
              allow_missing_src_columns: bool = True,
-             translate_fn: Callable[[object], object] = None,
+             translate_fn: Callable[[object,
+                                     Optional[object],
+                                     Dict[object, object]],
+                                    object] = None,
              skip_tables: List[TableIdentity] = None,
              only_tables: List[TableIdentity] = None,
              tables_to_keep_pks_for: List[TableIdentity] = None,
              extra_table_dependencies: List[TableDependency] = None,
              dummy_run: bool = False,
+             info_only: bool = False,
              report_every: int = 1000,
              flush_per_table: bool = True,
              flush_per_record: bool = False) -> None:
@@ -423,7 +438,18 @@ def merge_db(base_class: Type,
 
         translate_fn:
             optional function called with each instance, that must return the
-            instance (modified), so you can modify instances in the pipeline
+            instance (modified), so you can modify instances in the pipeline.
+            Signature:
+
+                def my_translate_fn(oldobj: object,  # may be same as newobj
+                                    newobj: object,
+                                    objmap: Dict[object, object]) -> object:
+                    # objmap is a mapping of old (source session) -> new
+                    #   (destination session) objects.
+                    # WE SHOULD:
+                    # - modify newobj (or create a replacement)
+                    # - return the modified newobj (or replacement)
+                    return newobj
 
         skip_tables:
             tables to skip
@@ -440,6 +466,9 @@ def merge_db(base_class: Type,
 
         dummy_run:
             don't alter the destination database
+
+        info_only:
+            show info, then stop
 
         report_every:
             provide a progress report every n records
@@ -532,9 +561,10 @@ def merge_db(base_class: Type,
         metadata, extra_table_dependencies)
     circular = [tdc for tdc in dep_classifications if tdc.circular]
     assert not circular, "Circular dependencies! {!r}".format(circular)
-    log.debug("All table dependencies: {!r}", all_dependencies)
-    log.debug("Table dependency classifications: {}",
-              "; ".join(str(c) for c in dep_classifications))
+    log.info("All table dependencies: {}",
+             "; ".join(str(td) for td in all_dependencies))
+    log.info("Table dependency classifications: {}",
+             "; ".join(str(c) for c in dep_classifications))
     log.info("Processing tables in the order: {!r}",
              [table.name for table in ordered_tables])
 
@@ -552,16 +582,15 @@ def merge_db(base_class: Type,
         tablename = table.name
 
         if tablename in skip_tables:
-            log.debug("... skipping table {} (as per skip_tables)", tablename)
+            log.info("... skipping table {} (as per skip_tables)", tablename)
             continue
         if only_tables and tablename not in only_tables:
-            log.debug("... ignoring table {} (as per only_tables)", tablename)
+            log.info("... ignoring table {} (as per only_tables)", tablename)
             continue
         if allow_missing_src_tables and tablename not in src_tables:
-            log.debug("... ignoring table {} (not in source database)",
-                      tablename)
+            log.info("... ignoring table {} (not in source database)",
+                     tablename)
             continue
-
         table_num += 1
         table_record_num = 0
 
@@ -586,6 +615,10 @@ def merge_db(base_class: Type,
         log.debug("Dependencies: parents = {!r}; children = {!r}",
                   tdc.parent_names, tdc.child_names)
 
+        if info_only:
+            log.debug("info_only; skipping")
+            continue
+
         def wipe_primary_key(inst: object) -> None:
             for attrname in pk_attrs:
                 setattr(inst, attrname, None)
@@ -598,7 +631,8 @@ def merge_db(base_class: Type,
             log.info("Table {} is missing columns {} in the source; using "
                      "only columns {} via attributes {}",
                      tablename, missing_columns, src_columns, src_attrs)
-            query = query.options(load_only(src_attrs))
+            query = query.options(load_only(*src_attrs))
+            # PROBLEM: it will not ignore the PK.
 
         wipe_pk = tablename not in tables_to_keep_pks_for
 
@@ -651,7 +685,7 @@ def merge_db(base_class: Type,
                     wipe_primary_key(instance)
 
                 if translate_fn:
-                    instance = translate_fn(instance)
+                    instance = translate_fn(instance, instance, objmap)
 
                 if not dummy_run:
                     dst_session.add(instance)
@@ -673,7 +707,7 @@ def merge_db(base_class: Type,
                 rewrite_relationships(oldobj, newobj, objmap, debug=False)
 
                 if translate_fn:
-                    newobj = translate_fn(newobj)
+                    newobj = translate_fn(oldobj, newobj, objmap)
 
                 if not dummy_run:
                     dst_session.add(newobj)

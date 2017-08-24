@@ -70,7 +70,7 @@ from inspect import Parameter, signature
 import json
 import logging
 import os
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from colorlog import ColoredFormatter
 
@@ -121,15 +121,17 @@ def configure_logger_for_colour(logger: logging.Logger,
     """
     if remove_existing:
         logger.handlers = []  # http://stackoverflow.com/questions/7484454
-    logger.addHandler(get_colour_handler(extranames))
+    handler = get_colour_handler(extranames)
+    handler.setLevel(level)
+    logger.addHandler(handler)
     logger.setLevel(level)
 
 
 def main_only_quicksetup_rootlogger(level: int = logging.DEBUG) -> None:
     # Nasty. Only call from "if __name__ == '__main__'" clauses!
     rootlogger = logging.getLogger()
-    configure_logger_for_colour(rootlogger, level)
-    logging.basicConfig(level=logging.DEBUG)
+    configure_logger_for_colour(rootlogger, level, remove_existing=True)
+    logging.basicConfig(level=level)
 
 
 # =============================================================================
@@ -268,19 +270,27 @@ def get_handler_report(h: logging.Handler) -> Dict[str, Any]:
     }
 
 
-def get_log_report(log: logging.Logger) -> Dict[str, Any]:
+def get_log_report(log: Union[logging.Logger,
+                              logging.PlaceHolder]) -> Dict[str, Any]:
     """Returns information on a log, as a dictionary. For debugging."""
-    # suppress invalid error for Logger.manager:
-    # noinspection PyUnresolvedReferences
-    return {
-        '(object)': str(log),
-        'level': log.level,
-        'disabled': log.disabled,
-        'propagate': log.propagate,
-        'parent': str(log.parent),
-        'manager': str(log.manager),
-        'handlers': [get_handler_report(h) for h in log.handlers],
-    }
+    if isinstance(log, logging.Logger):
+        # suppress invalid error for Logger.manager:
+        # noinspection PyUnresolvedReferences
+        return {
+            '(object)': str(log),
+            'level': log.level,
+            'disabled': log.disabled,
+            'propagate': log.propagate,
+            'parent': str(log.parent),
+            'manager': str(log.manager),
+            'handlers': [get_handler_report(h) for h in log.handlers],
+        }
+    elif isinstance(log, logging.PlaceHolder):
+        return {
+            "(object)": str(log),
+        }
+    else:
+        raise ValueError("Unknown object type: {!r}".format(log))
 
 
 def print_report_on_all_logs() -> None:
@@ -291,7 +301,8 @@ def print_report_on_all_logs() -> None:
     # noinspection PyUnresolvedReferences
     for name, obj in logging.Logger.manager.loggerDict.items():
         d[name] = get_log_report(obj)
-    d['(root logger)'] = get_log_report(logging.getLogger())
+    rootlogger = logging.getLogger()
+    d['(root logger)'] = get_log_report(rootlogger)
     print(json.dumps(d, sort_keys=True, indent=4, separators=(',', ': ')))
 
 

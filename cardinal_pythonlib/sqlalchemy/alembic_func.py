@@ -105,6 +105,7 @@ def get_current_and_head_revision(
     return current_revision, head_revision
 
 
+@preserve_cwd
 def upgrade_database(alembic_config_filename: str,
                      alembic_base_dir: str = None,
                      destination_revision: str = "head") -> None:
