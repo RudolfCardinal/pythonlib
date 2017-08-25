@@ -50,7 +50,7 @@
 
 import logging
 import sys
-from typing import Callable, Dict, List, Optional, Tuple, Type
+from typing import Callable, Dict, List, Tuple, Type
 import unittest
 
 from sqlalchemy.engine import create_engine
@@ -149,7 +149,7 @@ class TableIdentity(object):
 
 
 # =============================================================================
-# TableDependency
+# TableDependency; get_all_dependencies
 # =============================================================================
 
 class TableDependency(object):
@@ -259,6 +259,10 @@ def get_all_dependencies(metadata: MetaData,
                                            td_.child_tablename))
     return dependencies
 
+
+# =============================================================================
+# TableDependencyClassification; classify_tables_by_dependency_type
+# =============================================================================
 
 class TableDependencyClassification(object):
     def __init__(self,
@@ -384,6 +388,58 @@ def classify_tables_by_dependency_type(
 
 
 # =============================================================================
+# TranslationContext (for merge_db)
+# =============================================================================
+
+class TranslationContext(object):
+    """
+    Information-passing object for user callbacks from merge_db (q.v.).
+
+    Attributes:
+
+    oldobj
+        The the object from the source session.
+
+    newobj
+        The framework's go at building a new object, which will be inserted
+        into the destination session.
+
+        At this point, the translate_fn parameter to merge_db() will be called,
+        and the (potentially modified) "newobj" member inserted into the
+        destination session.
+
+        The user-supplied function should REWRITE the "newobj" attribute.
+
+        If this is rewritten to None, the object will be skipped.
+
+    [It is possible that oldobj and newobj are the SAME OBJECT.]
+
+    objmap
+        A dictionary mapping old to new objects, for objects in tables other
+        than standalone tables.
+
+    src_session
+    dst_session
+        The SQLAlchemy Session objects for the source/destination.
+    """
+    def __init__(self,
+                 oldobj: object,
+                 newobj: object,
+                 objmap: Dict[object, object],
+                 table: Table,
+                 tablename: str,
+                 src_session: Session,
+                 dst_session: Session) -> None:
+        self.table = table
+        self.tablename = tablename
+        self.oldobj = oldobj
+        self.newobj = newobj
+        self.objmap = objmap
+        self.src_session = src_session
+        self.dst_session = dst_session
+
+
+# =============================================================================
 # merge_db
 # =============================================================================
 
@@ -392,10 +448,7 @@ def merge_db(base_class: Type,
              dst_session: Session,
              allow_missing_src_tables: bool = True,
              allow_missing_src_columns: bool = True,
-             translate_fn: Callable[[object,
-                                     Optional[object],
-                                     Dict[object, object]],
-                                    object] = None,
+             translate_fn: Callable[[TranslationContext], None] = None,
              skip_tables: List[TableIdentity] = None,
              only_tables: List[TableIdentity] = None,
              tables_to_keep_pks_for: List[TableIdentity] = None,
@@ -404,7 +457,9 @@ def merge_db(base_class: Type,
              info_only: bool = False,
              report_every: int = 1000,
              flush_per_table: bool = True,
-             flush_per_record: bool = False) -> None:
+             flush_per_record: bool = False,
+             commit_with_flush: bool = False,
+             commit_at_end: bool = True) -> None:
     """
     Copies an entire database as far as it is described by "metadata" and
     "base_class", from SQLAlchemy ORM session "src_session" to "dst_session",
@@ -437,19 +492,13 @@ def merge_db(base_class: Type,
             import from older, incomplete databases)
 
         translate_fn:
-            optional function called with each instance, that must return the
-            instance (modified), so you can modify instances in the pipeline.
-            Signature:
+            optional function called with each instance, so you can modify
+            instances in the pipeline. Signature:
 
-                def my_translate_fn(oldobj: object,  # may be same as newobj
-                                    newobj: object,
-                                    objmap: Dict[object, object]) -> object:
-                    # objmap is a mapping of old (source session) -> new
-                    #   (destination session) objects.
-                    # WE SHOULD:
-                    # - modify newobj (or create a replacement)
-                    # - return the modified newobj (or replacement)
-                    return newobj
+                def my_translate_fn(trcon: TranslationContext) -> None:
+                    # We can modify trcon.newobj, or replace it (including
+                    # setting trcon.newobj = None to omit this object).
+                    pass
 
         skip_tables:
             tables to skip
@@ -479,6 +528,12 @@ def merge_db(base_class: Type,
         flush_per_record:
             flush the session after every instance (AVOID this if tables may
             refer to themselves)
+
+        commit_with_flush:
+            COMMIT with each flush?
+
+        commit_at_end:
+            COMMIT when finished?
 
     Returns:
         None
@@ -570,10 +625,28 @@ def merge_db(base_class: Type,
 
     objmap = {}
 
-    def flush():
+    def flush() -> None:
         if not dummy_run:
             log.debug("Flushing session")
             dst_session.flush()
+            if commit_with_flush:
+                log.debug("Committing...")
+                dst_session.commit()
+
+    def translate(oldobj_: object, newobj_: object) -> object:
+        if translate_fn is None:
+            return newobj_
+        tc = TranslationContext(oldobj=oldobj_,
+                                newobj=newobj_,
+                                objmap=objmap,
+                                table=table,
+                                tablename=tablename,
+                                src_session=src_session,
+                                dst_session=dst_session)
+        translate_fn(tc)
+        if tc.newobj is None:
+            log.debug("Instance skipped by user-supplied translate_fn")
+        return tc.newobj
 
     # -------------------------------------------------------------------------
     # Now, per table/ORM class...
@@ -684,8 +757,9 @@ def merge_db(base_class: Type,
                 if wipe_pk:
                     wipe_primary_key(instance)
 
-                if translate_fn:
-                    instance = translate_fn(instance, instance, objmap)
+                instance = translate(instance, instance)
+                if not instance:
+                    continue  # translate_fn elected to skip it
 
                 if not dummy_run:
                     dst_session.add(instance)
@@ -706,8 +780,9 @@ def merge_db(base_class: Type,
 
                 rewrite_relationships(oldobj, newobj, objmap, debug=False)
 
-                if translate_fn:
-                    newobj = translate_fn(oldobj, newobj, objmap)
+                newobj = translate(oldobj, newobj)
+                if not newobj:
+                    continue  # translate_fn elected to skip it
 
                 if not dummy_run:
                     dst_session.add(newobj)
@@ -723,6 +798,9 @@ def merge_db(base_class: Type,
             flush()
 
     flush()
+    if commit_at_end:
+        log.debug("Committing...")
+        dst_session.commit()
     log.info("merge_db(): finished")
 
 
