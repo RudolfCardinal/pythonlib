@@ -655,13 +655,13 @@ def merge_db(base_class: Type,
         tablename = table.name
 
         if tablename in skip_tables:
-            log.info("... skipping table {} (as per skip_tables)", tablename)
+            log.info("... skipping table {!r} (as per skip_tables)", tablename)
             continue
         if only_tables and tablename not in only_tables:
-            log.info("... ignoring table {} (as per only_tables)", tablename)
+            log.info("... ignoring table {!r} (as per only_tables)", tablename)
             continue
         if allow_missing_src_tables and tablename not in src_tables:
-            log.info("... ignoring table {} (not in source database)",
+            log.info("... ignoring table {!r} (not in source database)",
                      tablename)
             continue
         table_num += 1
@@ -674,8 +674,8 @@ def merge_db(base_class: Type,
         if not allow_missing_src_columns:
             if missing_columns:
                 raise RuntimeError(
-                    "The following columns are missing from source table {}: "
-                    "{}".format(tablename, missing_columns))
+                    "The following columns are missing from source table "
+                    "{!r}: {!r}".format(tablename, missing_columns))
 
         orm_class = orm_classes[tablename]
         pk_attrs = get_pk_attrnames(orm_class)
@@ -689,7 +689,7 @@ def merge_db(base_class: Type,
                   tdc.parent_names, tdc.child_names)
 
         if info_only:
-            log.debug("info_only; skipping")
+            log.debug("info_only; skipping table contents")
             continue
 
         def wipe_primary_key(inst: object) -> None:
