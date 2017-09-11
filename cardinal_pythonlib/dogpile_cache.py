@@ -20,31 +20,51 @@
     limitations under the License.
 ===============================================================================
 
-1. The basic cache objects.
+1.  The basic cache objects.
 
-2. FIX FOR DOGPILE.CACHE FOR DECORATED FUNCTIONS, 2017-07-28 (PLUS SOME OTHER
-   IMPROVEMENTS). SEE 
+2.  FIX FOR DOGPILE.CACHE FOR DECORATED FUNCTIONS, 2017-07-28 (PLUS SOME OTHER
+    IMPROVEMENTS). SEE 
    
-   https://bitbucket.org/zzzeek/dogpile.cache/issues/96/error-in-python-35-with-use-of-deprecated
+        https://bitbucket.org/zzzeek/dogpile.cache/issues/96/error-in-python-35-with-use-of-deprecated
 
-Crash using type-hinted functions under Python 3.5 with dogpile.cache==0.6.4:
+    This fixes a crash using type-hinted functions under Python 3.5 with 
+    dogpile.cache==0.6.4:
 
-Traceback (most recent call last):
-  File "/usr/lib/python3.5/runpy.py", line 184, in _run_module_as_main
-    "__main__", mod_spec)
-  File "/usr/lib/python3.5/runpy.py", line 85, in _run_code
-    exec(code, run_globals)
-  File "/home/rudolf/Documents/code/camcops/server/camcops_server/cc_modules/cc_cache.py", line 64, in <module>
-    unit_test_cache()
-  File "/home/rudolf/Documents/code/camcops/server/camcops_server/cc_modules/cc_cache.py", line 50, in unit_test_cache
-    def testfunc() -> str:
-  File "/home/rudolf/dev/venvs/camcops/lib/python3.5/site-packages/dogpile/cache/region.py", line 1215, in decorator
-    key_generator = function_key_generator(namespace, fn)
-  File "/home/rudolf/dev/venvs/camcops/lib/python3.5/site-packages/dogpile/cache/util.py", line 31, in function_key_generator
-    args = inspect.getargspec(fn)
-  File "/usr/lib/python3.5/inspect.py", line 1045, in getargspec
-    raise ValueError("Function has keyword-only arguments or annotations"
-ValueError: Function has keyword-only arguments or annotations, use getfullargspec() API which can support them
+        Traceback (most recent call last):
+          File "/usr/lib/python3.5/runpy.py", line 184, in _run_module_as_main
+            "__main__", mod_spec)
+          File "/usr/lib/python3.5/runpy.py", line 85, in _run_code
+            exec(code, run_globals)
+          File "/home/rudolf/Documents/code/camcops/server/camcops_server/cc_modules/cc_cache.py", line 64, in <module>
+            unit_test_cache()
+          File "/home/rudolf/Documents/code/camcops/server/camcops_server/cc_modules/cc_cache.py", line 50, in unit_test_cache
+            def testfunc() -> str:
+          File "/home/rudolf/dev/venvs/camcops/lib/python3.5/site-packages/dogpile/cache/region.py", line 1215, in decorator
+            key_generator = function_key_generator(namespace, fn)
+          File "/home/rudolf/dev/venvs/camcops/lib/python3.5/site-packages/dogpile/cache/util.py", line 31, in function_key_generator
+            args = inspect.getargspec(fn)
+          File "/usr/lib/python3.5/inspect.py", line 1045, in getargspec
+            raise ValueError("Function has keyword-only arguments or annotations"
+        ValueError: Function has keyword-only arguments or annotations, use getfullargspec() API which can support them
+
+3.  Other improvements include:
+    - the cache decorators operate as:
+        PER-INSTANCE caches for class instances, provided the first parameter 
+            is named "self"; 
+        PER-CLASS caches for classmethods, provided the first parameter is 
+            named "cls";
+        PER-FUNCTION caches for staticmethods and plain functions
+        
+    - keyword arguments are supported
+    
+    - properties are supported (the @property decorator must be ABOVE the
+      cache decorator)
+    
+    - Note that this sort of cache relies on the generation of a STRING KEY
+      from the function arguments. It uses the hex(id()) function for self/cls
+      arguments, and the to_str() function, passed as a parameter, for others
+      (for which the default is "repr"; see discussion below as to why "repr"
+      is suitable while "str" is not).
 
 """  # noqa
 
@@ -60,10 +80,12 @@ from typing import Any, Callable, Dict, List, Optional
 from dogpile.cache import make_region
 # from dogpile.util import compat  # repr used as the default instead of compat.to_str  # noqa
 
-VERBOSE = True
-USE_PRETTY_LOGS = True  # False to make this standalone
-if USE_PRETTY_LOGS:
+TESTING_VERBOSE = True
+TESTING_USE_PRETTY_LOGS = True  # False to make this standalone
+if TESTING_USE_PRETTY_LOGS:
     from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+
+DEBUG_INTERNALS = False
 
 log = logging.getLogger(__name__)  # don't use BraceStyleAdapter; {} used
 log.addHandler(logging.NullHandler())
@@ -114,6 +136,9 @@ def fkg_allowing_type_hints(
     Return a function that generates a string key, based on a given function as
     well as arguments to the returned function itself.
 
+    Also modified to make the cached function unique per INSTANCE for normal
+    methods of a class.
+
     """
 
     namespace = get_namespace(fn, namespace)
@@ -129,9 +154,12 @@ def fkg_allowing_type_hints(
                              "fkg_allowing_type_hints, "
                              "does not accept keyword arguments.")
         if has_self:
-            args = args[1:]
+            # Unlike dogpile's default, make it instance- (or class-) specific
+            # by including a representation of the "self" or "cls" argument:
+            args = [hex(id(args[0]))] + list(args[1:])
         key = namespace + "|" + " ".join(map(to_str, args))
-        # log.debug("Returning key: " + key)
+        if DEBUG_INTERNALS:
+            log.debug("fkg_allowing_type_hints.generate_key() -> " + repr(key))
         return key
 
     return generate_key
@@ -145,6 +173,9 @@ def multikey_fkg_allowing_type_hints(
     """
     Equivalent of dogpile.cache function_multi_key_generator, but using
     inspect.signature() instead.
+
+    Also modified to make the cached function unique per INSTANCE for normal
+    methods of a class.
     """
 
     namespace = get_namespace(fn, namespace)
@@ -160,9 +191,13 @@ def multikey_fkg_allowing_type_hints(
                              "multikey_fkg_allowing_type_hints, "
                              "does not accept keyword arguments.")
         if has_self:
-            args = args[1:]
+            # Unlike dogpile's default, make it instance- (or class-) specific
+            # by including a representation of the "self" or "cls" argument:
+            args = [hex(id(args[0]))] + list(args[1:])
         keys = [namespace + "|" + key for key in map(to_str, args)]
-        # log.debug("Returning keys: " + repr(keys))
+        if DEBUG_INTERNALS:
+            log.debug("multikey_fkg_allowing_type_hints.generate_keys() -> " +
+                      repr(keys))
         return keys
 
     return generate_keys
@@ -189,6 +224,8 @@ def kw_fkg_allowing_type_hints(
         ... from
         kwargs = {'p': 'another q=thing'}
 
+    Also modified to make the cached function unique per INSTANCE for normal
+    methods of a class.
     """
 
     namespace = get_namespace(fn, namespace)
@@ -198,34 +235,34 @@ def kw_fkg_allowing_type_hints(
     argnames = [p.name for p in parameters
                 if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD]
     has_self = bool(argnames and argnames[0] in ('self', 'cls'))
-    if has_self:
-        arg_index_start = 1
-    else:
-        arg_index_start = 0
-    # log.debug(
-    #     "At start of kw_fkg_allowing_type_hints: namespace={namespace},"
-    #     "parameters=[{parameters}], argnames={argnames}, "
-    #     "has_self={has_self}, "
-    #     "arg_index_start={arg_index_start}; fn={fn}".format(
-    #         namespace=namespace,
-    #         parameters=", ".join(repr_parameter(p) for p in parameters),
-    #         argnames=repr(argnames),
-    #         has_self=has_self,
-    #         arg_index_start=arg_index_start,
-    #         fn=repr(fn),
-    #     ))
+
+    if DEBUG_INTERNALS:
+        log.debug(
+            "At start of kw_fkg_allowing_type_hints: namespace={namespace},"
+            "parameters=[{parameters}], argnames={argnames}, "
+            "has_self={has_self}, fn={fn}".format(
+                namespace=namespace,
+                parameters=", ".join(repr_parameter(p) for p in parameters),
+                argnames=repr(argnames),
+                has_self=has_self,
+                fn=repr(fn),
+            ))
 
     def generate_key(*args, **kwargs):
         as_kwargs = {}  # type: Dict[str, Any]
         loose_args = []  # type: List[Any]  # those captured by *args
         # 1. args: get the name as well.
-        for idx, arg in enumerate(args[arg_index_start:], arg_index_start):
+        for idx, arg in enumerate(args):
             if idx >= len(argnames):
                 # positional argument to be scooped up with *args
                 loose_args.append(arg)
             else:
                 # normal plain positional argument
-                as_kwargs[argnames[idx]] = arg
+                if has_self and idx == 0:  # "self" or "cls" initial argument
+                    argvalue = hex(id(arg))
+                else:
+                    argvalue = arg
+                as_kwargs[argnames[idx]] = argvalue
         # 1b. args with no name
         if loose_args:
             as_kwargs['*args'] = loose_args
@@ -233,7 +270,7 @@ def kw_fkg_allowing_type_hints(
         # 2. kwargs
         as_kwargs.update(kwargs)
         # 3. default values
-        for param in parameters[arg_index_start:]:
+        for param in parameters:
             if param.default != inspect.Parameter.empty:
                 if param.name not in as_kwargs:
                     as_kwargs[param.name] = param.default
@@ -247,7 +284,9 @@ def kw_fkg_allowing_type_hints(
         argument_values = ["{k}={v}".format(k=key, v=to_str(as_kwargs[key]))
                            for key in sorted(as_kwargs.keys())]
         key = namespace + '|' + " ".join(argument_values)
-        # log.debug("Returning key: " + key)
+        if DEBUG_INTERNALS:
+            log.debug("kw_fkg_allowing_type_hints.generate_key() -> " +
+                      repr(key))
         return key
 
     return generate_key
@@ -345,8 +384,8 @@ def unit_test_cache() -> None:
     class TestClass(object):
         c = 999
 
-        def __init__(self) -> None:
-            self.a = 200
+        def __init__(self, a: int = 200) -> None:
+            self.a = a
 
         @mycache.cache_on_arguments(function_key_generator=None)
         def no_params_dogpile_default_fkg(self):  # no type hints!
@@ -364,6 +403,12 @@ def unit_test_cache() -> None:
         def noparams(self) -> str:
             fn_called("CACHED FUNCTION TestClass.noparams() CALLED")
             return "Testclass.noparams: hello; a={}".format(self.a)
+
+        @mycache.cache_on_arguments(function_key_generator=kw_fkg)
+        def no_params_instance_cache(self) -> str:
+            fn_called("PER-INSTANCE-CACHED FUNCTION "
+                      "TestClass.no_params_instance_cache() CALLED")
+            return "TestClass.no_params_instance_cache: a={}".format(self.a)
 
         # Decorator order is critical here:
         # https://stackoverflow.com/questions/1987919/why-can-decorator-not-decorate-a-staticmethod-or-a-classmethod  # noqa
@@ -391,6 +436,12 @@ def unit_test_cache() -> None:
                     "kwargs={}".format(repr(a), repr(b), repr(args), repr(d),
                                        repr(kwargs)))
 
+        @property
+        @mycache.cache_on_arguments(function_key_generator=kw_fkg)
+        def prop(self) -> str:
+            fn_called("CACHED PROPERTY TestClass.prop() CALLED")
+            return "TestClass.prop: a={}".format(repr(self.a))
+
     class SecondTestClass:
         def __init__(self) -> None:
             self.d = 5
@@ -400,6 +451,48 @@ def unit_test_cache() -> None:
             fn_called("CACHED FUNCTION SecondTestClass."
                       "dogpile_default_test_2() CALLED")
             return "SecondTestClass.dogpile_default_test_2: hello"
+
+    class Inherited(TestClass):
+        def __init__(self, a=101010):
+            super().__init__(a=a)
+
+        @mycache.cache_on_arguments(function_key_generator=plain_fkg)
+        def noparams(self) -> str:
+            fn_called("CACHED FUNCTION Inherited.noparams() CALLED")
+            return "Inherited.noparams: hello; a={}".format(self.a)
+
+        @mycache.cache_on_arguments(function_key_generator=kw_fkg)
+        def no_params_instance_cache(self) -> str:
+            fn_called("PER-INSTANCE-CACHED FUNCTION "
+                      "Inherited.no_params_instance_cache() CALLED")
+            return "Inherited.no_params_instance_cache: a={}".format(self.a)
+
+        # Decorator order is critical here:
+        # https://stackoverflow.com/questions/1987919/why-can-decorator-not-decorate-a-staticmethod-or-a-classmethod  # noqa
+        @classmethod
+        @mycache.cache_on_arguments(function_key_generator=plain_fkg)
+        def classy(cls) -> str:
+            fn_called("CACHED FUNCTION Inherited.classy() CALLED")
+            return "Inherited.classy: hello; c={}".format(cls.c)
+
+        @staticmethod
+        @mycache.cache_on_arguments(function_key_generator=plain_fkg)
+        def static() -> str:
+            fn_called("CACHED FUNCTION Inherited.static() CALLED")
+            return "Inherited.static: hello"
+
+        @mycache.cache_on_arguments(function_key_generator=plain_fkg)
+        def oneparam(self, q: str) -> str:
+            fn_called("CACHED FUNCTION Inherited.oneparam() CALLED")
+            return "Inherited.oneparam: hello, " + q
+
+        # BUT fn_all_possible IS NOT OVERRIDDEN
+
+        @property
+        @mycache.cache_on_arguments(function_key_generator=kw_fkg)
+        def prop(self) -> str:
+            fn_called("CACHED PROPERTY Inherited.prop() CALLED")
+            return "Inherited.prop: a={}".format(repr(self.a))
 
     log.warning("Fetching cached information #1 (should call noparams())...")
     test(noparams(), True)
@@ -485,6 +578,63 @@ def unit_test_cache() -> None:
     test(t.fn_all_possible(98, 99, d="Horace", p="another", q="thing"), False)
     test(t.fn_all_possible(98, 99, d="Horace", r="another", s="thing"), True)
     test(t.fn_all_possible(98, 99, d="Horace", r="another", s="thing"), False)
+    test(t.prop, True)
+    test(t.prop, False)
+
+    log.warning("Testing functions for another INSTANCE of the same class")
+    t_other = TestClass(a=999)
+    test(t_other.noparams(), True)
+    test(t_other.noparams(), False)
+    test(t_other.classy(), False)  # SAME CLASS as t; shouldn't be re-called
+    test(t_other.classy(), False)
+    test(t_other.static(), False)  # SAME CLASS as t; shouldn't be re-called
+    test(t_other.static(), False)
+    test(t_other.oneparam("Arthur"), True)
+    test(t_other.oneparam("Arthur"), False)
+    test(t_other.oneparam("Bob"), True)
+    test(t_other.oneparam("Bob"), False)
+    test(t_other.fn_all_possible(10, 11, 12, "Horace", "Iris"), True)
+    test(t_other.fn_all_possible(10, 11, 12, "Horace", "Iris"), False)
+    test(t_other.fn_all_possible(10, 11, 12, d="Horace"), True)
+    test(t_other.fn_all_possible(10, 11, 12, d="Horace"), False)
+    test(t_other.fn_all_possible(98, 99, d="Horace"), True)
+    test(t_other.fn_all_possible(98, 99, d="Horace"), False)
+    test(t_other.fn_all_possible(98, 99, d="Horace", p="another", q="thing"), True)  # noqa
+    test(t_other.fn_all_possible(98, 99, d="Horace", p="another", q="thing"), False)  # noqa
+    test(t_other.fn_all_possible(98, 99, d="Horace", r="another", s="thing"), True)  # noqa
+    test(t_other.fn_all_possible(98, 99, d="Horace", r="another", s="thing"), False)  # noqa
+    test(t_other.prop, True)
+    test(t_other.prop, False)
+
+    test(t.no_params_instance_cache(), True)
+    test(t.no_params_instance_cache(), False)
+    test(t_other.no_params_instance_cache(), True)
+    test(t_other.no_params_instance_cache(), False)
+
+    log.warning("Testing functions for instance of a derived class")
+    t_inh = Inherited(a=777)
+    test(t_inh.noparams(), True)
+    test(t_inh.noparams(), False)
+    test(t_inh.classy(), True)
+    test(t_inh.classy(), False)
+    test(t_inh.static(), True)
+    test(t_inh.static(), False)
+    test(t_inh.oneparam("Arthur"), True)
+    test(t_inh.oneparam("Arthur"), False)
+    test(t_inh.oneparam("Bob"), True)
+    test(t_inh.oneparam("Bob"), False)
+    test(t_inh.fn_all_possible(10, 11, 12, "Horace", "Iris"), True)
+    test(t_inh.fn_all_possible(10, 11, 12, "Horace", "Iris"), False)
+    test(t_inh.fn_all_possible(10, 11, 12, d="Horace"), True)
+    test(t_inh.fn_all_possible(10, 11, 12, d="Horace"), False)
+    test(t_inh.fn_all_possible(98, 99, d="Horace"), True)
+    test(t_inh.fn_all_possible(98, 99, d="Horace"), False)
+    test(t_inh.fn_all_possible(98, 99, d="Horace", p="another", q="thing"), True)  # noqa
+    test(t_inh.fn_all_possible(98, 99, d="Horace", p="another", q="thing"), False)  # noqa
+    test(t_inh.fn_all_possible(98, 99, d="Horace", r="another", s="thing"), True)  # noqa
+    test(t_inh.fn_all_possible(98, 99, d="Horace", r="another", s="thing"), False)  # noqa
+    test(t_inh.prop, True)
+    test(t_inh.prop, False)
 
     test(no_params_dogpile_default_fkg(), True)
     test(no_params_dogpile_default_fkg(), False)
@@ -516,10 +666,10 @@ def unit_test_cache() -> None:
 
 
 # TEST THIS WITH:
-# python -m camcops_server.cc_modules.cc_cache
+# python -m cardinal_pythonlib.dogpile_cache
 if __name__ == '__main__':
-    level = logging.DEBUG if VERBOSE else logging.INFO
-    if USE_PRETTY_LOGS:
+    level = logging.DEBUG if TESTING_VERBOSE else logging.INFO
+    if TESTING_USE_PRETTY_LOGS:
         main_only_quicksetup_rootlogger(level=level)
     else:
         logging.basicConfig(level=level)

@@ -31,6 +31,7 @@ load).
 
 import logging
 import sys
+from typing import Optional
 
 # noinspection PyPackageRequirements
 import numpy as np  # pip install numpy
@@ -71,6 +72,30 @@ def softmax(x: np.array,
         exponented = np.exp(products)
         answer = exponented / np.sum(exponented)
     return answer
+
+
+# =============================================================================
+# Logistic
+# =============================================================================
+
+def logistic(x: float,
+             k: float,
+             theta: float) -> Optional[float]:
+    """Standard logistic function."""
+    if x is None or k is None or theta is None:
+        return None
+    # noinspection PyUnresolvedReferences
+    return 1 / (1 + np.exp(-k * (x - theta)))
+
+
+def inv_logistic(y: float,
+                 k: float,
+                 theta: float) -> Optional[float]:
+    """Inverse standard logistic function."""
+    if y is None or k is None or theta is None:
+        return None
+    # noinspection PyUnresolvedReferences
+    return (np.log((1 / y) - 1) / -k) + theta
 
 
 # =============================================================================

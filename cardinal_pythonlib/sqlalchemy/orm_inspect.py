@@ -24,6 +24,8 @@
 import logging
 from typing import Dict, Generator, List, Tuple, Type, TYPE_CHECKING, Union
 
+# noinspection PyProtectedMember
+from sqlalchemy.ext.declarative.base import _get_immediate_cls_attr
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.base import class_mapper
 from sqlalchemy.orm.mapper import Mapper
@@ -158,6 +160,7 @@ def walk(obj, debug: bool = False) -> Generator[object, None, None]:
 def copy_sqla_object(obj: object,
                      omit_fk: bool = True,
                      omit_pk: bool = True,
+                     omit_attrs: List[str] = None,
                      debug: bool = True) -> object:
     """
     Given an SQLAlchemy object, creates a new object (FOR WHICH THE OBJECT
@@ -165,6 +168,7 @@ def copy_sqla_object(obj: object,
     across all attributes, omitting PKs (by default), FKs (by default), and
     relationship attributes.
     """
+    omit_attrs = omit_attrs or []  # type: List[str]
     cls = type(obj)
     mapper = class_mapper(cls)
     newobj = cls()  # not: cls.__new__(cls)
@@ -176,6 +180,7 @@ def copy_sqla_object(obj: object,
     if omit_fk:
         fk_keys = set([c.key for c in mapper.columns if c.foreign_keys])
         prohibited |= fk_keys
+    prohibited |= set(omit_attrs)
     if debug:
         log.debug("copy_sqla_object: skipping: {}", prohibited)
     for k in [p.key for p in mapper.iterate_properties
@@ -234,6 +239,7 @@ def rewrite_relationships(oldobj: object,
 def deepcopy_sqla_object(startobj: object, session: Session,
                          flush: bool = True, debug: bool = True) -> object:
     """
+    Makes a copy of the object, inserting it into "session".
     For this to succeed, the object must take a __init__ call with no
     arguments. (We can't specify the required args/kwargs, since we are copying
     a tree of arbitrary objects.)
@@ -248,7 +254,7 @@ def deepcopy_sqla_object(startobj: object, session: Session,
     for oldobj in walk(startobj, debug=debug):
         if debug:
             log.debug("deepcopy_sqla_object: copying {}", oldobj)
-        newobj = copy_sqla_object(oldobj)
+        newobj = copy_sqla_object(oldobj, omit_pk=True, omit_fk=True)
         # Don't insert the new object into the session here; it may trigger
         # an autoflush as the relationships are queried, and the new objects
         # are not ready for insertion yet (as their relationships aren't set).
@@ -390,7 +396,14 @@ def get_table_names_from_metadata(metadata: MetaData) -> List[str]:
 
 
 def get_orm_classes_from_base(base: Type) -> List[Type]:
-    return all_subclasses(base)
+    orm_classes = []  # type: List[Type]
+    for cls in all_subclasses(base):
+        if _get_immediate_cls_attr(cls, '__abstract__', strict=True):
+            # This is SQLAlchemy's own way of detecting abstract classes; see
+            # sqlalchemy.ext.declarative.base
+            continue
+        orm_classes.append(cls)
+    return orm_classes
 
 
 def get_orm_classes_by_table_name_from_base(base: Type) -> Dict[str, Type]:

@@ -26,12 +26,13 @@ Offers the getch() and kbhit() functions.
 
 import ctypes
 import inspect
+from inspect import FrameInfo
 import logging
 import pdb
 import sys
 import traceback
 from types import FrameType
-from typing import Callable, Optional
+from typing import Any, Callable, List, Optional
 
 log = logging.getLogger(__name__)  # don't use BraceStyleAdapter; {} used
 log.addHandler(logging.NullHandler())
@@ -41,10 +42,10 @@ log.addHandler(logging.NullHandler())
 # Debugging
 # =============================================================================
 
-def pdb_run(main_func: Callable[[], None]) -> None:
+def pdb_run(func: Callable, *args: Any, **kwargs: Any) -> None:
     # noinspection PyBroadException
     try:
-        main_func()
+        func(*args, **kwargs)
     except:
         type_, value, tb = sys.exc_info()
         traceback.print_exc()
@@ -63,7 +64,7 @@ def cause_segfault() -> None:
 # Name of calling class/function, for status messages
 # =============================================================================
 
-def get_class_from_frame(fr: FrameType) -> Optional[str]:
+def get_class_name_from_frame(fr: FrameType) -> Optional[str]:
     # http://stackoverflow.com/questions/2203424/python-how-to-retrieve-class-information-from-a-frame-object  # noqa
     args, _, _, value_dict = inspect.getargvalues(fr)
     # we check the first parameter for the frame function is named 'self'
@@ -80,7 +81,6 @@ def get_class_from_frame(fr: FrameType) -> Optional[str]:
     return None
 
 
-# noinspection PyProtectedMember
 def get_caller_name(back: int = 0) -> str:
     """
     Return details about the CALLER OF THE CALLER (plus n calls further back)
@@ -88,15 +88,49 @@ def get_caller_name(back: int = 0) -> str:
     """
     # http://stackoverflow.com/questions/5067604/determine-function-name-from-within-that-function-without-using-traceback  # noqa
     try:
+        # noinspection PyProtectedMember
         frame = sys._getframe(back + 2)
     except ValueError:
         # Stack isn't deep enough.
         return '?'
     function_name = frame.f_code.co_name
-    class_name = get_class_from_frame(frame)
+    class_name = get_class_name_from_frame(frame)
     if class_name:
         return "{}.{}".format(class_name, function_name)
     return function_name
+
+
+# =============================================================================
+# Who called us?
+# =============================================================================
+
+def get_caller_stack_info(start_back: int = 1) -> List[str]:
+    # "0 back" is debug_callers, so "1 back" its caller
+    # https://docs.python.org/3/library/inspect.html
+    callers = []  # type: List[str]
+    frameinfolist = inspect.stack()  # type: List[FrameInfo]  # noqa
+    frameinfolist = frameinfolist[start_back:]
+    for frameinfo in frameinfolist:
+        frame = frameinfo.frame
+        function_defined_at = "... defined at {filename}:{line}".format(
+            filename=frame.f_code.co_filename,
+            line=frame.f_code.co_firstlineno,
+        )
+        argvalues = inspect.getargvalues(frame)
+        formatted_argvalues = inspect.formatargvalues(*argvalues)
+        function_call = "{funcname}{argvals}".format(
+            funcname=frame.f_code.co_name,
+            argvals=formatted_argvalues,
+        )
+        code_context = frameinfo.code_context
+        code = "".join(code_context) if code_context else ""
+        onwards = "... line {line} calls next in stack; code is:\n{c}".format(
+            line=frame.f_lineno,
+            c=code,
+        )
+        description = "\n".join([function_call, function_defined_at, onwards])
+        callers.append(description)
+    return list(reversed(callers))
 
 
 # =============================================================================

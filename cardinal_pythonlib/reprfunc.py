@@ -32,8 +32,8 @@ from typing import Any, Iterable, List, Tuple
 # failing that, it usually shows an address.
 # https://docs.python.org/3/library/functions.html#repr
 
-def _repr_result(obj: Any, elements: List[str],
-                 with_addr: bool = False) -> str:
+def repr_result(obj: Any, elements: List[str],
+                with_addr: bool = False) -> str:
     if with_addr:
         return "<{qualname}({elements}) at {addr}>".format(
             qualname=obj.__class__.__qualname__,
@@ -51,7 +51,7 @@ def auto_repr(obj: Any, with_addr: bool = False) -> str:
     Works its way through the object's __dict__ and reports accordingly.
     """
     elements = ["{}={}".format(k, repr(v)) for k, v in obj.__dict__.items()]
-    return _repr_result(obj, elements, with_addr=with_addr)
+    return repr_result(obj, elements, with_addr=with_addr)
 
 
 def simple_repr(obj: Any, attrnames: List[str],
@@ -63,7 +63,7 @@ def simple_repr(obj: Any, attrnames: List[str],
     """
     elements = ["{}={}".format(name, repr(getattr(obj, name)))
                 for name in attrnames]
-    return _repr_result(obj, elements, with_addr=with_addr)
+    return repr_result(obj, elements, with_addr=with_addr)
 
 
 def mapped_repr(obj: Any, attributes: List[Tuple[str, str]],
@@ -74,7 +74,7 @@ def mapped_repr(obj: Any, attributes: List[Tuple[str, str]],
     """
     elements = ["{}={}".format(init_param_name, repr(getattr(obj, attr_name)))
                 for attr_name, init_param_name in attributes]
-    return _repr_result(obj, elements, with_addr=with_addr)
+    return repr_result(obj, elements, with_addr=with_addr)
 
 
 def mapped_repr_stripping_underscores(obj: Any, attrnames: List[str],

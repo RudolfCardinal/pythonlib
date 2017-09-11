@@ -56,7 +56,7 @@ import unittest
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import load_only
+from sqlalchemy.orm import lazyload, load_only
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import make_transient, Session, sessionmaker
 from sqlalchemy.schema import sort_tables
@@ -78,6 +78,7 @@ from cardinal_pythonlib.sqlalchemy.schema import (
     get_table_names,
 )
 from cardinal_pythonlib.sqlalchemy.session import (
+    get_engine_from_session,
     get_safe_url_from_engine,
     get_safe_url_from_session,
 )
@@ -418,9 +419,20 @@ class TranslationContext(object):
         A dictionary mapping old to new objects, for objects in tables other
         than standalone tables.
 
+    table
+    tablename
+        SQLAlchemy Table object and corresponding table name from the metadata.
+        (Not necessarily bound to any session, but will reflect the structure
+        of the destination, not necessarily the source, since the merge
+        operation assumes that the metadata describes the destination.)
+
     src_session
     dst_session
         The SQLAlchemy Session objects for the source/destination.
+
+    src_engine
+    dst_engine
+        The SQLAlchemy Engine objects for the source/destination.
     """
     def __init__(self,
                  oldobj: object,
@@ -429,14 +441,18 @@ class TranslationContext(object):
                  table: Table,
                  tablename: str,
                  src_session: Session,
-                 dst_session: Session) -> None:
-        self.table = table
-        self.tablename = tablename
+                 dst_session: Session,
+                 src_engine: Engine,
+                 dst_engine: Engine) -> None:
         self.oldobj = oldobj
         self.newobj = newobj
         self.objmap = objmap
+        self.table = table
+        self.tablename = tablename
         self.src_session = src_session
         self.dst_session = dst_session
+        self.src_engine = src_engine
+        self.dst_engine = dst_engine
 
 
 # =============================================================================
@@ -459,7 +475,8 @@ def merge_db(base_class: Type,
              flush_per_table: bool = True,
              flush_per_record: bool = False,
              commit_with_flush: bool = False,
-             commit_at_end: bool = True) -> None:
+             commit_at_end: bool = True,
+             prevent_eager_load: bool = True) -> None:
     """
     Copies an entire database as far as it is described by "metadata" and
     "base_class", from SQLAlchemy ORM session "src_session" to "dst_session",
@@ -535,6 +552,9 @@ def merge_db(base_class: Type,
         commit_at_end:
             COMMIT when finished?
 
+        prevent_eager_load:
+            disable any eager loading (use lazy loading instead)
+
     Returns:
         None
     """
@@ -558,7 +578,8 @@ def merge_db(base_class: Type,
     # noinspection PyUnresolvedReferences
     metadata = base_class.metadata  # type: MetaData
     src_session = sessionmaker(bind=src_engine)()  # type: Session
-    orm_classes = get_orm_classes_by_table_name_from_base(base_class)
+    dst_engine = get_engine_from_session(dst_session)
+    tablename_to_ormclass = get_orm_classes_by_table_name_from_base(base_class)
 
     # Tell all TableIdentity objects about their metadata
     for tilist in [skip_tables, only_tables, tables_to_keep_pks_for]:
@@ -583,7 +604,7 @@ def merge_db(base_class: Type,
 
     # Check the right tables are present.
     src_tables = sorted(get_table_names(src_engine))
-    dst_tables = sorted(list(orm_classes.keys()))
+    dst_tables = sorted(list(tablename_to_ormclass.keys()))
     log.debug("Source tables: {!r}", src_tables)
     log.debug("Destination tables: {!r}", dst_tables)
     if not allow_missing_src_tables:
@@ -642,7 +663,9 @@ def merge_db(base_class: Type,
                                 table=table,
                                 tablename=tablename,
                                 src_session=src_session,
-                                dst_session=dst_session)
+                                dst_session=dst_session,
+                                src_engine=src_engine,
+                                dst_engine=dst_engine)
         translate_fn(tc)
         if tc.newobj is None:
             log.debug("Instance skipped by user-supplied translate_fn")
@@ -677,8 +700,10 @@ def merge_db(base_class: Type,
                     "The following columns are missing from source table "
                     "{!r}: {!r}".format(tablename, missing_columns))
 
-        orm_class = orm_classes[tablename]
+        orm_class = tablename_to_ormclass[tablename]
         pk_attrs = get_pk_attrnames(orm_class)
+        c2a = colname_to_attrname_dict(orm_class)
+        missing_attrs = map_keys_to_values(missing_columns, c2a)
         tdc = [tdc for tdc in dep_classifications if tdc.table == table][0]
 
         log.info("Processing table {!r} via ORM class {!r}",
@@ -699,13 +724,15 @@ def merge_db(base_class: Type,
         query = src_session.query(orm_class)
 
         if allow_missing_src_columns and missing_columns:
-            c2a = colname_to_attrname_dict(orm_class)
             src_attrs = map_keys_to_values(src_columns, c2a)
             log.info("Table {} is missing columns {} in the source; using "
                      "only columns {} via attributes {}",
                      tablename, missing_columns, src_columns, src_attrs)
             query = query.options(load_only(*src_attrs))
             # PROBLEM: it will not ignore the PK.
+
+        if prevent_eager_load:
+            query = query.options(lazyload("*"))
 
         wipe_pk = tablename not in tables_to_keep_pks_for
 
@@ -775,8 +802,10 @@ def merge_db(base_class: Type,
                 # carefully ordered them in advance).
 
                 oldobj = instance  # rename for clarity
-                newobj = copy_sqla_object(oldobj, omit_pk=wipe_pk,
-                                          omit_fk=True, debug=False)
+                newobj = copy_sqla_object(
+                    oldobj, omit_pk=wipe_pk, omit_fk=True,
+                    omit_attrs=missing_attrs, debug=False
+                )
 
                 rewrite_relationships(oldobj, newobj, objmap, debug=False)
 

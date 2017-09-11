@@ -78,7 +78,12 @@ def svg_html_from_pyplot_figure(fig) -> str:
 
 def set_matplotlib_fontsize(matplotlib: ModuleType,
                             fontsize: Union[int, float] = 12) -> None:
-    """Sets the current font size within the matplotlib library."""
+    """
+    Sets the current font size within the matplotlib library.
+    WARNING: not an appropriate method for multithreaded environments, as it
+    writes (indirectly) to matplotlib global objects. See CamCOPS for
+    alternative methods.
+    """
     font = {
         # http://stackoverflow.com/questions/3899980
         # http://matplotlib.org/users/customizing.html
@@ -97,27 +102,3 @@ def set_matplotlib_fontsize(matplotlib: ModuleType,
         'fontsize': fontsize
     }
     matplotlib.rc('legend', **legend)
-
-
-# =============================================================================
-# Maths
-# =============================================================================
-
-def logistic(x: float,
-             k: float,
-             theta: float) -> Optional[float]:
-    """Standard logistic function."""
-    if x is None or k is None or theta is None:
-        return None
-    # noinspection PyUnresolvedReferences
-    return 1 / (1 + numpy.exp(-k * (x - theta)))
-
-
-def inv_logistic(y: float,
-                 k: float,
-                 theta: float) -> Optional[float]:
-    """Inverse standard logistic function."""
-    if y is None or k is None or theta is None:
-        return None
-    # noinspection PyUnresolvedReferences
-    return (numpy.log((1 / y) - 1) / -k) + theta

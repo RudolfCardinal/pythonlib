@@ -35,7 +35,7 @@ DATETIME_LIKE_TYPE = Union[datetime.datetime, Arrow]
 
 
 # =============================================================================
-# Date/time functions
+# Date/time functions for native Python datetime objects
 # =============================================================================
 
 def format_datetime(d: DATETIME_LIKE_TYPE,

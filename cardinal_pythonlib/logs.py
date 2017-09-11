@@ -93,12 +93,20 @@ LOG_COLORS = {'DEBUG': 'cyan',
               'CRITICAL': 'red,bg_white'}
 
 
-def get_colour_handler(extranames: List[str] = None) -> logging.StreamHandler:
+def get_colour_handler(extranames: List[str] = None,
+                       with_process_id: bool = False,
+                       with_thread_id: bool = False) -> logging.StreamHandler:
+    fmt = "%(cyan)s%(asctime)s.%(msecs)03d "
+    if with_process_id or with_thread_id:
+        procinfo = []  # type: List[str]
+        if with_process_id:
+            procinfo.append("p%(process)d")
+        if with_thread_id:
+            procinfo.append("t%(thread)d")
+        fmt += "[{}]".format(".".join(procinfo))
     extras = ":" + ":".join(extranames) if extranames else ""
-    fmt = (
-        "%(cyan)s%(asctime)s.%(msecs)03d %(name)s{extras}:%(levelname)s: "
-        "%(log_color)s%(message)s"
-    ).format(extras=extras)
+    fmt += " %(name)s{extras}:%(levelname)s: ".format(extras=extras)
+    fmt += "%(log_color)s%(message)s"
     cf = ColoredFormatter(fmt,
                           datefmt=LOG_DATEFMT,
                           reset=True,
@@ -113,7 +121,9 @@ def get_colour_handler(extranames: List[str] = None) -> logging.StreamHandler:
 def configure_logger_for_colour(logger: logging.Logger,
                                 level: int = logging.INFO,
                                 remove_existing: bool = False,
-                                extranames: List[str] = None) -> None:
+                                extranames: List[str] = None,
+                                with_process_id: bool = False,
+                                with_thread_id: bool = False) -> None:
     """
     Applies a preconfigured datetime/colour scheme to a logger.
     Should ONLY be called from the "if __name__ == 'main'" script:
@@ -121,16 +131,22 @@ def configure_logger_for_colour(logger: logging.Logger,
     """
     if remove_existing:
         logger.handlers = []  # http://stackoverflow.com/questions/7484454
-    handler = get_colour_handler(extranames)
+    handler = get_colour_handler(extranames,
+                                 with_process_id=with_process_id,
+                                 with_thread_id=with_thread_id)
     handler.setLevel(level)
     logger.addHandler(handler)
     logger.setLevel(level)
 
 
-def main_only_quicksetup_rootlogger(level: int = logging.DEBUG) -> None:
+def main_only_quicksetup_rootlogger(level: int = logging.DEBUG,
+                                    with_process_id: bool = False,
+                                    with_thread_id: bool = False) -> None:
     # Nasty. Only call from "if __name__ == '__main__'" clauses!
     rootlogger = logging.getLogger()
-    configure_logger_for_colour(rootlogger, level, remove_existing=True)
+    configure_logger_for_colour(rootlogger, level, remove_existing=True,
+                                with_process_id=with_process_id,
+                                with_thread_id=with_thread_id)
     logging.basicConfig(level=level)
 
 

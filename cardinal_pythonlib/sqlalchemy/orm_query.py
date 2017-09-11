@@ -21,6 +21,7 @@
 ===============================================================================
 """
 
+import logging
 from typing import Any, Dict, Sequence, Tuple, Union
 
 from sqlalchemy.engine.base import Connection, Engine
@@ -32,6 +33,12 @@ from sqlalchemy.sql.expression import ClauseElement, literal
 from sqlalchemy.sql import func
 from sqlalchemy.sql.selectable import Exists
 
+from cardinal_pythonlib.logs import BraceStyleAdapter
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+log = BraceStyleAdapter(log)
+
 
 # =============================================================================
 # Get query result with fieldnames
@@ -40,8 +47,13 @@ from sqlalchemy.sql.selectable import Exists
 def get_rows_fieldnames_from_query(
         session: Union[Session, Engine, Connection],
         query: Query) -> Tuple[Sequence[Sequence[Any]], Sequence[str]]:
-    fieldnames = [cd['name'] for cd in query.column_descriptions]
+    # https://stackoverflow.com/questions/6455560/how-to-get-column-names-from-sqlalchemy-result-declarative-syntax  # noqa
+    # No! Returns e.g. "User" for session.Query(User)...
+    # fieldnames = [cd['name'] for cd in query.column_descriptions]
     result = session.execute(query)  # type: ResultProxy
+    fieldnames = result.keys()
+    # ... yes! Comes out as "_table_field", which is how SQLAlchemy SELECTs
+    # things.
     rows = result.fetchall()
     return rows, fieldnames
 

@@ -116,7 +116,8 @@ class DebuggingCooperativeMeta(type):
                     name=repr(name),
                     bases=repr(bases),
                     members=repr(members)
-            ))
+                )
+            )
             meta.__init__(cls, name, bases, members)
 
 
