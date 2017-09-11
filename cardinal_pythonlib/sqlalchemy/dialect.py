@@ -43,6 +43,11 @@ def get_dialect(mixed: Union[SQLCompiler, Engine, Dialect]) -> Dialect:
         raise ValueError("get_dialect: 'mixed' parameter of wrong type")
 
 
+def get_dialect_name(mixed: Union[SQLCompiler, Engine, Dialect]) -> str:
+    dialect = get_dialect(mixed)
+    return dialect.name
+
+
 def get_preparer(mixed: Union[SQLCompiler, Engine,
                               Dialect]) -> IdentifierPreparer:
     dialect = get_dialect(mixed)

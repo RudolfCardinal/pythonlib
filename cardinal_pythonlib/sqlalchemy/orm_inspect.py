@@ -295,21 +295,21 @@ def gen_columns(obj) -> Generator[Tuple[str, Column], None, None]:
     Yields tuples of (attr_name, Column) from an SQLAlchemy ORM object
     instance. ALSO works with the corresponding SQLAlchemy ORM class. Examples:
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql.schema import Column
-from sqlalchemy.sql.sqltypes import Integer
+        from sqlalchemy.ext.declarative import declarative_base
+        from sqlalchemy.sql.schema import Column
+        from sqlalchemy.sql.sqltypes import Integer
 
-Base = declarative_base()
+        Base = declarative_base()
 
-class MyClass(Base):
-    __tablename__ = "mytable"
-    pk = Column("pk", Integer, primary_key=True, autoincrement=True)
-    a = Column("a", Integer)
+        class MyClass(Base):
+            __tablename__ = "mytable"
+            pk = Column("pk", Integer, primary_key=True, autoincrement=True)
+            a = Column("a", Integer)
 
-x = MyClass()
+        x = MyClass()
 
-list(gen_columns(x))
-list(gen_columns(MyClass))
+        list(gen_columns(x))
+        list(gen_columns(MyClass))
 
     """
     mapper = obj.__mapper__  # type: Mapper
