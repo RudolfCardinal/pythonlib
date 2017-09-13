@@ -201,7 +201,8 @@ def copy_sqla_object(obj: object,
 def rewrite_relationships(oldobj: object,
                           newobj: object,
                           objmap: Dict[object, object],
-                          debug: bool = False) -> None:
+                          debug: bool = True,
+                          skip_table_names: List[str] = None) -> None:
     """
     A utility function only.
     Used in copying objects between SQLAlchemy sessions.
@@ -211,20 +212,33 @@ def rewrite_relationships(oldobj: object,
     its relationships, according the the map "objmap", which maps old to new
     objects.
     """
+    skip_table_names = skip_table_names or []  # type: List[str]
     insp = inspect(oldobj)  # type: InstanceState
     # insp.mapper.relationships is of type
     # sqlalchemy.utils._collections.ImmutableProperties, which is basically
     # a sort of AttrDict.
-    for rel in insp.mapper.relationships:
-        if rel.viewonly:
+    for attrname_rel in insp.mapper.relationships.items():  # type: Tuple[str, RelationshipProperty]  # noqa
+        attrname = attrname_rel[0]
+        rel_prop = attrname_rel[1]
+        if rel_prop.viewonly:
+            if debug:
+                log.debug("Skipping viewonly relationship")
             continue  # don't attempt to write viewonly relationships  # noqa
+        related_class = rel_prop.mapper.class_
+        related_table_name = related_class.__tablename__  # type: str
+        if related_table_name in skip_table_names:
+            if debug:
+                log.debug("Skipping relationship for related table {!r}",
+                          related_table_name)
+            continue
         # The relationship is an abstract object (so getting the
         # relationship from the old object and from the new, with e.g.
         # newrel = newinsp.mapper.relationships[oldrel.key],
         # yield the same object. All we need from it is the key name.
-        rel_key = rel.key  # type: str
-        related_old = getattr(oldobj, rel_key)
-        if rel.uselist:
+        #       rel_key = rel.key  # type: str
+        # ... but also available from the mapper as attrname, above
+        related_old = getattr(oldobj, attrname)
+        if rel_prop.uselist:
             related_new = [objmap[r] for r in related_old]
         elif related_old is not None:
             related_new = objmap[related_old]
@@ -232,8 +246,8 @@ def rewrite_relationships(oldobj: object,
             related_new = None
         if debug:
             log.debug("rewrite_relationships: relationship {} -> {}",
-                      rel_key, related_new)
-        setattr(newobj, rel_key, related_new)
+                      attrname, related_new)
+        setattr(newobj, attrname, related_new)
 
 
 def deepcopy_sqla_object(startobj: object, session: Session,

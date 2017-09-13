@@ -50,7 +50,7 @@
 
 import logging
 import sys
-from typing import Callable, Dict, List, Tuple, Type
+from typing import Any, Callable, Dict, List, Tuple, Type
 import unittest
 
 from sqlalchemy.engine import create_engine
@@ -82,71 +82,13 @@ from cardinal_pythonlib.sqlalchemy.session import (
     get_safe_url_from_engine,
     get_safe_url_from_session,
 )
+from cardinal_pythonlib.sqlalchemy.table_identity import TableIdentity
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 log = BraceStyleAdapter(log)
 
 SQLITE_MEMORY_URL = "sqlite://"
-
-
-# =============================================================================
-# TableIdentity
-# =============================================================================
-
-class TableIdentity(object):
-    """
-    Convenient way of passing around Table objects when you might know either
-    either its name or the Table object itself.
-    """
-    def __init__(self,
-                 tablename: str = None,
-                 table: Table = None,
-                 metadata: MetaData = None) -> None:
-        assert table is not None or tablename, "No table information provided"
-        assert not (tablename and table is not None), (
-            "Specify either table or tablename, not both")
-        self._table = table
-        self._tablename = tablename
-        self._metadata = metadata
-
-    def __str__(self) -> str:
-        return self.tablename
-
-    def __repr__(self) -> str:
-        return (
-            "TableIdentity(table={!r}, tablename={!r}, metadata={!r}".format(
-                self._table, self._tablename, self._metadata
-            )
-        )
-
-    @property
-    def table(self) -> Table:
-        if self._table is not None:
-            return self._table
-        assert self._metadata, (
-            "Must specify metadata (in constructor or via set_metadata()/"
-            "set_metadata_if_none() before you can get a Table from a "
-            "tablename"
-        )
-        for table in self._metadata.tables.values():  # type: Table
-            if table.name == self._tablename:
-                return table
-        raise ValueError("No table named {!r} is present in the "
-                         "metadata".format(self._tablename))
-
-    @property
-    def tablename(self) -> str:
-        if self._tablename:
-            return self._tablename
-        return self.table.name
-
-    def set_metadata(self, metadata: MetaData) -> None:
-        self._metadata = metadata
-
-    def set_metadata_if_none(self, metadata: MetaData) -> None:
-        if self._metadata is None:
-            self._metadata = metadata
 
 
 # =============================================================================
@@ -433,6 +375,13 @@ class TranslationContext(object):
     src_engine
     dst_engine
         The SQLAlchemy Engine objects for the source/destination.
+
+    missing_src_columns
+        Names of columns known to be present in the destination but absent from
+        the source.
+
+    info
+        Extra dictionary for additional user-specified information.
     """
     def __init__(self,
                  oldobj: object,
@@ -443,7 +392,9 @@ class TranslationContext(object):
                  src_session: Session,
                  dst_session: Session,
                  src_engine: Engine,
-                 dst_engine: Engine) -> None:
+                 dst_engine: Engine,
+                 missing_src_columns: List[str] = None,
+                 info: Dict[str, Any] = None) -> None:
         self.oldobj = oldobj
         self.newobj = newobj
         self.objmap = objmap
@@ -453,6 +404,8 @@ class TranslationContext(object):
         self.dst_session = dst_session
         self.src_engine = src_engine
         self.dst_engine = dst_engine
+        self.missing_src_columns = missing_src_columns or []  # type: List[str]
+        self.info = info or {}  # type: Dict[str, Any]
 
 
 # =============================================================================
@@ -476,7 +429,8 @@ def merge_db(base_class: Type,
              flush_per_record: bool = False,
              commit_with_flush: bool = False,
              commit_at_end: bool = True,
-             prevent_eager_load: bool = True) -> None:
+             prevent_eager_load: bool = True,
+             trcon_info: Dict[str, Any] = None) -> None:
     """
     Copies an entire database as far as it is described by "metadata" and
     "base_class", from SQLAlchemy ORM session "src_session" to "dst_session",
@@ -555,6 +509,9 @@ def merge_db(base_class: Type,
         prevent_eager_load:
             disable any eager loading (use lazy loading instead)
 
+        trcon_info:
+            additional dictionary passed to TranslationContext.info
+
     Returns:
         None
     """
@@ -573,6 +530,7 @@ def merge_db(base_class: Type,
     only_tables = only_tables or []  # type: List[TableIdentity]
     tables_to_keep_pks_for = tables_to_keep_pks_for or []  # type: List[TableIdentity]  # noqa
     extra_table_dependencies = extra_table_dependencies or []  # type: List[TableDependency]  # noqa
+    trcon_info = trcon_info or {}  # type: Dict[str, Any]
 
     # We need both Core and ORM for the source.
     # noinspection PyUnresolvedReferences
@@ -589,8 +547,8 @@ def merge_db(base_class: Type,
         td.set_metadata_if_none(metadata)
 
     # Get all lists of tables as their names
-    skip_tables = [ti.tablename for ti in skip_tables]
-    only_tables = [ti.tablename for ti in only_tables]
+    skip_table_names = [ti.tablename for ti in skip_tables]
+    only_table_names = [ti.tablename for ti in only_tables]
     tables_to_keep_pks_for = [ti.tablename for ti in tables_to_keep_pks_for]
     # ... now all are of type List[str]
 
@@ -610,7 +568,7 @@ def merge_db(base_class: Type,
     if not allow_missing_src_tables:
         missing_tables = sorted(
             d for d in dst_tables
-            if d not in src_tables and d not in skip_tables
+            if d not in src_tables and d not in skip_table_names
         )
         if missing_tables:
             raise RuntimeError("The following tables are missing from the "
@@ -665,7 +623,9 @@ def merge_db(base_class: Type,
                                 src_session=src_session,
                                 dst_session=dst_session,
                                 src_engine=src_engine,
-                                dst_engine=dst_engine)
+                                dst_engine=dst_engine,
+                                missing_src_columns=missing_columns,
+                                info=trcon_info)
         translate_fn(tc)
         if tc.newobj is None:
             log.debug("Instance skipped by user-supplied translate_fn")
@@ -677,10 +637,10 @@ def merge_db(base_class: Type,
     for table in ordered_tables:
         tablename = table.name
 
-        if tablename in skip_tables:
+        if tablename in skip_table_names:
             log.info("... skipping table {!r} (as per skip_tables)", tablename)
             continue
-        if only_tables and tablename not in only_tables:
+        if only_table_names and tablename not in only_table_names:
             log.info("... ignoring table {!r} (as per only_tables)", tablename)
             continue
         if allow_missing_src_tables and tablename not in src_tables:
@@ -725,9 +685,10 @@ def merge_db(base_class: Type,
 
         if allow_missing_src_columns and missing_columns:
             src_attrs = map_keys_to_values(src_columns, c2a)
-            log.info("Table {} is missing columns {} in the source; using "
-                     "only columns {} via attributes {}",
-                     tablename, missing_columns, src_columns, src_attrs)
+            log.info("Table {} is missing columns {} in the source",
+                     tablename, missing_columns)
+            log.debug("... using only columns {} via attributes {}",
+                      src_columns, src_attrs)
             query = query.options(load_only(*src_attrs))
             # PROBLEM: it will not ignore the PK.
 
@@ -807,7 +768,8 @@ def merge_db(base_class: Type,
                     omit_attrs=missing_attrs, debug=False
                 )
 
-                rewrite_relationships(oldobj, newobj, objmap, debug=False)
+                rewrite_relationships(oldobj, newobj, objmap, debug=False,
+                                      skip_table_names=skip_table_names)
 
                 newobj = translate(oldobj, newobj)
                 if not newobj:
