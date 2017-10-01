@@ -101,12 +101,17 @@ def webify_file(srcfilename: str, destfilename: str) -> None:
 
 
 def remove_gzip_timestamp(filename: str,
-                          gunzip: str = "gunzip",
-                          gzip: str = "gzip") -> None:
+                          gunzip_executable: str = "gunzip",
+                          gzip_executable: str = "gzip",
+                          gzip_args: List[str] = None) -> None:
     """
     Uses external gunzip/gzip tools to remove a gzip timestamp.
     Necessary for Lintian.
     """
+    gzip_args = gzip_args or [
+        "-9",  # maximum compression (or Lintian moans)
+        "-n",
+    ]
     # gzip/gunzip operate on SINGLE files
     with tempfile.TemporaryDirectory() as dir_:
         basezipfilename = os.path.basename(filename)
@@ -116,8 +121,9 @@ def remove_gzip_timestamp(filename: str,
                 "Removing gzip timestamp: "
                 "{} -> gunzip -c -> gzip -n -> {}".format(
                     basezipfilename, newzip))
-            p1 = subprocess.Popen([gunzip, "-c", filename],
+            p1 = subprocess.Popen([gunzip_executable, "-c", filename],
                                   stdout=subprocess.PIPE)
-            p2 = subprocess.Popen([gzip, "-n"], stdin=p1.stdout, stdout=z)
+            p2 = subprocess.Popen([gzip_executable] + gzip_args,
+                                  stdin=p1.stdout, stdout=z)
             p2.communicate()
         shutil.copyfile(newzip, filename)  # copy back

@@ -26,43 +26,190 @@ Support functions for date/time.
 import datetime
 from typing import Any, Optional, Union
 
-from arrow import Arrow
-import dateutil.parser
-import pytz  # pip install pytz
+try:
+    from arrow import Arrow
+except ImportError:
+    Arrow = None
+try:
+    import dateutil.parser
+except ImportError:
+    dateutil = None
+import pendulum
+from pendulum import Date, Pendulum
+import tzlocal
 
-DATE_LIKE_TYPE = Union[datetime.datetime, datetime.date, Arrow]
-DATETIME_LIKE_TYPE = Union[datetime.datetime, Arrow]
+PotentialDatetimeType = Union[None, datetime.datetime, datetime.date,
+                              Pendulum, str, Arrow]
+DateTimeLikeType = Union[datetime.datetime, Pendulum, Arrow]
+DateLikeType = Union[datetime.date, Pendulum, Arrow]
 
 
 # =============================================================================
-# Date/time functions for native Python datetime objects
+# Coerce things to our favourite datetime class
+# ... including adding timezone information to timezone-naive objects
 # =============================================================================
 
-def format_datetime(d: DATETIME_LIKE_TYPE,
+def coerce_to_pendulum(x: PotentialDatetimeType,
+                       assume_local: bool = False) -> Optional[Pendulum]:
+    """
+    Converts something to a Pendulum, or None.
+    May raise:
+        pendulum.parsing.exceptions.ParserError
+        ValueError
+    """
+    if not x:  # None and blank string
+        return None
+    if isinstance(x, Pendulum):
+        return x
+    tz = get_tz_local() if assume_local else get_tz_utc()
+    if isinstance(x, datetime.datetime):
+        return pendulum.instance(x, tz=tz)  # (*)
+    elif isinstance(x, datetime.date):
+        # BEWARE: datetime subclasses date. The order is crucial here.
+        # Can also use: type(x) is datetime.date
+        midnight = Pendulum.min.time()
+        dt = Pendulum.combine(x, midnight)
+        return pendulum.instance(dt, tz=tz)  # (*)
+    elif isinstance(x, str):
+        return pendulum.parse(x, tz=tz)  # (*)  # may raise
+    else:
+        raise ValueError("Don't know how to convert to Pendulum: "
+                         "{!r}".format(x))
+    # (*) If x already knew its timezone, it will not
+    # be altered; "tz" will only be applied in the absence of other info.
+
+
+def coerce_to_date(x: PotentialDatetimeType,
+                   assume_local: bool = False) -> Optional[Date]:
+    p = coerce_to_pendulum(x, assume_local=assume_local)
+    if p is None:
+        return None
+    return p.date()
+
+
+# =============================================================================
+# Format dates/times to strings
+# =============================================================================
+
+def format_datetime(d: PotentialDatetimeType,
                     fmt: str,
-                    default: str = None) -> str:
+                    default: str = None) -> Optional[str]:
     """Format a datetime with a format string, or return default if None."""
+    d = coerce_to_pendulum(d)
     if d is None:
         return default
     return d.strftime(fmt)
 
 
-def get_now_utc() -> datetime.datetime:
+# =============================================================================
+# Time zones themselves
+# =============================================================================
+
+def get_tz_local() -> datetime.tzinfo:
+    return tzlocal.get_localzone()
+
+
+def get_tz_utc() -> datetime.tzinfo:
+    return pendulum.UTC
+
+
+# =============================================================================
+# Now
+# =============================================================================
+
+def get_now_localtz() -> Pendulum:
+    """Get the time now in the local timezone."""
+    tz = get_tz_local()
+    return pendulum.now().in_tz(tz)
+
+
+def get_now_utc() -> Pendulum:
     """Get the time now in the UTC timezone."""
-    return datetime.datetime.now(pytz.utc)
+    tz = get_tz_utc()
+    return pendulum.utcnow().in_tz(tz)
 
 
-def get_now_utc_notz() -> datetime.datetime:
-    """Get the UTC time now, but with no timezone information."""
-    return get_now_utc().replace(tzinfo=None)
+# =============================================================================
+# From one timezone to another
+# =============================================================================
 
+def convert_datetime_to_utc(dt: Pendulum) -> Pendulum:
+    """Convert date/time with timezone to UTC (with UTC timezone)."""
+    tz = get_tz_utc()
+    return dt.in_tz(tz)
+
+
+def convert_datetime_to_local(dt: Pendulum) -> Pendulum:
+    """Convert date/time with timezone to local timezone."""
+    tz = get_tz_local()
+    return dt.in_tz(tz)
+
+
+# =============================================================================
+# Time differences
+# =============================================================================
+
+def get_duration_h_m(start: Union[str, Pendulum],
+                     end: Union[str, Pendulum],
+                     default: str = "N/A") -> str:
+    """Calculate the time between two dates/times expressed as strings.
+
+    Return format: string, as one of:
+        hh:mm
+        -hh:mm
+    or
+        default parameter
+    """
+    start = coerce_to_pendulum(start)
+    end = coerce_to_pendulum(end)
+    if start is None or end is None:
+        return default
+    duration = end - start
+    minutes = duration.in_minutes()
+    (hours, minutes) = divmod(minutes, 60)
+    if hours < 0:
+        # negative... trickier
+        # Python's divmod does interesting things with negative numbers:
+        # Hours will be negative, and minutes always positive
+        hours += 1
+        minutes = 60 - minutes
+        return "-{}:{}".format(hours, "00" if minutes == 0 else minutes)
+    else:
+        return "{}:{}".format(hours, "00" if minutes == 0 else minutes)
+
+
+def get_age(dob: PotentialDatetimeType,
+            when: PotentialDatetimeType,
+            default: str = "") -> Union[int, str]:
+    """
+    Age (in whole years) at a particular date, or default.
+    """
+    dob = coerce_to_pendulum(dob)
+    when = coerce_to_pendulum(when)
+    if dob is None or when is None:
+        return default
+    return (when - dob).years
+
+
+# =============================================================================
+# Other manipulations
+# =============================================================================
 
 def truncate_date_to_first_of_month(
-        dt: Optional[DATE_LIKE_TYPE]) -> Optional[DATE_LIKE_TYPE]:
+        dt: Optional[DateLikeType]) -> Optional[DateLikeType]:
     """Change the day to the first of the month."""
     if dt is None:
         return None
     return dt.replace(day=1)
+
+
+# =============================================================================
+# Older date/time functions for native Python datetime objects
+# =============================================================================
+
+def get_now_utc_notz() -> datetime.datetime:
+    """Get the UTC time now, but with no timezone information."""
+    return get_now_utc().replace(tzinfo=None)
 
 
 def coerce_to_datetime(x: Any) -> Optional[datetime.datetime]:

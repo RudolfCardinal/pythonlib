@@ -23,6 +23,7 @@
 
 from typing import List
 
+# noinspection PyPackageRequirements
 from django import forms
 
 from cardinal_pythonlib.nhs import is_valid_nhs_number

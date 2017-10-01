@@ -29,7 +29,7 @@ import glob
 import logging
 import os
 import shutil
-from typing import Any, Callable, List
+from typing import Any, Callable, Generator, List
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -158,3 +158,14 @@ def preserve_cwd(func: Callable) -> Callable:
         os.chdir(cwd)
         return result
     return decorator
+
+
+def gen_filenames(starting_filenames: List[str],
+                  recursive: bool) -> Generator[str, None, None]:
+    for base_filename in starting_filenames:
+        if os.path.isfile(base_filename):
+            yield os.path.abspath(base_filename)
+        elif os.path.isdir(base_filename) and recursive:
+            for dirpath, dirnames, filenames in os.walk(base_filename):
+                for fname in filenames:
+                    yield os.path.abspath(os.path.join(dirpath, fname))

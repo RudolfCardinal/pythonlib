@@ -147,7 +147,7 @@ def main_only_quicksetup_rootlogger(level: int = logging.DEBUG,
     configure_logger_for_colour(rootlogger, level, remove_existing=True,
                                 with_process_id=with_process_id,
                                 with_thread_id=with_thread_id)
-    logging.basicConfig(level=level)
+    # logging.basicConfig(level=level)
 
 
 # =============================================================================
@@ -322,6 +322,13 @@ def print_report_on_all_logs() -> None:
     print(json.dumps(d, sort_keys=True, indent=4, separators=(',', ': ')))
 
 
+def set_level_for_logger_and_its_handlers(log: logging.Logger,
+                                          level: int) -> None:
+    log.setLevel(level)
+    for h in log.handlers:  # type: logging.Handler
+        h.setLevel(level)
+
+
 # =============================================================================
 # HTML formatter
 # =============================================================================
@@ -404,7 +411,7 @@ class HtmlColorHandler(logging.StreamHandler):
         try:
             html = self.format(record)
             self.logfunction(html)
-        except:
+        except:  # nopep8
             self.handleError(record)
 
 

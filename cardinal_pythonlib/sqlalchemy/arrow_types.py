@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/sqlalchemy/orm_inspect.py
+# cardinal_pythonlib/sqlalchemy/arrow_types.py
 
 """
 ===============================================================================

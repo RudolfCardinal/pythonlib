@@ -27,8 +27,11 @@ import dateutil.parser
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
+# noinspection PyPackageRequirements
 from django.db import models
+# noinspection PyPackageRequirements
 from django.db.models.fields import DateField, DateTimeField, Field
+# noinspection PyPackageRequirements
 from django.utils import timezone
 
 log = logging.getLogger(__name__)

@@ -24,6 +24,7 @@
 import os
 from typing import Any, Iterable
 
+# noinspection PyPackageRequirements
 from django.db import models
 
 

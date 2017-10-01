@@ -22,7 +22,8 @@
 """
 
 import logging
-from typing import Dict, Generator, List, Tuple, Type, TYPE_CHECKING, Union
+from typing import (Dict, Generator, List, Set, Tuple, Type, TYPE_CHECKING,
+                    Union)
 
 # noinspection PyProtectedMember
 from sqlalchemy.ext.declarative.base import _get_immediate_cls_attr
@@ -35,7 +36,7 @@ from sqlalchemy.sql.type_api import TypeEngine
 from sqlalchemy.sql.visitors import VisitableType
 from sqlalchemy.util import OrderedProperties
 
-from cardinal_pythonlib.classes import all_subclasses
+from cardinal_pythonlib.classes import gen_all_subclasses
 from cardinal_pythonlib.enumlike import OrderedNamespace
 from cardinal_pythonlib.dicts import reversedict
 from cardinal_pythonlib.logs import BraceStyleAdapter
@@ -43,6 +44,7 @@ from cardinal_pythonlib.logs import BraceStyleAdapter
 if TYPE_CHECKING:
     from sqlalchemy.orm.state import InstanceState
     from sqlalchemy.orm.relationships import RelationshipProperty
+    from sqlalchemy.sql.schema import Table
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -119,17 +121,36 @@ class SqlAlchemyAttrDictMixin(object):
 # Traverse ORM relationships (SQLAlchemy ORM)
 # =============================================================================
 
-def walk(obj, debug: bool = False) -> Generator[object, None, None]:
+def walk_orm_tree(obj,
+                  debug: bool = False,
+                  seen: Set = None,
+                  skip_relationships_always: List[str] = None,
+                  skip_relationships_by_tablename: Dict[str, List[str]] = None,
+                  skip_all_relationships_for_tablenames: List[str] = None,
+                  skip_all_objects_for_tablenames: List[str] = None) \
+        -> Generator[object, None, None]:
     """
     Starting with a SQLAlchemy ORM object, this function walks a
     relationship tree, yielding each of the objects once.
+
+    To skip attributes by name, put the attribute name(s) in skip_attrs_always.
+    To skip by table name, pass skip_attrs_by_tablename as e.g.
+        {'sometable': ['attr1_to_skip', 'attr2_to_skip']}
     """
     # http://docs.sqlalchemy.org/en/latest/faq/sessions.html#faq-walk-objects
+    skip_relationships_always = skip_relationships_always or []  # type: List[str]
+    skip_relationships_by_tablename = skip_relationships_by_tablename or {}  # type: Dict[str, List[str]]  # noqa
+    skip_all_relationships_for_tablenames = skip_all_relationships_for_tablenames or []  # type: List[str]  # noqa
+    skip_all_objects_for_tablenames = skip_all_objects_for_tablenames or []  # type: List[str]  # noqa
     stack = [obj]
-    seen = set()
+    if seen is None:
+        seen = set()
     while stack:
         obj = stack.pop(0)
         if obj in seen:
+            continue
+        tablename = obj.__tablename__
+        if tablename in skip_all_objects_for_tablenames:
             continue
         seen.add(obj)
         if debug:
@@ -137,9 +158,21 @@ def walk(obj, debug: bool = False) -> Generator[object, None, None]:
         yield obj
         insp = inspect(obj)  # type: InstanceState
         for relationship in insp.mapper.relationships:  # type: RelationshipProperty  # noqa
+            attrname = relationship.key
+            # Skip?
+            if attrname in skip_relationships_always:
+                continue
+            if tablename in skip_all_relationships_for_tablenames:
+                continue
+            if (tablename in skip_relationships_by_tablename and
+                    attrname in skip_relationships_by_tablename[tablename]):
+                continue
+            # Process relationship
             if debug:
-                log.debug("walk: checking relationship {}", relationship)
-            related = getattr(obj, relationship.key)
+                log.debug("walk: following relationship {}", relationship)
+            related = getattr(obj, attrname)
+            if debug and related:
+                log.debug("walk: queueing {!r}", related)
             if relationship.uselist:
                 stack.extend(related)
             elif related is not None:
@@ -161,7 +194,7 @@ def copy_sqla_object(obj: object,
                      omit_fk: bool = True,
                      omit_pk: bool = True,
                      omit_attrs: List[str] = None,
-                     debug: bool = True) -> object:
+                     debug: bool = False) -> object:
     """
     Given an SQLAlchemy object, creates a new object (FOR WHICH THE OBJECT
     MUST SUPPORT CREATION USING __init__() WITH NO PARAMETERS), and copies
@@ -201,7 +234,7 @@ def copy_sqla_object(obj: object,
 def rewrite_relationships(oldobj: object,
                           newobj: object,
                           objmap: Dict[object, object],
-                          debug: bool = True,
+                          debug: bool = False,
                           skip_table_names: List[str] = None) -> None:
     """
     A utility function only.
@@ -250,53 +283,92 @@ def rewrite_relationships(oldobj: object,
         setattr(newobj, attrname, related_new)
 
 
-def deepcopy_sqla_object(startobj: object, session: Session,
-                         flush: bool = True, debug: bool = True) -> object:
+def deepcopy_sqla_objects(
+        startobjs: List[object],
+        session: Session,
+        flush: bool = True,
+        debug: bool = False,
+        debug_walk: bool = True,
+        debug_rewrite_rel: bool = False,
+        objmap: Dict[object, object] = None) -> None:
     """
-    Makes a copy of the object, inserting it into "session".
-    For this to succeed, the object must take a __init__ call with no
-    arguments. (We can't specify the required args/kwargs, since we are copying
-    a tree of arbitrary objects.)
+    Multi-object version of deepcopy_sqla_object.
     """
-    objmap = {}  # keys = old objects, values = new objects
+    if objmap is None:
+        objmap = {}  # keys = old objects, values = new objects
     if debug:
-        log.debug("deepcopy_sqla_object: pass 1: create new objects")
+        log.debug("deepcopy_sqla_objects: pass 1: create new objects")
 
     # Pass 1: iterate through all objects. (Can't guarantee to get
     # relationships correct until we've done this, since we don't know whether
     # or where the "root" of the PK tree is.)
-    for oldobj in walk(startobj, debug=debug):
-        if debug:
-            log.debug("deepcopy_sqla_object: copying {}", oldobj)
-        newobj = copy_sqla_object(oldobj, omit_pk=True, omit_fk=True)
-        # Don't insert the new object into the session here; it may trigger
-        # an autoflush as the relationships are queried, and the new objects
-        # are not ready for insertion yet (as their relationships aren't set).
-        # Not also the session.no_autoflush option:
-        # "sqlalchemy.exc.OperationalError: (raised as a result of Query-
-        # invoked autoflush; consider using a session.no_autoflush block if
-        # this flush is occurring prematurely)..."
-        objmap[oldobj] = newobj
+    seen = set()
+    for startobj in startobjs:
+        for oldobj in walk_orm_tree(startobj, seen=seen, debug=debug_walk):
+            if debug:
+                log.debug("deepcopy_sqla_objects: copying {}", oldobj)
+            newobj = copy_sqla_object(oldobj, omit_pk=True, omit_fk=True)
+            # Don't insert the new object into the session here; it may trigger
+            # an autoflush as the relationships are queried, and the new
+            # objects are not ready for insertion yet (as their relationships
+            # aren't set).
+            # Note also the session.no_autoflush option:
+            # "sqlalchemy.exc.OperationalError: (raised as a result of Query-
+            # invoked autoflush; consider using a session.no_autoflush block if
+            # this flush is occurring prematurely)..."
+            objmap[oldobj] = newobj
 
     # Pass 2: set all relationship properties.
     if debug:
-        log.debug("deepcopy_sqla_object: pass 2: set relationships")
+        log.debug("deepcopy_sqla_objects: pass 2: set relationships")
     for oldobj, newobj in objmap.items():
         if debug:
-            log.debug("deepcopy_sqla_object: newobj: {}", newobj)
-        rewrite_relationships(oldobj, newobj, objmap, debug=debug)
+            log.debug("deepcopy_sqla_objects: newobj: {}", newobj)
+        rewrite_relationships(oldobj, newobj, objmap, debug=debug_rewrite_rel)
 
     # Now we can do session insert.
     if debug:
-        log.debug("deepcopy_sqla_object: pass 3: insert into session")
+        log.debug("deepcopy_sqla_objects: pass 3: insert into session")
     for newobj in objmap.values():
         session.add(newobj)
 
     # Done
     if debug:
-        log.debug("deepcopy_sqla_object: done")
+        log.debug("deepcopy_sqla_objects: done")
     if flush:
         session.flush()
+
+
+def deepcopy_sqla_object(startobj: object,
+                         session: Session,
+                         flush: bool = True,
+                         debug: bool = False,
+                         debug_walk: bool = False,
+                         debug_rewrite_rel: bool = False,
+                         objmap: Dict[object, object] = None) -> object:
+    """
+    Makes a copy of the object, inserting it into "session".
+    For this to succeed, the object must take a __init__ call with no
+    arguments. (We can't specify the required args/kwargs, since we are copying
+    a tree of arbitrary objects.)
+
+    A problem is the creation of duplicate dependency objects if you call it
+    repeatedly.
+
+    Optionally, if you pass the objmap in (which maps old to new objects), you
+    can call this function repeatedly to clone a related set of objects...
+    ... no, that doesn't really work, as it doesn't visit parents before
+    children. The merge_db() function does that properly.
+    """
+    deepcopy_sqla_objects(
+        startobjs=[startobj],
+        session=session,
+        flush=flush,
+        debug=debug,
+        debug_walk=debug_walk,
+        debug_rewrite_rel=debug_rewrite_rel,
+        objmap=objmap
+    )
     return objmap[startobj]  # returns the new object matching startobj
 
 
@@ -409,15 +481,18 @@ def get_table_names_from_metadata(metadata: MetaData) -> List[str]:
     return [table.name for table in metadata.tables.values()]
 
 
-def get_orm_classes_from_base(base: Type) -> List[Type]:
-    orm_classes = []  # type: List[Type]
-    for cls in all_subclasses(base):
+def get_metadata_from_orm_class_or_object(cls: Type) -> MetaData:
+    table = cls.__table__  # type: Table
+    return table.metadata
+
+
+def gen_orm_classes_from_base(base: Type) -> Generator[Type, None, None]:
+    for cls in gen_all_subclasses(base):
         if _get_immediate_cls_attr(cls, '__abstract__', strict=True):
             # This is SQLAlchemy's own way of detecting abstract classes; see
             # sqlalchemy.ext.declarative.base
-            continue
-        orm_classes.append(cls)
-    return orm_classes
+            continue  # NOT an ORM class
+        yield cls
 
 
 def get_orm_classes_by_table_name_from_base(base: Type) -> Dict[str, Type]:
@@ -426,4 +501,4 @@ def get_orm_classes_by_table_name_from_base(base: Type) -> Dict[str, Type]:
     table names and whose values are ORM classes.
     """
     # noinspection PyUnresolvedReferences
-    return {cls.__tablename__: cls for cls in get_orm_classes_from_base(base)}
+    return {cls.__tablename__: cls for cls in gen_orm_classes_from_base(base)}

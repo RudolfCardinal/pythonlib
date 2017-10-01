@@ -26,7 +26,7 @@ Functions to manipulate raw SQL.
 
 from typing import Generator
 
-from cardinal_pythonlib.datetimefunc import DATE_LIKE_TYPE, DATETIME_LIKE_TYPE
+from cardinal_pythonlib.datetimefunc import DateLikeType, DateTimeLikeType
 
 COMMA = ","
 SQUOTE = "'"
@@ -42,13 +42,13 @@ def sql_string_literal(text: str) -> str:
     return SQUOTE + text.replace(SQUOTE, "''") + SQUOTE
 
 
-def sql_date_literal(dt: DATE_LIKE_TYPE) -> str:
+def sql_date_literal(dt: DateLikeType) -> str:
     # ANSI SQL: http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
     # <date string>
     return dt.strftime("'%Y-%m-%d'")
 
 
-def sql_datetime_literal(dt: DATETIME_LIKE_TYPE,
+def sql_datetime_literal(dt: DateTimeLikeType,
                          subsecond: bool = False) -> str:
     # ANSI SQL: http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
     # <timestamp string>

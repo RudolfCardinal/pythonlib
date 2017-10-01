@@ -22,7 +22,8 @@
 """
 
 from collections import Counter
-from typing import Any, Iterable, List
+from operator import itemgetter
+from typing import Any, Callable, Iterable, List, Tuple
 
 
 # =============================================================================
@@ -34,6 +35,31 @@ def contains_duplicates(values: Iterable[Any]) -> bool:
         if v > 1:
             return True
     return False
+
+
+def index_list_for_sort_order(x: List[Any], key: Callable[[Any], Any] = None,
+                              reverse: bool = False) -> List[int]:
+    """
+    Returns a list of indexes of x, IF x WERE TO BE SORTED.
+
+z = ["a", "c", "b"]
+index_list_for_sort_order(z)  # [0, 2, 1]
+index_list_for_sort_order(z, reverse=True)  # [1, 2, 0]
+q = [("a", 9), ("b", 8), ("c", 7)]
+index_list_for_sort_order(q, key=itemgetter(1))
+
+    """
+    def key_with_user_func(idx_val: Tuple[int, Any]):
+        return key(idx_val[1])
+    if key:
+        sort_key = key_with_user_func
+        # see the simpler version below
+    else:
+        sort_key = itemgetter(1)
+        # enumerate, below, will return tuples of (index, value), so
+        # itemgetter(1) means sort by the value
+    index_value_list = sorted(enumerate(x), key=sort_key, reverse=reverse)
+    return [i for i, _ in index_value_list]
 
 
 def sort_list_by_index_list(x: List[Any], indexes: List[int]) -> None:

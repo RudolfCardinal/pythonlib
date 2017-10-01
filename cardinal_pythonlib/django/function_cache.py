@@ -29,6 +29,7 @@ import hashlib
 import logging
 from typing import Any, Callable, Dict, Tuple
 
+# noinspection PyPackageRequirements
 from django.core.cache import cache  # default cache
 
 from cardinal_pythonlib.json.serialize import json_encode

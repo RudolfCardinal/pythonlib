@@ -1319,7 +1319,7 @@ def reconfigure_jaydebeapi() -> None:
             log.warning("Old jaydebeapi version")
             # noinspection PyProtectedMember
             converters = jaydebeapi.dbapi2._DEFAULT_CONVERTERS
-    except:
+    except:  # nopep8
         raise AssertionError(
             "Don't know how to hook into this version of JayDeBeApi")
 
@@ -1518,7 +1518,7 @@ class DatabaseConfig(object):
                 autocommit=autocommit  # if False, need to commit
             )
             return db
-        except:
+        except:  # nopep8
             if securely:
                 raise NoDatabaseError(
                     "Problem opening or reading from database {}; details "
@@ -1536,7 +1536,7 @@ def get_database_from_configparser(parser: configparser.ConfigParser,
         dbc = DatabaseConfig(parser, section)
         db = dbc.get_database(securely=securely)
         return db
-    except:
+    except:  # nopep8
         if securely:
             raise NoDatabaseError(
                 "Problem opening or reading from database {}; details "
@@ -2067,7 +2067,7 @@ class DatabaseSupporter:
             new_pk = get_pk_of_last_insert(cursor)
             log.debug("Record inserted.")
             return new_pk
-        except:
+        except:  # nopep8
             log.exception("insert_record: Failed to insert record.")
             raise
 
@@ -2116,7 +2116,7 @@ class DatabaseSupporter:
             new_pk = get_pk_of_last_insert(cursor)
             log.debug("Record inserted.")
             return new_pk
-        except:
+        except:  # nopep8
             log.exception("insert_record_by_dict: Failed to insert record.")
             raise
 
@@ -2139,7 +2139,7 @@ class DatabaseSupporter:
             # http://www.python.org/dev/peps/pep-0249/
             log.debug("Records inserted.")
             return cursor.rowcount
-        except:
+        except:  # nopep8
             log.exception("insert_multiple_records: Failed to insert records.")
             raise
 
@@ -2151,7 +2151,7 @@ class DatabaseSupporter:
             debug_sql(sql, args)
             cursor.execute(sql, args)
             return cursor.rowcount
-        except:
+        except:  # nopep8
             log.exception("db_exec_with_cursor: SQL was: " + sql)
             raise
         # MySQLdb:
@@ -2181,7 +2181,7 @@ class DatabaseSupporter:
         try:
             cursor.execute(sql)
             return cursor.rowcount
-        except:
+        except:  # nopep8
             log.exception("db_exec_literal: SQL was: " + sql)
             raise
 
@@ -2213,7 +2213,7 @@ class DatabaseSupporter:
         self.db_exec_with_cursor(cursor, sql, *args)
         try:
             return cursor.fetchone()
-        except:
+        except:  # nopep8
             log.exception("fetchone: SQL was: " + sql)
             raise
 
@@ -2225,7 +2225,7 @@ class DatabaseSupporter:
         try:
             rows = cursor.fetchall()
             return rows
-        except:
+        except:  # nopep8
             log.exception("fetchall: SQL was: " + sql)
             raise
 
@@ -2239,7 +2239,7 @@ class DatabaseSupporter:
             while row is not None:
                 yield row
                 row = cursor.fetchone()
-        except:
+        except:  # nopep8
             log.exception("gen_fetchall: SQL was: " + sql)
             raise
 
@@ -2253,7 +2253,7 @@ class DatabaseSupporter:
             while row is not None:
                 yield row[0]
                 row = cursor.fetchone()
-        except:
+        except:  # nopep8
             log.exception("gen_fetchfirst: SQL was: " + sql)
             raise
 
@@ -2267,7 +2267,7 @@ class DatabaseSupporter:
             rows = cursor.fetchall()
             fieldnames = [i[0] for i in cursor.description]
             return rows, fieldnames
-        except:
+        except:  # nopep8
             log.exception("fetchall_with_fieldnames: SQL was: " + sql)
             raise
 
@@ -2284,7 +2284,7 @@ class DatabaseSupporter:
             for r in rows:
                 dictlist.append(dict(zip(fieldnames, r)))
             return dictlist
-        except:
+        except:  # nopep8
             log.exception("fetchall_as_dictlist: SQL was: " + sql)
             raise
 
@@ -2300,7 +2300,7 @@ class DatabaseSupporter:
         self.db_exec_with_cursor(cursor, sql, *args)
         try:
             return [i[0] for i in cursor.description]
-        except:
+        except:  # nopep8
             log.exception("fetch_fieldnames: SQL was: " + sql)
             raise
 

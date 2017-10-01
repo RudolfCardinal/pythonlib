@@ -24,6 +24,8 @@
 # http://stackoverflow.com/questions/3151469/per-request-cache-in-django
 
 from threading import currentThread
+
+# noinspection PyPackageRequirements
 from django.core.cache.backends.locmem import LocMemCache
 
 _request_cache = {}

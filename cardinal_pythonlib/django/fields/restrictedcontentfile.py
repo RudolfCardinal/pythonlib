@@ -23,10 +23,15 @@
 
 from typing import Any
 
+# noinspection PyPackageRequirements
 from django import forms
+# noinspection PyPackageRequirements
 from django.core.files.uploadedfile import UploadedFile
+# noinspection PyPackageRequirements
 from django.db import models
+# noinspection PyPackageRequirements
 from django.template.defaultfilters import filesizeformat
+# noinspection PyPackageRequirements
 from django.utils.translation import ugettext_lazy
 
 

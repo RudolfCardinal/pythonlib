@@ -32,6 +32,7 @@ import argparse
 import logging
 import subprocess
 
+# noinspection PyPackageRequirements
 import prettytable
 
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
@@ -85,6 +86,7 @@ def add_blank_row(table):
 
 
 def main():
+    main_only_quicksetup_rootlogger(level=logging.DEBUG)
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--mysql", default="mysql",
@@ -160,5 +162,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main_only_quicksetup_rootlogger(level=logging.DEBUG)
     main()

@@ -58,6 +58,7 @@ import re
 from typing import List, Union
 
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+# noinspection PyPackageRequirements
 from pyparsing import (
     Combine,
     Literal,
@@ -72,6 +73,7 @@ from pyparsing import (
     restOfLine,
     ZeroOrMore,
 )
+# noinspection PyPackageRequirements
 import sqlparse
 
 log = logging.getLogger(__name__)

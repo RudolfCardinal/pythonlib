@@ -267,6 +267,7 @@ def murmur3_x86_32(data: Union[bytes, bytearray], seed: int = 0) -> int:
     return h1 & 0xffffffff
 
 
+# noinspection PyPep8
 def murmur3_64(data: Union[bytes, bytearray], seed: int = 19820125) -> int:
     # http://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash  # noqa
     # ... plus RNC bugfixes

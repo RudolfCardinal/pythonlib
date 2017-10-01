@@ -143,10 +143,10 @@ def get_cgi_parameter_str(form: cgi.FieldStorage,
     Extracts a string parameter from a CGI form.
     Note: key is CASE-SENSITIVE.
     """
-    l = form.getlist(key)
-    if len(l) == 0:
+    paramlist = form.getlist(key)
+    if len(paramlist) == 0:
         return default
-    return l[0]
+    return paramlist[0]
 
 
 def get_cgi_parameter_str_or_none(form: cgi.FieldStorage,

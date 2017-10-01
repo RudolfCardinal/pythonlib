@@ -47,7 +47,7 @@ class ErrorReportingMiddleware(object):
         return [dummy_file.getvalue().encode('utf-8')]
 
     def __call__(self, environ, start_response):
-        # noinspection PyBroadException
+        # noinspection PyBroadException,PyPep8
         try:
             return self.app(environ, start_response)
         except:

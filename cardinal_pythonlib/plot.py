@@ -26,10 +26,7 @@ Support for plotting.
 import io
 # noinspection PyUnresolvedReferences
 from types import ModuleType
-from typing import Optional, Union
-
-# noinspection PyPackageRequirements
-import numpy
+from typing import Union
 
 from cardinal_pythonlib import rnc_web
 

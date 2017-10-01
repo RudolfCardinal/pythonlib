@@ -25,7 +25,9 @@ import logging
 import smtplib
 import ssl
 
+# noinspection PyPackageRequirements
 from django.core.mail.backends.smtp import EmailBackend
+# noinspection PyPackageRequirements
 from django.core.mail.utils import DNS_NAME
 
 log = logging.getLogger(__name__)

@@ -19,8 +19,6 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 ===============================================================================
-
-This isn't very elegant, as it uses a global timing record.
 """
 
 from collections import OrderedDict
@@ -28,14 +26,17 @@ import datetime
 import logging
 
 from cardinal_pythonlib.datetimefunc import get_now_utc
+from cardinal_pythonlib.logs import BraceStyleAdapter
 
 log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+log = BraceStyleAdapter(log)
 
 
 class MultiTimer(object):
     """Mutually exclusive timing of a set of events."""
-    def __init__(self) -> None:
-        self._timing = False
+    def __init__(self, start: bool = True) -> None:
+        self._timing = start
         self._overallstart = get_now_utc()
         self._starttimes = OrderedDict()  # name: start time
         self._totaldurations = OrderedDict()  # name: duration
@@ -135,6 +136,7 @@ class MultiTimer(object):
             unmetered.total_seconds(),
             100 * unmetered.total_seconds() / overall_duration.total_seconds()
         ))
+        log.info("Total time: {:.3f} s".format(grand_total.total_seconds()))
 
 
 class MultiTimerContext(object):
@@ -149,4 +151,6 @@ class MultiTimerContext(object):
         self.timer.stop(self.name)
 
 
-timer = MultiTimer()
+# Optional global instance, for convenience.
+# In a multithreading environment, MAKE YOUR OWN INSTANCES of MultiTimer().
+timer = MultiTimer(start=False)

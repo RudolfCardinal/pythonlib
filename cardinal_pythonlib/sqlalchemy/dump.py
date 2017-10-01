@@ -41,7 +41,7 @@ from sqlalchemy.sql.sqltypes import DateTime, NullType, String
 
 from cardinal_pythonlib.file_io import writeline_nl, writelines_nl
 from cardinal_pythonlib.sql.literals import sql_comment
-from cardinal_pythonlib.sqlalchemy.orm_inspect import walk
+from cardinal_pythonlib.sqlalchemy.orm_inspect import walk_orm_tree
 from cardinal_pythonlib.sqlalchemy.schema import get_table_names
 
 log = logging.getLogger(__name__)
@@ -401,6 +401,6 @@ def dump_orm_tree_as_insert_sql(engine: Engine,
         fileobj,
         sql_comment("Data for all objects related to the first below:"))
     bulk_insert_extras(engine.dialect.name, fileobj, start=True)
-    for part in walk(baseobj):
+    for part in walk_orm_tree(baseobj):
         dump_orm_object_as_insert_sql(engine, part, fileobj)
     bulk_insert_extras(engine.dialect.name, fileobj, start=False)

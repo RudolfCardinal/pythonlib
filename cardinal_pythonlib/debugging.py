@@ -46,7 +46,7 @@ def pdb_run(func: Callable, *args: Any, **kwargs: Any) -> None:
     # noinspection PyBroadException
     try:
         func(*args, **kwargs)
-    except:
+    except:  # nopep8
         type_, value, tb = sys.exc_info()
         traceback.print_exc()
         pdb.post_mortem(tb)

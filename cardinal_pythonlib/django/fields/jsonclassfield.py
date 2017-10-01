@@ -116,7 +116,9 @@ print(repr(x2))
 
 """  # noqa
 
+# noinspection PyPackageRequirements
 from django.core.exceptions import ValidationError
+# noinspection PyPackageRequirements
 from django.db.models import TextField
 
 from cardinal_pythonlib.json.serialize import json_decode, json_encode

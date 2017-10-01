@@ -26,11 +26,15 @@ from typing import TYPE_CHECKING
 
 from cardinal_pythonlib.logs import BraceStyleAdapter
 from cardinal_pythonlib.sqlalchemy.session import get_safe_url_from_engine
+# noinspection PyPackageRequirements
 from sqlalchemy.engine.base import Engine
+# noinspection PyPackageRequirements
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
+# noinspection PyPackageRequirements
 from sqlalchemy.schema import CreateTable
 
 if TYPE_CHECKING:
+    # noinspection PyPackageRequirements
     from sqlalchemy.sql.schema import Table
 
 log = logging.getLogger(__name__)

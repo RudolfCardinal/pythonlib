@@ -109,6 +109,13 @@ setup(
     entry_points={
         'console_scripts': [
             # Format is 'script=module:function".
+            'backup_mysql_database=cardinal_pythonlib.tools.backup_mysql_database:main',  # noqa
+            'estimate_mysql_memory_usage=cardinal_pythonlib.tools.estimate_mysql_memory_usage:main',  # noqa
+            'find_recovered_openxml=cardinal_pythonlib.tools.find_recovered_openxml:main',  # noqa
+            'grep_in_openxml=cardinal_pythonlib.tools.grep_in_openxml:main',
+            'list_all_file_extensions=cardinal_pythonlib.tools.list_all_file_extensions:main',  # noqa
+            'remove_duplicate_files=cardinal_pythonlib.tools.remove_duplicate_files:main',  # noqa
+            'merge_csv=cardinal_pythonlib.tools.merge_csv:main',
             'rnc_email=cardinal_pythonlib.rnc_email:main',
             'rnc_extract_text=cardinal_pythonlib.rnc_extract_text:main',
         ],

@@ -24,9 +24,14 @@
 
 import os
 from typing import Iterable, Union
+
+# noinspection PyPackageRequirements
 from django.conf import settings
+# noinspection PyPackageRequirements
 from django.http import FileResponse, HttpResponse
+# noinspection PyPackageRequirements
 from django.http.response import HttpResponseBase
+# noinspection PyPackageRequirements
 from django.utils.encoding import smart_str
 
 from cardinal_pythonlib.pdf import (

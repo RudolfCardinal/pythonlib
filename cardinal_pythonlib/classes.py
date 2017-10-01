@@ -21,7 +21,7 @@
 ===============================================================================
 """
 
-from typing import List, Type, TypeVar
+from typing import Generator, List, Type, TypeVar
 
 
 # =============================================================================
@@ -84,9 +84,15 @@ def derived_class_implements_method(derived: Type[T1],
 # =============================================================================
 # https://stackoverflow.com/questions/3862310/how-can-i-find-all-subclasses-of-a-class-given-its-name  # noqa
 
+def gen_all_subclasses(cls: Type) -> Generator[Type, None, None]:
+    for s1 in cls.__subclasses__():
+        yield s1
+        for s2 in gen_all_subclasses(s1):
+            yield s2
+
+
 def all_subclasses(cls: Type) -> List[Type]:
-    return cls.__subclasses__() + [g for s in cls.__subclasses__()
-                                   for g in all_subclasses(s)]
+    return list(gen_all_subclasses(cls))
 
 
 # =============================================================================

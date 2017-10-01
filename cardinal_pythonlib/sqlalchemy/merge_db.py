@@ -393,6 +393,7 @@ class TranslationContext(object):
                  dst_session: Session,
                  src_engine: Engine,
                  dst_engine: Engine,
+                 src_table_names: List[str],
                  missing_src_columns: List[str] = None,
                  info: Dict[str, Any] = None) -> None:
         self.oldobj = oldobj
@@ -404,6 +405,7 @@ class TranslationContext(object):
         self.dst_session = dst_session
         self.src_engine = src_engine
         self.dst_engine = dst_engine
+        self.src_table_names = src_table_names
         self.missing_src_columns = missing_src_columns or []  # type: List[str]
         self.info = info or {}  # type: Dict[str, Any]
 
@@ -590,15 +592,17 @@ def merge_db(base_class: Type,
         tables,
         extra_dependencies=[td.sqla_tuple() for td in extra_table_dependencies]
     )
+    # Note that the ordering is NOT NECESSARILY CONSISTENT, though (in that
+    # the order of stuff it doesn't care about varies across runs).
     all_dependencies = get_all_dependencies(metadata, extra_table_dependencies)
     dep_classifications = classify_tables_by_dependency_type(
         metadata, extra_table_dependencies)
     circular = [tdc for tdc in dep_classifications if tdc.circular]
     assert not circular, "Circular dependencies! {!r}".format(circular)
-    log.info("All table dependencies: {}",
-             "; ".join(str(td) for td in all_dependencies))
-    log.info("Table dependency classifications: {}",
-             "; ".join(str(c) for c in dep_classifications))
+    log.debug("All table dependencies: {}",
+              "; ".join(str(td) for td in all_dependencies))
+    log.debug("Table dependency classifications: {}",
+              "; ".join(str(c) for c in dep_classifications))
     log.info("Processing tables in the order: {!r}",
              [table.name for table in ordered_tables])
 
@@ -625,6 +629,7 @@ def merge_db(base_class: Type,
                                 src_engine=src_engine,
                                 dst_engine=dst_engine,
                                 missing_src_columns=missing_columns,
+                                src_table_names=src_tables,
                                 info=trcon_info)
         translate_fn(tc)
         if tc.newobj is None:

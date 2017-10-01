@@ -45,12 +45,17 @@ def repr_result(obj: Any, elements: List[str],
             elements=", ".join(elements))
 
 
-def auto_repr(obj: Any, with_addr: bool = False) -> str:
+def auto_repr(obj: Any, with_addr: bool = False,
+              sort_attrs: bool = True) -> str:
     """
     Convenience function for repr().
     Works its way through the object's __dict__ and reports accordingly.
     """
-    elements = ["{}={}".format(k, repr(v)) for k, v in obj.__dict__.items()]
+    if sort_attrs:
+        keys = sorted(obj.__dict__.keys())
+    else:
+        keys = obj.__dict__.keys()
+    elements = ["{}={}".format(k, repr(getattr(obj, k))) for k in keys]
     return repr_result(obj, elements, with_addr=with_addr)
 
 

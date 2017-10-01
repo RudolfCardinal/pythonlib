@@ -24,17 +24,43 @@
 import atexit
 import logging
 from multiprocessing.dummy import Pool  # thread pool
+from queue import Queue
 from subprocess import (
     check_call,
-    # PIPE,
+    PIPE,
     Popen,
-    # STDOUT,
     TimeoutExpired,
 )
 import sys
-from typing import Any, List
+from threading import Thread
+from time import sleep
+from typing import Any, BinaryIO, List, Tuple, Union
+
+from cardinal_pythonlib.logs import BraceStyleAdapter
 
 log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+log = BraceStyleAdapter(log)
+
+
+# =============================================================================
+# Constants and constant-like singletons
+# =============================================================================
+
+class SubprocSource(object):
+    pass
+
+
+SOURCE_STDOUT = SubprocSource()
+SOURCE_STDERR = SubprocSource()
+
+
+class SubprocCommand(object):
+    pass
+
+
+TERMINATE_SUBPROCESS = SubprocCommand()
+
 
 # =============================================================================
 # Processes that we're running
@@ -70,7 +96,7 @@ def fail() -> None:
 # =============================================================================
 
 def check_call_process(args: List[str]) -> None:
-    log.debug(args)
+    log.debug("{!r}", args)
     check_call(args)
 
 
@@ -93,7 +119,7 @@ def start_process(args: List[str],
     Returns:
         The process object (which is also stored in processes).
     """
-    log.debug(args)
+    log.debug("{!r}", args)
     global processes
     global proc_args_list
     proc = Popen(args, stdin=stdin, stdout=stdout, stderr=stderr)
@@ -131,12 +157,12 @@ def wait_for_processes(die_on_failure: bool = True,
             try:
                 retcode = p.wait(timeout=timeout_sec)
                 if retcode == 0:
-                    log.info("Process #{} (of {}) exited cleanly".format(i, n))
+                    log.info("Process #{} (of {}) exited cleanly", i, n)
                 if retcode != 0:
                     log.critical(
                         "Process #{} (of {}) exited with return code {} "
-                        "(indicating failure); its args were: {}".format(
-                            i, n, retcode, repr(proc_args_list[i])))
+                        "(indicating failure); its args were: {!r}",
+                        i, n, retcode, proc_args_list[i])
                     if die_on_failure:
                         log.critical("Exiting top-level process (will kill "
                                      "all other children)")
@@ -163,3 +189,148 @@ def run_multiple_processes(args_list: List[List[str]],
         start_process(procargs)
     # Wait for them all to finish
     wait_for_processes(die_on_failure=die_on_failure)
+
+
+class AsynchronousFileReader(Thread):
+    """
+    Helper class to implement asynchronous reading of a file
+    in a separate thread. Pushes read lines on a queue to
+    be consumed in another thread.
+
+    http://stefaanlippens.net/python-asynchronous-subprocess-pipe-reading/
+    """
+
+    def __init__(self,
+                 fd: BinaryIO,
+                 queue: Queue,
+                 encoding: str,
+                 line_terminators: List[str] = None,
+                 cmdargs: List[str] = None,
+                 suppress_decoding_errors: bool = True) -> None:
+        assert isinstance(queue, Queue)
+        assert callable(fd.readline)
+        super().__init__()
+        self._fd = fd
+        self._queue = queue
+        self._encoding = encoding
+        self._line_terminators = line_terminators or ["\n"]  # type: List[str]
+        self._cmdargs = cmdargs or []  # type: List[str]
+        self._suppress_decoding_errors = suppress_decoding_errors
+
+    def run(self):
+        """Read lines and put them on the queue."""
+        fd = self._fd
+        encoding = self._encoding
+        line_terminators = self._line_terminators
+        queue = self._queue
+        buf = ""
+        while True:
+            try:
+                c = fd.read(1).decode(encoding)
+            except UnicodeDecodeError as e:
+                log.warning("Decoding error from {!r}: {!r}", self._cmdargs, e)
+                if self._suppress_decoding_errors:
+                    continue
+                else:
+                    raise
+            # log.critical("c={!r}, returncode={!r}", c, p.returncode)
+            if not c:
+                # Subprocess has finished
+                return
+            buf += c
+            # log.critical("buf={!r}", buf)
+            # noinspection PyTypeChecker
+            for t in line_terminators:
+                try:
+                    t_idx = buf.index(t) + len(t)  # include terminator
+                    fragment = buf[:t_idx]
+                    buf = buf[t_idx:]
+                    queue.put(fragment)
+                except ValueError:
+                    pass
+
+    def eof(self):
+        """Check whether there is no more content to expect."""
+        return not self.is_alive() and self._queue.empty()
+
+
+def mimic_user_input(
+        args: List[str],
+        source_challenge_response: List[Tuple[SubprocSource,
+                                              str,
+                                              Union[str, SubprocCommand]]],
+        line_terminators: List[str] = None,
+        print_stdout: bool = False,
+        print_stderr: bool = False,
+        print_stdin: bool = False,
+        stdin_encoding: str = None,
+        stdout_encoding: str = None,
+        suppress_decoding_errors: bool = True,
+        sleep_time_s: float = 0.1) -> None:
+    line_terminators = line_terminators or ["\n"]  # type: List[str]
+    stdin_encoding = stdin_encoding or sys.getdefaultencoding()
+    stdout_encoding = stdout_encoding or sys.getdefaultencoding()
+
+    # Launch the command
+    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, bufsize=0)
+
+    # Launch the asynchronous readers of stdout and stderr
+    stdout_queue = Queue()
+    stdout_reader = AsynchronousFileReader(
+        fd=p.stdout,
+        queue=stdout_queue,
+        encoding=stdout_encoding,
+        line_terminators=line_terminators,
+        cmdargs=args,
+        suppress_decoding_errors=suppress_decoding_errors
+    )
+    stdout_reader.start()
+    stderr_queue = Queue()
+    stderr_reader = AsynchronousFileReader(
+        fd=p.stderr,
+        queue=stderr_queue,
+        encoding=stdout_encoding,  # same as stdout
+        line_terminators=line_terminators,
+        cmdargs=args,
+        suppress_decoding_errors=suppress_decoding_errors
+    )
+    stderr_reader.start()
+
+    while not stdout_reader.eof() or not stderr_reader.eof():
+        lines_with_source = []  # type: List[Tuple[SubprocSource, str]]
+        while not stdout_queue.empty():
+            lines_with_source.append((SOURCE_STDOUT, stdout_queue.get()))
+        while not stderr_queue.empty():
+            lines_with_source.append((SOURCE_STDERR, stderr_queue.get()))
+
+        for src, line in lines_with_source:
+            if src is SOURCE_STDOUT and print_stdout:
+                print(line, end="")  # terminator already in line
+            if src is SOURCE_STDERR and print_stderr:
+                print(line, end="")  # terminator already in line
+            for challsrc, challenge, response in source_challenge_response:
+                # log.critical("challsrc={!r}", challsrc)
+                # log.critical("challenge={!r}", challenge)
+                # log.critical("line={!r}", line)
+                # log.critical("response={!r}", response)
+                if challsrc != src:
+                    continue
+                if challenge in line:
+                    if response is TERMINATE_SUBPROCESS:
+                        log.warning("Terminating subprocess {!r} because input "
+                                    "{!r} received", args, challenge)
+                        p.kill()
+                        return
+                    else:
+                        p.stdin.write(response.encode(stdin_encoding))
+                        p.stdin.flush()
+                        if print_stdin:
+                            print(response, end="")
+
+        # Sleep a bit before asking the readers again.
+        sleep(sleep_time_s)
+
+    stdout_reader.join()
+    stderr_reader.join()
+    p.stdout.close()
+    p.stderr.close()

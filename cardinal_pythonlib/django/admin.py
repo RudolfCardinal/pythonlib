@@ -23,9 +23,13 @@
 
 from typing import Any, Callable
 
+# noinspection PyPackageRequirements
 from django.contrib.admin import AdminSite, ModelAdmin
+# noinspection PyPackageRequirements
 from django.db.models import Model
+# noinspection PyPackageRequirements
 from django.core.urlresolvers import reverse
+# noinspection PyPackageRequirements
 from django.utils.html import escape
 
 

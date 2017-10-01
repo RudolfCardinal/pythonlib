@@ -135,6 +135,11 @@ class CountStarSpecializedQuery(Query):
     Optimizes COUNT(*) queries.
     See
         https://stackoverflow.com/questions/12941416/how-to-count-rows-with-select-count-with-sqlalchemy  # noqa
+
+    Example use:
+        q = CountStarSpecializedQuery([cls], session=dbsession)\
+            .filter(cls.username == username)
+        return q.count_star()
     """
     def count_star(self) -> int:
         count_query = (self.statement.with_only_columns([func.count()])

@@ -46,6 +46,7 @@ def list_file_extensions(path: str, reportevery: int = 1) -> List[str]:
 
 
 def main() -> None:
+    main_only_quicksetup_rootlogger(level=logging.DEBUG)
     parser = argparse.ArgumentParser()
     parser.add_argument("directory", nargs="?", default=os.getcwd())
     parser.add_argument("--reportevery", default=10000)
@@ -57,5 +58,4 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main_only_quicksetup_rootlogger(level=logging.DEBUG)
     main()
