@@ -451,6 +451,29 @@ def colname_to_attrname_dict(cls) -> Dict[str, str]:
 
 
 # =============================================================================
+# Get relationships from an ORM instance
+# =============================================================================
+
+def gen_relationships(obj) -> Generator[Tuple[str, RelationshipProperty, Type],
+                                        None, None]:
+    """
+    Yields tuples of
+        (attrname, RelationshipProperty, related_class)
+    for all relationships of an ORM object.
+    """
+    insp = inspect(obj)  # type: InstanceState
+    # insp.mapper.relationships is of type
+    # sqlalchemy.utils._collections.ImmutableProperties, which is basically
+    # a sort of AttrDict.
+    for attrname, rel_prop in insp.mapper.relationships.items():  # type: Tuple[str, RelationshipProperty]  # noqa
+        related_class = rel_prop.mapper.class_
+        # log.critical("gen_relationships: attrname={!r}, "
+        #              "rel_prop={!r}, related_class={!r}, rel_prop.info={!r}",
+        #              attrname, rel_prop, related_class, rel_prop.info)
+        yield attrname, rel_prop, related_class
+
+
+# =============================================================================
 # Inspect ORM objects (SQLAlchemy ORM)
 # =============================================================================
 

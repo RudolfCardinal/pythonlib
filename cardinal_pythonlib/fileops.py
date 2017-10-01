@@ -29,7 +29,7 @@ import glob
 import logging
 import os
 import shutil
-from typing import Any, Callable, Generator, List
+from typing import Any, Callable, Generator, List, Tuple
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -169,3 +169,29 @@ def gen_filenames(starting_filenames: List[str],
             for dirpath, dirnames, filenames in os.walk(base_filename):
                 for fname in filenames:
                     yield os.path.abspath(os.path.join(dirpath, fname))
+
+
+def exists_locked(filepath: str) -> Tuple[bool, bool]:
+    """
+    Checks if a file is locked by opening it in append mode.
+    If no exception thrown, then the file is not locked.
+    # https://www.calazan.com/how-to-check-if-a-file-is-locked-in-python/
+    """
+    exists = False
+    locked = None
+    file_object = None
+    if os.path.exists(filepath):
+        exists = True
+        locked = True
+        try:
+            buffer_size = 8
+            # Opening file in append mode and read the first 8 characters.
+            file_object = open(filepath, 'a', buffer_size)
+            if file_object:
+                locked = False  # exists and not locked
+        except IOError:
+            pass
+        finally:
+            if file_object:
+                file_object.close()
+    return exists, locked

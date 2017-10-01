@@ -79,14 +79,14 @@ import shutil
 import tempfile
 from time import sleep
 import traceback
-from typing import List, Tuple
+from typing import List
 from zipfile import BadZipFile, ZipFile
 
 from cardinal_pythonlib.logs import (
     BraceStyleAdapter,
     main_only_quicksetup_rootlogger,
 )
-from cardinal_pythonlib.fileops import gen_filenames
+from cardinal_pythonlib.fileops import exists_locked, gen_filenames
 from cardinal_pythonlib.subproc import (
     mimic_user_input,
     SOURCE_STDERR,
@@ -121,39 +121,12 @@ ZIP_PROMPTS_RESPONSES = [
 ZIP_STDOUT_TERMINATORS = ["\n", "): "]
 
 
-def exists_locked(filepath: str) -> Tuple[bool, bool]:
-    """
-    Checks if a file is locked by opening it in append mode.
-    If no exception thrown, then the file is not locked.
-    # https://www.calazan.com/how-to-check-if-a-file-is-locked-in-python/
-    """
-    exists = False
-    locked = None
-    file_object = None
-    if os.path.exists(filepath):
-        exists = True
-        locked = True
-        try:
-            buffer_size = 8
-            # Opening file in append mode and read the first 8 characters.
-            file_object = open(filepath, 'a', buffer_size)
-            if file_object:
-                locked = False  # exists and not locked
-        except IOError:
-            pass
-        finally:
-            if file_object:
-                file_object.close()
-    return exists, locked
-
-
 class CorruptedZipReader(object):
     def __init__(self, filename: str, show_zip_output: bool = False) -> None:
         self.src_filename = filename
         self.rescue_filename = ""
         self.tmp_dir = ""
         self.contents_filenames = []  # type: List[str]
-        self.file_type = ""
 
         try:
             # A happy zip file will be readable like this:
@@ -173,8 +146,6 @@ class CorruptedZipReader(object):
                 log.debug("... recovered!")
             else:
                 log.debug("... attempt at recovery failed")
-
-        self._recognize()
 
     def _fix_zip(self, show_zip_output: bool = False) -> None:
             # We are trying to deal with ZIP (specifically, PPTX) files that
@@ -234,6 +205,14 @@ class CorruptedZipReader(object):
         if self.tmp_dir:
             shutil.rmtree(self.tmp_dir)
 
+
+class CorruptedOpenXmlReader(CorruptedZipReader):
+    def __init__(self, filename: str, show_zip_output: bool = False) -> None:
+        super().__init__(filename=filename,
+                         show_zip_output=show_zip_output)
+        self.file_type = ""
+        self._recognize()
+
     def _recognize(self) -> None:
         for fname in self.contents_filenames:
             if DOCX_CONTENTS_REGEX.match(fname):
@@ -273,7 +252,8 @@ def process_file(filename: str,
                  show_zip_output: bool) -> None:
     # log.critical("process_file: start")
     try:
-        reader = CorruptedZipReader(filename, show_zip_output=show_zip_output)
+        reader = CorruptedOpenXmlReader(filename,
+                                        show_zip_output=show_zip_output)
         if reader.file_type in filetypes:
             log.info("Found {}: {}", reader.description, filename)
             if move_to:
@@ -340,7 +320,10 @@ garbage appended to them.
         DOCX            {DOCX_CONTENTS_REGEX_STR}  
         PPTX            {PPTX_CONTENTS_REGEX_STR}
         XLSX            {XLSX_CONTENTS_REGEX_STR}
-  
+
+- WARNING: it's possible for an OpenXML file to contain more than one of these.
+  If so, they may be mis-classified.
+
 - If a file is not immediately readable as a zip, it uses Linux's "zip -FF" to 
   repair zip files with corrupted ends, and tries again.
   

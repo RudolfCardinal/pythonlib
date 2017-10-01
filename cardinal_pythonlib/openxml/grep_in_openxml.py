@@ -31,7 +31,7 @@ Notes:
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import logging
 import re
-from sys import getdefaultencoding
+from sys import getdefaultencoding, stdin
 from typing import Pattern
 from zipfile import BadZipFile, ZipFile
 import zlib
@@ -109,7 +109,8 @@ def parse_zip(zipfilename: str,
                                     if ((report_hit_lines and found_in_line) or
                                             (report_miss_lines and
                                              not found_in_line)):
-                                        report_line(zipfilename, contentsfilename,
+                                        report_line(zipfilename,
+                                                    contentsfilename,
                                                     line, show_inner_file)
                             except EOFError:
                                 pass
@@ -129,7 +130,15 @@ def main() -> None:
         formatter_class=RawDescriptionHelpFormatter,
         description="""
 Performs a grep (global-regular-expression-print) search of files in OpenXML
-format, which is to say inside ZIP files. 
+format, which is to say inside ZIP files.
+
+Note that you can chain; for example, to search for OpenXML files containing
+both "armadillo" and "bonobo", you can do:
+
+    grep_in_openxml -l armadillo *.pptx | grep_in_openxml -x -l bonobo
+                    ^^                                    ^^
+                print filenames                       read filenames from stdin
+
 """
     )
     parser.add_argument(
@@ -137,9 +146,14 @@ format, which is to say inside ZIP files.
         help="Regular expression pattern to apply."
     )
     parser.add_argument(
-        "filename", nargs="+",
+        "filename", nargs="*",
         help="File(s) to check. You can also specify directores if you use "
              "--recursive"
+    )
+    parser.add_argument(
+        "--filenames_from_stdin", "-x", action="store_true",
+        help="Take filenames from stdin instead, one line per filename "
+             "(useful for chained grep)."
     )
     parser.add_argument(
         "--recursive", action="store_true",
@@ -181,6 +195,9 @@ format, which is to say inside ZIP files.
     if args.files_with_matches and args.files_without_match:
         raise ValueError("Can't specify both --files_with_matches (-l) and "
                          "--files_without_match (-L)!")
+    if bool(args.filenames_from_stdin) == bool(args.filename):
+        raise ValueError("Specify --filenames_from_stdin or filenames on the "
+                         "command line, but not both")
 
     # Compile regular expression
     if args.grep_inner_file_name:
@@ -194,15 +211,22 @@ format, which is to say inside ZIP files.
     regex = re.compile(final_pattern, flags)
 
     # Iterate through files
-    for zipfilename in gen_filenames(starting_filenames=args.filename,
-                                     recursive=args.recursive):
-        parse_zip(zipfilename=zipfilename,
-                  regex=regex,
-                  invert_match=args.invert_match,
-                  files_with_matches=args.files_with_matches,
-                  files_without_match=args.files_without_match,
-                  grep_inner_file_name=args.grep_inner_file_name,
-                  show_inner_file=args.show_inner_file)
+    parse_kwargs = dict(
+        regex=regex,
+        invert_match=args.invert_match,
+        files_with_matches=args.files_with_matches,
+        files_without_match=args.files_without_match,
+        grep_inner_file_name=args.grep_inner_file_name,
+        show_inner_file=args.show_inner_file
+    )
+    if args.filenames_from_stdin:
+        for line in stdin.readlines():
+            zipfilename = line.strip()
+            parse_zip(zipfilename=zipfilename, **parse_kwargs)
+    else:
+        for zipfilename in gen_filenames(starting_filenames=args.filename,
+                                         recursive=args.recursive):
+            parse_zip(zipfilename=zipfilename, **parse_kwargs)
 
 
 if __name__ == '__main__':

@@ -31,6 +31,7 @@ import logging
 import os
 from pprint import pformat
 import stat
+from time import sleep
 from typing import Dict, List, Union
 
 from cardinal_pythonlib.fileops import gen_filenames
@@ -51,12 +52,14 @@ def deduplicate(directories: List[str], recursive: bool,
     # Catalogue files by their size
     # -------------------------------------------------------------------------
     files_by_size = {}  # type: Dict[int, List[str]]  # maps size to list of filenames  # noqa
+    num_considered = 0
     for filename in gen_filenames(directories, recursive=recursive):
         if not os.path.isfile(filename):
             continue
         size = os.stat(filename)[stat.ST_SIZE]
         a = files_by_size.setdefault(size, [])
         a.append(filename)
+        num_considered += 1
 
     log.debug("files_by_size =\n{}", pformat(files_by_size))
 
@@ -114,12 +117,16 @@ def deduplicate(directories: List[str], recursive: bool,
     # -------------------------------------------------------------------------
     log.info("Scanning for real duplicates...")
 
+    num_scanned = 0
+    num_to_scan = sum(len(one_set) for one_set in potential_duplicate_sets)
     duplicate_sets = []  # type: List[List[str]]
     for one_set in potential_duplicate_sets:
         out_files = []  # type: List[str]
         hashes = {}
         for filename in one_set:
-            log.info("Scanning file: {}", filename)
+            num_scanned += 1
+            log.info("Scanning file [{}/{}]: {}",
+                     num_scanned, num_to_scan, filename)
             with open(filename, 'rb') as fd:
                 hasher = md5()
                 while True:
@@ -153,10 +160,17 @@ def deduplicate(directories: List[str], recursive: bool,
             num_deleted += 1
         print()
 
-    print("{} {} duplicates, leaving {} originals".format(
-        "Would delete" if dummy_run else "Deleted",
-        num_deleted, num_originals
-    ))
+    num_unique = num_considered - (num_originals + num_deleted)
+    print(
+        "{action} {d} duplicates, leaving {o} originals (and {u} unique files "
+        "not touched; {c} files considered in total)".format(
+            action="Would delete" if dummy_run else "Deleted",
+            d=num_deleted,
+            o=num_originals,
+            u=num_unique,
+            c=num_considered
+        )
+    )
 
 
 def main() -> None:
@@ -176,6 +190,14 @@ def main() -> None:
         help="Dummy run only; don't actually delete anything"
     )
     parser.add_argument(
+        "--run_repeatedly", type=int,
+        help="Run the tool repeatedly with a pause of <run_repeatedly> "
+             "seconds between runs. (For this to work well,"
+             "you should specify one or more DIRECTORIES in "
+             "the 'filename' arguments, not files, and you will need the "
+             "--recursive option.)"
+    )
+    parser.add_argument(
         "--verbose", action="store_true",
         help="Verbose output"
     )
@@ -183,9 +205,14 @@ def main() -> None:
     main_only_quicksetup_rootlogger(
         level=logging.DEBUG if args.verbose else logging.INFO)
 
-    deduplicate(args.directory,
-                recursive=args.recursive,
-                dummy_run=args.dummy_run)
+    while True:
+        deduplicate(args.directory,
+                    recursive=args.recursive,
+                    dummy_run=args.dummy_run)
+        if args.run_repeatedly is None:
+            break
+        log.info("Sleeping for {} s...", args.run_repeatedly)
+        sleep(args.run_repeatedly)
 
 
 if __name__ == '__main__':
