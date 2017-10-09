@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# cardinal_pythonlib/tools/find_bad_openxml.py
+# cardinal_pythonlib/openxml/find_bad_openxml.py
 
 """
 ===============================================================================

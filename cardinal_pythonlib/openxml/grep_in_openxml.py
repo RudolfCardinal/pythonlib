@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# cardinal_pythonlib/tools/grep_in_openxml.py
+# cardinal_pythonlib/openxml/grep_in_openxml.py
 
 """
 ===============================================================================
@@ -30,6 +30,7 @@ Notes:
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import logging
+import multiprocessing
 import re
 from sys import getdefaultencoding, stdin
 from typing import Pattern
@@ -186,6 +187,10 @@ both "armadillo" and "bonobo", you can do:
         help="For hits, show the filenames of inner files, within each ZIP."
     )
     parser.add_argument(
+        "--nprocesses", type=int, default=multiprocessing.cpu_count(),
+        help="Specify the number of processes to run in parallel."
+    )
+    parser.add_argument(
         "--verbose", action="store_true",
         help="Verbose output"
     )
@@ -210,6 +215,9 @@ both "armadillo" and "bonobo", you can do:
               final_pattern, flags)
     regex = re.compile(final_pattern, flags)
 
+    # Set up pool for parallel processing
+    pool = multiprocessing.Pool(processes=args.nprocesses)
+
     # Iterate through files
     parse_kwargs = dict(
         regex=regex,
@@ -222,11 +230,17 @@ both "armadillo" and "bonobo", you can do:
     if args.filenames_from_stdin:
         for line in stdin.readlines():
             zipfilename = line.strip()
-            parse_zip(zipfilename=zipfilename, **parse_kwargs)
+            parallel_kwargs = {'zipfilename': zipfilename}
+            parallel_kwargs.update(**parse_kwargs)
+            pool.apply_async(parse_zip, [], parallel_kwargs)
     else:
         for zipfilename in gen_filenames(starting_filenames=args.filename,
                                          recursive=args.recursive):
-            parse_zip(zipfilename=zipfilename, **parse_kwargs)
+            parallel_kwargs = {'zipfilename': zipfilename}
+            parallel_kwargs.update(**parse_kwargs)
+            pool.apply_async(parse_zip, [], parallel_kwargs)
+    pool.close()
+    pool.join()
 
 
 if __name__ == '__main__':

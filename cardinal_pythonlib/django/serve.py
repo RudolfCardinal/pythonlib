@@ -179,7 +179,10 @@ def serve_concatenated_pdf_from_disk(
 def serve_pdf_from_html(html: str,
                         offered_filename: str = "test.pdf",
                         **kwargs) -> HttpResponse:
-    """Same args as pdf_from_html."""
+    """
+    Same args as pdf_from_html.
+    WATCH OUT: may not apply e.g. wkhtmltopdf options as you'd wish.
+    """
     pdf = get_pdf_from_html(html, **kwargs)
     return serve_buffer(pdf,
                         offered_filename=offered_filename,
@@ -188,30 +191,13 @@ def serve_pdf_from_html(html: str,
                         as_inline=True)
 
 
-def serve_html_or_pdf(html: str, viewtype: str) -> HttpResponse:
-    """
-    For development.
-
-    HTML = contents
-    viewtype = "pdf" or "html"
-    """
-    if viewtype == "pdf":
-        return serve_pdf_from_html(
-            html,
-            header_html=settings.PDF_LETTER_HEADER_HTML,
-            footer_html=settings.PDF_LETTER_FOOTER_HTML)
-    elif viewtype == "html":
-        return HttpResponse(html)
-    else:
-        raise ValueError("Bad viewtype")
-
-
 def serve_concatenated_pdf_from_memory(
         pdf_plans: Iterable[PdfPlan],
         start_recto: bool = True,
         offered_filename: str = "crate_download.pdf") -> HttpResponse:
     """
     Concatenates PDFs into memory and serves it.
+    WATCH OUT: may not apply e.g. wkhtmltopdf options as you'd wish.
     """
     pdf = get_concatenated_pdf_in_memory(pdf_plans, start_recto=start_recto)
     return serve_buffer(pdf,

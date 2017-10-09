@@ -84,6 +84,8 @@ def rename_keys_in_dict(d: Dict[str, Any], renames: Dict[str, str]) -> None:
     """
     # https://stackoverflow.com/questions/4406501/change-the-name-of-a-key-in-dictionary  # noqa
     for old_key, new_key in renames.items():
+        if new_key == old_key:
+            continue
         if old_key in d:
             if new_key in d:
                 raise ValueError(

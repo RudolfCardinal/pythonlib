@@ -27,12 +27,16 @@ Support functions to serve PDFs from CGI scripts.
 import io
 import logging
 import os
+from pprint import pformat
+import shutil
 import sys
 import tempfile
 from typing import Any, Dict, Iterable, Union
 
+from cardinal_pythonlib.logs import BraceStyleAdapter
 # noinspection PyPackageRequirements
 from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
+from semantic_version import Version
 
 # =============================================================================
 # Conditional/optional imports
@@ -40,6 +44,7 @@ from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
+log = BraceStyleAdapter(log)
 
 pdfkit = None
 xhtml2pdf = None
@@ -92,7 +97,7 @@ class Processors:
     PDFKIT = "pdfkit"
 
 
-_WKHTMLTOPDF_FILENAME = "wkhtmltopdf"
+_WKHTMLTOPDF_FILENAME = shutil.which("wkhtmltopdf")
 
 if pdfkit:
     _DEFAULT_PROCESSOR = Processors.PDFKIT  # the best
@@ -169,14 +174,23 @@ def assert_processor_available(processor: str) -> None:
         raise RuntimeError("rnc_pdf: pdfkit requested, but not available")
 
 
+def get_default_fix_pdfkit_encoding_bug() -> bool:
+    # Auto-determine.
+    if pdfkit is None:
+        return False
+    else:
+        return bool(Version(pdfkit.__version__) == Version("0.5.0"))
+
+
 def get_pdf_from_html(html: str,
                       header_html: str = None,
                       footer_html: str = None,
                       wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
                       wkhtmltopdf_options: Dict[str, Any] = None,
                       file_encoding: str = "utf-8",
-                      debug: bool = False,
-                      fix_pdfkit_encoding_bug: bool = True,
+                      debug_options: bool = False,
+                      debug_content: bool = False,
+                      fix_pdfkit_encoding_bug: bool = None,
                       processor: str = _DEFAULT_PROCESSOR) -> bytes:
     """
     Takes HTML and returns a PDF.
@@ -191,6 +205,14 @@ def get_pdf_from_html(html: str,
     """
     wkhtmltopdf_options = wkhtmltopdf_options or {}  # type: Dict[str, Any]
     assert_processor_available(processor)
+
+    if debug_content:
+        log.debug("html: {}", html)
+        log.debug("header_html: {}", header_html)
+        log.debug("footer_html: {}", footer_html)
+
+    if fix_pdfkit_encoding_bug is None:
+        fix_pdfkit_encoding_bug = get_default_fix_pdfkit_encoding_bug()
 
     if processor == Processors.XHTML2PDF:
         memfile = io.BytesIO()
@@ -214,6 +236,8 @@ def get_pdf_from_html(html: str,
             config = None
         else:
             if fix_pdfkit_encoding_bug:  # needs to be True for pdfkit==0.5.0
+                log.debug("Attempting to fix bug in pdfkit (e.g. version 0.5.0)"
+                          " by encoding wkhtmltopdf_filename to UTF-8")
                 config = pdfkit.configuration(
                     wkhtmltopdf=wkhtmltopdf_filename.encode('utf-8'))
                 # the bug is that pdfkit.pdfkit.PDFKit.__init__ will attempt to
@@ -239,8 +263,10 @@ def get_pdf_from_html(html: str,
                 os.write(f_fd, footer_html.encode(file_encoding))
                 os.close(f_fd)
                 wkhtmltopdf_options["footer-html"] = f_filename
-            if debug:
-                log.debug("wkhtmltopdf_options: " + repr(wkhtmltopdf_options))
+            if debug_options:
+                log.debug("wkhtmltopdf config: {!r}", config)
+                log.debug("wkhtmltopdf_options: {}",
+                          pformat(wkhtmltopdf_options))
             kit = pdfkit.pdfkit.PDFKit(html, 'string', configuration=config,
                                        options=wkhtmltopdf_options)
             return kit.to_pdf(path=None)
@@ -264,17 +290,21 @@ def pdf_from_html(html: str,
                   wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
                   wkhtmltopdf_options: Dict[str, Any] = None,
                   file_encoding: str = "utf-8",
-                  debug: bool = False,
+                  debug_options: bool = False,
+                  debug_content: bool = False,
                   fix_pdfkit_encoding_bug: bool = True,
                   processor: str = _DEFAULT_PROCESSOR) -> bytes:
-    """Older function name."""
+    """
+    Older function name for get_pdf_from_html.
+    """
     return get_pdf_from_html(html=html,
                              header_html=header_html,
                              footer_html=footer_html,
                              wkhtmltopdf_filename=wkhtmltopdf_filename,
                              wkhtmltopdf_options=wkhtmltopdf_options,
                              file_encoding=file_encoding,
-                             debug=debug,
+                             debug_options=debug_options,
+                             debug_content=debug_content,
                              fix_pdfkit_encoding_bug=fix_pdfkit_encoding_bug,
                              processor=processor)
 
@@ -287,13 +317,22 @@ def make_pdf_on_disk_from_html(
         wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
         wkhtmltopdf_options: Dict[str, Any] = None,
         file_encoding: str = "utf-8",
-        debug: bool = False,
-        fix_pdfkit_encoding_bug: bool = True,
+        debug_options: bool = False,
+        debug_content: bool = False,
+        fix_pdfkit_encoding_bug: bool = None,
         processor: str = _DEFAULT_PROCESSOR) -> bool:
     """
     Takes HTML and writes a PDF to the file specified by output_path.
     """
     wkhtmltopdf_options = wkhtmltopdf_options or {}  # type: Dict[str, Any]
+
+    if debug_content:
+        log.debug("html: {}", html)
+        log.debug("header_html: {}", header_html)
+        log.debug("footer_html: {}", footer_html)
+
+    if fix_pdfkit_encoding_bug is None:
+        fix_pdfkit_encoding_bug = get_default_fix_pdfkit_encoding_bug()
 
     if processor == Processors.XHTML2PDF:
         with open(output_path, mode='wb') as outfile:
@@ -336,8 +375,9 @@ def make_pdf_on_disk_from_html(
                 os.write(f_fd, footer_html.encode(file_encoding))
                 os.close(f_fd)
                 wkhtmltopdf_options["footer-html"] = f_filename
-            if debug:
-                log.debug("wkhtmltopdf_options: " + repr(wkhtmltopdf_options))
+            if debug_options:
+                log.debug("wkhtmltopdf config: {!r}", config)
+                log.debug("wkhtmltopdf_options: {!r}", wkhtmltopdf_options)
             kit = pdfkit.pdfkit.PDFKit(html, 'string', configuration=config,
                                        options=wkhtmltopdf_options)
             return kit.to_pdf(path=output_path)

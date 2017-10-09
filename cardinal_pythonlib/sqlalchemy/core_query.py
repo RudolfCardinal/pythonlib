@@ -21,14 +21,17 @@
 ===============================================================================
 """
 
-from typing import Any, Optional, Sequence, Tuple, Union
+from typing import Any, List, Optional, Sequence, Tuple, Union
 
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.engine.result import ResultProxy
+from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import (
     column, exists, func, literal, select, table,
 )
+from sqlalchemy.sql.schema import Table
+from sqlalchemy.sql.selectable import Select
 
 
 # =============================================================================
@@ -84,8 +87,19 @@ def count_star_and_max(session: Union[Session, Engine, Connection],
 # http://stackoverflow.com/questions/15381604
 # http://docs.sqlalchemy.org/en/latest/orm/query.html
 
-def exists_plain(session: Session, tablename: str, *criteria: Any) -> bool:
-    exists_clause = exists().select_from(table(tablename))
+def exists_in_table(session: Session, table_: Table, *criteria: Any) -> bool:
+    """
+    Implements an efficient way of detecting if a record or records exist;
+    should be faster than COUNT(*) in some circumstances.
+
+    Prototypical use:
+
+    return exists_in_table(session,
+                           table,
+                           column(fieldname1) == value2,
+                           column(fieldname2) == value2)
+    """
+    exists_clause = exists().select_from(table_)
     # ... EXISTS (SELECT * FROM tablename)
     for criterion in criteria:
         exists_clause = exists_clause.where(criterion)
@@ -100,3 +114,33 @@ def exists_plain(session: Session, tablename: str, *criteria: Any) -> bool:
 
     result = session.execute(query).scalar()
     return bool(result)
+
+
+def exists_plain(session: Session, tablename: str, *criteria: Any) -> bool:
+    """
+    Implements an efficient way of detecting if a record or records exist;
+    should be faster than COUNT(*) in some circumstances.
+
+    Prototypical use:
+
+    return exists_plain(config.destdb.session,
+                        dest_table_name,
+                        column(fieldname1) == value2,
+                        column(fieldname2) == value2)
+    """
+    return exists_in_table(session, table(tablename), *criteria)
+
+
+# =============================================================================
+# Get all first values
+# =============================================================================
+
+def fetch_all_first_values(session: Session,
+                           select_statement: Select) -> List[Any]:
+    # A Core version of this sort of thing:
+    # http://xion.io/post/code/sqlalchemy-query-values.html
+    rows = session.execute(select_statement)  # type: ResultProxy
+    try:
+        return [x for (x,) in rows]
+    except ValueError as e:
+        raise MultipleResultsFound(str(e))

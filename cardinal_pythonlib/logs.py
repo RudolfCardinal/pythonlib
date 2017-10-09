@@ -88,15 +88,15 @@ LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
 
 LOG_COLORS = {'DEBUG': 'cyan',
               'INFO': 'green',
-              'WARNING': 'yellow',
-              'ERROR': 'red',
-              'CRITICAL': 'red,bg_white'}
+              'WARNING': 'bold_yellow',
+              'ERROR': 'bold_red',
+              'CRITICAL': 'bold_yellow,bg_blue'}
 
 
 def get_colour_handler(extranames: List[str] = None,
                        with_process_id: bool = False,
                        with_thread_id: bool = False) -> logging.StreamHandler:
-    fmt = "%(cyan)s%(asctime)s.%(msecs)03d "
+    fmt = "%(white)s%(asctime)s.%(msecs)03d "  # this is dim white = grey
     if with_process_id or with_thread_id:
         procinfo = []  # type: List[str]
         if with_process_id:
@@ -106,7 +106,7 @@ def get_colour_handler(extranames: List[str] = None,
         fmt += "[{}]".format(".".join(procinfo))
     extras = ":" + ":".join(extranames) if extranames else ""
     fmt += " %(name)s{extras}:%(levelname)s: ".format(extras=extras)
-    fmt += "%(log_color)s%(message)s"
+    fmt += "%(reset)s%(log_color)s%(message)s"
     cf = ColoredFormatter(fmt,
                           datefmt=LOG_DATEFMT,
                           reset=True,

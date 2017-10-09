@@ -97,6 +97,7 @@ setup(
         'django',
         'dogpile.cache',
         'openpyxl',
+        'pendulum',
         'prettytable',
         'pyparsing',
         'python-dateutil',
@@ -114,6 +115,7 @@ setup(
             'find_bad_openxml=cardinal_pythonlib.openxml.find_bad_openxml:main',  # noqa
             'find_recovered_openxml=cardinal_pythonlib.openxml.find_recovered_openxml:main',  # noqa
             'grep_in_openxml=cardinal_pythonlib.openxml.grep_in_openxml:main',  # noqa
+            'pause_process_by_disk_space=cardinal_pythonlib.openxml.pause_process_by_disk_space:main',  # noqa
 
             # tools
             'backup_mysql_database=cardinal_pythonlib.tools.backup_mysql_database:main',  # noqa

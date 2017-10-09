@@ -30,6 +30,7 @@ from sqlalchemy.ext.declarative.base import _get_immediate_cls_attr
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.base import class_mapper
 from sqlalchemy.orm.mapper import Mapper
+from sqlalchemy.orm.relationships import RelationshipProperty
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.schema import Column, MetaData
 from sqlalchemy.sql.type_api import TypeEngine
@@ -43,7 +44,6 @@ from cardinal_pythonlib.logs import BraceStyleAdapter
 
 if TYPE_CHECKING:
     from sqlalchemy.orm.state import InstanceState
-    from sqlalchemy.orm.relationships import RelationshipProperty
     from sqlalchemy.sql.schema import Table
 
 log = logging.getLogger(__name__)

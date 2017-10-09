@@ -120,3 +120,39 @@ def compile_insert_on_duplicate_key_update(insert: Insert,
     # log.critical(s)
     return s
 
+
+_TEST_CODE = '''
+
+from sqlalchemy import Column, String, Integer, create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+
+class OrmObject(Base):
+    __tablename__ = "sometable"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+
+engine = create_engine("sqlite://", echo=True)
+Base.metadata.create_all(engine)
+
+session = Session(engine)
+
+d1 = dict(id=1, name="One")
+d2 = dict(id=2, name="Two")
+
+insert_1 = OrmObject.__table__.insert(values=d1)
+insert_2 = OrmObject.__table__.insert(values=d2)
+session.execute(insert_1)
+session.execute(insert_2)
+session.execute(insert_1)  # raises sqlalchemy.exc.IntegrityError
+
+
+# ... recommended cross-platform way is SELECT then INSERT or UPDATE 
+# accordingly; see
+# https://groups.google.com/forum/#!topic/sqlalchemy/aQLqeHmLPQY
+
+'''

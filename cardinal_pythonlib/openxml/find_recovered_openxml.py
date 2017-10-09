@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# cardinal_pythonlib/tools/find_recovered_openxml.py
+# cardinal_pythonlib/openxml/find_recovered_openxml.py
 
 """
 ===============================================================================
@@ -76,6 +76,7 @@ import multiprocessing
 import os
 import re
 import shutil
+import struct
 import tempfile
 from time import sleep
 import traceback
@@ -139,9 +140,9 @@ class CorruptedZipReader(object):
             try:
                 with ZipFile(self.rescue_filename, 'r') as zip_ref:
                     self.contents_filenames = zip_ref.namelist()
-            except (BadZipFile, OSError):
-                log.debug("... BadZipFile or OSError raised even after fix "
-                          "attempt")
+            except (BadZipFile, OSError, struct.error) as e:
+                log.debug("... exception raised even after fix attempt: {!r}",
+                          e)
             if self.contents_filenames:
                 log.debug("... recovered!")
             else:
@@ -178,14 +179,25 @@ class CorruptedZipReader(object):
                              print_stdin=show_zip_output)
             # ... will raise if the 'zip' tool isn't available
 
-    def move_to(self, destination_filename: str) -> None:
+    def move_to(self, destination_filename: str,
+                alter_if_clash: bool = True) -> None:
         if not self.src_filename:
             return
-        if os.path.exists(destination_filename):
-            src = self.rescue_filename or self.src_filename
-            log.warning("Destination exists; won't move {!r} to {!r}",
-                        src, destination_filename)
-            return
+        if alter_if_clash:
+            counter = 0
+            while os.path.exists(destination_filename):
+                root, ext = os.path.splitext(destination_filename)
+                destination_filename = "{r}_{c}{e}".format(
+                    r=root, c=counter, e=ext)
+                counter += 1
+            # ... for example, "/a/b/c.txt" becomes "/a/b/c_0.txt", then
+            # "/a/b/c_1.txt", and so on.
+        else:
+            if os.path.exists(destination_filename):
+                src = self.rescue_filename or self.src_filename
+                log.warning("Destination exists; won't move {!r} to {!r}",
+                            src, destination_filename)
+                return
         if self.rescue_filename:
             shutil.move(self.rescue_filename, destination_filename)
             os.remove(self.src_filename)
