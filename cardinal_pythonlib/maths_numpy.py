@@ -31,7 +31,7 @@ load).
 
 import logging
 import sys
-from typing import Optional
+from typing import Optional, Union
 
 # noinspection PyPackageRequirements
 import numpy as np  # pip install numpy
@@ -78,7 +78,7 @@ def softmax(x: np.array,
 # Logistic
 # =============================================================================
 
-def logistic(x: float,
+def logistic(x: Union[float, np.array],
              k: float,
              theta: float) -> Optional[float]:
     """Standard logistic function."""
@@ -88,7 +88,7 @@ def logistic(x: float,
     return 1 / (1 + np.exp(-k * (x - theta)))
 
 
-def inv_logistic(y: float,
+def inv_logistic(y: Union[float, np.array],
                  k: float,
                  theta: float) -> Optional[float]:
     """Inverse standard logistic function."""

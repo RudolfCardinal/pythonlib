@@ -90,20 +90,20 @@ LOG_COLORS = {'DEBUG': 'cyan',
               'INFO': 'green',
               'WARNING': 'bold_yellow',
               'ERROR': 'bold_red',
-              'CRITICAL': 'bold_yellow,bg_blue'}
+              'CRITICAL': 'bold_white,bg_red'}
 
 
 def get_colour_handler(extranames: List[str] = None,
                        with_process_id: bool = False,
                        with_thread_id: bool = False) -> logging.StreamHandler:
-    fmt = "%(white)s%(asctime)s.%(msecs)03d "  # this is dim white = grey
+    fmt = "%(white)s%(asctime)s.%(msecs)03d"  # this is dim white = grey
     if with_process_id or with_thread_id:
         procinfo = []  # type: List[str]
         if with_process_id:
             procinfo.append("p%(process)d")
         if with_thread_id:
             procinfo.append("t%(thread)d")
-        fmt += "[{}]".format(".".join(procinfo))
+        fmt += " [{}]".format(".".join(procinfo))
     extras = ":" + ":".join(extranames) if extranames else ""
     fmt += " %(name)s{extras}:%(levelname)s: ".format(extras=extras)
     fmt += "%(reset)s%(log_color)s%(message)s"

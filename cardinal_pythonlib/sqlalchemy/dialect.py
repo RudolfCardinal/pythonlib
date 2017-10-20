@@ -29,6 +29,30 @@ from sqlalchemy.sql.compiler import IdentifierPreparer, SQLCompiler
 
 
 # =============================================================================
+# Constants
+# =============================================================================
+
+class SqlaDialectName(object):
+    """
+    Dialect names used by SQLAlchemy.
+    """
+    FIREBIRD = "firebird"
+    MYSQL = 'mysql'
+    MSSQL = 'mssql'
+    ORACLE = 'oracle'
+    POSTGRES = 'postgresql'
+    SQLITE = 'sqlite'
+    SQLSERVER = MSSQL  # synonym
+    SYBASE = 'sybase'
+
+
+ALL_SQLA_DIALECTS = list(set(
+    [getattr(SqlaDialectName, k)
+     for k in dir(SqlaDialectName) if not k.startswith("_")]
+))
+
+
+# =============================================================================
 # Dialect stuff
 # =============================================================================
 

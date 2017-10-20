@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/wsgi_errorreporter.py
+# cardinal_pythonlib/cache_mw.py
 
 """
 ===============================================================================
@@ -19,42 +19,40 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 ===============================================================================
+
+WSGI middleware to disable client-side caching.
+
 """
 
+import logging
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+# log.setLevel(logging.DEBUG)
+
+
 # =============================================================================
-# ErrorReportingMiddleware
+# DisableClientSideCachingMiddleware
 # =============================================================================
-# From: http://pylonsbook.com/en/1.0/the-web-server-gateway-interface-wsgi.html
-# Modified to use six.StringIO
-# Latest changes: 6 Jan 2016
+# http://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers  # noqa
+# http://stackoverflow.com/questions/3859097/how-to-add-http-headers-in-wsgi-middleware  # noqa
 
-# import six
-from io import StringIO
-import sys
-import cgitb
+def add_never_cache_headers(headers):
+    headers.append(("Cache-Control", "no-cache, no-store, must-revalidate"))  # HTTP 1.1  # noqa
+    headers.append(("Pragma", "no-cache"))  # HTTP 1.0
+    headers.append(("Expires", "0"))  # Proxies
 
 
-class ErrorReportingMiddleware(object):
-    """WSGI middleware to produce cgitb traceback."""
+class DisableClientSideCachingMiddleware(object):
+    """WSGI middleware to disable client-side caching."""
+
     def __init__(self, app):
         self.app = app
 
-    @staticmethod
-    def format_exception(exc_info):
-        dummy_file = StringIO()
-        hook = cgitb.Hook(file=dummy_file)
-        hook(*exc_info)
-        return [dummy_file.getvalue().encode('utf-8')]
-
     def __call__(self, environ, start_response):
-        # noinspection PyBroadException,PyPep8
-        try:
-            return self.app(environ, start_response)
-        except:
-            exc_info = sys.exc_info()
-            start_response(
-                '500 Internal Server Error',
-                [('content-type', 'text/html; charset=utf-8')],
-                exc_info
-            )
-            return self.format_exception(exc_info)
+
+        def custom_start_response(status, headers, exc_info=None):
+            add_never_cache_headers(headers)
+            log.debug("HTTP status {}, headers {}".format(status, headers))
+            return start_response(status, headers, exc_info)
+
+        return self.app(environ, custom_start_response)

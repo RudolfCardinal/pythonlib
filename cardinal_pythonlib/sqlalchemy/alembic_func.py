@@ -34,9 +34,11 @@ from alembic.script import ScriptDirectory
 from sqlalchemy.engine import create_engine
 
 from cardinal_pythonlib.fileops import preserve_cwd
+from cardinal_pythonlib.logs import BraceStyleAdapter
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
+log = BraceStyleAdapter(log)
 
 
 # =============================================================================
@@ -95,11 +97,11 @@ def get_current_and_head_revision(
     # Where we are
     head_revision = get_head_revision_from_alembic(
         alembic_config_filename, alembic_base_dir)
-    log.info("Intended database version: {}".format(head_revision))
+    log.info("Intended database version: {}", head_revision)
 
     # Where we want to be
     current_revision = get_current_revision(database_url)
-    log.info("Current database version: {}".format(current_revision))
+    log.info("Current database version: {}", current_revision)
 
     # Are we where we want to be?
     return current_revision, head_revision
@@ -127,8 +129,8 @@ def upgrade_database(alembic_config_filename: str,
     def upgrade(rev, context):
         return script._upgrade_revs(destination_revision, rev)
 
-    log.info("Upgrading database to revision '{}' using Alembic".format(
-        destination_revision))
+    log.info("Upgrading database to revision '{}' using Alembic",
+             destination_revision)
 
     with EnvironmentContext(config,
                             script,
@@ -157,8 +159,8 @@ def create_database_migration_numbered_style(
                                             (None, None, []))
     existing_version_filenames = [
         x for x in existing_version_filenames if x != "__init__.py"]
-    log.debug("Existing Alembic version script filenames: " +
-              repr(existing_version_filenames))
+    log.debug("Existing Alembic version script filenames: {!r}",
+              existing_version_filenames)
     current_seq_strs = [x[:n_sequence_chars]
                         for x in existing_version_filenames]
     current_seq_strs.sort()
@@ -170,19 +172,25 @@ def create_database_migration_numbered_style(
         new_seq_no = max(int(x) for x in current_seq_strs) + 1
     new_seq_str = str(new_seq_no).zfill(n_sequence_chars)
 
-    log.info("""
+    log.info(
+        """
 Generating new revision with Alembic...
     Last revision was: {}
     New revision will be: {}
     [If it fails with "Can't locate revision identified by...", you might need
     to DROP the alembic_version table.]
-        """.format(current_seq_str, new_seq_str))
+        """,
+        current_seq_str,
+        new_seq_str
+    )
 
     alembic_ini_dir = os.path.dirname(alembic_ini_file)
     os.chdir(alembic_ini_dir)
-    subprocess.call(['alembic',
-                     '-c', alembic_ini_file,
-                     'revision',
-                     '--autogenerate',
-                     '-m', message,
-                     '--rev-id', new_seq_str])
+    cmdargs = ['alembic',
+               '-c', alembic_ini_file,
+               'revision',
+               '--autogenerate',
+               '-m', message,
+               '--rev-id', new_seq_str]
+    log.info("From directory {!r}, calling: {!r}", alembic_ini_dir, cmdargs)
+    subprocess.call(cmdargs)

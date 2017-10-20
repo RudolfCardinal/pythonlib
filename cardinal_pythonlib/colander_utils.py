@@ -58,7 +58,9 @@ if TYPE_CHECKING:
     # noinspection PyProtectedMember
     from colander import _SchemaNode
 
-log = BraceStyleAdapter(logging.getLogger(__name__))
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+log = BraceStyleAdapter(log)
 
 ColanderNullType = type(colander.null)
 ValidatorType = Callable[[SchemaNode, Any], None]  # called as v(node, value)

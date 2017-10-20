@@ -21,7 +21,7 @@
 ===============================================================================
 """
 
-VERSION = '1.0.2'
+VERSION = '1.0.4'
 # Use semantic versioning: http://semver.org/
 
 RECENT_VERSION_HISTORY = """
@@ -55,5 +55,11 @@ First started in 2009.
 - 1.0.2, 2017-08-20 onwards
   Metaclass functions added.
   Extensions to SQLAlchemy utility functions.
+  
+- 1.0.3, 2017-10-18.
+  Several small changes for CamCOPS.
+  
+- 1.0.4, 2017-10-20.
+  Similarly.
 
 """

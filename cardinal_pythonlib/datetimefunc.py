@@ -133,14 +133,16 @@ def get_now_utc() -> Pendulum:
 # From one timezone to another
 # =============================================================================
 
-def convert_datetime_to_utc(dt: Pendulum) -> Pendulum:
+def convert_datetime_to_utc(dt: PotentialDatetimeType) -> Pendulum:
     """Convert date/time with timezone to UTC (with UTC timezone)."""
+    dt = coerce_to_pendulum(dt)
     tz = get_tz_utc()
     return dt.in_tz(tz)
 
 
-def convert_datetime_to_local(dt: Pendulum) -> Pendulum:
+def convert_datetime_to_local(dt: PotentialDatetimeType) -> Pendulum:
     """Convert date/time with timezone to local timezone."""
+    dt = coerce_to_pendulum(dt)
     tz = get_tz_local()
     return dt.in_tz(tz)
 

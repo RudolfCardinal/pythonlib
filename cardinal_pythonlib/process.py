@@ -30,8 +30,11 @@ import sys
 import traceback
 from typing import BinaryIO, List, Sequence
 
+from cardinal_pythonlib.logs import BraceStyleAdapter
+
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
+log = BraceStyleAdapter(log)
 
 
 # =============================================================================
@@ -80,14 +83,22 @@ def get_pipe_series_output(commands: Sequence[str],
 # Launch external file using OS's launcher
 # =============================================================================
 
-def launch_external_file(filename: str) -> None:
-    log.info("Launching external file: " + repr(filename))
+def launch_external_file(filename: str, raise_if_fails: bool = False) -> None:
+    """
+    Launches a file using the operating system's standard launcher.
+    """
+    log.info("Launching external file: {!r}", filename)
     try:
         if sys.platform.startswith('linux'):
-            subprocess.call(["xdg-open", filename])
+            cmdargs = ["xdg-open", filename]
+            # log.debug("... command: {!r}", cmdargs)
+            subprocess.call(cmdargs)
         else:
+            # log.debug("... with os.startfile()")
             # noinspection PyUnresolvedReferences
             os.startfile(filename)
     except Exception as e:
-        log.critical("Error launching {}: error was {}.\n\n{}".format(
-            repr(filename), str(e), traceback.format_exc()))
+        log.critical("Error launching {!r}: error was {}.\n\n{}",
+                     filename, str(e), traceback.format_exc())
+        if raise_if_fails:
+            raise

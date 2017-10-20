@@ -41,7 +41,10 @@ from sqlalchemy.sql import sqltypes, text
 from sqlalchemy.sql.sqltypes import BigInteger, TypeEngine
 from sqlalchemy.sql.visitors import VisitableType
 
-from cardinal_pythonlib.sqlalchemy.dialect import quote_identifier
+from cardinal_pythonlib.sqlalchemy.dialect import (
+    quote_identifier,
+    SqlaDialectName,
+)
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -299,8 +302,8 @@ def add_index(engine: Engine,
     def quote(identifier: str) -> str:
         return quote_identifier(identifier, engine)
 
-    is_mssql = engine.dialect.name == 'mssql'
-    is_mysql = engine.dialect.name == 'mysql'
+    is_mssql = engine.dialect.name == SqlaDialectName.MSSQL
+    is_mysql = engine.dialect.name == SqlaDialectName.MYSQL
 
     multiple_sqla_columns = multiple_sqla_columns or []  # type: List[Column]
     if multiple_sqla_columns and not (fulltext and is_mssql):
@@ -356,7 +359,7 @@ def add_index(engine: Engine,
                     colnames=", ".join(quote(c) for c in colnames),
                 )
             )
-            # DDL(sql, bind=engine).execute_if(dialect='mysql')
+            # DDL(sql, bind=engine).execute_if(dialect=SqlaDialectName.MYSQL)
             DDL(sql, bind=engine).execute()
 
         elif is_mssql:  # Microsoft SQL Server
@@ -486,9 +489,9 @@ def giant_text_sqltype(dialect: Dialect) -> str:
         the SQL data type of "giant text", typically 'LONGTEXT' for MySQL
         and 'NVARCHAR(MAX)' for SQL Server.
     """
-    if dialect.name == 'mssql':
+    if dialect.name == SqlaDialectName.SQLSERVER:
         return 'NVARCHAR(MAX)'
-    elif dialect.name == 'mysql':
+    elif dialect.name == SqlaDialectName.MYSQL:
         return 'LONGTEXT'
     else:
         raise ValueError("Unknown dialect: {}".format(dialect.name))
@@ -637,7 +640,7 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
         if basetype == 'DATETIME' and size:
             # First argument to DATETIME() is timezone, so...
             # noinspection PyUnresolvedReferences
-            if dialect.name == 'mysql':
+            if dialect.name == SqlaDialectName.MYSQL:
                 kwargs = {'fsp': size}
             else:
                 pass
@@ -691,9 +694,9 @@ def convert_sqla_type_for_dialect(
     assert coltype is not None
 
     # noinspection PyUnresolvedReferences
-    to_mysql = dialect.name == 'mysql'
+    to_mysql = dialect.name == SqlaDialectName.MYSQL
     # noinspection PyUnresolvedReferences
-    to_mssql = dialect.name == 'mssql'
+    to_mssql = dialect.name == SqlaDialectName.MSSQL
     typeclass = type(coltype)
 
     # -------------------------------------------------------------------------

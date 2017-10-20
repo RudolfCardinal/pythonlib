@@ -81,14 +81,13 @@ from cardinal_pythonlib.sqlalchemy.session import (
     get_engine_from_session,
     get_safe_url_from_engine,
     get_safe_url_from_session,
+    SQLITE_MEMORY_URL,
 )
 from cardinal_pythonlib.sqlalchemy.table_identity import TableIdentity
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 log = BraceStyleAdapter(log)
-
-SQLITE_MEMORY_URL = "sqlite://"
 
 
 # =============================================================================

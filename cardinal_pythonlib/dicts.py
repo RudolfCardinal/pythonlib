@@ -147,3 +147,24 @@ def map_keys_to_values(l: List[Any], d: Dict[Any, Any], default: Any = None,
             continue
         result.append(d.get(k, default))
     return result
+
+
+def dict_diff(d1: Dict[Any, Any], d2: Dict[Any, Any],
+              deleted_value: Any = None) -> Dict[Any, Any]:
+    """
+    Returns a representation of the changes made to d1 to create d2.
+    """
+    changes = {k: v for k, v in d2.items()
+               if k not in d1 or d2[k] != d1[k]}
+    for k in d1.keys():
+        if k not in d2:
+            changes[k] = deleted_value
+    return changes
+
+
+def delete_keys(d: Dict[Any, Any],
+                keys_to_delete: List[Any],
+                keys_to_keep: List[Any]) -> None:
+    for k in keys_to_delete:
+        if k in d and k not in keys_to_keep:
+            del d[k]
