@@ -19,4 +19,8 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 ===============================================================================
+
+The mere existence of this file makes Python treat the directory as a
+package.
+
 """

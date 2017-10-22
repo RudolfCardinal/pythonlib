@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/sqlalchemy/__init__.py
+# cardinal_pythonlib/django/tools/__init__.py
 
 """
 ===============================================================================
