@@ -334,7 +334,7 @@ class ReverseProxiedMiddleware(object):
                          self.vars_server)
             self._report(WsgiEnvVar.SERVER_PORT, config.server_port,
                          self.vars_port)
-            self._report(WsgiEnvVar.URL_SCHEME, config.url_scheme,
+            self._report(WsgiEnvVar.WSGI_URL_SCHEME, config.url_scheme,
                          self.vars_scheme_a + self.vars_scheme_b)
 
     @staticmethod
@@ -495,7 +495,7 @@ class ReverseProxiedMiddleware(object):
         )
         if url_scheme:
             url_scheme = url_scheme.lower()
-            environ[WsgiEnvVar.URL_SCHEME] = url_scheme
+            environ[WsgiEnvVar.WSGI_URL_SCHEME] = url_scheme
 
         # ---------------------------------------------------------------------
 

@@ -27,8 +27,9 @@ import subprocess
 from typing import Tuple
 
 from alembic.config import Config
+from alembic.util.exc import CommandError
 # noinspection PyUnresolvedReferences
-from alembic.migration import MigrationContext
+from alembic.runtime.migration import MigrationContext
 from alembic.runtime.environment import EnvironmentContext
 from alembic.script import ScriptDirectory
 from sqlalchemy.engine import create_engine
@@ -57,50 +58,70 @@ ALEMBIC_NAMING_CONVENTION = {
     "pk": "pk_%(table_name)s"
 }
 
+DEFAULT_ALEMBIC_VERSION_TABLE = "alembic_version"
+
 
 # =============================================================================
 # Alembic revision/migration system
 # =============================================================================
 # http://stackoverflow.com/questions/24622170/using-alembic-api-from-inside-application-code  # noqa
 
-def get_head_revision_from_alembic(alembic_config_filename: str,
-                                   alembic_base_dir: str = None) -> str:
+# *** TEST
+def get_head_revision_from_alembic(
+        alembic_config_filename: str,
+        alembic_base_dir: str = None,
+        version_table: str = DEFAULT_ALEMBIC_VERSION_TABLE) -> str:
     """
     Ask Alembic what its head revision is.
     Arguments:
         alembic_config_filename: config filename
         alembic_base_dir: directory to start in, so relative paths in the
             config file work.
+        version_table: table name for Alembic versions
     """
     if alembic_base_dir is None:
         alembic_base_dir = os.path.dirname(alembic_config_filename)
     os.chdir(alembic_base_dir)  # so the directory in the config file works
     config = Config(alembic_config_filename)
     script = ScriptDirectory.from_config(config)
-    return script.get_current_head()
+    with EnvironmentContext(config,
+                            script,
+                            version_table=version_table):
+        return script.get_current_head()
 
 
-def get_current_revision(database_url: str) -> str:
+# *** TEST
+def get_current_revision(
+        database_url: str,
+        version_table: str = DEFAULT_ALEMBIC_VERSION_TABLE) -> str:
     """
     Ask the database what its current revision is.
     """
     engine = create_engine(database_url)
     conn = engine.connect()
-    mig_context = MigrationContext.configure(conn)
+    opts = {'version_table': version_table}
+    mig_context = MigrationContext.configure(conn, opts=opts)
     return mig_context.get_current_revision()
 
 
 def get_current_and_head_revision(
         database_url: str,
         alembic_config_filename: str,
-        alembic_base_dir: str = None) -> Tuple[str, str]:
+        alembic_base_dir: str = None,
+        version_table: str = DEFAULT_ALEMBIC_VERSION_TABLE) -> Tuple[str, str]:
     # Where we are
     head_revision = get_head_revision_from_alembic(
-        alembic_config_filename, alembic_base_dir)
+        alembic_config_filename=alembic_config_filename,
+        alembic_base_dir=alembic_base_dir,
+        version_table=version_table
+    )
     log.info("Intended database version: {}", head_revision)
 
     # Where we want to be
-    current_revision = get_current_revision(database_url)
+    current_revision = get_current_revision(
+        database_url=database_url,
+        version_table=version_table
+    )
     log.info("Current database version: {}", current_revision)
 
     # Are we where we want to be?
@@ -108,9 +129,11 @@ def get_current_and_head_revision(
 
 
 @preserve_cwd
-def upgrade_database(alembic_config_filename: str,
-                     alembic_base_dir: str = None,
-                     destination_revision: str = "head") -> None:
+def upgrade_database(
+        alembic_config_filename: str,
+        alembic_base_dir: str = None,
+        destination_revision: str = "head",
+        version_table: str = DEFAULT_ALEMBIC_VERSION_TABLE) -> None:
     """
     Use Alembic to upgrade our database.
     "revision" is the destination revision.
@@ -138,7 +161,8 @@ def upgrade_database(alembic_config_filename: str,
                             as_sql=False,
                             starting_rev=None,
                             destination_rev=destination_revision,
-                            tag=None):
+                            tag=None,
+                            version_table=version_table):
         script.run_env()
 
     log.info("Database upgrade completed")
@@ -154,6 +178,9 @@ def create_database_migration_numbered_style(
     Create a new Alembic migration script.
     The default n_sequence_chars is like Django and gives files like
         0001_x.py, 0002_y.py, ...
+
+    NOTE THAT TO USE A NON-STANDARD ALEMBIC VERSION TABLE, YOU MUST SPECIFY
+    THAT IN YOUR env.py (see e.g. CamCOPS).
     """
     _, _, existing_version_filenames = next(os.walk(alembic_versions_dir),
                                             (None, None, []))
@@ -178,7 +205,8 @@ Generating new revision with Alembic...
     Last revision was: {}
     New revision will be: {}
     [If it fails with "Can't locate revision identified by...", you might need
-    to DROP the alembic_version table.]
+    to DROP the Alembic version table (by default named 'alembic_version', but
+    you may have elected to change that in your env.py.]
         """,
         current_seq_str,
         new_seq_str
@@ -194,3 +222,37 @@ Generating new revision with Alembic...
                '--rev-id', new_seq_str]
     log.info("From directory {!r}, calling: {!r}", alembic_ini_dir, cmdargs)
     subprocess.call(cmdargs)
+
+
+def stamp_allowing_unusual_version_table(
+        config: Config,
+        revision: str,
+        sql: bool = False,
+        tag: str = None,
+        version_table: str = DEFAULT_ALEMBIC_VERSION_TABLE) -> None:
+    """
+    Clone of alembic.command.stamp(), but allowing version_table to change.
+    """
+
+    script = ScriptDirectory.from_config(config)
+
+    starting_rev = None
+    if ":" in revision:
+        if not sql:
+            raise CommandError("Range revision not allowed")
+        starting_rev, revision = revision.split(':', 2)
+
+    # noinspection PyUnusedLocal
+    def do_stamp(rev: str, context):
+        # noinspection PyProtectedMember
+        return script._stamp_revs(revision, rev)
+
+    with EnvironmentContext(config,
+                            script,
+                            fn=do_stamp,
+                            as_sql=sql,
+                            destination_rev=revision,
+                            starting_rev=starting_rev,
+                            tag=tag,
+                            version_table=version_table):
+        script.run_env()

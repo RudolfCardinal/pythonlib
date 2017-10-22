@@ -29,6 +29,27 @@ import regex
 
 
 # =============================================================================
+# Finding
+# =============================================================================
+
+def find_nth(s: str, x: str, n: int = 0, overlap: bool = False) -> int:
+    """
+    Finds the position of nth occurrence of x in s, or -1 if there isn't one.
+    - The n parameter is zero-based (i.e. 0 for the first, 1 for the second...).
+    - If overlap is true, allows fragments to overlap. If not, they must be
+      distinct.
+    """
+    # https://stackoverflow.com/questions/1883980/find-the-nth-occurrence-of-substring-in-a-string  # noqa
+    length_of_fragment = 1 if overlap else len(x)
+    i = -length_of_fragment
+    for _ in range(n + 1):
+        i = s.find(x, i + length_of_fragment)
+        if i < 0:
+            break
+    return i
+
+
+# =============================================================================
 # Replacement
 # =============================================================================
 

@@ -54,6 +54,8 @@ class WsgiEnvVar(object):
 
     For core ones, see http://wsgi.readthedocs.io/en/latest/definitions.html
     """
+    CONTENT_LENGTH = "CONTENT_LENGTH"  # [1]
+    CONTENT_TYPE = "CONTENT_TYPE"  # [1]
     HTTP_HOST = "HTTP_HOST"  # [2]
     HTTP_X_FORWARDED_FOR = "HTTP_X_FORWARDED_FOR"  # [2]
     HTTP_X_REAL_IP = "HTTP_X_REAL_IP"  # [7]
@@ -71,11 +73,20 @@ class WsgiEnvVar(object):
     HTTP_X_SCHEME = "HTTP_X_SCHEME"  # [5]
     HTTP_X_SCRIPT_NAME = "HTTP_X_SCRIPT_NAME"  # [5]
     PATH_INFO = "PATH_INFO"  # [1]
+    QUERY_STRING = "QUERY_STRING"  # [1]
     REMOTE_ADDR = "REMOTE_ADDR"  # [1]
+    REQUEST_METHOD = "REQUEST_METHOD"  # [1]
     SCRIPT_NAME = "SCRIPT_NAME"  # [1]
     SERVER_NAME = "SERVER_NAME"  # [1]
     SERVER_PORT = "SERVER_PORT"  # [1]
-    URL_SCHEME = "wsgi.url_scheme"  # [3]
+    SERVER_PROTOCOL = "SERVER_PROTOCOL"  # [1]
+    WSGI_ERRORS = "wsgi.errors"  # [3]
+    WSGI_INPUT = "wsgi.input"  # [3]
+    WSGI_MULTIPROCESS = "wsgi.multiprocess"  # [3]
+    WSGI_MULTITHREAD = "wsgi.multithread"  # [3]
+    WSGI_RUN_ONCE = "wsgi.run_once"  # [3]
+    WSGI_URL_SCHEME = "wsgi.url_scheme"  # [3]
+    WSGI_VERSION = "wsgi.version"  # [3]
 
     # [1] Standard WSGI and standard CGI; must always be present;
     #     http://wsgi.readthedocs.io/en/latest/definitions.html

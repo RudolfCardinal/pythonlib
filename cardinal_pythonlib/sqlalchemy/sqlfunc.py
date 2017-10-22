@@ -47,9 +47,9 @@ log = BraceStyleAdapter(log)
 def fail_unknown_dialect(compiler: "SQLCompiler", task: str) -> None:
     raise NotImplementedError(
         "Don't know how to {task} on dialect {dialect!r}. "
-        "(Check: if you printed the SQL before it was bound to an engine, you "
-        "will be trying to use a dialect like StrSQLCompiler, which could be "
-        "a reason for failure.)".format(
+        "(Check also: if you printed the SQL before it was bound to an "
+        "engine, you will be trying to use a dialect like StrSQLCompiler, "
+        "which could be a reason for failure.)".format(
             task=task,
             dialect=compiler.dialect
         )
@@ -71,6 +71,10 @@ def fetch_processed_single_clause(element: "ClauseElement",
 # =============================================================================
 # YEAR, or func.year(), is specific to some DBs, e.g. MySQL
 # so is EXTRACT, or func.extract(); http://modern-sql.com/feature/extract
+#
+# Use this as:
+#   from cardinal_pythonlib.sqlalchemy.sqlfunc import extract_year
+# ... then use extract_year() in an SQLAlchemy SELECT expression.
 
 # noinspection PyPep8Naming
 class extract_year(FunctionElement):

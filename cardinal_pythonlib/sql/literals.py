@@ -30,6 +30,7 @@ from cardinal_pythonlib.datetimefunc import DateLikeType, DateTimeLikeType
 
 COMMA = ","
 SQUOTE = "'"
+DOUBLE_SQUOTE = "''"
 
 
 # =============================================================================
@@ -39,7 +40,10 @@ SQUOTE = "'"
 def sql_string_literal(text: str) -> str:
     # ANSI SQL: http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
     # <character string literal>
-    return SQUOTE + text.replace(SQUOTE, "''") + SQUOTE
+    return SQUOTE + text.replace(SQUOTE, DOUBLE_SQUOTE) + SQUOTE
+
+
+sql_quote_string = sql_string_literal  # synonym
 
 
 def sql_date_literal(dt: DateLikeType) -> str:
@@ -62,6 +66,18 @@ def sql_comment(comment: str) -> str:
     if not comment:
         return ""
     return "\n".join("-- {}".format(x) for x in comment.splitlines())
+
+
+# =============================================================================
+# Reversing the operations above
+# =============================================================================
+
+def sql_dequote_string(s: str) -> str:
+    """Reverses sql_quote_string."""
+    if len(s) < 2 or s[0] != SQUOTE or s[-1] != SQUOTE:
+        raise ValueError("Not an SQL string literal")
+    s = s[1:-1]  # strip off the surrounding quotes
+    return s.replace(DOUBLE_SQUOTE, SQUOTE)
 
 
 # =============================================================================
