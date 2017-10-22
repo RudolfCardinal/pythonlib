@@ -91,6 +91,7 @@ setup(
         'semantic_version',  # semantic versioning
 
         # Then some simple pure Python things, with as few version restrictions as possible:  # noqa
+        # ... but include everything we need!
         'alembic',
         'arrow',
         'colorlog',
