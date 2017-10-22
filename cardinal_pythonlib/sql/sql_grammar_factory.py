@@ -24,13 +24,14 @@
 from cardinal_pythonlib.sql.sql_grammar import SqlGrammar
 from cardinal_pythonlib.sql.sql_grammar_mssql import SqlGrammarMSSQLServer
 from cardinal_pythonlib.sql.sql_grammar_mysql import SqlGrammarMySQL
+from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
 
 
-DIALECT_MSSQL = 'mssql'  # Microsoft SQL Server; must match querybuilder.js
-DIALECT_MYSQL = 'mysql'  # MySQL; must match querybuilder.js
-DIALECT_POSTGRES = 'postgres'  # *** NOT PROPERLY SUPPORTED.
-
-VALID_DIALECTS = [DIALECT_MYSQL, DIALECT_MYSQL]
+VALID_DIALECTS = [
+    SqlaDialectName.MSSQL,
+    SqlaDialectName.MYSQL,
+    # PostgreSQL not properly supported yet.
+]
 
 
 # =============================================================================
@@ -42,9 +43,9 @@ mssql_grammar = SqlGrammarMSSQLServer()
 
 
 def make_grammar(dialect: str) -> SqlGrammar:
-    if dialect == DIALECT_MYSQL:
+    if dialect == SqlaDialectName.MYSQL:
         return mysql_grammar
-    elif dialect == DIALECT_MSSQL:
+    elif dialect == SqlaDialectName.MSSQL:
         return mssql_grammar
     else:
         raise AssertionError("Invalid SQL dialect: {}".format(repr(dialect)))

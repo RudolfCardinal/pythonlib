@@ -436,7 +436,7 @@ def add_index(engine: Engine,
 def make_bigint_autoincrement_column(column_name: str,
                                      dialect: Dialect) -> Column:
     # noinspection PyUnresolvedReferences
-    if dialect.name == 'mssql':
+    if dialect.name == SqlaDialectName.MSSQL:
         return Column(column_name, BigInteger,
                       Sequence('dummy_name', start=1, increment=1))
     else:
@@ -631,7 +631,8 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
 
         # Special cases: pre-processing
         # noinspection PyUnresolvedReferences
-        if dialect.name == 'mssql' and basetype.lower() == 'integer':
+        if (dialect.name == SqlaDialectName.MSSQL and
+                basetype.lower() == 'integer'):
             basetype = 'int'
 
         cls = _get_sqla_coltype_class_from_str(basetype, dialect)

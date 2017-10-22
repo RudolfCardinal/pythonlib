@@ -41,6 +41,7 @@ from sqlalchemy.sql.sqltypes import DateTime, NullType, String
 
 from cardinal_pythonlib.file_io import writeline_nl, writelines_nl
 from cardinal_pythonlib.sql.literals import sql_comment
+from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
 from cardinal_pythonlib.sqlalchemy.orm_inspect import walk_orm_tree
 from cardinal_pythonlib.sqlalchemy.schema import get_table_names
 
@@ -364,7 +365,7 @@ def bulk_insert_extras(dialect_name: str,
     Writes bulk insert preamble (start=True) or end (start=False).
     """
     lines = []
-    if dialect_name == 'mysql':
+    if dialect_name == SqlaDialectName.MYSQL:
         if start:
             lines = [
                 "SET autocommit=0;",

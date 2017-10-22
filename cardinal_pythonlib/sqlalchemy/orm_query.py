@@ -34,6 +34,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.sql.selectable import Exists
 
 from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -72,7 +73,7 @@ def bool_from_exists_clause(session: Session,
     - https://bitbucket.org/zzzeek/sqlalchemy/issues/3212/misleading-documentation-for-queryexists  # noqa
     - http://docs.sqlalchemy.org/en/latest/orm/query.html#sqlalchemy.orm.query.Query.exists  # noqa
     """
-    if session.get_bind().dialect.name == 'mssql':
+    if session.get_bind().dialect.name == SqlaDialectName.MSSQL:
         # SQL Server
         result = session.query(literal(True)).filter(exists_clause).scalar()
         # SELECT 1 WHERE EXISTS (SELECT 1 FROM table WHERE ...)

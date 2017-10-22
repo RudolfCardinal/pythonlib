@@ -29,6 +29,8 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql.compiler import SQLCompiler
 from sqlalchemy.sql.expression import Insert, TableClause
 
+from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
+
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
@@ -89,7 +91,7 @@ INSERT_FIELDNAMES_REGEX = (
 RE_INSERT_FIELDNAMES = re.compile(INSERT_FIELDNAMES_REGEX)
 
 
-@compiles(InsertOnDuplicate, 'mysql')
+@compiles(InsertOnDuplicate, SqlaDialectName.MYSQL)
 def compile_insert_on_duplicate_key_update(insert: Insert,
                                            compiler: SQLCompiler,
                                            **kw) -> str:

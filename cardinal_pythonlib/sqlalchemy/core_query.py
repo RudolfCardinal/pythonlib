@@ -21,6 +21,7 @@
 ===============================================================================
 """
 
+import logging
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 from sqlalchemy.engine.base import Connection, Engine
@@ -32,6 +33,13 @@ from sqlalchemy.sql.expression import (
 )
 from sqlalchemy.sql.schema import Table
 from sqlalchemy.sql.selectable import Select
+
+from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+log = BraceStyleAdapter(log)
 
 
 # =============================================================================
@@ -105,7 +113,7 @@ def exists_in_table(session: Session, table_: Table, *criteria: Any) -> bool:
         exists_clause = exists_clause.where(criterion)
     # ... EXISTS (SELECT * FROM tablename WHERE ...)
 
-    if session.get_bind().dialect.name == 'mssql':
+    if session.get_bind().dialect.name == SqlaDialectName.MSSQL:
         query = select([literal(True)]).where(exists_clause)
         # ... SELECT 1 WHERE EXISTS (SELECT * FROM tablename WHERE ...)
     else:

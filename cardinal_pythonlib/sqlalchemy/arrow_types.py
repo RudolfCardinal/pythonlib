@@ -31,6 +31,8 @@ from sqlalchemy.engine.default import DefaultDialect
 from sqlalchemy.sql.sqltypes import DateTime
 from sqlalchemy.sql.type_api import TypeDecorator, TypeEngine
 
+from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
+
 
 # =============================================================================
 # ArrowType that uses fractional second support in MySQL
@@ -52,10 +54,10 @@ class ArrowMicrosecondType(TypeDecorator):
         super().__init__(*args, **kwargs)
 
     def load_dialect_impl(self, dialect: DefaultDialect) -> TypeEngine:  # RNC
-        if dialect.name == 'mysql':
+        if dialect.name == SqlaDialectName.MYSQL:
             return dialect.type_descriptor(
                 sqlalchemy.dialects.mysql.DATETIME(fsp=6))
-        elif dialect.name == 'mssql':  # Microsoft SQL Server
+        elif dialect.name == SqlaDialectName.MSSQL:  # Microsoft SQL Server
             return dialect.type_descriptor(sqlalchemy.dialects.mssql.DATETIME2)
         else:
             return dialect.type_descriptor(self.impl)
