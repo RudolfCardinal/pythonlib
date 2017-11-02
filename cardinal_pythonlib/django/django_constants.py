@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/django/reprfunc.py
+# cardinal_pythonlib/django/django_constants.py
 
 """
 ===============================================================================
@@ -21,21 +21,17 @@
 ===============================================================================
 """
 
-from django.core.exceptions import ObjectDoesNotExist
 
+class ConnectionVendors(object):
+    MYSQL = 'mysql'  # built in; [1]
+    ORACLE = 'oracle'  # built in; [1]
+    POSTGRESQL = 'postgresql'  # built in; [1]
+    SQLITE = 'sqlite'  # built in; [1]
+    # [1] https://docs.djangoproject.com/en/1.10/howto/custom-lookups/#writing-alternative-implementations-for-existing-lookups  # noqa
 
-def modelrepr(instance) -> str:
-    """Default repr version of a Django model object, for debugging."""
-    elements = []
-    # noinspection PyProtectedMember
-    for fieldname in [f.name for f in instance._meta.get_fields()]:
-        try:
-            value = repr(getattr(instance, fieldname))
-        except ObjectDoesNotExist:
-            value = "<RelatedObjectDoesNotExist>"
-        elements.append("{}={}".format(fieldname, value))
-    return "<{} <{}>>".format(type(instance).__name__,
-                              ", ".join(elements))
-    # - type(instance).__name__ gives the Python class name from an instance
-    # - ... as does ModelClass.__name__ but we don't have that directly here
-    # - instance._meta.model_name gives a lower-case version
+    # I think this is HYPOTHETICAL: SQLSERVER = 'sqlserver'  # [2]
+    # [2] https://docs.djangoproject.com/en/1.11/ref/models/expressions/
+
+    MICROSOFT = 'microsoft'  # [3]
+    # [3] "pip install django-mssql" = sqlserver_ado;
+    #     https://bitbucket.org/Manfre/django-mssql/src/d44721ba17acf95da89f06bd7270dabc1cd33deb/sqlserver_ado/base.py?at=master&fileviewer=file-view-default  # noqa

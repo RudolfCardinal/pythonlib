@@ -25,7 +25,7 @@ from collections import OrderedDict
 import datetime
 import logging
 
-from cardinal_pythonlib.datetimefunc import get_now_utc
+from cardinal_pythonlib.datetimefunc import get_now_utc_pendulum
 from cardinal_pythonlib.logs import BraceStyleAdapter
 
 log = logging.getLogger(__name__)
@@ -37,14 +37,14 @@ class MultiTimer(object):
     """Mutually exclusive timing of a set of events."""
     def __init__(self, start: bool = True) -> None:
         self._timing = start
-        self._overallstart = get_now_utc()
+        self._overallstart = get_now_utc_pendulum()
         self._starttimes = OrderedDict()  # name: start time
         self._totaldurations = OrderedDict()  # name: duration
         self._count = OrderedDict()  # name: count
         self._stack = []  # list of names
 
     def reset(self) -> None:
-        self._overallstart = get_now_utc()
+        self._overallstart = get_now_utc_pendulum()
         self._starttimes.clear()
         self._totaldurations.clear()
         self._count.clear()
@@ -58,7 +58,7 @@ class MultiTimer(object):
     def start(self, name: str, increment_count: bool = True) -> None:
         if not self._timing:
             return
-        now = get_now_utc()
+        now = get_now_utc_pendulum()
 
         # If we were already timing something else, pause that.
         if self._stack:
@@ -77,7 +77,7 @@ class MultiTimer(object):
     def stop(self, name: str) -> None:
         if not self._timing:
             return
-        now = get_now_utc()
+        now = get_now_utc_pendulum()
 
         # Validity check
         if not self._stack:
@@ -101,7 +101,7 @@ class MultiTimer(object):
         """Finish and report to the log."""
         while self._stack:
             self.stop(self._stack[-1])
-        now = get_now_utc()
+        now = get_now_utc_pendulum()
         grand_total = datetime.timedelta()
         overall_duration = now - self._overallstart
         for name, duration in self._totaldurations.items():

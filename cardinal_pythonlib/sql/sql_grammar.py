@@ -57,8 +57,6 @@ import logging
 import re
 from typing import List, Union
 
-from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
-# noinspection PyPackageRequirements
 from pyparsing import (
     Combine,
     Literal,
@@ -73,8 +71,9 @@ from pyparsing import (
     restOfLine,
     ZeroOrMore,
 )
-# noinspection PyPackageRequirements
 import sqlparse
+
+from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())

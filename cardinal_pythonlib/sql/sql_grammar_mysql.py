@@ -24,7 +24,6 @@
 import logging
 import re
 
-# noinspection PyPackageRequirements
 from pyparsing import (
     Combine,
     cStyleComment,

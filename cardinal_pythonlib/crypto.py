@@ -31,6 +31,10 @@ import hmac
 import os
 from typing import Any, Callable
 
+# The following requires a C compiler, so we don't have it in our standard
+# requirements. However, it is vital for this module.
+
+# noinspection PyUnresolvedReferences
 import bcrypt  # PYTHON 2/UBUNTU: sudo apt-get install python-bcrypt  // PYTHON3/UBUNTU: sudo apt-get install python3-bcrypt  # noqa
 
 

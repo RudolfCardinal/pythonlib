@@ -23,7 +23,6 @@
 
 import logging
 
-# noinspection PyPackageRequirements
 from sqlalchemy.sql.schema import MetaData, Table
 
 from cardinal_pythonlib.logs import BraceStyleAdapter

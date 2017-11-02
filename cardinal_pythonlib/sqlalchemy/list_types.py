@@ -27,11 +27,8 @@ import logging
 from typing import List, Optional
 
 from cardinal_pythonlib.logs import BraceStyleAdapter
-# noinspection PyPackageRequirements
 from sqlalchemy.engine.interfaces import Dialect
-# noinspection PyPackageRequirements
 from sqlalchemy.sql.sqltypes import Text, UnicodeText
-# noinspection PyPackageRequirements
 from sqlalchemy.sql.type_api import TypeDecorator
 
 log = logging.getLogger(__name__)

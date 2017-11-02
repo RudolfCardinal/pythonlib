@@ -88,10 +88,8 @@ from xml.etree import ElementTree as ElementTree
 # https://docs.python.org/3.4/library/xml.etree.elementtree.html
 import zipfile
 
-# noinspection PyPackageRequirements
-import bs4  # pip install beautifulsoup4
-# noinspection PyPackageRequirements
-import prettytable  # pip install PrettyTable
+import bs4
+import prettytable
 from semantic_version import Version
 # import texttable  # ... can't deal with Unicode properly
 
@@ -105,10 +103,15 @@ except ImportError:
 try:
     # noinspection PyPackageRequirements
     import docx  # pip install python-docx (NOT docx) - BUT python-docx requires lxml which has C dependencies  # noqa
+    # noinspection PyPackageRequirements
     import docx.document
+    # noinspection PyPackageRequirements
     import docx.oxml.table
+    # noinspection PyPackageRequirements
     import docx.oxml.text.paragraph
+    # noinspection PyPackageRequirements
     import docx.table
+    # noinspection PyPackageRequirements
     import docx.text.paragraph
     DOCX_DOCUMENT_TYPE = "docx.document.Document"
     DOCX_TABLE_TYPE = Union["docx.table.Table", "CustomDocxTable"]
@@ -246,7 +249,7 @@ def get_file_contents(filename: str = None, blob: bytes = None,
 def get_chardet_encoding(binary_contents: bytes) -> Optional[str]:
     if not binary_contents:
         return None
-    if not chardet or not UniversalDetector:
+    if chardet is None or UniversalDetector is None:
         log.warning("chardet not installed; limits detection of encodings")
         return None
     # METHOD 1
@@ -257,6 +260,8 @@ def get_chardet_encoding(binary_contents: bytes) -> Optional[str]:
     # METHOD 2: faster with large files
     # http://chardet.readthedocs.io/en/latest/
     # http://stackoverflow.com/questions/13857856/split-byte-string-into-lines
+
+    # noinspection PyCallingNonCallable
     detector = UniversalDetector()
     for byte_line in binary_contents.split(b"\n"):
         detector.feed(byte_line)
@@ -633,8 +638,7 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
 # With the docx library
 # -----------------------------------------------------------------------------
 
-
-# noinspection PyProtectedMember
+# noinspection PyProtectedMember,PyUnresolvedReferences
 def docx_docx_iter_block_items(parent: DOCX_CONTAINER_TYPE) \
         -> Iterator[DOCX_BLOCK_ITEM_TYPE]:
     # only called if docx loaded
@@ -664,6 +668,7 @@ def docx_docx_iter_block_items(parent: DOCX_CONTAINER_TYPE) \
             yield docx.table.Table(child, parent)
 
 
+# noinspection PyUnresolvedReferences
 def docx_docx_gen_text(doc: DOCX_DOCUMENT_TYPE,
                        width: int,
                        min_col_width: int,
@@ -756,6 +761,7 @@ def convert_docx_to_text(filename: str = None,
         return text
     elif docx:
         with get_filelikeobject(filename, blob) as fp:
+            # noinspection PyUnresolvedReferences
             document = docx.Document(fp)
             return '\n\n'.join(
                 docx_docx_gen_text(document, width=width,

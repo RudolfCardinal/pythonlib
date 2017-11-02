@@ -23,6 +23,8 @@
 
 from pyramid.response import Response
 
+from cardinal_pythonlib.httpconst import MimeType
+
 
 # =============================================================================
 # Responses
@@ -48,7 +50,7 @@ class PdfResponse(BinaryResponse):
     def __init__(self, body: bytes, filename: str,
                  as_inline: bool = True, **kwargs) -> None:
         super().__init__(
-            content_type="application/pdf",
+            content_type=MimeType.PDF,
             filename=filename,
             as_inline=as_inline,
             body=body,
@@ -59,7 +61,7 @@ class PdfResponse(BinaryResponse):
 class SqliteBinaryResponse(BinaryResponse):
     def __init__(self, body: bytes, filename: str, **kwargs) -> None:
         super().__init__(
-            content_type="application/x-sqlite3",
+            content_type=MimeType.SQLITE3,
             filename=filename,
             body=body,
             **kwargs
@@ -70,7 +72,7 @@ class TextAttachmentResponse(Response):
     def __init__(self, body: str, filename: str, **kwargs) -> None:
         # Will default to UTF-8
         super().__init__(
-            content_type="text/plain",
+            content_type=MimeType.TEXT,
             content_disposition="attachment; filename={}".format(filename),
             body=body,
             **kwargs
@@ -80,7 +82,7 @@ class TextAttachmentResponse(Response):
 class TextResponse(Response):
     def __init__(self, body: str, **kwargs) -> None:
         super().__init__(
-            content_type="text/plain",
+            content_type=MimeType.TEXT,
             body=body,
             **kwargs
         )
@@ -89,7 +91,7 @@ class TextResponse(Response):
 class TsvResponse(Response):
     def __init__(self, body: str, filename: str, **kwargs) -> None:
         super().__init__(
-            content_type="text/tab-separated-values",
+            content_type=MimeType.TSV,
             content_disposition="attachment; filename={}".format(filename),
             body=body,
             **kwargs
@@ -101,7 +103,7 @@ class XmlResponse(Response):
         # application/xml versus text/xml:
         # https://stackoverflow.com/questions/4832357
         super().__init__(
-            content_type="text/xml",
+            content_type=MimeType.XML,
             body=body,
             **kwargs
         )
@@ -113,7 +115,7 @@ class ZipResponse(BinaryResponse):
         # browsers don't display ZIP files inline.
         # https://stackoverflow.com/questions/1395151
         super().__init__(
-            content_type="application/zip",
+            content_type=MimeType.ZIP,
             filename=filename,
             body=body,
             **kwargs

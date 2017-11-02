@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/django/reprfunc.py
+# cardinal_pythonlib/httpconst.py
 
 """
 ===============================================================================
@@ -21,21 +21,19 @@
 ===============================================================================
 """
 
-from django.core.exceptions import ObjectDoesNotExist
 
+class MimeType(object):
+    """
+    Some MIME type constants.
+    See also the Python standard library 'mimetypes'; e.g.
 
-def modelrepr(instance) -> str:
-    """Default repr version of a Django model object, for debugging."""
-    elements = []
-    # noinspection PyProtectedMember
-    for fieldname in [f.name for f in instance._meta.get_fields()]:
-        try:
-            value = repr(getattr(instance, fieldname))
-        except ObjectDoesNotExist:
-            value = "<RelatedObjectDoesNotExist>"
-        elements.append("{}={}".format(fieldname, value))
-    return "<{} <{}>>".format(type(instance).__name__,
-                              ", ".join(elements))
-    # - type(instance).__name__ gives the Python class name from an instance
-    # - ... as does ModelClass.__name__ but we don't have that directly here
-    # - instance._meta.model_name gives a lower-case version
+        import mimetypes
+        mimetypes.types_map['.pdf']  # 'application/pdf'
+    """
+    PDF = "application/pdf"
+    PNG = "image/png"
+    SQLITE3 = "application/x-sqlite3"
+    TEXT = "text/plain"
+    TSV = "text/tab-separated-values"
+    XML = "text/xml"
+    ZIP = "application/zip"

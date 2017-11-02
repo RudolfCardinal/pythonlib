@@ -34,7 +34,6 @@ import tempfile
 from typing import Any, Dict, Iterable, Union
 
 from cardinal_pythonlib.logs import BraceStyleAdapter
-# noinspection PyPackageRequirements
 from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
 from semantic_version import Version
 

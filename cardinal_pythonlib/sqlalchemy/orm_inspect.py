@@ -138,7 +138,7 @@ def walk_orm_tree(obj,
         {'sometable': ['attr1_to_skip', 'attr2_to_skip']}
     """
     # http://docs.sqlalchemy.org/en/latest/faq/sessions.html#faq-walk-objects
-    skip_relationships_always = skip_relationships_always or []  # type: List[str]
+    skip_relationships_always = skip_relationships_always or []  # type: List[str]  # noqa
     skip_relationships_by_tablename = skip_relationships_by_tablename or {}  # type: Dict[str, List[str]]  # noqa
     skip_all_relationships_for_tablenames = skip_all_relationships_for_tablenames or []  # type: List[str]  # noqa
     skip_all_objects_for_tablenames = skip_all_objects_for_tablenames or []  # type: List[str]  # noqa
@@ -505,6 +505,7 @@ def get_table_names_from_metadata(metadata: MetaData) -> List[str]:
 
 
 def get_metadata_from_orm_class_or_object(cls: Type) -> MetaData:
+    # noinspection PyUnresolvedReferences
     table = cls.__table__  # type: Table
     return table.metadata
 

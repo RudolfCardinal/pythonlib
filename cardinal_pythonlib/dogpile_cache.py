@@ -77,6 +77,7 @@ import inspect
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
+# noinspection PyPackageRequirements
 from dogpile.cache import make_region
 # from dogpile.util import compat  # repr used as the default instead of compat.to_str  # noqa
 
@@ -121,8 +122,7 @@ def get_namespace(fn: Callable, namespace: str) -> str:
 def fkg_allowing_type_hints(
         namespace: Optional[str],
         fn: Callable,
-        to_str: Callable[[Any], str] = repr) \
-        -> Callable[[Callable], str]:
+        to_str: Callable[[Any], str] = repr) -> Callable[[Any], str]:
     """
     Replacement for dogpile.cache.util.function_key_generator that handles
     type-hinted functions like
@@ -168,8 +168,7 @@ def fkg_allowing_type_hints(
 def multikey_fkg_allowing_type_hints(
         namespace: Optional[str],
         fn: Callable,
-        to_str: Callable[[Any], str] = repr) \
-        -> Callable[[Callable], List[str]]:
+        to_str: Callable[[Any], str] = repr) -> Callable[[Any], List[str]]:
     """
     Equivalent of dogpile.cache function_multi_key_generator, but using
     inspect.signature() instead.
@@ -206,8 +205,7 @@ def multikey_fkg_allowing_type_hints(
 def kw_fkg_allowing_type_hints(
         namespace: Optional[str],
         fn: Callable,
-        to_str: Callable[[Any], str] = repr) \
-        -> Callable[[Callable], str]:
+        to_str: Callable[[Any], str] = repr) -> Callable[[Any], str]:
     """
     As for fkg_allowing_type_hints, but allowing keyword arguments.
 
@@ -248,7 +246,7 @@ def kw_fkg_allowing_type_hints(
                 fn=repr(fn),
             ))
 
-    def generate_key(*args, **kwargs):
+    def generate_key(*args: Any, **kwargs: Any) -> str:
         as_kwargs = {}  # type: Dict[str, Any]
         loose_args = []  # type: List[Any]  # those captured by *args
         # 1. args: get the name as well.

@@ -25,7 +25,6 @@
 
 from threading import currentThread
 
-# noinspection PyPackageRequirements
 from django.core.cache.backends.locmem import LocMemCache
 
 _request_cache = {}

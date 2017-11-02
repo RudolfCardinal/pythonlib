@@ -38,7 +38,7 @@ from cardinal_pythonlib.logs import (
     main_only_quicksetup_rootlogger,
 )
 from cardinal_pythonlib.fileops import exists_locked, gen_filenames
-from .find_recovered_openxml import (
+from cardinal_pythonlib.openxml.find_recovered_openxml import (
     DOCX_CONTENTS_REGEX,
     PPTX_CONTENTS_REGEX,
     XLSX_CONTENTS_REGEX,

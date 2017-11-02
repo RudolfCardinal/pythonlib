@@ -91,7 +91,7 @@ def send_email(sender: str,
     msg.attach(msgbody)
 
     # Attachments
-    # noinspection PyBroadException
+    # noinspection PyPep8,PyBroadException
     try:
         if attachment_filenames is not None:
             if verbose:

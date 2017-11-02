@@ -33,7 +33,6 @@ import logging
 import sys
 from typing import Optional, Union
 
-# noinspection PyPackageRequirements
 import numpy as np  # pip install numpy
 
 log = logging.getLogger(__name__)

@@ -76,7 +76,7 @@ def main() -> None:
         "--username", default="root",
         help="MySQL user")
     parser.add_argument(
-        "--password", default="root",
+        "--password",
         help="MySQL password (AVOID THIS OPTION IF POSSIBLE; VERY INSECURE; "
              "VISIBLE TO OTHER PROCESSES; if you don't use it, you'll be "
              "prompted for the password)")

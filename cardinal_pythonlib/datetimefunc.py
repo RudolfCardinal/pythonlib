@@ -67,6 +67,7 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
     elif isinstance(x, datetime.date):
         # BEWARE: datetime subclasses date. The order is crucial here.
         # Can also use: type(x) is datetime.date
+        # noinspection PyUnresolvedReferences
         midnight = Pendulum.min.time()
         dt = Pendulum.combine(x, midnight)
         return pendulum.instance(dt, tz=tz)  # (*)
@@ -117,16 +118,21 @@ def get_tz_utc() -> datetime.tzinfo:
 # Now
 # =============================================================================
 
-def get_now_localtz() -> Pendulum:
+def get_now_localtz_pendulum() -> Pendulum:
     """Get the time now in the local timezone."""
     tz = get_tz_local()
     return pendulum.now().in_tz(tz)
 
 
-def get_now_utc() -> Pendulum:
+def get_now_utc_pendulum() -> Pendulum:
     """Get the time now in the UTC timezone."""
     tz = get_tz_utc()
     return pendulum.utcnow().in_tz(tz)
+
+
+def get_now_utc_datetime() -> datetime.datetime:
+    """Get the time now in the UTC timezone."""
+    return datetime.datetime.now(pendulum.UTC)
 
 
 # =============================================================================
@@ -209,9 +215,10 @@ def truncate_date_to_first_of_month(
 # Older date/time functions for native Python datetime objects
 # =============================================================================
 
-def get_now_utc_notz() -> datetime.datetime:
+def get_now_utc_notz_datetime() -> datetime.datetime:
     """Get the UTC time now, but with no timezone information."""
-    return get_now_utc().replace(tzinfo=None)
+    now = datetime.datetime.utcnow()
+    return now.replace(tzinfo=None)
 
 
 def coerce_to_datetime(x: Any) -> Optional[datetime.datetime]:

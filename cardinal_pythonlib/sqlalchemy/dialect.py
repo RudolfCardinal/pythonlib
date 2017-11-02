@@ -69,6 +69,7 @@ def get_dialect(mixed: Union[SQLCompiler, Engine, Dialect]) -> Dialect:
 
 def get_dialect_name(mixed: Union[SQLCompiler, Engine, Dialect]) -> str:
     dialect = get_dialect(mixed)
+    # noinspection PyUnresolvedReferences
     return dialect.name
 
 

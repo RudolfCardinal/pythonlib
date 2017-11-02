@@ -236,10 +236,15 @@ except ImportError:
 
 import arrow
 try:
+    # noinspection PyPackageRequirements
     import servicemanager  # part of pypiwin32
+    # noinspection PyPackageRequirements
     import winerror  # part of pypiwin32
+    # noinspection PyPackageRequirements
     import win32event  # part of pypiwin32
+    # noinspection PyPackageRequirements
     import win32service  # part of pypiwin32
+    # noinspection PyPackageRequirements
     import win32serviceutil  # part of pypiwin32
 except ImportError:
     # this makes the type checker less unhappy

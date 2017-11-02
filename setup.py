@@ -34,6 +34,18 @@ with open(path.join(here, 'README.txt'), encoding='utf-8') as f:
     long_description = f.read()
 
 # -----------------------------------------------------------------------------
+# Nasty
+# -----------------------------------------------------------------------------
+
+requirements = []
+with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
+    for line in f.readlines():
+        line = line.strip()
+        if (not line) or line.startswith('#') or line.startswith('--'):
+            continue
+        requirements.append(line)
+
+# -----------------------------------------------------------------------------
 # setup args
 # -----------------------------------------------------------------------------
 setup(
@@ -86,27 +98,7 @@ setup(
 
     packages=find_packages(),  # finds all the .py files in subdirectories
 
-    install_requires=[
-        # 'six',  # Python 2/3 compatibility
-        'semantic_version',  # semantic versioning
-
-        # Then some simple pure Python things, with as few version restrictions as possible:  # noqa
-        # ... but include everything we need!
-        'alembic',
-        'arrow',
-        'colorlog',
-        'django',
-        'dogpile.cache',
-        'openpyxl',
-        'pendulum',
-        'prettytable',
-        'pyparsing',
-        'python-dateutil',
-        'pytz',
-        'regex',  # improves upon re
-        'sqlalchemy',
-        'sqlparse',
-    ],
+    install_requires=requirements,  # see requirements.txt
 
     entry_points={
         'console_scripts': [

@@ -25,15 +25,12 @@
 import os
 from typing import Iterable, Union
 
-# noinspection PyPackageRequirements
 from django.conf import settings
-# noinspection PyPackageRequirements
 from django.http import FileResponse, HttpResponse
-# noinspection PyPackageRequirements
 from django.http.response import HttpResponseBase
-# noinspection PyPackageRequirements
 from django.utils.encoding import smart_str
 
+from cardinal_pythonlib.httpconst import MimeType
 from cardinal_pythonlib.pdf import (
     get_concatenated_pdf_from_disk,
     get_concatenated_pdf_in_memory,
@@ -171,7 +168,7 @@ def serve_concatenated_pdf_from_disk(
     pdf = get_concatenated_pdf_from_disk(filenames, **kwargs)
     return serve_buffer(pdf,
                         offered_filename=offered_filename,
-                        content_type="application/pdf",
+                        content_type=MimeType.PDF,
                         as_attachment=False,
                         as_inline=True)
 
@@ -186,7 +183,7 @@ def serve_pdf_from_html(html: str,
     pdf = get_pdf_from_html(html, **kwargs)
     return serve_buffer(pdf,
                         offered_filename=offered_filename,
-                        content_type="application/pdf",
+                        content_type=MimeType.PDF,
                         as_attachment=False,
                         as_inline=True)
 
@@ -202,6 +199,6 @@ def serve_concatenated_pdf_from_memory(
     pdf = get_concatenated_pdf_in_memory(pdf_plans, start_recto=start_recto)
     return serve_buffer(pdf,
                         offered_filename=offered_filename,
-                        content_type="application/pdf",
+                        content_type=MimeType.PDF,
                         as_attachment=False,
                         as_inline=True)

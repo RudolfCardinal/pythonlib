@@ -22,10 +22,9 @@
 """
 
 import os
-from typing import Any, Iterable
+from typing import Any, Generic, Iterable, Type, TypeVar
 
-# noinspection PyPackageRequirements
-from django.db import models
+from django.db.models import Model
 
 
 # =============================================================================
@@ -38,7 +37,9 @@ from django.db import models
 # Attach them with signals; see e.g. Study model.
 def auto_delete_files_on_instance_delete(instance: Any,
                                          fieldnames: Iterable[str]) -> None:
-    """Deletes files from filesystem when object is deleted."""
+    """
+    Deletes files from filesystem when object is deleted.
+    """
     for fieldname in fieldnames:
         filefield = getattr(instance, fieldname, None)
         if filefield:
@@ -46,15 +47,41 @@ def auto_delete_files_on_instance_delete(instance: Any,
                 os.remove(filefield.path)
 
 
-def auto_delete_files_on_instance_change(instance: Any,
-                                         fieldnames: Iterable[str],
-                                         model: models.Model) -> None:
-    """Deletes files from filesystem when object is changed."""
+# BugfixCT = TypeVar('BugfixCT', covariant=True, bound=type)
+# # ... as per typing.CT (Python 3.5) or typing.CT_co (Python 3.6)
+#
+#
+# class BugfixType(Generic[BugfixCT], extra=type):
+#     """
+#     Type checker note: using Type[Model] results in the error:
+#     TypeError: descriptor '__subclasses__' of 'type' object needs an argument
+#     ... which is the bug https://github.com/python/typing/issues/266
+#
+#     Using this fixes it.
+#     The difference is that BugfixType doesn't inherit from type.
+#
+#     EXCEPT that the calling type checker from PyCharm doesn't know that it
+#     can map Type[X] to BugfixType[X], so this is entirely unhelpful.
+#     """
+
+
+def auto_delete_files_on_instance_change(
+        instance: Any,
+        fieldnames: Iterable[str],
+        model_class) -> None:
+    """
+    Deletes files from filesystem when object is changed.
+
+    model_class: Type[Model]  # only the type checker in Py3.5 is broken; v.s.
+    """
+
     if not instance.pk:
         return  # instance not yet saved in database
+    # noinspection PyUnresolvedReferences
     try:
-        old_instance = model.objects.get(pk=instance.pk)
-    except model.DoesNotExist:
+        # noinspection PyUnresolvedReferences
+        old_instance = model_class.objects.get(pk=instance.pk)
+    except model_class.DoesNotExist:
         return  # old version gone from database entirely
     for fieldname in fieldnames:
         old_filefield = getattr(old_instance, fieldname, None)

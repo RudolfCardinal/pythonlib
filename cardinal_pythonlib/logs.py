@@ -523,11 +523,11 @@ class BraceStyleAdapter(logging.LoggerAdapter):
 
 if __name__ == '__main__':
     main_only_quicksetup_rootlogger(logging.INFO)
-    log = BraceStyleAdapter(logging.getLogger(__name__))
-    log.info("1. Hello!")
-    log.info("1. Hello, {}!", "world")
-    log.info("1. Hello, foo={foo}, bar={bar}!", foo="foo", bar="bar")
-    log.info("1. Hello, {}; foo={foo}, bar={bar}!", "world", foo="foo",
-             bar="bar")
-    log.info("1. Hello, {}; foo={foo}, bar={bar}!", "world", foo="foo",
-             bar="bar", extra={'somekey': 'somevalue'})
+    _log = BraceStyleAdapter(logging.getLogger(__name__))
+    _log.info("1. Hello!")
+    _log.info("1. Hello, {}!", "world")
+    _log.info("1. Hello, foo={foo}, bar={bar}!", foo="foo", bar="bar")
+    _log.info("1. Hello, {}; foo={foo}, bar={bar}!", "world", foo="foo",
+              bar="bar")
+    _log.info("1. Hello, {}; foo={foo}, bar={bar}!", "world", foo="foo",
+              bar="bar", extra={'somekey': 'somevalue'})

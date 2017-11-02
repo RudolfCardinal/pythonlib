@@ -198,6 +198,9 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 log.setLevel(logging.INFO)
 
+log.warning("The cardinal_pythonlib.rnc_db module is DEPRECATED; "
+            "use SQLAlchemy instead")
+
 # =============================================================================
 # Constants
 # =============================================================================
@@ -311,7 +314,7 @@ class Flavour(object):
                     table: str,
                     column: str) -> str:
         """Returns database SQL comment for a column."""
-        return None
+        return ''
 
     @classmethod
     def get_system_variable(cls,

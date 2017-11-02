@@ -348,7 +348,7 @@ def add_index(engine: Engine,
 
     if fulltext:
         if is_mysql:
-            log.warning('OK to ignore this warning: '
+            log.warning('OK to ignore this warning, if it follows next: '
                         '"InnoDB rebuilding table to add column FTS_DOC_ID"')
             # https://dev.mysql.com/doc/refman/5.6/en/innodb-fulltext-index.html
             sql = (
@@ -587,6 +587,7 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
     kwargs = {}  # type: Dict[str, Any]
     basetype = ''
 
+    # noinspection PyPep8,PyBroadException
     try:
         # Split e.g. "VARCHAR(32) COLLATE blah" into "VARCHAR(32)", "who cares"
         m = RE_COLTYPE_WITH_COLLATE.match(coltype)

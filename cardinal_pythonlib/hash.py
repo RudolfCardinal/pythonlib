@@ -50,6 +50,7 @@ from sqlalchemy.sql.sqltypes import String, TypeEngine
 from cardinal_pythonlib.timing import MultiTimerContext, timer
 
 try:
+    # noinspection PyPackageRequirements
     import mmh3
 except ImportError:
     mmh3 = None
@@ -155,21 +156,35 @@ class HmacSHA512Hasher(GenericHmacHasher):
 # Hash factory
 # =============================================================================
 
+class HashMethods(object):
+    MD5 = "MD5"
+    SHA256 = "SHA256"
+    SHA512 = "SHA512"
+    HMAC_MD5 = "HMAC_MD5"
+    HMAC_SHA256 = "HMAC_SHA256"
+    HMAC_SHA512 = "HMAC_SHA512"
+
+
 def make_hasher(hash_method: str, key: str) -> GenericHasher:
     hash_method = hash_method.upper()
-    if hash_method in ("MD5", "SHA256", "SHA512"):
+    if hash_method in (HashMethods.MD5, HashMethods.SHA256, HashMethods.SHA512):  # noqa
         raise ValueError(
             "Non-HMAC hashers are deprecated for security reasons. You are "
             "trying to use: {}".format(hash_method))
-    if hash_method == "HMAC_MD5":
+    if hash_method == HashMethods.HMAC_MD5:
         return HmacMD5Hasher(key)
-    elif hash_method == "HMAC_SHA256" or not hash_method:
+    elif hash_method == HashMethods.HMAC_SHA256 or not hash_method:
         return HmacSHA256Hasher(key)
-    elif hash_method == "HMAC_SHA512":
+    elif hash_method == HashMethods.HMAC_SHA512:
         return HmacSHA512Hasher(key)
     else:
         raise ValueError("Unknown value for hash_method: {}".format(
             hash_method))
+
+
+def get_longest_supported_hasher_output_length() -> int:
+    dummyhash = make_hasher(HashMethods.HMAC_SHA512, "dummysalt")
+    return dummyhash.output_length()
 
 
 # =============================================================================

@@ -21,15 +21,11 @@
 ===============================================================================
 """
 
-from typing import Any, Callable
+from typing import Any, Callable, Type, Union
 
-# noinspection PyPackageRequirements
 from django.contrib.admin import AdminSite, ModelAdmin
-# noinspection PyPackageRequirements
 from django.db.models import Model
-# noinspection PyPackageRequirements
 from django.core.urlresolvers import reverse
-# noinspection PyPackageRequirements
 from django.utils.html import escape
 
 
@@ -39,9 +35,15 @@ from django.utils.html import escape
 # http://stackoverflow.com/questions/13990846/disable-on-off-icon-for-boolean-field-in-django  # noqa
 # ... extended to use closures
 
-def disable_bool_icon(fieldname: str, model: Model) -> Callable[[Any], bool]:
+def disable_bool_icon(
+        fieldname: str,
+        model) -> Callable[[Any], bool]:
     """
     Disable boolean icons for a Django ModelAdmin field.
+    The '_meta' attribute is present on Django model classes and instances.
+
+    model_class: Union[Model, Type[Model]]
+        ... only the type checker in Py3.5 is broken; see files.py
     """
     # noinspection PyUnusedLocal
     def func(self, obj):

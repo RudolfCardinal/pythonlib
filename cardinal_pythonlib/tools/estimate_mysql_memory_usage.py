@@ -32,7 +32,6 @@ import argparse
 import logging
 import subprocess
 
-# noinspection PyPackageRequirements
 import prettytable
 
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger

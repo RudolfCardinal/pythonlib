@@ -25,6 +25,7 @@
 from typing import Any, Dict, Iterable, List
 import unicodedata
 
+# noinspection PyCompatibility
 import regex
 
 
