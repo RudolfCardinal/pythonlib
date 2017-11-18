@@ -88,6 +88,11 @@ def coerce_to_date(x: PotentialDatetimeType,
     return p.date()
 
 
+def pendulum_to_datetime(x: Pendulum) -> datetime.datetime:
+    # noinspection PyProtectedMember
+    return x._datetime
+
+
 # =============================================================================
 # Format dates/times to strings
 # =============================================================================
