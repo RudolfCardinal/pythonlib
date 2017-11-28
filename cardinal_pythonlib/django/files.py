@@ -22,9 +22,9 @@
 """
 
 import os
-from typing import Any, Generic, Iterable, Type, TypeVar
+from typing import Any, Iterable
 
-from django.db.models import Model
+# from django.db.models import Model
 
 
 # =============================================================================

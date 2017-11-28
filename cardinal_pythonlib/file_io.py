@@ -32,7 +32,7 @@ import os
 import shutil
 import subprocess
 import tempfile
-from typing import Iterable, List, TextIO
+from typing import Iterable, List, TextIO, Tuple
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -53,7 +53,7 @@ def writelines_nl(fileobj: TextIO, lines: Iterable[str]) -> None:
 
 
 def write_text(filename: str, text: str) -> None:
-    with open(filename, 'w') as f:
+    with open(filename, 'w') as f:  # type: TextIO
         print(text, file=f)
 
 
@@ -127,3 +127,87 @@ def remove_gzip_timestamp(filename: str,
                                   stdin=p1.stdout, stdout=z)
             p2.communicate()
         shutil.copyfile(newzip, filename)  # copy back
+
+
+# =============================================================================
+# File modifications
+# =============================================================================
+
+def replace_in_file(filename: str, text_from: str, text_to: str) -> None:
+    """
+    Replaces text in a file.
+    """
+    log.info("Amending {}: {} -> {}".format(
+        filename, repr(text_from), repr(text_to)))
+    with open(filename) as infile:
+        contents = infile.read()
+    contents = contents.replace(text_from, text_to)
+    with open(filename, 'w') as outfile:
+        outfile.write(contents)
+
+
+def replace_multiple_in_file(filename: str,
+                             replacements: List[Tuple[str, str]]) -> None:
+    """
+    Replaces multiple from/to string pairs within a single file.
+    """
+    with open(filename) as infile:
+        contents = infile.read()
+    for text_from, text_to in replacements:
+        log.info("Amending {}: {} -> {}".format(
+            filename, repr(text_from), repr(text_to)))
+        contents = contents.replace(text_from, text_to)
+    with open(filename, 'w') as outfile:
+        outfile.write(contents)
+
+
+def convert_line_endings(filename: str, to_unix: bool = False,
+                         to_windows: bool = False) -> None:
+    """
+    Converts a file from UNIX -> Windows line endings, or the reverse.
+    """
+    assert to_unix != to_windows
+    with open(filename, "rb") as f:
+        contents = f.read()
+    windows_eol = b"\r\n"  # CR LF
+    unix_eol = b"\n"  # LF
+    if to_unix:
+        log.info("Converting from Windows to UNIX line endings: {!r}".format(
+            filename))
+        src = windows_eol
+        dst = unix_eol
+    else:  # to_windows
+        log.info("Converting from UNIX to Windows line endings: {!r}".format(
+            filename))
+        src = unix_eol
+        dst = windows_eol
+        if windows_eol in contents:
+            log.info("... already contains at least one Windows line ending; "
+                     "probably converted before; skipping")
+            return
+    contents = contents.replace(src, dst)
+    with open(filename, "wb") as f:
+        f.write(contents)
+
+
+def is_line_in_file(filename: str, line: str) -> bool:
+    """
+    Detects whether a line is present within a file.
+    """
+    assert "\n" not in line
+    with open(filename, "r") as file:
+        for fileline in file:
+            if fileline == line:
+                return True
+        return False
+
+
+def add_line_if_absent(filename: str, line: str) -> None:
+    """
+    Adds a line (at the end) if it's not already in the file.
+    """
+    assert "\n" not in line
+    if not is_line_in_file(filename, line):
+        log.info("Appending line {!r} to file {!r}".format(line, filename))
+        with open(filename, "a") as file:
+            file.writelines([line])

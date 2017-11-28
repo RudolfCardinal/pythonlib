@@ -21,10 +21,10 @@
 ===============================================================================
 """
 
-from typing import Any, Callable, Type, Union
+from typing import Any, Callable
 
 from django.contrib.admin import AdminSite, ModelAdmin
-from django.db.models import Model
+# from django.db.models import Model
 from django.core.urlresolvers import reverse
 from django.utils.html import escape
 

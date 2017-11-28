@@ -70,10 +70,9 @@ from inspect import Parameter, signature
 import json
 import logging
 import os
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, TextIO, Tuple, Union
 
 from colorlog import ColoredFormatter
-
 
 # =============================================================================
 # Quick configuration of a specific log format
@@ -93,9 +92,32 @@ LOG_COLORS = {'DEBUG': 'cyan',
               'CRITICAL': 'bold_white,bg_red'}
 
 
+def get_monochrome_handler(
+        extranames: List[str] = None,
+        with_process_id: bool = False,
+        with_thread_id: bool = False,
+        stream: TextIO = None) -> logging.StreamHandler:
+    fmt = "%(asctime)s.%(msecs)03d"
+    if with_process_id or with_thread_id:
+        procinfo = []  # type: List[str]
+        if with_process_id:
+            procinfo.append("p%(process)d")
+        if with_thread_id:
+            procinfo.append("t%(thread)d")
+        fmt += " [{}]".format(".".join(procinfo))
+    extras = ":" + ":".join(extranames) if extranames else ""
+    fmt += " %(name)s{extras}:%(levelname)s: ".format(extras=extras)
+    fmt += "%(message)s"
+    f = logging.Formatter(fmt, datefmt=LOG_DATEFMT, style='%')
+    h = logging.StreamHandler(stream)
+    h.setFormatter(f)
+    return h
+
+
 def get_colour_handler(extranames: List[str] = None,
                        with_process_id: bool = False,
-                       with_thread_id: bool = False) -> logging.StreamHandler:
+                       with_thread_id: bool = False,
+                       stream: TextIO = None) -> logging.StreamHandler:
     fmt = "%(white)s%(asctime)s.%(msecs)03d"  # this is dim white = grey
     if with_process_id or with_thread_id:
         procinfo = []  # type: List[str]
@@ -113,7 +135,7 @@ def get_colour_handler(extranames: List[str] = None,
                           log_colors=LOG_COLORS,
                           secondary_log_colors={},
                           style='%')
-    ch = logging.StreamHandler()
+    ch = logging.StreamHandler(stream)
     ch.setFormatter(cf)
     return ch
 
