@@ -21,7 +21,7 @@
 ===============================================================================
 """
 
-VERSION = '1.0.7'
+VERSION = '1.0.8'
 # Use semantic versioning: http://semver.org/
 
 RECENT_VERSION_HISTORY = """
@@ -59,7 +59,7 @@ First started in 2009.
 - 1.0.3, 2017-10-18.
   Several small changes for CamCOPS.
   
-- ... to 1.0.7, 2017-10-23.
+- ... to 1.0.8, 2017-11-29.
   Similarly.
 
 """

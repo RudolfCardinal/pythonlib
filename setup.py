@@ -21,6 +21,7 @@ To install in development mode:
 
 from setuptools import setup, find_packages
 from codecs import open
+from io import StringIO
 from os import path
 
 from cardinal_pythonlib.version import VERSION
@@ -37,8 +38,97 @@ with open(path.join(here, 'README.txt'), encoding='utf-8') as f:
 # Nasty
 # -----------------------------------------------------------------------------
 
+REQUIREMENTS_TXT = """
+# use:
+#       pip install -r THISFILE
+# where pip is your virtualenv version of pip
+# Note also that this file can include others with "-r OTHERFILE".
+
+# =============================================================================
+# Use the PyPi index:
+# =============================================================================
+--index-url https://pypi.python.org/simple/
+
+# =============================================================================
+# DISABLED: refer to setup.py
+# =============================================================================
+# ... see https://caremad.io/2013/07/setup-vs-requirement/
+#
+# -e .
+#
+# ... Should work, but PyCharm's package detector doesn't like it!
+
+# =============================================================================
+# Actual requirements
+# =============================================================================
+# - Include everything that is imported without "try / except ImportError"
+#   handling.
+# - Include as few version requirements as possible.
+# - Keep it to pure-Python packages (for e.g. Windows installation with no 
+#   compiler).
+
+alembic
+arrow
+beautifulsoup4
+colander
+colorlog
+deform
+Django
+dogpile.cache
+numpy
+openpyxl
+pendulum
+prettytable
+pyparsing
+PyPDF2
+pyramid
+python-dateutil
+regex
+semantic-version
+SQLAlchemy
+sqlparse
+tzlocal
+
+# =============================================================================
+# The following are NOT HANDLED GRACEFULLY; their absence will cause a runtime
+# ImportError, but we don't make them requirements as they need a compiler to
+# install (and one might want to use the rest of the library without them).
+# =============================================================================
+# bcrypt
+
+
+# =============================================================================
+# The following are OPTIONAL; their absence will be handled gracefully, so
+# they are not requirements, but we note them here:
+# =============================================================================
+
+# jaydebeapi
+# mmh3
+# mysql-python  # "import MySQLdb"
+# mysqlclient  # "import MySQLdb"
+# pdfkit
+# pdfminer
+# pymysql
+# pyodbc
+# pypiwin32
+# pypyodbc
+# pyth
+# python-docx   # "import docx"
+# weasyprint
+# xhtml2pdf
+
+
+# =============================================================================
+# NO LONGER REQUIRED
+# =============================================================================
+# pytz
+"""
+
+# REMEMBER: code that runs here needs to cope with the INSTALLATION situation
+# as well as the PACKAGE CREATION situation.
+
 requirements = []
-with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
+with StringIO(REQUIREMENTS_TXT) as f:
     for line in f.readlines():
         line = line.strip()
         if (not line) or line.startswith('#') or line.startswith('--'):
