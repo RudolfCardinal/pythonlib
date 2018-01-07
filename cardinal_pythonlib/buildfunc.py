@@ -27,13 +27,12 @@ import io
 import logging
 import os
 import platform
-import ssl
 import subprocess
 import sys
 from typing import Any, Callable, Dict, List, TextIO, Tuple
-import urllib.request
 
 from cardinal_pythonlib.fileops import mkdir_p, require_executable
+from cardinal_pythonlib.network import download
 from cardinal_pythonlib.tee import teed_call
 
 log = logging.getLogger(__name__)
@@ -53,34 +52,20 @@ TAR = "tar"
 # =============================================================================
 
 def download_if_not_exists(url: str, filename: str,
-                           skip_cert_verify: bool = True) -> None:
+                           skip_cert_verify: bool = True,
+                           mkdir: bool = True) -> None:
     """
     Downloads a URL to a file, unless the file already exists.
     """
     if os.path.isfile(filename):
         log.info("No need to download, already have: {}".format(filename))
         return
-    directory, basename = os.path.split(os.path.abspath(filename))
-    mkdir_p(directory)
-    log.info("Downloading from {} to {}".format(url, filename))
-
-    # urllib.request.urlretrieve(url, filename)
-    # ... sometimes fails (e.g. downloading
-    # https://www.openssl.org/source/openssl-1.1.0g.tar.gz under Windows) with:
-    # ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:777)  # noqa
-    # ... due to this certificate root problem (probably because OpenSSL
-    #     [used by Python] doesn't play entirely by the same rules as others?):
-    # https://stackoverflow.com/questions/27804710
-    # So:
-
-    ctx = ssl.create_default_context()  # type: ssl.SSLContext
-    if skip_cert_verify:
-        log.debug("Skipping SSL certificate check for " + url)
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-    with urllib.request.urlopen(url, context=ctx) as u, open(filename,
-                                                             'wb') as f:  # noqa
-        f.write(u.read())
+    if mkdir:
+        directory, basename = os.path.split(os.path.abspath(filename))
+        mkdir_p(directory)
+    download(url=url,
+             filename=filename,
+             skip_cert_verify=skip_cert_verify)
 
 
 # =============================================================================

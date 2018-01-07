@@ -27,6 +27,7 @@ import logging
 import sys
 from typing import Any, Callable, Dict, TextIO, Type, Union
 
+import pendulum
 from sqlalchemy.engine import Connectable, create_engine
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine.default import DefaultDialect  # for type hints
@@ -173,6 +174,9 @@ def get_literal_query(statement: Union[Query, Executable],
         statement = statement.statement
     elif bind is None:
         bind = statement.bind
+    if bind is None:  # despite all that
+        raise ValueError("Attempt to call get_literal_query with an unbound "
+                         "statement and no 'bind' parameter")
 
     dialect = bind.dialect
     compiler = statement._compiler(dialect)
@@ -210,7 +214,13 @@ def get_literal_query(statement: Union[Query, Executable],
                 return repr(value)
             elif isinstance(value, decimal.Decimal):
                 return str(value)
-            elif isinstance(value, datetime.datetime):
+            elif (isinstance(value, datetime.datetime) or
+                  isinstance(value, datetime.date) or
+                  isinstance(value, datetime.time) or
+                  isinstance(value, pendulum.Pendulum) or
+                  isinstance(value, pendulum.Date) or
+                  isinstance(value, pendulum.Time)):
+                # All have an isoformat() method.
                 return "'{}'".format(value.isoformat())
                 # return (
                 #     "TO_DATE('%s','YYYY-MM-DD HH24:MI:SS')"

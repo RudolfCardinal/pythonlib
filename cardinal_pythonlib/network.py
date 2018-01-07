@@ -34,9 +34,22 @@ http://stackoverflow.com/questions/316866/ping-a-site-in-python
   One option is fping.
 """
 
+import logging
+import os
+import ssl
 import subprocess
 import sys
+import tempfile
+from typing import BinaryIO, Generator, Iterable
+import urllib.request
 
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+
+
+# =============================================================================
+# Ping
+# =============================================================================
 
 def ping(hostname: str, timeout_s: int = 5) -> bool:
     if sys.platform == "win32":
@@ -61,3 +74,58 @@ def ping(hostname: str, timeout_s: int = 5) -> bool:
     proc.communicate()
     retcode = proc.returncode
     return retcode == 0  # zero success, non-zero failure
+
+
+# =============================================================================
+# Download things
+# =============================================================================
+
+def download(url: str, filename: str,
+             skip_cert_verify: bool = True) -> None:
+    """
+    Downloads a URL to a file.
+    """
+    log.info("Downloading from {} to {}".format(url, filename))
+
+    # urllib.request.urlretrieve(url, filename)
+    # ... sometimes fails (e.g. downloading
+    # https://www.openssl.org/source/openssl-1.1.0g.tar.gz under Windows) with:
+    # ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:777)  # noqa
+    # ... due to this certificate root problem (probably because OpenSSL
+    #     [used by Python] doesn't play entirely by the same rules as others?):
+    # https://stackoverflow.com/questions/27804710
+    # So:
+
+    ctx = ssl.create_default_context()  # type: ssl.SSLContext
+    if skip_cert_verify:
+        log.debug("Skipping SSL certificate check for " + url)
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+    with urllib.request.urlopen(url, context=ctx) as u, open(filename,
+                                                             'wb') as f:  # noqa
+        f.write(u.read())
+
+
+# =============================================================================
+# Generators
+# =============================================================================
+
+def gen_binary_files_from_urls(
+        urls: Iterable[str],
+        on_disk: bool = False,
+        show_info: bool = True) -> Generator[BinaryIO, None, None]:
+    for url in urls:
+        if on_disk:
+            # Necessary for e.g. zip processing (random access)
+            with tempfile.TemporaryDirectory() as tmpdir:
+                filename = os.path.join(tmpdir, "tempfile")
+                download(url=url, filename=filename)
+                with open(filename, 'rb') as f:
+                    yield f
+        else:
+            if show_info:
+                log.info("Reading from URL: {}".format(url))
+            with urllib.request.urlopen(url) as f:
+                yield f
+        if show_info:
+            log.info("... finished reading from URL: {}".format(url))

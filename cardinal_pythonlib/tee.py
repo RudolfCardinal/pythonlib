@@ -176,6 +176,14 @@ class TeeContextManager(object):
     """
     Context manager to implement the function of the Unix "tee" command: that
     is, to save output to a file as well as display it to the console.
+
+    Note that this redirects Python's sys.stdout or sys.stderr, but doesn't
+    redirect stdout/stderr from child processes -- so use teed_call to run
+    them if you want those redirected too. See buildfunc.run() for an example.
+
+    Also, existing logs won't be redirected (presumably because they've already
+    taken a copy of their output streams); see tee_log() for an example of one
+    way to manage this.
     """
 
     def __init__(self,

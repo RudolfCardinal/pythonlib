@@ -21,7 +21,7 @@
 ===============================================================================
 """
 
-VERSION = '1.0.8'
+VERSION = '1.0.9'
 # Use semantic versioning: http://semver.org/
 
 RECENT_VERSION_HISTORY = """
@@ -61,5 +61,9 @@ First started in 2009.
   
 - ... to 1.0.8, 2017-11-29.
   Similarly.
+  
+- 1.0.9, 2018-01-05
+  Additions to datetimefunc.py and improvements to sqlalchemy/dump.py for 
+  CamCOPS.
 
 """

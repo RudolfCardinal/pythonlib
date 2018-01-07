@@ -35,7 +35,7 @@ try:
 except ImportError:
     dateutil = None
 import pendulum
-from pendulum import Date, Pendulum
+from pendulum import Date, Pendulum, Time
 import tzlocal
 
 PotentialDatetimeType = Union[None, datetime.datetime, datetime.date,
@@ -89,8 +89,26 @@ def coerce_to_date(x: PotentialDatetimeType,
 
 
 def pendulum_to_datetime(x: Pendulum) -> datetime.datetime:
+    """
+    Used, for example, where a database backend insists on datetime.datetime.
+    """
     # noinspection PyProtectedMember
     return x._datetime
+
+
+def pendulum_date_to_datetime_date(x: Date) -> datetime.date:
+    """
+    Used, for example, where a database backend insists on datetime.date.
+    """
+    return datetime.date(year=x.year, month=x.month, day=x.day)
+
+
+def pendulum_time_to_datetime_time(x: Time) -> datetime.time:
+    """
+    Used, for example, where a database backend insists on datetime.time.
+    """
+    # noinspection PyProtectedMember
+    return x._time
 
 
 # =============================================================================

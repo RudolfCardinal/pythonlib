@@ -24,18 +24,28 @@ Support functions for file I/O.
 
 """
 
+import csv
+import fnmatch
 import gzip
 from html import escape
 import io
 import logging
+from operator import attrgetter
 import os
 import shutil
 import subprocess
 import tempfile
-from typing import Iterable, List, TextIO, Tuple
+from typing import (Any, BinaryIO, Generator, Iterable, List, TextIO, Tuple,
+                    Union)
+import zipfile
+
+# noinspection PyCompatibility
+import regex
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
+
+UTF8 = "utf8"
 
 
 # =============================================================================
@@ -84,6 +94,102 @@ def get_lines_without_comments(filename: str) -> List[str]:
             if line:
                 lines.append(line)
     return lines
+
+
+# =============================================================================
+# More file input: generic generators
+# =============================================================================
+
+def gen_textfiles_from_filenames(
+        filenames: Iterable[str]) -> Generator[TextIO, None, None]:
+    for filename in filenames:
+        with open(filename) as f:
+            yield f
+
+
+def gen_lines_from_textfiles(
+        files: Iterable[TextIO]) -> Generator[str, None, None]:
+    for file in files:
+        for line in file:
+            yield line
+
+
+def gen_lower(x: Iterable[str]) -> Generator[str, None, None]:
+    for string in x:
+        yield string.lower()
+
+
+def gen_lines_from_binary_files(
+        files: Iterable[BinaryIO],
+        encoding: str = UTF8) -> Generator[str, None, None]:
+    # Strips out newlines
+    for file in files:
+        for byteline in file:
+            line = byteline.decode(encoding).strip()
+            yield line
+
+
+def gen_files_from_zipfiles(
+        zipfilenames_or_files: Iterable[Union[str, BinaryIO]],
+        filespec: str,
+        on_disk: bool = False) -> Generator[BinaryIO, None, None]:
+    for zipfilename_or_file in zipfilenames_or_files:
+        with zipfile.ZipFile(zipfilename_or_file) as zf:
+            infolist = zf.infolist()  # type: List[zipfile.ZipInfo]
+            infolist.sort(key=attrgetter('filename'))
+            for zipinfo in infolist:
+                if not fnmatch.fnmatch(zipinfo.filename, filespec):
+                    continue
+                log.debug("Reading subfile {}".format(zipinfo.filename))
+                if on_disk:
+                    with tempfile.TemporaryDirectory() as tmpdir:
+                        zf.extract(zipinfo.filename, tmpdir)
+                        diskfilename = os.path.join(tmpdir, zipinfo.filename)
+                        with open(diskfilename, 'rb') as subfile:
+                            yield subfile
+                else:
+                    # Will not be seekable; e.g.
+                    # https://stackoverflow.com/questions/12821961/
+                    with zf.open(zipinfo.filename) as subfile:
+                        yield subfile
+
+
+def gen_part_from_line(lines: Iterable[str],
+                       part_index: int,
+                       splitter: str = None) -> Generator[str, None, None]:
+    for line in lines:
+        parts = line.split(splitter)
+        yield parts[part_index]
+
+
+def gen_part_from_iterables(iterables: Iterable[Any],
+                            part_index: int) -> Generator[Any, None, None]:
+    for iterable in iterables:
+        yield iterable[part_index]
+
+
+def gen_rows_from_csv_binfiles(
+        csv_files: Iterable[BinaryIO],
+        encoding: str = UTF8,
+        skip_header: bool = False,
+        **csv_reader_kwargs) -> Generator[Iterable[str], None, None]:
+    dialect = csv_reader_kwargs.pop('dialect', None)
+    for csv_file_bin in csv_files:
+        # noinspection PyTypeChecker
+        csv_file = io.TextIOWrapper(csv_file_bin, encoding=encoding)
+        thisfile_dialect = dialect
+        if thisfile_dialect is None:
+            thisfile_dialect = csv.Sniffer().sniff(csv_file.read(1024))
+            csv_file.seek(0)
+        reader = csv.reader(csv_file, dialect=thisfile_dialect,
+                            **csv_reader_kwargs)
+        first = True
+        for row in reader:
+            if first:
+                first = False
+                if skip_header:
+                    continue
+            yield row
 
 
 # =============================================================================

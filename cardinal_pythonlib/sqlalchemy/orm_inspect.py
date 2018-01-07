@@ -460,6 +460,7 @@ def gen_relationships(obj) -> Generator[Tuple[str, RelationshipProperty, Type],
     Yields tuples of
         (attrname, RelationshipProperty, related_class)
     for all relationships of an ORM object.
+    The object 'obj' can be EITHER an instance OR a class.
     """
     insp = inspect(obj)  # type: InstanceState
     # insp.mapper.relationships is of type
