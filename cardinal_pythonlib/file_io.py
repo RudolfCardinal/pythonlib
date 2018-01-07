@@ -24,6 +24,7 @@ Support functions for file I/O.
 
 """
 
+from contextlib import contextmanager
 import csv
 import fnmatch
 import gzip
@@ -34,9 +35,10 @@ from operator import attrgetter
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
-from typing import (Any, BinaryIO, Generator, Iterable, List, TextIO, Tuple,
-                    Union)
+from typing import (Any, BinaryIO, Generator, Iterable, IO, List, TextIO,
+                    Tuple, Union)
 import zipfile
 
 # noinspection PyCompatibility
@@ -46,6 +48,28 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 UTF8 = "utf8"
+
+
+# =============================================================================
+# File opening
+# =============================================================================
+
+@contextmanager
+def smart_open(filename: str, mode: str = 'Ur') -> IO:
+    # https://stackoverflow.com/questions/17602878/how-to-handle-both-with-open-and-sys-stdout-nicely  # noqa
+    # https://stackoverflow.com/questions/1744989/read-from-file-or-stdin/29824059#29824059  # noqa
+    if filename == '-':
+        if mode is None or mode == '' or 'r' in mode:
+            fh = sys.stdin
+        else:
+            fh = sys.stdout
+    else:
+        fh = open(filename, mode)
+    try:
+        yield fh
+    finally:
+        if filename is not '-':
+            fh.close()
 
 
 # =============================================================================
