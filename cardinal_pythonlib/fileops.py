@@ -86,6 +86,9 @@ def mkdir_p(path: str) -> None:
 def pushd(directory: str) -> None:
     """
     Context manager: changes directory and preserves the original on exit.
+    Example:
+        with pushd(new_directory):
+            # do things
     """
     previous_dir = os.getcwd()
     os.chdir(directory)

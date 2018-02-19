@@ -348,8 +348,8 @@ def add_index(engine: Engine,
 
     if fulltext:
         if is_mysql:
-            log.warning('OK to ignore this warning, if it follows next: '
-                        '"InnoDB rebuilding table to add column FTS_DOC_ID"')
+            log.info('OK to ignore this warning, if it follows next: '
+                     '"InnoDB rebuilding table to add column FTS_DOC_ID"')
             # https://dev.mysql.com/doc/refman/5.6/en/innodb-fulltext-index.html
             sql = (
                 "ALTER TABLE {tablename} "

@@ -62,8 +62,8 @@ First started in 2009.
 - ... to 1.0.8, 2017-11-29.
   Similarly.
   
-- 1.0.9, 2018-01-05
+- 1.0.9, 2018-01-05 + 2018-02-19
   Additions to datetimefunc.py and improvements to sqlalchemy/dump.py for 
-  CamCOPS.
+  CamCOPS. Addition of slurm.py.
 
 """

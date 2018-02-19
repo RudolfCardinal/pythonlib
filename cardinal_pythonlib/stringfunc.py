@@ -51,6 +51,18 @@ def find_nth(s: str, x: str, n: int = 0, overlap: bool = False) -> int:
 
 
 # =============================================================================
+# Splitting
+# =============================================================================
+
+def split_string(x: str, n: int) -> List[str]:
+    """
+    Split string into chunks of length n
+    """
+    # https://stackoverflow.com/questions/9475241/split-string-every-nth-character  # noqa
+    return [x[i:i+n] for i in range(0, len(x), n)]
+
+
+# =============================================================================
 # Replacement
 # =============================================================================
 
