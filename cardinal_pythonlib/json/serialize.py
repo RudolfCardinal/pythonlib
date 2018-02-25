@@ -55,6 +55,11 @@ import pprint
 import sys
 from typing import Any, Callable, Dict, List, TextIO, Tuple, Type
 
+from pendulum import Pendulum
+# from pendulum.tz.timezone import Timezone
+# from pendulum.tz.timezone_info import TimezoneInfo
+# from pendulum.tz.transition import Transition
+
 from cardinal_pythonlib.reprfunc import auto_repr
 
 log = logging.getLogger(__name__)
@@ -154,6 +159,7 @@ def initdict_to_instance(d: InitDict, cls: ClassType) -> Any:
     """
     args = d.get(ARGS_LABEL, [])
     kwargs = d.get(KWARGS_LABEL, {})
+    # noinspection PyArgumentList
     return cls(*args, **kwargs)
 
 
@@ -564,6 +570,40 @@ def json_decode(s: str) -> Any:
 # Implement JSON translation for common types
 # =============================================================================
 
+# def timezone_to_initdict(x: Timezone) -> Dict[str, Any]:
+#     kwargs = {
+#         'name': x.name,
+#         'transitions': x.transitions,
+#         'tzinfos': x.tzinfos,
+#         'default_tzinfo_index': x._default_tzinfo_index,  # NB different name
+#         'utc_transition_times': x._utc_transition_times,  # NB different name
+#     }
+#     return kwargs_to_initdict(kwargs)
+
+
+# def timezoneinfo_to_initdict(x: TimezoneInfo) -> Dict[str, Any]:
+#     kwargs = {
+#         'tz': x.tz,
+#         'utc_offset': x.offset,  # NB different name
+#         'is_dst': x.is_dst,
+#         'dst': x.dst_,  # NB different name
+#         'abbrev': x.abbrev,
+#     }
+#     return kwargs_to_initdict(kwargs)
+
+
+def pendulum_to_dict(p: Pendulum) -> Dict[str, Any]:
+    return {
+        'iso': str(p)
+    }
+
+
+# noinspection PyUnusedLocal
+def dict_to_pendulum(d: Dict[str, Any],
+                     pendulum_class: ClassType) -> Pendulum:
+    return Pendulum.parse(d['iso'])
+
+
 register_class_for_json(
     cls=datetime.date,
     obj_to_dict_fn=make_instance_to_initdict(['year', 'month', 'day'])
@@ -571,13 +611,39 @@ register_class_for_json(
 register_class_for_json(
     cls=datetime.datetime,
     obj_to_dict_fn=make_instance_to_initdict([
-        'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond'
+        'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond',
+        'tzinfo'
     ])
 )
 # Note in passing: the repr() of datetime.date and datetime.datetime look like
 # 'datetime.date(...)' only because their repr() function explicitly does
 # 'datetime.' + self.__class__.__name__; there's no way, it seems, to get
 # that or __qualname__ to add the prefix automatically.
+register_class_for_json(
+    cls=datetime.timedelta,
+    obj_to_dict_fn=make_instance_to_initdict([
+        'days', 'seconds', 'microseconds'
+    ])
+)
+# register_class_for_json(
+#     cls=Transition,
+#     obj_to_dict_fn=make_instance_to_initdict([
+#         'unix_time', 'tzinfo_index', 'pre_time', 'time', 'pre_tzinfo_index'
+#     ])
+# )
+# register_class_for_json(
+#     cls=Timezone,
+#     obj_to_dict_fn=timezone_to_initdict
+# )
+# register_class_for_json(
+#     cls=TimezoneInfo,
+#     obj_to_dict_fn=timezoneinfo_to_initdict
+# )
+register_class_for_json(
+    cls=Pendulum,
+    obj_to_dict_fn=pendulum_to_dict,
+    dict_to_obj_fn=dict_to_pendulum
+)
 
 
 # =============================================================================

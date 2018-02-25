@@ -21,7 +21,7 @@
 ===============================================================================
 """
 
-VERSION = '1.0.10'
+VERSION = '1.0.11'
 # Use semantic versioning: http://semver.org/
 
 RECENT_VERSION_HISTORY = """
@@ -65,5 +65,8 @@ First started in 2009.
 - 1.0.9 to 1.0.10, 2018-01-05 + 2018-02-19
   Additions to datetimefunc.py and improvements to sqlalchemy/dump.py for 
   CamCOPS. Addition of slurm.py.
+  
+- 1.0.11, 2018-02-23
+  Automatic JSON encoding of Pendulum objects; see serialize.py
 
 """
