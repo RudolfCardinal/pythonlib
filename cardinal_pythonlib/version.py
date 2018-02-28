@@ -68,5 +68,6 @@ First started in 2009.
   
 - 1.0.11, 2018-02-23
   Automatic JSON encoding of Pendulum objects; see serialize.py
+  Some DSP code.
 
 """

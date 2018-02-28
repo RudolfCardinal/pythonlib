@@ -37,7 +37,9 @@ log.addHandler(logging.NullHandler())
 # =============================================================================
 
 def mean(values: Sequence[Union[int, float, None]]) -> Optional[float]:
-    """Return mean of a list of numbers, or None."""
+    """
+    Returns the mean of a list of numbers, or None.
+    """
     total = 0.0  # starting with "0.0" causes automatic conversion to float
     n = 0
     for x in values:
@@ -59,3 +61,53 @@ def safe_logit(x: Union[float, int]) -> Optional[float]:
     if x == 0:
         return float("-inf")
     return math.log(x / (1 - x))
+
+
+# =============================================================================
+# Rounding
+# =============================================================================
+
+def normal_round_float(x: float, dp: int = 0) -> float:
+    """
+    Hmpf. Shouldn't need to have to implement this, but...
+
+    Conventional rounding to integer via the "round half away from zero"
+    method, e.g.
+            1.1 -> 1
+            1.5 -> 2
+            1.6 -> 2
+            2.0 -> 2
+
+            -1.6 -> -2
+            etc.
+
+    ... or the equivalent for a certain number of decimal places.
+
+    Note that round() implements "banker's rounding", which is never what
+    we want:
+    - https://stackoverflow.com/questions/33019698/how-to-properly-round-up-half-float-numbers-in-python  # noqa
+    """
+    if not math.isfinite(x):
+        return x
+    factor = pow(10, dp)
+    x = x * factor
+    if x >= 0:
+        x = math.floor(x + 0.5)
+    else:
+        x = math.ceil(x - 0.5)
+    x = x / factor
+    return x
+
+
+def normal_round_int(x: float) -> int:
+    """
+    Version of normal_round_float() but guaranteed to return an int.
+    """
+    if not math.isfinite(x):
+        raise ValueError("Input to normal_round_int() is not finite")
+    if x >= 0:
+        # noinspection PyTypeChecker
+        return math.floor(x + 0.5)
+    else:
+        # noinspection PyTypeChecker
+        return math.ceil(x - 0.5)

@@ -23,10 +23,12 @@
 
 # noinspection PyProtectedMember
 from argparse import (
-    ArgumentParser,
-    Namespace,
     _HelpAction,
     _SubParsersAction,
+    ArgumentDefaultsHelpFormatter,
+    ArgumentParser,
+    Namespace,
+    RawDescriptionHelpFormatter,
 )
 from typing import Any, List
 
@@ -62,3 +64,14 @@ class ShowAllSubparserHelpAction(_HelpAction):
         print("\n".join(messages))
 
         parser.exit()
+
+
+class RawDescriptionArgumentDefaultsHelpFormatter(
+        ArgumentDefaultsHelpFormatter,
+        RawDescriptionHelpFormatter):
+    """
+    Combines the features of
+        RawDescriptionHelpFormatter -- don't mangle the description
+        ArgumentDefaultsHelpFormatter -- print argument defaults
+    """
+    pass

@@ -43,8 +43,8 @@ log.addHandler(logging.NullHandler())
 # Softmax
 # =============================================================================
 
-def softmax(x: np.array,
-            b: float = 1.0) -> np.array:
+def softmax(x: np.ndarray,
+            b: float = 1.0) -> np.ndarray:
     # x: vector (numpy.array) of values
     # b: exploration parameter, or inverse temperature [Daw2009], or 1/t where:
     # t: temperature (towards infinity: all actions equally likely;
@@ -77,7 +77,7 @@ def softmax(x: np.array,
 # Logistic
 # =============================================================================
 
-def logistic(x: Union[float, np.array],
+def logistic(x: Union[float, np.ndarray],
              k: float,
              theta: float) -> Optional[float]:
     """Standard logistic function."""
@@ -87,7 +87,7 @@ def logistic(x: Union[float, np.array],
     return 1 / (1 + np.exp(-k * (x - theta)))
 
 
-def inv_logistic(y: Union[float, np.array],
+def inv_logistic(y: Union[float, np.ndarray],
                  k: float,
                  theta: float) -> Optional[float]:
     """Inverse standard logistic function."""

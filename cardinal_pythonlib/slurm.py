@@ -32,6 +32,14 @@ RNC: SLURM job launcher.
 - The HPHI has Python 3.4.2 (as of 2018-02-17) so no Python 3.5 stuff without
   installing a newer Python and venv (but let's do that).
 
+To find out what you have available in terms of partitions, clusters, etc.:
+
+$ sinfo                             # summarizes partitions, nodes
+                                    # NB: default partition has "*" appended
+$ scontrol show node <NODENAME>     # details of one node
+$ sacctmgr show qos                 # show Quality of Service options
+$ squeue -u <USERNAME> --sort=+i    # show my running jobs
+
 """
 
 from datetime import timedelta
@@ -70,7 +78,8 @@ def launch_slurm(jobname: str,
         partition_cmd = "#SBATCH -p {}".format(partition)
     else:
         partition_cmd = ""
-    modules = modules or []  # type: List[str]
+    if modules is None:
+        modules = ["default-wbic"]
 
     log.info("Launching SLURM job: {}".format(jobname))
     script = """#!/bin/bash
@@ -182,24 +191,26 @@ eval $CMD
         p.communicate(input=script.encode(encoding))
 
 
-def launch_cambridge_hphi(jobname: str,
-                          cmd: str,
-                          memory_mb: int,
-                          qos: str,
-                          email: str,
-                          duration: timedelta,
-                          cpus_per_task: int,
-                          project: str = "hphi",
-                          tasks_per_node: int = 1,
-                          partition: str = "wbic",
-                          modules: List[str] = None,
-                          directory: str = os.getcwd(),
-                          encoding: str = "ascii") -> None:
+def launch_cambridge_hphi(
+        jobname: str,
+        cmd: str,
+        memory_mb: int,
+        qos: str,
+        email: str,
+        duration: timedelta,
+        cpus_per_task: int,
+        project: str = "hphi",
+        tasks_per_node: int = 1,
+        partition: str = "wbic-cs",  # 2018-02: was "wbic", now "wbic-cs"
+        modules: List[str] = None,
+        directory: str = os.getcwd(),
+        encoding: str = "ascii") -> None:
     """
     Specialization of launch_slurm with defaults for the University of
     Cambridge WBIC HPHI.
     """
-    modules = modules or ["default-wbic"]
+    if modules is None:
+        modules = ["default-wbic"]
     launch_slurm(
         cmd=cmd,
         cpus_per_task=cpus_per_task,

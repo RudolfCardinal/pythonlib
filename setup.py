@@ -84,6 +84,7 @@ PyPDF2
 pyramid
 python-dateutil
 regex
+scipy
 semantic-version
 SQLAlchemy
 sqlparse
