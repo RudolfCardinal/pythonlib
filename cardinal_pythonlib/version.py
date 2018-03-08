@@ -21,7 +21,7 @@
 ===============================================================================
 """
 
-VERSION = '1.0.11'
+VERSION = '1.0.12'
 # Use semantic versioning: http://semver.org/
 
 RECENT_VERSION_HISTORY = """
@@ -69,5 +69,8 @@ First started in 2009.
 - 1.0.11, 2018-02-23
   Automatic JSON encoding of Pendulum objects; see serialize.py
   Some DSP code.
+  
+- 1.0.12, 2018-08-03
+  Fixed coerce_to_datetime() so it coerces Pendulum to datetime too.
 
 """

@@ -308,6 +308,9 @@ def coerce_to_datetime(x: Any) -> Optional[datetime.datetime]:
     """
     if x is None:
         return None
+    elif isinstance(x, Pendulum):
+        # noinspection PyProtectedMember
+        return x._datetime
     elif isinstance(x, datetime.datetime):
         return x
     elif isinstance(x, datetime.date):
