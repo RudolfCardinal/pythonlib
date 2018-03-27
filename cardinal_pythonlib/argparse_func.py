@@ -27,11 +27,16 @@ from argparse import (
     _SubParsersAction,
     ArgumentDefaultsHelpFormatter,
     ArgumentParser,
+    ArgumentTypeError,
     Namespace,
     RawDescriptionHelpFormatter,
 )
 from typing import Any, List
 
+
+# =============================================================================
+# Argparse actions
+# =============================================================================
 
 class ShowAllSubparserHelpAction(_HelpAction):
     """
@@ -66,6 +71,10 @@ class ShowAllSubparserHelpAction(_HelpAction):
         parser.exit()
 
 
+# =============================================================================
+# Argparse formatters
+# =============================================================================
+
 class RawDescriptionArgumentDefaultsHelpFormatter(
         ArgumentDefaultsHelpFormatter,
         RawDescriptionHelpFormatter):
@@ -75,3 +84,49 @@ class RawDescriptionArgumentDefaultsHelpFormatter(
         ArgumentDefaultsHelpFormatter -- print argument defaults
     """
     pass
+
+
+# =============================================================================
+# Argparse types/checkers
+# =============================================================================
+
+def str2bool(v: str) -> bool:
+    """
+    From
+    https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
+
+    Specimen usage:
+        parser.add_argument(
+            "--nice", type=str2bool, nargs='?',
+            const=True,  # if --nice is present with no parameter
+            default=NICE,  # if the argument is entirely absent
+            help="Activate nice mode.")
+
+    """  # noqa
+    lv = v.lower()
+    if lv in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif lv in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise ArgumentTypeError('Boolean value expected.')
+
+
+def positive_int(value: str) -> int:
+    try:
+        ivalue = int(value)
+        assert ivalue > 0
+    except (AssertionError, TypeError, ValueError):
+        raise ArgumentTypeError(
+            "{!r} is an invalid positive int".format(value))
+    return ivalue
+
+
+def percentage(value: str) -> float:
+    try:
+        fvalue = float(value)
+        assert 0 <= fvalue <= 100
+    except (AssertionError, TypeError, ValueError):
+        raise ArgumentTypeError(
+            "{!r} is an invalid percentage value".format(value))
+    return fvalue

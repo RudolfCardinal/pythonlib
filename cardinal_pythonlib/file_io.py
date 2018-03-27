@@ -42,7 +42,7 @@ from typing import (Any, BinaryIO, Generator, Iterable, IO, List, TextIO,
 import zipfile
 
 # noinspection PyCompatibility
-import regex
+# import regex
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())

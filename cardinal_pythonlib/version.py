@@ -21,7 +21,7 @@
 ===============================================================================
 """
 
-VERSION = '1.0.12'
+VERSION = '1.0.13'
 # Use semantic versioning: http://semver.org/
 
 RECENT_VERSION_HISTORY = """
@@ -72,5 +72,8 @@ First started in 2009.
   
 - 1.0.12, 2018-08-03
   Fixed coerce_to_datetime() so it coerces Pendulum to datetime too.
+  
+- 1.0.13, 2018-08-03
+  argparse_func: str2bool(), percentage(), positive_int()
 
 """
