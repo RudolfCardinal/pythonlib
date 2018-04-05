@@ -242,7 +242,7 @@ def rewrite_relationships(oldobj: object,
 
     Both "oldobj" and "newobj" are SQLAlchemy instances.
     The instance "newobj" is already a copy of "oldobj" but we wish to rewrite
-    its relationships, according the the map "objmap", which maps old to new
+    its relationships, according to the map "objmap", which maps old to new
     objects.
     """
     skip_table_names = skip_table_names or []  # type: List[str]

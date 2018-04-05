@@ -340,7 +340,7 @@ class TranslationContext(object):
     Attributes:
 
     oldobj
-        The the object from the source session.
+        The old object from the source session.
 
     newobj
         The framework's go at building a new object, which will be inserted
