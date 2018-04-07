@@ -51,9 +51,11 @@ class ShowAllSubparserHelpAction(_HelpAction):
                  namespace: Namespace,
                  values: List[Any],  # ?
                  option_string: str = None) -> None:
+        # 1. Print top-level help
         parser.print_help()
-        sep = "-" * 79
+        sep = "=" * 79  # "-" less helpful when using grep for "--option"!
 
+        # 2. Print help for all subparsers
         # noinspection PyProtectedMember
         subparsers_actions = [
             action for action in parser._actions
