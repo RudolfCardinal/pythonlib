@@ -553,8 +553,11 @@ def json_class_decoder_hook(d: Dict) -> Any:
 # Functions for end users
 # =============================================================================
 
-def json_encode(obj: Instance) -> str:
-    return json.dumps(obj, cls=JsonClassEncoder)
+def json_encode(obj: Instance, **kwargs) -> str:
+    """
+    The **kwargs can be used to pass things like 'indent', for formatting.
+    """
+    return json.dumps(obj, cls=JsonClassEncoder, **kwargs)
 
 
 def json_decode(s: str) -> Any:

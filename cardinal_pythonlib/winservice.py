@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # cardinal_pythonlib/winservice.py
 
-"""
+r"""
 ===============================================================================
     Copyright (C) 2009-2017 Rudolf Cardinal (rudolf@pobox.com).
 

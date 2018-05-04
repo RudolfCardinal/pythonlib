@@ -21,10 +21,10 @@
 ===============================================================================
 """
 
-VERSION = '1.0.13'
+VERSION = '1.0.15'
 # Use semantic versioning: http://semver.org/
 
-RECENT_VERSION_HISTORY = """
+RECENT_VERSION_HISTORY = r"""
 
 First started in 2009.
 
@@ -70,10 +70,16 @@ First started in 2009.
   Automatic JSON encoding of Pendulum objects; see serialize.py
   Some DSP code.
   
-- 1.0.12, 2018-08-03
+- 1.0.12, 2018-03-08
   Fixed coerce_to_datetime() so it coerces Pendulum to datetime too.
   
-- 1.0.13, 2018-08-03
+- 1.0.13, 2018-03-08
   argparse_func: str2bool(), percentage(), positive_int()
+  
+- 1.0.14, 2018-05-01
+  **kwargs options to json_encode()
+  
+- 1.0.15, 2018-05-04
+  There was a bad character in a comment in winservice.py; fixed.
 
 """
