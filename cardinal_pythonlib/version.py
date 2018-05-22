@@ -3,7 +3,7 @@
 
 """
 ===============================================================================
-    Copyright (C) 2009-2017 Rudolf Cardinal (rudolf@pobox.com).
+    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -81,5 +81,8 @@ First started in 2009.
   
 - 1.0.15, 2018-05-04
   There was a bad character in a comment in winservice.py; fixed.
+  
+- 1.0.16, 2018-05-22 IN PROGRESS
+  New file sqlalchemy/engine_func.py
 
 """

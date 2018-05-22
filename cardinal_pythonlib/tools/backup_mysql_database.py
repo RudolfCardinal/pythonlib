@@ -3,7 +3,7 @@
 
 """
 ===============================================================================
-    Copyright (C) 2009-2017 Rudolf Cardinal (rudolf@pobox.com).
+    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
