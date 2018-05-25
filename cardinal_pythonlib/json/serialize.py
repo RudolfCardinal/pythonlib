@@ -49,13 +49,14 @@ also with the simpler dictionary:
 """
 
 import datetime
+from enum import Enum
 import json
 import logging
 import pprint
 import sys
 from typing import Any, Callable, Dict, List, TextIO, Tuple, Type
 
-from pendulum import Pendulum
+from pendulum import Date, Pendulum
 # from pendulum.tz.timezone import Timezone
 # from pendulum.tz.timezone_info import TimezoneInfo
 # from pendulum.tz.transition import Transition
@@ -573,6 +574,128 @@ def json_decode(s: str) -> Any:
 # Implement JSON translation for common types
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# datetime.date
+# -----------------------------------------------------------------------------
+
+register_class_for_json(
+    cls=datetime.date,
+    obj_to_dict_fn=make_instance_to_initdict(['year', 'month', 'day'])
+)
+
+# -----------------------------------------------------------------------------
+# datetime.datetime
+# -----------------------------------------------------------------------------
+
+register_class_for_json(
+    cls=datetime.datetime,
+    obj_to_dict_fn=make_instance_to_initdict([
+        'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond',
+        'tzinfo'
+    ])
+)
+
+# -----------------------------------------------------------------------------
+# datetime.timedelta
+# -----------------------------------------------------------------------------
+
+# Note in passing: the repr() of datetime.date and datetime.datetime look like
+# 'datetime.date(...)' only because their repr() function explicitly does
+# 'datetime.' + self.__class__.__name__; there's no way, it seems, to get
+# that or __qualname__ to add the prefix automatically.
+register_class_for_json(
+    cls=datetime.timedelta,
+    obj_to_dict_fn=make_instance_to_initdict([
+        'days', 'seconds', 'microseconds'
+    ])
+)
+
+
+# -----------------------------------------------------------------------------
+# enum.Enum
+# -----------------------------------------------------------------------------
+# Since this is a family of classes, we provide a decorator.
+
+def enum_to_dict_fn(e: Enum) -> Dict[str, Any]:
+    return {
+        'name': e.name
+    }
+
+
+def dict_to_enum_fn(d: Dict[str, Any], enum_class: Type[Enum]) -> Enum:
+    return enum_class[d['name']]
+
+
+def register_enum_for_json(*args, **kwargs) -> Any:
+    """
+    Class decorator to register Enum-derived classes with our JSON system.
+    See comments/help for @register_for_json, above.
+    """
+    if len(args) == 1 and len(kwargs) == 0 and callable(args[0]):
+        # called as @register_enum_for_json
+        cls = args[0]  # type: ClassType
+        register_class_for_json(
+            cls,
+            obj_to_dict_fn=enum_to_dict_fn,
+            dict_to_obj_fn=dict_to_enum_fn
+        )
+        return cls
+    else:
+        # called as @register_enum_for_json(*args, **kwargs)
+        raise AssertionError("Use as plain @register_enum_for_json, "
+                             "without arguments")
+
+
+# -----------------------------------------------------------------------------
+# pendulum.Pendulum
+# -----------------------------------------------------------------------------
+
+def pendulum_to_dict(p: Pendulum) -> Dict[str, Any]:
+    return {
+        'iso': str(p)
+    }
+
+
+# noinspection PyUnusedLocal
+def dict_to_pendulum(d: Dict[str, Any],
+                     pendulum_class: ClassType) -> Pendulum:
+    return Pendulum.parse(d['iso'])
+
+
+register_class_for_json(
+    cls=Pendulum,
+    obj_to_dict_fn=pendulum_to_dict,
+    dict_to_obj_fn=dict_to_pendulum
+)
+
+
+# -----------------------------------------------------------------------------
+# pendulum.Date
+# -----------------------------------------------------------------------------
+
+def pendulumdate_to_dict(p: Date) -> Dict[str, Any]:
+    return {
+        'iso': str(p)
+    }
+
+
+# noinspection PyUnusedLocal
+def dict_to_pendulumdate(d: Dict[str, Any],
+                         pendulumdate_class: ClassType) -> Date:
+    # noinspection PyTypeChecker
+    return Pendulum.parse(d['iso']).date()
+
+
+register_class_for_json(
+    cls=Date,
+    obj_to_dict_fn=pendulumdate_to_dict,
+    dict_to_obj_fn=dict_to_pendulumdate
+)
+
+# -----------------------------------------------------------------------------
+# unused
+# -----------------------------------------------------------------------------
+
 # def timezone_to_initdict(x: Timezone) -> Dict[str, Any]:
 #     kwargs = {
 #         'name': x.name,
@@ -594,40 +717,6 @@ def json_decode(s: str) -> Any:
 #     }
 #     return kwargs_to_initdict(kwargs)
 
-
-def pendulum_to_dict(p: Pendulum) -> Dict[str, Any]:
-    return {
-        'iso': str(p)
-    }
-
-
-# noinspection PyUnusedLocal
-def dict_to_pendulum(d: Dict[str, Any],
-                     pendulum_class: ClassType) -> Pendulum:
-    return Pendulum.parse(d['iso'])
-
-
-register_class_for_json(
-    cls=datetime.date,
-    obj_to_dict_fn=make_instance_to_initdict(['year', 'month', 'day'])
-)
-register_class_for_json(
-    cls=datetime.datetime,
-    obj_to_dict_fn=make_instance_to_initdict([
-        'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond',
-        'tzinfo'
-    ])
-)
-# Note in passing: the repr() of datetime.date and datetime.datetime look like
-# 'datetime.date(...)' only because their repr() function explicitly does
-# 'datetime.' + self.__class__.__name__; there's no way, it seems, to get
-# that or __qualname__ to add the prefix automatically.
-register_class_for_json(
-    cls=datetime.timedelta,
-    obj_to_dict_fn=make_instance_to_initdict([
-        'days', 'seconds', 'microseconds'
-    ])
-)
 # register_class_for_json(
 #     cls=Transition,
 #     obj_to_dict_fn=make_instance_to_initdict([
@@ -642,11 +731,6 @@ register_class_for_json(
 #     cls=TimezoneInfo,
 #     obj_to_dict_fn=timezoneinfo_to_initdict
 # )
-register_class_for_json(
-    cls=Pendulum,
-    obj_to_dict_fn=pendulum_to_dict,
-    dict_to_obj_fn=dict_to_pendulum
-)
 
 
 # =============================================================================

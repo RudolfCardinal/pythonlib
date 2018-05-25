@@ -37,9 +37,32 @@ if TYPE_CHECKING:
 # Helper functions for SQL Server
 # =============================================================================
 
+def is_sqlserver(engine: "Engine") -> bool:
+    dialect_name = get_dialect_name(engine)
+    return dialect_name == SqlaDialectName.SQLSERVER
+
+
 def get_sqlserver_product_version(engine: "Engine") -> Tuple[int]:
     """
     Gets SQL Server version information.
+
+    Attempted to use dialect.server_version_info:
+
+        from sqlalchemy import create_engine
+
+        url = "mssql+pyodbc://USER:PASSWORD@ODBC_NAME"
+        engine = create_engine(url)
+        dialect = engine.dialect
+        vi = dialect.server_version_info
+
+    Unfortunately, vi == () for an SQL Server 2014 instance via mssql+pyodbc.
+    It's also None for a mysql+pymysql connection.
+    So this seems server_version_info is a badly supported feature.
+
+    So the only other way is to ask the database directly.
+    The problem is that this requires an Engine or similar. (The initial hope
+    was to be able to use this from within SQL compilation hooks, to vary the
+    SQL based on the engine version. Still, this isn't so bad.)
 
     We could use either
             SELECT @@version;  -- returns a human-readable string
@@ -47,18 +70,15 @@ def get_sqlserver_product_version(engine: "Engine") -> Tuple[int]:
     The pyodbc interface will fall over with "ODBC SQL type -150 is not yet
     supported" with that last call, though, meaning that a VARIANT is coming
     back, so we CAST as below.
-
-    This function is UNUSED at present, as we can't get an engine from a
-    ClauseElement or a SQLCompiler.
     """
-    dialect_name = get_dialect_name(engine)
-    assert dialect_name == SqlaDialectName.SQLSERVER, (
-        "Only call get_sqlserver_product_version() for SQL Server instances."
+    assert is_sqlserver(engine), (
+        "Only call get_sqlserver_product_version() for Microsoft SQL Server "
+        "instances."
     )
     sql = "SELECT CAST(SERVERPROPERTY('ProductVersion') AS VARCHAR)"
     rp = engine.execute(sql)  # type: ResultProxy
     row = rp.fetchone()
-    dotted_version = row[0]  # e.g. '12.0.5203.0'
+    dotted_version = row[0]  # type: str  # e.g. '12.0.5203.0'
     return tuple(int(x) for x in dotted_version.split("."))
 
 
@@ -73,25 +93,7 @@ SQLSERVER_MAJOR_VERSION_2017 = 14
 
 
 def is_sqlserver_2008_or_later(engine: "Engine") -> bool:
-    """
-    Attempted to use dialect.server_version_info:
-
-from sqlalchemy import create_engine
-
-url = "mssql+pyodbc://USER:PASSWORD@ODBC_NAME"
-engine = create_engine(url)
-dialect = engine.dialect
-vi = dialect.server_version_info
-
-# Unfortunately, vi == () for an SQL Server 2014 instance via mssql+pyodbc.
-# It's also None for a mysql+pymysql connection.
-# So this seems server_version_info is a badly supported feature.
-
-    So the only other way is to ask the database directly.
-    The problem is that this requires an Engine or similar.
-    """
-    dialect_name = get_dialect_name(engine)
-    if dialect_name != SqlaDialectName.SQLSERVER:
+    if not is_sqlserver(engine):
         return False
     version_tuple = get_sqlserver_product_version(engine)
     return version_tuple >= (SQLSERVER_MAJOR_VERSION_2008, )
