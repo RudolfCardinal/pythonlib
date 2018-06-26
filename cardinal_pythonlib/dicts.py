@@ -21,7 +21,7 @@
 ===============================================================================
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, Hashable, List, Optional
 
 
 # =============================================================================
@@ -168,3 +168,53 @@ def delete_keys(d: Dict[Any, Any],
     for k in keys_to_delete:
         if k in d and k not in keys_to_keep:
             del d[k]
+
+
+# =============================================================================
+# Lazy dictionaries
+# =============================================================================
+# https://stackoverflow.com/questions/17532929/how-to-implement-a-lazy-setdefault  # noqa
+
+class LazyDict(dict):
+    """
+    The *args/**kwargs parts are useful, but we don't want to have to name
+    'thunk' explicitly.
+    """
+    def get(self, key: Hashable, thunk: Any = None,
+            *args: Any, **kwargs: Any) -> Any:
+        if key in self:
+            return self[key]
+        elif callable(thunk):
+            return thunk(*args, **kwargs)
+        else:
+            return thunk
+
+    def setdefault(self, key: Hashable, thunk: Any = None,
+                   *args: Any, **kwargs: Any) -> Any:
+        if key in self:
+            return self[key]
+        elif callable(thunk):
+            return dict.setdefault(self, key, thunk(*args, **kwargs))
+        else:
+            return dict.setdefault(self, key, thunk)
+
+
+class LazyButHonestDict(dict):
+    """
+    Compared to the StackOverflow version: no obvious need to have a default
+    returning None, when we're implementing this as a special function.
+    In contrast, helpful to have *args/**kwargs options.
+    """
+    def lazyget(self, key: Hashable, thunk: Callable,
+                *args: Any, **kwargs: Any) -> Any:
+        if key in self:
+            return self[key]
+        else:
+            return thunk(*args, **kwargs)
+
+    def lazysetdefault(self, key: Hashable, thunk: Callable,
+                       *args: Any, **kwargs: Any) -> Any:
+        if key in self:
+            return self[key]
+        else:
+            return self.setdefault(key, thunk(*args, **kwargs))

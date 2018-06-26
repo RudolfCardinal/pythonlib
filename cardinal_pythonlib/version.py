@@ -21,7 +21,7 @@
 ===============================================================================
 """
 
-VERSION = '1.0.16'
+VERSION = '1.0.17'
 # Use semantic versioning: http://semver.org/
 
 RECENT_VERSION_HISTORY = r"""
@@ -82,9 +82,12 @@ First started in 2009.
 - 1.0.15, 2018-05-04
   There was a bad character in a comment in winservice.py; fixed.
   
-- 1.0.16, 2018-05-22 IN PROGRESS
+- 1.0.16, 2018-05-22
   - New file sqlalchemy/engine_func.py
   - JSON serialization of pendulum.Date
   - @register_enum_for_json
+  
+- 1.0.17, 2018-05-27 IN PROGRESS
+  - lazy dictionaries
 
 """

@@ -216,6 +216,8 @@ def kw_fkg_allowing_type_hints(
     NOTE ALSO that once we have keyword arguments, we should be using repr(),
     because we need to distinguish
 
+    .. code-block:: none
+
         kwargs = {'p': 'another', 'q': 'thing'}
         ... which compat.string_type will make into
                 p=another q=thing
