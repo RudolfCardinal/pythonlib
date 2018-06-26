@@ -3,6 +3,7 @@
 
 """
 ===============================================================================
+
     Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
@@ -18,6 +19,7 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+
 ===============================================================================
 
 Support functions for logging.
