@@ -32,10 +32,11 @@ from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import ImproperlyConfigured
-from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpRequest
 from django.views.debug import technical_500_response
+from django.urls import reverse
 from django.utils.cache import add_never_cache_headers
+from django.utils.deprecation import MiddlewareMixin
 
 log = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ log = logging.getLogger(__name__)
 # From p436 of Greenfield & Greenfield (2015), "Two Scoops of Django:
 # Best Practices for Django 1.8".
 
-class UserBasedExceptionMiddleware(object):
+class UserBasedExceptionMiddleware(MiddlewareMixin):
     # noinspection PyUnusedLocal
     @staticmethod
     def process_exception(request: HttpRequest,
@@ -139,7 +140,7 @@ if hasattr(settings, 'LOGIN_EXEMPT_URLS'):
 
 
 # noinspection PyClassHasNoInit
-class LoginRequiredMiddleware:
+class LoginRequiredMiddleware(MiddlewareMixin):
     """
     Middleware that requires a user to be authenticated to view any page other
     than LOGIN_URL. Exemptions to this requirement can optionally be specified
@@ -177,7 +178,7 @@ class LoginRequiredMiddleware:
                 "TEMPLATE_CONTEXT_PROCESSORS setting includes "
                 "'django.core.context_processors.auth'.")
         # noinspection PyUnresolvedReferences
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             # log.critical("is_authenticated")
             return None  # OK
         if not getattr(view_func, 'login_required', True):
@@ -198,7 +199,7 @@ class LoginRequiredMiddleware:
 # =============================================================================
 # http://stackoverflow.com/questions/2095520/fighting-client-side-caching-in-django  # noqa
 
-class DisableClientSideCachingMiddleware(object):
+class DisableClientSideCachingMiddleware(MiddlewareMixin):
     # noinspection PyUnusedLocal
     @staticmethod
     def process_response(request: HttpRequest,

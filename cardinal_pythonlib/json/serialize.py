@@ -58,7 +58,8 @@ import pprint
 import sys
 from typing import Any, Callable, Dict, List, TextIO, Tuple, Type
 
-from pendulum import Date, Pendulum
+import pendulum
+from pendulum import Date, DateTime
 # from pendulum.tz.timezone import Timezone
 # from pendulum.tz.timezone_info import TimezoneInfo
 # from pendulum.tz.transition import Transition
@@ -649,10 +650,10 @@ def register_enum_for_json(*args, **kwargs) -> Any:
 
 
 # -----------------------------------------------------------------------------
-# pendulum.Pendulum
+# pendulum.DateTime (formerly pendulum.Pendulum)
 # -----------------------------------------------------------------------------
 
-def pendulum_to_dict(p: Pendulum) -> Dict[str, Any]:
+def pendulum_to_dict(p: DateTime) -> Dict[str, Any]:
     return {
         'iso': str(p)
     }
@@ -660,12 +661,12 @@ def pendulum_to_dict(p: Pendulum) -> Dict[str, Any]:
 
 # noinspection PyUnusedLocal
 def dict_to_pendulum(d: Dict[str, Any],
-                     pendulum_class: ClassType) -> Pendulum:
-    return Pendulum.parse(d['iso'])
+                     pendulum_class: ClassType) -> DateTime:
+    return pendulum.parse(d['iso'])
 
 
 register_class_for_json(
-    cls=Pendulum,
+    cls=DateTime,
     obj_to_dict_fn=pendulum_to_dict,
     dict_to_obj_fn=dict_to_pendulum
 )
@@ -685,7 +686,7 @@ def pendulumdate_to_dict(p: Date) -> Dict[str, Any]:
 def dict_to_pendulumdate(d: Dict[str, Any],
                          pendulumdate_class: ClassType) -> Date:
     # noinspection PyTypeChecker
-    return Pendulum.parse(d['iso']).date()
+    return pendulum.parse(d['iso']).date()
 
 
 register_class_for_json(

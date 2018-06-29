@@ -38,7 +38,7 @@ import colander
 from colander import (
     Boolean,
     Date,
-    DateTime,
+    DateTime,  # NB name clash with pendulum
     Email,
     Integer,
     Invalid,
@@ -53,7 +53,7 @@ from deform.widget import (
     DateTimeInputWidget,
     HiddenWidget,
 )
-from pendulum import Pendulum
+from pendulum import DateTime as Pendulum  # NB name clash with colander
 from pendulum.parsing.exceptions import ParserError
 
 if TYPE_CHECKING:
@@ -104,8 +104,10 @@ class PendulumType(SchemaType):
             appstruct = coerce_to_pendulum(appstruct,
                                            assume_local=self.use_local_tz)
         except (ValueError, ParserError) as e:
-            raise Invalid(node, "{!r} is not a Pendulum object; error was "
-                                "{!r}".format(appstruct, e))
+            raise Invalid(
+                node,
+                "{!r} is not a pendulum.DateTime object; error was "
+                "{!r}".format(appstruct, e))
         return appstruct.isoformat()
 
     def deserialize(self,

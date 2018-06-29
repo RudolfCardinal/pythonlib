@@ -219,7 +219,7 @@ def get_literal_query(statement: Union[Query, Executable],
             elif (isinstance(value, datetime.datetime) or
                   isinstance(value, datetime.date) or
                   isinstance(value, datetime.time) or
-                  isinstance(value, pendulum.Pendulum) or
+                  isinstance(value, pendulum.DateTime) or
                   isinstance(value, pendulum.Date) or
                   isinstance(value, pendulum.Time)):
                 # All have an isoformat() method.

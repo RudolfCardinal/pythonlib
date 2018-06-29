@@ -73,11 +73,11 @@ beautifulsoup4
 colander
 colorlog
 deform
-Django
+Django>=2.0.0
 dogpile.cache
 numpy
 openpyxl
-pendulum
+pendulum>=2.0.0
 prettytable
 pyparsing
 PyPDF2

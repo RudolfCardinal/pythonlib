@@ -30,7 +30,13 @@ def modelrepr(instance) -> str:
     """Default repr version of a Django model object, for debugging."""
     elements = []
     # noinspection PyProtectedMember
-    for fieldname in [f.name for f in instance._meta.get_fields()]:
+    for f in instance._meta.get_fields():
+        # https://docs.djangoproject.com/en/2.0/ref/models/meta/
+        if f.auto_created:
+            continue
+        if f.is_relation and f.related_model is None:
+            continue
+        fieldname = f.name
         try:
             value = repr(getattr(instance, fieldname))
         except ObjectDoesNotExist:

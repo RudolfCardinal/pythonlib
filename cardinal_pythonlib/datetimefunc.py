@@ -38,13 +38,15 @@ try:
 except ImportError:
     dateutil = None
 import pendulum
-from pendulum import Date, Pendulum, Time
-import tzlocal
+from pendulum import Date, DateTime, Time
+from pendulum.tz import local_timezone
+from pendulum.tz.timezone import Timezone
+# import tzlocal
 
 PotentialDatetimeType = Union[None, datetime.datetime, datetime.date,
-                              Pendulum, str, Arrow]
-DateTimeLikeType = Union[datetime.datetime, Pendulum, Arrow]
-DateLikeType = Union[datetime.date, Pendulum, Arrow]
+                              DateTime, str, Arrow]
+DateTimeLikeType = Union[datetime.datetime, DateTime, Arrow]
+DateLikeType = Union[datetime.date, DateTime, Arrow]
 
 
 # =============================================================================
@@ -53,16 +55,16 @@ DateLikeType = Union[datetime.date, Pendulum, Arrow]
 # =============================================================================
 
 def coerce_to_pendulum(x: PotentialDatetimeType,
-                       assume_local: bool = False) -> Optional[Pendulum]:
+                       assume_local: bool = False) -> Optional[DateTime]:
     """
-    Converts something to a Pendulum, or None.
+    Converts something to a DateTime, or None.
     May raise:
         pendulum.parsing.exceptions.ParserError
         ValueError
     """
     if not x:  # None and blank string
         return None
-    if isinstance(x, Pendulum):
+    if isinstance(x, DateTime):
         return x
     tz = get_tz_local() if assume_local else get_tz_utc()
     if isinstance(x, datetime.datetime):
@@ -71,13 +73,13 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
         # BEWARE: datetime subclasses date. The order is crucial here.
         # Can also use: type(x) is datetime.date
         # noinspection PyUnresolvedReferences
-        midnight = Pendulum.min.time()
-        dt = Pendulum.combine(x, midnight)
+        midnight = DateTime.min.time()
+        dt = DateTime.combine(x, midnight)
         return pendulum.instance(dt, tz=tz)  # (*)
     elif isinstance(x, str):
         return pendulum.parse(x, tz=tz)  # (*)  # may raise
     else:
-        raise ValueError("Don't know how to convert to Pendulum: "
+        raise ValueError("Don't know how to convert to DateTime: "
                          "{!r}".format(x))
     # (*) If x already knew its timezone, it will not
     # be altered; "tz" will only be applied in the absence of other info.
@@ -86,17 +88,20 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
 def coerce_to_pendulum_date(x: PotentialDatetimeType,
                             assume_local: bool = False) -> Optional[Date]:
     p = coerce_to_pendulum(x, assume_local=assume_local)
-    if p is None:
-        return None
-    return p.date()
+    return None if p is None else p.date()
 
 
-def pendulum_to_datetime(x: Pendulum) -> datetime.datetime:
+def pendulum_to_datetime(x: DateTime) -> datetime.datetime:
     """
     Used, for example, where a database backend insists on datetime.datetime.
+
+    Compare code in :meth:`pendulum.datetime.DateTime.int_timestamp`.
     """
-    # noinspection PyProtectedMember
-    return x._datetime
+    return datetime.datetime(
+        x.year, x.month, x.day,
+        x.hour, x.minute, x.second, x.microsecond,
+        tzinfo=x.tzinfo
+    )
 
 
 def pendulum_date_to_datetime_date(x: Date) -> datetime.date:
@@ -110,8 +115,11 @@ def pendulum_time_to_datetime_time(x: Time) -> datetime.time:
     """
     Used, for example, where a database backend insists on datetime.time.
     """
-    # noinspection PyProtectedMember
-    return x._time
+    return datetime.time(
+        hour=x.hour, minute=x.minute, second=x.second,
+        microsecond=x.microsecond,
+        tzinfo=x.tzinfo
+    )
 
 
 # =============================================================================
@@ -187,11 +195,19 @@ def strfdelta(tdelta: Union[datetime.timedelta, int, float, str],
 # Time zones themselves
 # =============================================================================
 
-def get_tz_local() -> datetime.tzinfo:
-    return tzlocal.get_localzone()
+def get_tz_local() -> Timezone:  # datetime.tzinfo:
+    """
+    Returns the local timezone, in Pendulum Timezone format.
+    This is a subclass of datetime.tzinfo.
+    """
+    # return tzlocal.get_localzone()
+    return local_timezone()
 
 
-def get_tz_utc() -> datetime.tzinfo:
+def get_tz_utc() -> Timezone:  # datetime.tzinfo:
+    """
+    Returns the UTC timezone.
+    """
     return pendulum.UTC
 
 
@@ -199,16 +215,16 @@ def get_tz_utc() -> datetime.tzinfo:
 # Now
 # =============================================================================
 
-def get_now_localtz_pendulum() -> Pendulum:
+def get_now_localtz_pendulum() -> DateTime:
     """Get the time now in the local timezone."""
     tz = get_tz_local()
     return pendulum.now().in_tz(tz)
 
 
-def get_now_utc_pendulum() -> Pendulum:
+def get_now_utc_pendulum() -> DateTime:
     """Get the time now in the UTC timezone."""
     tz = get_tz_utc()
-    return pendulum.utcnow().in_tz(tz)
+    return DateTime.utcnow().in_tz(tz)
 
 
 def get_now_utc_datetime() -> datetime.datetime:
@@ -220,14 +236,14 @@ def get_now_utc_datetime() -> datetime.datetime:
 # From one timezone to another
 # =============================================================================
 
-def convert_datetime_to_utc(dt: PotentialDatetimeType) -> Pendulum:
+def convert_datetime_to_utc(dt: PotentialDatetimeType) -> DateTime:
     """Convert date/time with timezone to UTC (with UTC timezone)."""
     dt = coerce_to_pendulum(dt)
     tz = get_tz_utc()
     return dt.in_tz(tz)
 
 
-def convert_datetime_to_local(dt: PotentialDatetimeType) -> Pendulum:
+def convert_datetime_to_local(dt: PotentialDatetimeType) -> DateTime:
     """Convert date/time with timezone to local timezone."""
     dt = coerce_to_pendulum(dt)
     tz = get_tz_local()
@@ -238,8 +254,8 @@ def convert_datetime_to_local(dt: PotentialDatetimeType) -> Pendulum:
 # Time differences
 # =============================================================================
 
-def get_duration_h_m(start: Union[str, Pendulum],
-                     end: Union[str, Pendulum],
+def get_duration_h_m(start: Union[str, DateTime],
+                     end: Union[str, DateTime],
                      default: str = "N/A") -> str:
     """Calculate the time between two dates/times expressed as strings.
 
@@ -273,8 +289,8 @@ def get_age(dob: PotentialDatetimeType,
     """
     Age (in whole years) at a particular date, or default.
     """
-    dob = coerce_to_pendulum(dob)
-    when = coerce_to_pendulum(when)
+    dob = coerce_to_pendulum_date(dob)
+    when = coerce_to_pendulum_date(when)
     if dob is None or when is None:
         return default
     return (when - dob).years
@@ -310,9 +326,8 @@ def coerce_to_datetime(x: Any) -> Optional[datetime.datetime]:
     """
     if x is None:
         return None
-    elif isinstance(x, Pendulum):
-        # noinspection PyProtectedMember
-        return x._datetime
+    elif isinstance(x, DateTime):
+        return pendulum_to_datetime(x)
     elif isinstance(x, datetime.datetime):
         return x
     elif isinstance(x, datetime.date):

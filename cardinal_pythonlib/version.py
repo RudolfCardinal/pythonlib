@@ -23,7 +23,7 @@
 ===============================================================================
 """
 
-VERSION = '1.0.17'
+VERSION = '1.0.18'
 # Use semantic versioning: http://semver.org/
 
 RECENT_VERSION_HISTORY = r"""
@@ -91,5 +91,9 @@ First started in 2009.
   
 - 1.0.17, 2018-05-27 IN PROGRESS
   - lazy dictionaries
+  
+- 1.0.18, 2018-06-29
+  - update for Django 2.0+
+  - update for Pendulum 2.0+
 
 """
