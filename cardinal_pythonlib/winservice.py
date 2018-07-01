@@ -252,7 +252,7 @@ import platform
 import subprocess
 import sys
 import traceback
-from typing import Any, List, TextIO
+from typing import Any, List, TextIO, Type
 
 try:
     from subprocess import CREATE_NEW_PROCESS_GROUP
@@ -798,7 +798,7 @@ class WindowsService(win32serviceutil.ServiceFramework):
 # Main
 # =============================================================================
 
-def generic_service_main(cls, name: str) -> None:
+def generic_service_main(cls: Type[WindowsService], name: str) -> None:
     # https://mail.python.org/pipermail/python-win32/2008-April/007299.html
     argc = len(sys.argv)
     if argc == 1:

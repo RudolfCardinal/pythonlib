@@ -23,7 +23,7 @@
 ===============================================================================
 """
 
-VERSION = '1.0.18'
+VERSION = '1.0.19'
 # Use semantic versioning: http://semver.org/
 
 RECENT_VERSION_HISTORY = r"""
@@ -95,5 +95,8 @@ First started in 2009.
 - 1.0.18, 2018-06-29
   - update for Django 2.0+
   - update for Pendulum 2.0+
+  
+- 1.0.19, 2018-07-01
+  - psychiatry/drugs.py
 
 """
