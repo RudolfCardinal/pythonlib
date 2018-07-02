@@ -1,1 +1,75 @@
-# See setup.py instead.
+
+# This file is AUTOMATICALLY WRITTEN BY setup.py; DO NOT EDIT IT.
+# We only do this so PyCharm knows the requirements too.
+
+# =============================================================================
+# Use the PyPi index:
+# =============================================================================
+--index-url https://pypi.python.org/simple/
+
+# =============================================================================
+# Actual requirements
+# =============================================================================
+# - Include everything that is imported without "try / except ImportError"
+#   handling.
+# - Include as few version requirements as possible.
+# - Keep it to pure-Python packages (for e.g. Windows installation with no 
+#   compiler).
+
+alembic
+arrow
+beautifulsoup4
+colander
+colorlog
+deform
+Django>=2.0.0
+dogpile.cache
+numpy
+openpyxl
+pandas
+pendulum>=2.0.0
+prettytable
+pyparsing
+PyPDF2
+pyramid
+python-dateutil
+regex
+scipy
+semantic-version
+SQLAlchemy
+sqlparse
+tzlocal
+
+# =============================================================================
+# The following are NOT HANDLED GRACEFULLY; their absence will cause a runtime
+# ImportError, but we don't make them requirements as they need a compiler to
+# install (and one might want to use the rest of the library without them).
+# =============================================================================
+# bcrypt
+
+
+# =============================================================================
+# The following are OPTIONAL; their absence will be handled gracefully, so
+# they are not requirements, but we note them here:
+# =============================================================================
+
+# jaydebeapi
+# mmh3
+# mysql-python  # "import MySQLdb"
+# mysqlclient  # "import MySQLdb"
+# pdfkit
+# pdfminer
+# pymysql
+# pyodbc
+# pypiwin32
+# pypyodbc
+# pyth
+# python-docx   # "import docx"
+# weasyprint
+# xhtml2pdf
+
+
+# =============================================================================
+# NO LONGER REQUIRED
+# =============================================================================
+# pytz

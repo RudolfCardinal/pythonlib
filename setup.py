@@ -19,44 +19,37 @@ To install in development mode:
 # http://python-packaging-user-guide.readthedocs.org/en/latest/distributing/
 # http://jtushman.github.io/blog/2013/06/17/sharing-code-across-applications-with-python/  # noqa
 
+import argparse
 from setuptools import setup, find_packages
 from codecs import open
 from io import StringIO
 from os import path
+import sys
 
 from cardinal_pythonlib.version import VERSION
 
-here = path.abspath(path.dirname(__file__))
+THIS_DIR = path.abspath(path.dirname(__file__))
+README_FILE = path.join(THIS_DIR, 'README.txt')  # read
+REQUIREMENTS_FILE = path.join(THIS_DIR, 'requirements.txt')  # written
 
 # -----------------------------------------------------------------------------
 # Get the long description from the README file
 # -----------------------------------------------------------------------------
-with open(path.join(here, 'README.txt'), encoding='utf-8') as f:
+with open(README_FILE, encoding='utf-8') as f:
     long_description = f.read()
 
 # -----------------------------------------------------------------------------
 # Nasty
 # -----------------------------------------------------------------------------
 
-REQUIREMENTS_TXT = """
-# use:
-#       pip install -r THISFILE
-# where pip is your virtualenv version of pip
-# Note also that this file can include others with "-r OTHERFILE".
+REQUIREMENTS_TEXT = """
+# This file is AUTOMATICALLY WRITTEN BY setup.py; DO NOT EDIT IT.
+# We only do this so PyCharm knows the requirements too.
 
 # =============================================================================
 # Use the PyPi index:
 # =============================================================================
 --index-url https://pypi.python.org/simple/
-
-# =============================================================================
-# DISABLED: refer to setup.py
-# =============================================================================
-# ... see https://caremad.io/2013/07/setup-vs-requirement/
-#
-# -e .
-#
-# ... Should work, but PyCharm's package detector doesn't like it!
 
 # =============================================================================
 # Actual requirements
@@ -130,12 +123,31 @@ tzlocal
 # as well as the PACKAGE CREATION situation.
 
 requirements = []
-with StringIO(REQUIREMENTS_TXT) as f:
+with StringIO(REQUIREMENTS_TEXT) as f:
     for line in f.readlines():
         line = line.strip()
         if (not line) or line.startswith('#') or line.startswith('--'):
             continue
         requirements.append(line)
+
+
+EXTRAS_ARG = 'extras'
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '--' + EXTRAS_ARG, action='store_true',
+    help=(
+        "USE THIS TO CREATE PACKAGES (e.g. 'python setup.py sdist --{}. "
+        "Copies extra info in.".format(EXTRAS_ARG)
+    )
+)
+our_args, leftover_args = parser.parse_known_args()
+sys.argv[1:] = leftover_args
+
+if getattr(our_args, EXTRAS_ARG):
+    # Here's where we do the extra stuff.
+    with open(REQUIREMENTS_FILE, 'wt') as reqfile:
+        reqfile.write(REQUIREMENTS_TEXT)
+
 
 # -----------------------------------------------------------------------------
 # setup args

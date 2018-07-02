@@ -58,11 +58,15 @@ Briefly:
 
     cpl_rfunc <- reticulate::import("cardinal_pythonlib.psychiatry.rfunc")
 
+    # -------------------------------------------------------------------------
+    # Try other things
+    # -------------------------------------------------------------------------
+    
+    repl_python()  # start an interactive Python session
+
 """  # noqa
 
-from typing import Any, Dict, Tuple
-
-from pandas import DataFrame
+from typing import Any, Dict
 
 
 # =============================================================================

@@ -100,7 +100,7 @@ First started in 2009.
 
 from semantic_version import Version
 
-VERSION = '1.0.21'
+VERSION = '1.0.22'
 # Use semantic versioning: http://semver.org/
 
 CARDINAL_PYTHONLIB_VERSION = Version(VERSION)
