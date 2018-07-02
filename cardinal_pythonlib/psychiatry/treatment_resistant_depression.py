@@ -24,14 +24,24 @@
 
 Helper functions for algorithmic definitions of treatment-resistant depression.
 
+Performance notes:
+    - 200 test patients; baseline about 7.65-8.57 seconds
+    - From https://stackoverflow.com/questions/19237878/ to
+      https://stackoverflow.com/questions/17071871/select-rows-from-a-dataframe-based-on-values-in-a-column-in-pandas  # noqa
+    - Change from parallel to single-threading: down to 4.38 s (!).
+    - Avoid a couple of slices: down to 3.85 s for 200 patients.
+    - Add test patient E; up to 4.63 s for 250 patients.
+
 """
 
 from concurrent.futures import ThreadPoolExecutor
 import logging
 from multiprocessing import cpu_count
+from typing import Any, Iterable, List
 
 from numpy import array, NaN, timedelta64
 from pandas import DataFrame
+from pendulum import DateTime as Pendulum
 
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 from cardinal_pythonlib.psychiatry.rfunc import flush_stdout_stderr
@@ -62,6 +72,20 @@ RCN_DRUG_B_FIRST_MENTION = "drug_b_first"
 RCN_DRUG_B_SECOND_MENTION = "drug_b_second"
 RCN_EXPECT_RESPONSE_BY_DATE = "expect_response_to_b_by"
 RCN_END_OF_SYMPTOM_PERIOD = "end_of_symptom_period"
+
+PARALLEL = False
+SLOW_TEST = False
+
+if PARALLEL:
+    DEFAULT_N_THREADS = cpu_count()
+else:
+    DEFAULT_N_THREADS = 1  # faster! About twice as fast for 200 test patients.
+
+if SLOW_TEST:
+    DEFAULT_N_THREADS = 1
+    TEST_PATIENT_MULTIPLE = 1  # for debugging
+else:
+    TEST_PATIENT_MULTIPLE = 50  # for speed testing
 
 
 def timedelta_days(days: int) -> timedelta64:
@@ -115,37 +139,55 @@ def two_antidepressant_episodes_single_patient(
     sourcecolnum_drug = patient_drug_date_df.columns.get_loc(drug_colname)
     sourcecolnum_date = patient_drug_date_df.columns.get_loc(date_colname)
 
+    # -------------------------------------------------------------------------
     # Set up results grid
-    #
+    # -------------------------------------------------------------------------
     # Valid data types... see:
     # - pandas.core.dtypes.common.pandas_dtype
     # - https://pandas.pydata.org/pandas-docs/stable/timeseries.html
     # - https://docs.scipy.org/doc/numpy-1.13.0/reference/arrays.datetime.html
     result = _get_blank_two_antidep_episodes_result()
 
+    # -------------------------------------------------------------------------
     # Get data for this patient
-    tp = patient_drug_date_df.loc[
-        (patient_drug_date_df[patient_colname] == patient_id)
-    ]  # type: DataFrame  # tp: "this patient"
-    # ... https://stackoverflow.com/questions/19237878/
+    # -------------------------------------------------------------------------
+    # ... this is pretty quick (e.g. 4ms for 1150 rows
+    patient_mask = patient_drug_date_df[patient_colname].values == patient_id
+    tp = patient_drug_date_df[patient_mask]  # type: DataFrame
+    # log.critical("{!r}".format(tp))
 
-    # Sort by date
-    tp = tp.sort_values(by=[date_colname, drug_colname], ascending=True)
+    # -------------------------------------------------------------------------
+    # Sort by date, then drug.
     # ... arbitrary drug name order to make the output stable
+    # -------------------------------------------------------------------------
+    # ... this is about 2ms for small lists; probably not limiting
+    # ... seems slower if "inplace=True" is used.
+    tp = tp.sort_values(by=[date_colname, drug_colname], ascending=True)
 
-    # Get antidepressants, in the order they appear
     nrows_all = len(tp)  # https://stackoverflow.com/questions/15943769/
+    if nrows_all < 4:  # need A, A, B, B; so minimum #rows is 4
+        return result
+    end_date = tp.iloc[nrows_all - 1, sourcecolnum_date]
+
+    # -------------------------------------------------------------------------
+    # Get antidepressants, in the order they appear
+    # -------------------------------------------------------------------------
     for first_b_rownum in range(nrows_all):
-        # -----------------------------------------------------------------
+        # ---------------------------------------------------------------------
         # Check candidate B drug
-        # -----------------------------------------------------------------
+        # ---------------------------------------------------------------------
         antidepressant_b_name = tp.iloc[first_b_rownum, sourcecolnum_drug]
         antidepressant_b_first_mention = tp.iloc[first_b_rownum,
                                                  sourcecolnum_date]
         earliest_possible_b_second_mention = (
-                antidepressant_b_first_mention +
-                timedelta_days(course_length_days - 1)
+            antidepressant_b_first_mention +
+            timedelta_days(course_length_days - 1)
         )
+        if earliest_possible_b_second_mention > end_date:
+            # Impossible for this to be a B course.
+            # Unnecessary test, but improves efficiency by skipping the slice
+            # operation that follows.
+            continue
         b_second_mentions = tp.loc[
             (tp[drug_colname] == antidepressant_b_name) &  # same drug
             (tp[date_colname] >= earliest_possible_b_second_mention)
@@ -158,9 +200,9 @@ def two_antidepressant_episodes_single_patient(
         antidepressant_b_second_mention = b_second_mentions.iloc[
             0, sourcecolnum_date]
 
-        # -----------------------------------------------------------------
+        # ---------------------------------------------------------------------
         # Now find preceding A drug
-        # -----------------------------------------------------------------
+        # ---------------------------------------------------------------------
         preceding_other_antidepressants = tp.loc[
             (tp[drug_colname] != antidepressant_b_name) &
             # ... A is a different drug to B
@@ -168,7 +210,7 @@ def two_antidepressant_episodes_single_patient(
             # ... A is mentioned before B starts
         ]
         nrows_a = len(preceding_other_antidepressants)
-        if nrows_a == 0:
+        if nrows_a < 2:  # need at least two mentions of A
             # No candidates for A
             continue
         # preceding_other_antidepressants remains date-sorted (ascending)
@@ -181,9 +223,15 @@ def two_antidepressant_episodes_single_patient(
             antidepressant_a_first_mention = tp.iloc[first_a_rownum,
                                                      sourcecolnum_date]
             earliest_possible_a_second_mention = (
-                    antidepressant_a_first_mention +
-                    timedelta_days(course_length_days - 1)
+                antidepressant_a_first_mention +
+                timedelta_days(course_length_days - 1)
             )
+            if (earliest_possible_a_second_mention >=
+                    antidepressant_b_first_mention):
+                # Impossible to squeeze in the second A mention before B.
+                # Unnecessary test, but improves efficiency by skipping the
+                # slice operation that follows.
+                continue
             a_second_mentions = tp.loc[
                 (tp[drug_colname] == antidepressant_a_name) &
                 # ... same drug
@@ -211,10 +259,10 @@ def two_antidepressant_episodes_single_patient(
         if not found_valid_a:
             continue
 
-        # -----------------------------------------------------------------
+        # ---------------------------------------------------------------------
         # OK; here we have found a combination that we like.
         # Add it to the results.
-        # -----------------------------------------------------------------
+        # ---------------------------------------------------------------------
         # https://stackoverflow.com/questions/19365513/how-to-add-an-extra-row-to-a-pandas-dataframe/19368360  # noqa
         # http://pandas.pydata.org/pandas-docs/stable/indexing.html#setting-with-enlargement  # noqa
         result.loc[len(result)] = [
@@ -254,7 +302,7 @@ def two_antidepressant_episodes(
         expect_response_by_days: int = DEFAULT_EXPECT_RESPONSE_BY_DAYS,
         symptom_assessment_time_days: int =
         DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,
-        n_threads = cpu_count()) -> DataFrame:
+        n_threads = DEFAULT_N_THREADS) -> DataFrame:
     """
     Takes a pandas DataFrame patient_drug_date_df (or, via reticulate, an R
     data.frame or data.table). This should contain dated present-tense
@@ -262,11 +310,15 @@ def two_antidepressant_episodes(
     """
     # Say hello
     log.info("Running two_antidepressant_episodes...")
+    start = Pendulum.now()
 
     # Work through each patient
     patient_ids = sorted(list(set(patient_drug_date_df[patient_colname])))
-    log.info("Found {} patients".format(len(patient_ids)))
+    n_patients = len(patient_ids)
+    log.info("Found {} patients".format(n_patients))
     flush_stdout_stderr()
+
+    patient_drug_date_df.set_index(patient_colname)
 
     def _get_patient_result(patient_id: str) -> DataFrame:
         return two_antidepressant_episodes_single_patient(
@@ -280,70 +332,109 @@ def two_antidepressant_episodes(
             symptom_assessment_time_days=symptom_assessment_time_days
         )
 
-    # Farm off the work to lots of threads:
-    with ThreadPoolExecutor(max_workers=n_threads) as executor:
-        list_of_results_frames = executor.map(_get_patient_result, patient_ids)
+    combined_result = _get_blank_two_antidep_episodes_result()
+    if n_threads > 1:
+        # Farm off the work to lots of threads:
+        log.info("Parallel processing method; {} threads".format(n_threads))
+        with ThreadPoolExecutor(max_workers=n_threads) as executor:
+            list_of_results_frames = executor.map(_get_patient_result,
+                                                  patient_ids)
 
-    final_result = _get_blank_two_antidep_episodes_result()
-    for result in list_of_results_frames:
-        final_result = final_result.append(result)
+        log.debug("Recombining results from parallel processing...")
+        for patient_result in list_of_results_frames:
+            combined_result = combined_result.append(patient_result)
+        log.debug("... recombined")
 
-    return final_result
+    else:
+        log.info("Single-thread method")
+        for ptnum, patient_id in enumerate(patient_ids, start=1):
+            log.debug("Processing patient {} out of {}".format(
+                ptnum, n_patients))
+            patient_result = _get_patient_result(patient_id)
+            combined_result = combined_result.append(patient_result)
+
+    end = Pendulum.now()
+    duration = end - start
+    log.info("Took {} seconds for {} patients".format(
+        duration.total_seconds(), n_patients))
+    flush_stdout_stderr()
+    return combined_result
 
 
-def test_two_antidepressant_episodes() -> None:
-    log.warning("Testing two_antidepressant_episodes()")
-    alice = "Alice"
-    bob = "Bob"
-    chloe = "Chloe"
-    dave = "Dave"
-    fluox = "fluoxetine"
-    cital = "citalopram"
-    sert = "sertraline"
-    mirtaz = "mirtazapine"
-    venla = "venlafaxine"
-    # https://docs.scipy.org/doc/numpy-1.10.1/user/basics.rec.html
-    # https://github.com/pandas-dev/pandas/issues/12751
+def test_two_antidepressant_episodes(
+        n_sets: int = TEST_PATIENT_MULTIPLE) -> None:
+
+    def _make_example(suffixes: Iterable[Any] = None) -> DataFrame:
+        suffixes = suffixes or [""]  # type: List[str]
+        alice = "Alice"
+        bob = "Bob"
+        chloe = "Chloe"
+        dave = "Dave"
+        elsa = "Elsa"
+        fluox = "fluoxetine"
+        cital = "citalopram"
+        sert = "sertraline"
+        mirtaz = "mirtazapine"
+        venla = "venlafaxine"
+        # https://docs.scipy.org/doc/numpy-1.10.1/user/basics.rec.html
+        # https://github.com/pandas-dev/pandas/issues/12751
+        dataframe = None
+        for suffix in suffixes:
+            s = str(suffix)
+            arr = array(
+                [
+                    # Alice: two consecutive switches; should pick the first, c -> f  # noqa
+                    (alice + s, cital, "2018-01-01"),
+                    (alice + s, cital, "2018-02-01"),
+                    (alice + s, fluox, "2018-03-01"),
+                    (alice + s, fluox, "2018-04-01"),
+                    (alice + s, mirtaz, "2018-05-01"),
+                    (alice + s, mirtaz, "2018-06-01"),
+                    # Bob: mixture switch; should pick mirtaz -> sert
+                    (bob + s, venla, "2018-01-01"),
+                    (bob + s, mirtaz, "2018-01-01"),
+                    (bob + s, venla, "2018-02-01"),
+                    (bob + s, mirtaz, "2018-02-01"),
+                    (bob + s, venla, "2018-03-01"),
+                    (bob + s, sert, "2018-03-02"),
+                    (bob + s, venla, "2018-04-01"),
+                    (bob + s, sert, "2018-05-01"),
+                    (bob + s, sert, "2018-06-01"),
+                    # Chloe: courses just too short; should give nothing
+                    (chloe + s, fluox, "2018-01-01"),
+                    (chloe + s, fluox, "2018-01-27"),
+                    (chloe + s, venla, "2018-02-01"),
+                    (chloe + s, venla, "2018-01-27"),
+                    # Dave: courses just long enough
+                    (dave + s, fluox, "2018-01-01"),
+                    (dave + s, fluox, "2018-01-28"),
+                    (dave + s, venla, "2018-02-01"),
+                    (dave + s, venla, "2018-02-28"),
+                    # Elsa: courses overlap; invalid
+                    (elsa + s, cital, "2018-01-01"),
+                    (elsa + s, cital, "2018-02-05"),
+                    (elsa + s, mirtaz, "2018-02-01"),
+                    (elsa + s, mirtaz, "2018-02-28"),
+                ],
+                dtype=[
+                    (patient_colname, DTYPE_STRING),
+                    (drug_colname, DTYPE_STRING),
+                    (date_colname, DTYPE_DATE),
+                ]
+            )
+            newpart = DataFrame.from_records(arr)
+            if dataframe is None:
+                dataframe = newpart
+            else:
+                dataframe = dataframe.append(newpart)
+        return dataframe
+
     patient_colname = "BrcId"  # DEFAULT_SOURCE_PATIENT_COLNAME
     drug_colname = "generic_drug"  # DEFAULT_SOURCE_DRUG_COLNAME
     date_colname = "Document_Date"  # DEFAULT_SOURCE_DATE_COLNAME
-    arr = array(
-        [
-            # Alice: two consecutive switches; should pick the first, c -> f
-            (alice, cital, "2018-01-01"),
-            (alice, cital, "2018-02-01"),
-            (alice, fluox, "2018-03-01"),
-            (alice, fluox, "2018-04-01"),
-            (alice, mirtaz, "2018-05-01"),
-            (alice, mirtaz, "2018-06-01"),
-            # Bob: mixture switch; should pick mirtaz -> sert
-            (bob, venla, "2018-01-01"),
-            (bob, mirtaz, "2018-01-01"),
-            (bob, venla, "2018-02-01"),
-            (bob, mirtaz, "2018-02-01"),
-            (bob, venla, "2018-03-01"),
-            (bob, sert, "2018-03-02"),
-            (bob, venla, "2018-04-01"),
-            (bob, sert, "2018-05-01"),
-            (bob, sert, "2018-06-01"),
-            # Chloe: courses just too short; should give nothing
-            (chloe, fluox, "2018-01-01"),
-            (chloe, fluox, "2018-01-27"),
-            (chloe, venla, "2018-02-01"),
-            (chloe, venla, "2018-01-27"),
-            # Dave: courses just long enough
-            (dave, fluox, "2018-01-01"),
-            (dave, fluox, "2018-01-28"),
-            (dave, venla, "2018-02-01"),
-            (dave, venla, "2018-02-28"),
-        ],
-        dtype=[
-            (patient_colname, DTYPE_STRING),
-            (drug_colname, DTYPE_STRING),
-            (date_colname, DTYPE_DATE),
-        ]
-    )
-    testdata = DataFrame.from_records(arr)
+
+    log.warning("Testing two_antidepressant_episodes()")
+    testdata = _make_example(suffixes=range(n_sets))
     # log.info("Data array:\n" + repr(arr))
     log.info("Data:\n" + repr(testdata))
     flush_stdout_stderr()
