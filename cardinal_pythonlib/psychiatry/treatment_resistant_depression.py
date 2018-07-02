@@ -29,6 +29,7 @@ Helper functions for algorithmic definitions of treatment-resistant depression.
 from concurrent.futures import ThreadPoolExecutor
 import logging
 from multiprocessing import cpu_count
+import sys
 
 from numpy import array, NaN, timedelta64
 from pandas import DataFrame
@@ -76,6 +77,15 @@ def timedelta_days(days: int) -> timedelta64:
                          "error was: {}".format(days, e))
 
 
+def flush_stdout_stderr() -> None:
+    """
+    R code won't see much unless we flush stdout/stderr manually.
+    See also https://github.com/rstudio/reticulate/issues/284
+    """
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+
 def _get_blank_two_antidep_episodes_result() -> DataFrame:
     return DataFrame(array(
         [],  # data
@@ -108,6 +118,7 @@ def two_antidepressant_episodes_single_patient(
     """
     log.debug("Running two_antidepressant_episodes_single_patient() for "
               "patient {!r}".format(patient_id))
+    flush_stdout_stderr()
     # Get column details from source data
     sourcecolnum_drug = patient_drug_date_df.columns.get_loc(drug_colname)
     sourcecolnum_date = patient_drug_date_df.columns.get_loc(date_colname)
@@ -261,6 +272,8 @@ def two_antidepressant_episodes(
 
     # Work through each patient
     patient_ids = sorted(list(set(patient_drug_date_df[patient_colname])))
+    log.info("Found {} patients".format(len(patient_ids)))
+    flush_stdout_stderr()
 
     def _get_patient_result(patient_id: str) -> DataFrame:
         return two_antidepressant_episodes_single_patient(
@@ -285,7 +298,7 @@ def two_antidepressant_episodes(
     return final_result
 
 
-def _test_two_antidepressant_episodes() -> None:
+def test_two_antidepressant_episodes() -> None:
     log.warning("Testing two_antidepressant_episodes()")
     alice = "Alice"
     bob = "Bob"
@@ -329,6 +342,7 @@ def _test_two_antidepressant_episodes() -> None:
     testdata = DataFrame.from_records(arr)
     # log.info("Data array:\n" + repr(arr))
     log.info("Data:\n" + repr(testdata))
+    flush_stdout_stderr()
     result = two_antidepressant_episodes(
         patient_drug_date_df=testdata,
         patient_colname=patient_colname,
@@ -340,8 +354,9 @@ def _test_two_antidepressant_episodes() -> None:
     )
     log.info("Result:\n" + result.to_string())
     log.warning("Test complete; check output above.")
+    flush_stdout_stderr()
 
 
 if __name__ == "__main__":
     main_only_quicksetup_rootlogger(level=logging.DEBUG, with_thread_id=True)
-    _test_two_antidepressant_episodes()
+    test_two_antidepressant_episodes()
