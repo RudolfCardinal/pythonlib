@@ -62,7 +62,11 @@ RCN_END_OF_SYMPTOM_PERIOD = "end_of_symptom_period"
 
 
 def timedelta_days(days: int) -> timedelta64:
-    return timedelta64(days, 'D')
+    try:
+        return timedelta64(days, 'D')
+    except ValueError as e:
+        raise ValueError("Failure in timedelta_days; value was {!r}; original "
+                         "error was: {}".format(days, e))
 
 
 def two_antidepressant_episodes(
@@ -75,8 +79,9 @@ def two_antidepressant_episodes(
         symptom_assessment_time_days: int =
         DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS) -> DataFrame:
     """
-    Takes a pandas DataFrame (or, via reticulate, an R data.frame or
-    data.table).
+    Takes a pandas DataFrame patient_drug_date_df (or, via reticulate, an R
+    data.frame or data.table). This should contain dated present-tense
+    references to antidepressant drugs (only).
     """
     # Get column details from source data
     sourcecolnum_drug = patient_drug_date_df.columns.get_loc(drug_colname)
