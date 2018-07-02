@@ -267,8 +267,7 @@ def two_antidepressant_episodes(
     references to antidepressant drugs (only).
     """
     # Say hello
-    print("(print) Running two_antidepressant_episodes...")
-    log.critical("(log.critical) Running two_antidepressant_episodes...")
+    log.info("Running two_antidepressant_episodes...")
 
     # Work through each patient
     patient_ids = sorted(list(set(patient_drug_date_df[patient_colname])))
