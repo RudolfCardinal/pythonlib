@@ -72,7 +72,7 @@ def two_antidepressant_episodes(
         date_colname: str = DEFAULT_SOURCE_DATE_COLNAME,
         course_length_days: int = DEFAULT_ANTIDEPRESSANT_COURSE_LENGTH_DAYS,
         expect_response_by_days: int = DEFAULT_EXPECT_RESPONSE_BY_DAYS,
-        symptom_period_duration_days: int =
+        symptom_assessment_time_days: int =
         DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS) -> DataFrame:
     """
     Takes a pandas DataFrame (or, via reticulate, an R data.frame or
@@ -108,7 +108,7 @@ def two_antidepressant_episodes(
     for pid in patient_ids:
         # Get data for this patient
         tp = patient_drug_date_df.loc[
-            (patient_drug_date_df[RCN_PATIENT_ID] == pid)
+            (patient_drug_date_df[patient_colname] == pid)
         ]  # type: DataFrame  # tp: "this patient"
         # ... https://stackoverflow.com/questions/19237878/
 
@@ -220,7 +220,7 @@ def two_antidepressant_episodes(
     result[RCN_END_OF_SYMPTOM_PERIOD] = (
             result[RCN_DRUG_B_FIRST_MENTION] +
             timedelta_days(
-                expect_response_by_days + symptom_period_duration_days - 1)
+                expect_response_by_days + symptom_assessment_time_days - 1)
     )
 
     # Done:
@@ -239,6 +239,9 @@ def _test_two_antidepressant_episodes() -> None:
     venla = "venlafaxine"
     # https://docs.scipy.org/doc/numpy-1.10.1/user/basics.rec.html
     # https://github.com/pandas-dev/pandas/issues/12751
+    patient_colname = "BrcId"  # DEFAULT_SOURCE_PATIENT_COLNAME
+    drug_colname = "generic_drug"  # DEFAULT_SOURCE_DRUG_COLNAME
+    date_colname = "Document_Date"  # DEFAULT_SOURCE_DATE_COLNAME
     arr = array(
         [
             # Alice
@@ -260,15 +263,23 @@ def _test_two_antidepressant_episodes() -> None:
             (bob, sert, "2018-06-01"),
         ],
         dtype=[
-            (DEFAULT_SOURCE_PATIENT_COLNAME, DTYPE_STRING),
-            (DEFAULT_SOURCE_DRUG_COLNAME, DTYPE_STRING),
-            (DEFAULT_SOURCE_DATE_COLNAME, DTYPE_DATE),
+            (patient_colname, DTYPE_STRING),
+            (drug_colname, DTYPE_STRING),
+            (date_colname, DTYPE_DATE),
         ]
     )
     testdata = DataFrame.from_records(arr)
     # log.info("Data array:\n" + repr(arr))
     log.info("Data:\n" + repr(testdata))
-    result = two_antidepressant_episodes(testdata)
+    result = two_antidepressant_episodes(
+        patient_drug_date_df=testdata,
+        patient_colname=patient_colname,
+        drug_colname=drug_colname,
+        date_colname=date_colname,
+        course_length_days=DEFAULT_ANTIDEPRESSANT_COURSE_LENGTH_DAYS,
+        expect_response_by_days=DEFAULT_EXPECT_RESPONSE_BY_DAYS,
+        symptom_assessment_time_days=DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,
+    )
     log.info("Result:\n" + result.to_string())
     log.warning("Test complete; check output above.")
 
