@@ -62,8 +62,14 @@ RCN_END_OF_SYMPTOM_PERIOD = "end_of_symptom_period"
 
 
 def timedelta_days(days: int) -> timedelta64:
+    int_days = int(days)
+    if int_days != days:
+        raise ValueError("Fractional days passed to timedelta_days: "
+                         "{!r}".format(days))
     try:
-        return timedelta64(days, 'D')
+        # Do not pass e.g. 27.0; that will raise a ValueError.
+        # Must be an actual int:
+        return timedelta64(int_days, 'D')
     except ValueError as e:
         raise ValueError("Failure in timedelta_days; value was {!r}; original "
                          "error was: {}".format(days, e))
