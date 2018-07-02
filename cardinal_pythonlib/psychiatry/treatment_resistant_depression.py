@@ -31,6 +31,7 @@ Performance notes:
     - Change from parallel to single-threading: down to 4.38 s (!).
     - Avoid a couple of slices: down to 3.85 s for 200 patients.
     - Add test patient E; up to 4.63 s for 250 patients.
+    - On a live set, single-threaded: 901.9 s for 4154 patients.
 
 """
 
@@ -317,8 +318,6 @@ def two_antidepressant_episodes(
     n_patients = len(patient_ids)
     log.info("Found {} patients".format(n_patients))
     flush_stdout_stderr()
-
-    patient_drug_date_df.set_index(patient_colname)
 
     def _get_patient_result(patient_id: str) -> DataFrame:
         return two_antidepressant_episodes_single_patient(
