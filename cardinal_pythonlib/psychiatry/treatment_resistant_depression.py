@@ -29,12 +29,12 @@ Helper functions for algorithmic definitions of treatment-resistant depression.
 from concurrent.futures import ThreadPoolExecutor
 import logging
 from multiprocessing import cpu_count
-import sys
 
 from numpy import array, NaN, timedelta64
 from pandas import DataFrame
 
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+from cardinal_pythonlib.psychiatry.rfunc import flush_stdout_stderr
 
 log = logging.getLogger(__name__)
 
@@ -75,15 +75,6 @@ def timedelta_days(days: int) -> timedelta64:
     except ValueError as e:
         raise ValueError("Failure in timedelta_days; value was {!r}; original "
                          "error was: {}".format(days, e))
-
-
-def flush_stdout_stderr() -> None:
-    """
-    R code won't see much unless we flush stdout/stderr manually.
-    See also https://github.com/rstudio/reticulate/issues/284
-    """
-    sys.stdout.flush()
-    sys.stderr.flush()
 
 
 def _get_blank_two_antidep_episodes_result() -> DataFrame:
@@ -138,7 +129,8 @@ def two_antidepressant_episodes_single_patient(
     # ... https://stackoverflow.com/questions/19237878/
 
     # Sort by date
-    tp = tp.sort_values(by=date_colname, ascending=True)
+    tp = tp.sort_values(by=[date_colname, drug_colname], ascending=True)
+    # ... arbitrary drug name order to make the output stable
 
     # Get antidepressants, in the order they appear
     nrows_all = len(tp)  # https://stackoverflow.com/questions/15943769/
@@ -235,6 +227,7 @@ def two_antidepressant_episodes_single_patient(
             NaN,
             NaN
         ]
+        break  # we only care about the first episode per patient that matches
 
     # Fill in dates:
     result[RCN_EXPECT_RESPONSE_BY_DATE] = (
@@ -302,6 +295,7 @@ def test_two_antidepressant_episodes() -> None:
     alice = "Alice"
     bob = "Bob"
     chloe = "Chloe"
+    dave = "Dave"
     fluox = "fluoxetine"
     cital = "citalopram"
     sert = "sertraline"
@@ -314,14 +308,14 @@ def test_two_antidepressant_episodes() -> None:
     date_colname = "Document_Date"  # DEFAULT_SOURCE_DATE_COLNAME
     arr = array(
         [
-            # Alice
+            # Alice: two consecutive switches; should pick the first, c -> f
             (alice, cital, "2018-01-01"),
             (alice, cital, "2018-02-01"),
             (alice, fluox, "2018-03-01"),
             (alice, fluox, "2018-04-01"),
             (alice, mirtaz, "2018-05-01"),
             (alice, mirtaz, "2018-06-01"),
-            # Bob
+            # Bob: mixture switch; should pick mirtaz -> sert
             (bob, venla, "2018-01-01"),
             (bob, mirtaz, "2018-01-01"),
             (bob, venla, "2018-02-01"),
@@ -331,6 +325,16 @@ def test_two_antidepressant_episodes() -> None:
             (bob, venla, "2018-04-01"),
             (bob, sert, "2018-05-01"),
             (bob, sert, "2018-06-01"),
+            # Chloe: courses just too short; should give nothing
+            (chloe, fluox, "2018-01-01"),
+            (chloe, fluox, "2018-01-27"),
+            (chloe, venla, "2018-02-01"),
+            (chloe, venla, "2018-01-27"),
+            # Dave: courses just long enough
+            (dave, fluox, "2018-01-01"),
+            (dave, fluox, "2018-01-28"),
+            (dave, venla, "2018-02-01"),
+            (dave, venla, "2018-02-28"),
         ],
         dtype=[
             (patient_colname, DTYPE_STRING),

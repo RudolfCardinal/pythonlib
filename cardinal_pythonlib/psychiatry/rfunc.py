@@ -66,6 +66,7 @@ Briefly:
 
 """  # noqa
 
+import sys
 from typing import Any, Dict
 
 
@@ -166,3 +167,12 @@ def test_get_dict() -> Dict[str, Any]:
         'floats': [1.1, 2.1, 3.1, 4.1, 5.1],
         'strings': ["one", "two", "three", "four", "five"],
     }
+
+
+def flush_stdout_stderr() -> None:
+    """
+    R code won't see much unless we flush stdout/stderr manually.
+    See also https://github.com/rstudio/reticulate/issues/284
+    """
+    sys.stdout.flush()
+    sys.stderr.flush()
