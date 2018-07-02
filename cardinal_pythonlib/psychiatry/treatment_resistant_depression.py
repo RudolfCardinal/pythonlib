@@ -39,6 +39,7 @@ from cardinal_pythonlib.psychiatry.rfunc import flush_stdout_stderr
 log = logging.getLogger(__name__)
 
 DTYPE_STRING = "<U255"
+# ... getting this right is surprisingly tricky!
 # ... https://docs.scipy.org/doc/numpy-1.13.0/reference/arrays.dtypes.html
 # ... https://stackoverflow.com/questions/30086936/what-is-the-difference-between-the-types-type-numpy-string-and-type-str  # noqa
 # ... https://stackoverflow.com/questions/49127844/python-convert-python-string-to-numpy-unicode-string  # noqa
