@@ -77,6 +77,7 @@ Django>=2.0.0
 dogpile.cache
 numpy
 openpyxl
+pandas
 pendulum>=2.0.0
 prettytable
 pyparsing
