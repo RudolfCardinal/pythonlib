@@ -64,7 +64,7 @@ from multiprocessing import cpu_count
 import pstats
 from typing import Any, Iterable, List, Optional, Tuple
 
-from numpy import array, datetime64, NaN, timedelta64
+from numpy import array, NaN, timedelta64
 from pandas import DataFrame
 from pendulum import DateTime as Pendulum
 
@@ -336,7 +336,7 @@ def two_antidepressant_episodes(
         expect_response_by_days: int = DEFAULT_EXPECT_RESPONSE_BY_DAYS,
         symptom_assessment_time_days: int =
         DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,
-        n_threads = DEFAULT_N_THREADS) -> DataFrame:
+        n_threads: int = DEFAULT_N_THREADS) -> DataFrame:
     """
     Takes a pandas DataFrame patient_drug_date_df (or, via reticulate, an R
     data.frame or data.table). This should contain dated present-tense
@@ -352,9 +352,9 @@ def two_antidepressant_episodes(
     log.info("Found {} patients".format(n_patients))
     flush_stdout_stderr()
 
-    def _get_patient_result(patient_id: str) -> Optional[DataFrame]:
+    def _get_patient_result(_patient_id: str) -> Optional[DataFrame]:
         return two_antidepressant_episodes_single_patient(
-            patient_id=patient_id,
+            patient_id=_patient_id,
             patient_drug_date_df=patient_drug_date_df,
             patient_colname=patient_colname,
             drug_colname=drug_colname,
@@ -494,11 +494,11 @@ def test_two_antidepressant_episodes(
                 dataframe = dataframe.append(newpart)
         return dataframe
 
-    def _validate(result: DataFrame, patient_name: str,
+    def _validate(_result: DataFrame, patient_name: str,
                   nrows: int, drug_a: str = None, drug_b: str = None) -> None:
-        colnum_drug_a = result.columns.get_loc(RCN_DRUG_A_NAME)
-        colnum_drug_b = result.columns.get_loc(RCN_DRUG_B_NAME)
-        patient_result = result[result[RCN_PATIENT_ID] == patient_name]
+        colnum_drug_a = _result.columns.get_loc(RCN_DRUG_A_NAME)
+        colnum_drug_b = _result.columns.get_loc(RCN_DRUG_B_NAME)
+        patient_result = _result[_result[RCN_PATIENT_ID] == patient_name]
         assert len(patient_result) == nrows
         if nrows != 1:
             return
