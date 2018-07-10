@@ -134,8 +134,10 @@ def get_current_and_head_revision(
 def upgrade_database(
         alembic_config_filename: str,
         alembic_base_dir: str = None,
+        starting_revision: str = None,
         destination_revision: str = "head",
-        version_table: str = DEFAULT_ALEMBIC_VERSION_TABLE) -> None:
+        version_table: str = DEFAULT_ALEMBIC_VERSION_TABLE,
+        as_sql: bool = False) -> None:
     """
     Use Alembic to upgrade our database.
     "revision" is the destination revision.
@@ -160,8 +162,8 @@ def upgrade_database(
     with EnvironmentContext(config,
                             script,
                             fn=upgrade,
-                            as_sql=False,
-                            starting_rev=None,
+                            as_sql=as_sql,
+                            starting_rev=starting_revision,
                             destination_rev=destination_revision,
                             tag=None,
                             version_table=version_table):

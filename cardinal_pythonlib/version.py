@@ -96,6 +96,8 @@ First started in 2009.
   - psychiatry/drugs.py
   - version assertion commands (for R access via reticulate)
 
+- 1.0.22, 2018-07-07
+  - as_sql (etc.) options to alembic_func.upgrade_database
 """
 
 from semantic_version import Version
