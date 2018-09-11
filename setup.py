@@ -26,7 +26,7 @@ from io import StringIO
 from os import path
 import sys
 
-from cardinal_pythonlib.version import VERSION
+from cardinal_pythonlib.version_string import VERSION_STRING
 
 THIS_DIR = path.abspath(path.dirname(__file__))
 README_FILE = path.join(THIS_DIR, 'README.txt')  # read
@@ -155,7 +155,7 @@ if getattr(our_args, EXTRAS_ARG):
 setup(
     name='cardinal_pythonlib',
 
-    version=VERSION,
+    version=VERSION_STRING,
 
     description='Miscellaneous Python libraries',
     long_description=long_description,

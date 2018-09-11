@@ -26,6 +26,7 @@ Support functions to serve PDFs from CGI scripts.
 
 """
 
+import getpass
 import io
 import logging
 import os
@@ -191,6 +192,7 @@ def get_pdf_from_html(html: str,
                       file_encoding: str = "utf-8",
                       debug_options: bool = False,
                       debug_content: bool = False,
+                      debug_wkhtmltopdf_args: bool = False,
                       fix_pdfkit_encoding_bug: bool = None,
                       processor: str = _DEFAULT_PROCESSOR) -> bytes:
     """
@@ -270,6 +272,13 @@ def get_pdf_from_html(html: str,
                           pformat(wkhtmltopdf_options))
             kit = pdfkit.pdfkit.PDFKit(html, 'string', configuration=config,
                                        options=wkhtmltopdf_options)
+            if debug_wkhtmltopdf_args:
+                log.debug("Probable current user: {!r}".format(
+                    getpass.getuser()
+                ))
+                log.debug("wkhtmltopdf arguments will be: {!r}".format(
+                    kit.command(path=None)
+                ))
             return kit.to_pdf(path=None)
             # With "path=None", the to_pdf() function directly returns stdout
             # from a subprocess.Popen().communicate() call (see pdfkit.py).
