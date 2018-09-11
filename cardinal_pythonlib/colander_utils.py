@@ -133,6 +133,9 @@ class AllowNoneType(SchemaType):
     When the value is not equal to None/'', it will use (de)serialization of
     the given type. This can be used to make nodes optional.
     Example:
+
+    .. code-block:: python
+
         date = colander.SchemaNode(
             colander.NoneType(colander.DateTime()),
             default=None,
@@ -231,6 +234,9 @@ class MandatoryStringNode(SchemaNode):
     Obligatory string node.
 
     CAVEAT: WHEN YOU PASS DATA INTO THE FORM, YOU MUST USE
+
+    .. code-block:: python
+
         appstruct = {
             somekey: somevalue or "",
             #                  ^^^^^

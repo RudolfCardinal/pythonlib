@@ -192,7 +192,7 @@ def get_pdf_from_html(html: str,
                       file_encoding: str = "utf-8",
                       debug_options: bool = False,
                       debug_content: bool = False,
-                      debug_wkhtmltopdf_args: bool = False,
+                      debug_wkhtmltopdf_args: bool = True,
                       fix_pdfkit_encoding_bug: bool = None,
                       processor: str = _DEFAULT_PROCESSOR) -> bytes:
     """

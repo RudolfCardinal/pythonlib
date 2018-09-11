@@ -273,16 +273,26 @@ def contains_unquoted_ampersand_dangerous_to_windows(x: str) -> bool:
     lots of things.
     See https://stackoverflow.com/questions/34124636.
     Simple example:
+
+    .. code-block:: bat
+
         set RUBBISH=a & b           # 'b' is not recognizable as a... command
         set RUBBISH='a & b'         # 'b'' is not recognizable as a... command
         set RUBBISH="a & b"         # OK
 
     ... and you get similar knock-on effects, e.g. if you set RUBBISH using the
     Control Panel to the literal
+
+    .. code-block:: bat
+
         a & dir
 
     and then do
+
+    .. code-block:: bat
+
         echo %RUBBISH%
+
     it will (1) print "a" and then (2) print a directory listing as it RUNS
     "dir"! That's pretty dreadful.
 

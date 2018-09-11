@@ -538,6 +538,9 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
                        plain: bool = False) -> str:
     """
     Structure:
+
+    .. code-block:: none
+
         table
             .rows[]
                 .cells[]
@@ -549,12 +552,16 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
     The 'plain' option optimizes for natural language processing, by:
     - removing vertical lines:
 
+      .. code-block:: none
+
         +-------------+-------------+
         | AAA AAA     | BBB BBB     |
         | AAA AAA     | BBB BBB     |
         +-------------+-------------+
 
-        becomes
+      becomes
+
+      .. code-block:: none
 
         -----------------------------
           AAA AAA       BBB BBB
@@ -563,10 +570,14 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
 
     - and offsetting cells:
 
+      .. code-block:: none
+
         AAA AAA     BBB BBB     CCC CCC
         AAA AAA     BBB BBB     CCC CCC
 
-        becomes
+      becomes
+
+      .. code-block:: none
 
         AAA AAA
         AAA AAA
@@ -577,6 +588,8 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
 
     - Note also that the grids in DOCX files can have varying number of cells
       per row, e.g.
+
+      .. code-block:: none
       
             +---+---+---+
             | 1 | 2 | 3 |
@@ -701,23 +714,31 @@ def convert_docx_to_text(filename: str = None,
 
     -   Old docx (https://pypi.python.org/pypi/python-docx) has been superseded
         (see https://github.com/mikemaccana/python-docx).
+
         -   docx.opendocx(file) uses zipfile.ZipFile, which can take either a
             filename or a file-like object
             (https://docs.python.org/2/library/zipfile.html).
+
         -   Method was:
+
+            .. code-block:: python
+
                 with get_filelikeobject(filename, blob) as fp:
                     document = docx.opendocx(fp)
                     paratextlist = docx.getdocumenttext(document)
                 return '\n\n'.join(paratextlist)
 
     -   Newer docx is python-docx
-            https://pypi.python.org/pypi/python-docx
-            https://python-docx.readthedocs.org/en/latest/
-            http://stackoverflow.com/questions/25228106
+
+        - https://pypi.python.org/pypi/python-docx
+        - https://python-docx.readthedocs.org/en/latest/
+        - http://stackoverflow.com/questions/25228106
+
         However, it uses lxml, which has C dependencies, so it doesn't always
         install properly on e.g. bare Windows machines.
 
         PERFORMANCE of my method:
+
             -   nice table formatting
             -   but tables grouped at end, not in sensible places
             -   can iterate via "doc.paragraphs" and "doc.tables" but not in
@@ -734,6 +755,7 @@ def convert_docx_to_text(filename: str = None,
         extend it.
 
         PERFORMANCE OF ITS process() function:
+
         - all text comes out
         - table text is in a sensible place
         - table formatting is lost.
@@ -748,6 +770,7 @@ def convert_docx_to_text(filename: str = None,
 
     -   See also this "compile lots of techniques" libraries, which has C
         dependencies:
+
             http://textract.readthedocs.org/en/latest/
 
     """
@@ -998,8 +1021,10 @@ def document_to_text(filename: str = None,
                      min_col_width: int = DEFAULT_MIN_COL_WIDTH) -> str:
     """
     Pass either a filename or a binary object.
+
     - Raises an exception for malformed arguments, missing files, bad
       filetypes, etc.
+
     - Returns a string if the file was processed (potentially an empty string).
     """
     if not filename and not blob:

@@ -381,3 +381,21 @@ def exists_locked(filepath: str) -> Tuple[bool, bool]:
             if file_object:
                 file_object.close()
     return exists, locked
+
+
+# =============================================================================
+# Filename/path processing
+# =============================================================================
+
+def relative_filename_within_dir(filename: str, directory: str) -> str:
+    """
+    Starting with a (typically absolute) ``filename``, returns the part of the
+    filename that is relative to the directory ``directory``.
+    If the file is *not* within the directory, returns an empty string.
+    """
+    filename = os.path.abspath(filename)
+    directory = os.path.abspath(directory)
+    if os.path.commonpath([directory, filename]) != directory:
+        # Filename is not within directory
+        return ""
+    return os.path.relpath(filename, start=directory)

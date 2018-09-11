@@ -95,6 +95,8 @@ Sorted, that is:
 
 Compare that against the output of:
 
+.. code-block:: python
+
     [x.generic_name for x in all_drugs_where(slam_antidepressant_finder=True,
                                              include_categories=True)]
 
@@ -1076,6 +1078,8 @@ def drug_names_to_generic(drugs: List[str],
     From R via reticulate, when using e.g. the ``default`` parameter and
     storing results in a data.table() character column:
 
+    .. code-block:: none
+
         ------------------------------  ----------------
         To Python                       Back from Python
         ------------------------------  ----------------
@@ -1114,11 +1118,11 @@ def all_drugs_where(sort=True,
 
     .. code-block:: python
 
-from cardinal_pythonlib.psychiatry.drugs import *
-non_ssri_antidep = all_drugs_where(antidepressant=True, ssri=False)
-print([d.generic_name for d in non_ssri_antidep])
-conventional_antidep = all_drugs_where(conventional_antidepressant=True)
-print([d.generic_name for d in conventional_antidep])
+        from cardinal_pythonlib.psychiatry.drugs import *
+        non_ssri_antidep = all_drugs_where(antidepressant=True, ssri=False)
+        print([d.generic_name for d in non_ssri_antidep])
+        conventional_antidep = all_drugs_where(conventional_antidepressant=True)
+        print([d.generic_name for d in conventional_antidep])
     """
     matching_drugs = []  # type: List[Drug]
     for drug in DRUGS:
