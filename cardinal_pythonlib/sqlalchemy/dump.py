@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions to help with large-scale dumping of data from SQLAlchemy systems.**
+
 """
 
 import datetime
@@ -61,7 +64,13 @@ SEP2 = sql_comment("-" * 76)
 
 def dump_connection_info(engine: Engine, fileobj: TextIO = sys.stdout) -> None:
     """
-    Dumps some connection info. Obscures passwords.
+    Dumps some connection info, as an SQL comment. Obscures passwords.
+
+    Args:
+        engine: the SQLAlchemy :class:`Engine` to dump metadata information
+            from
+        fileobj: the file-like object (default ``sys.stdout``) to write
+            information to
     """
     meta = MetaData(bind=engine)
     writeline_nl(fileobj, sql_comment('Database info: {}'.format(meta)))
@@ -73,8 +82,14 @@ def dump_ddl(metadata: MetaData,
              checkfirst: bool = True) -> None:
     """
     Sends schema-creating DDL from the metadata to the dump engine.
-    This makes CREATE TABLE statements.
-    If checkfirst is True, it uses CREATE TABLE IF NOT EXISTS or equivalent.
+    This makes ``CREATE TABLE`` statements.
+
+    Args:
+        metadata: SQLAlchemy :class:`MetaData`
+        dialect_name: string name of SQL dialect to generate DDL in
+        fileobj: file-like object to send DDL to
+        checkfirst: if ``True``, use ``CREATE TABLE IF NOT EXISTS`` or
+            equivalent.
     """
     # http://docs.sqlalchemy.org/en/rel_0_8/faq.html#how-can-i-get-the-create-table-drop-table-output-as-a-string  # noqa
     # http://stackoverflow.com/questions/870925/how-to-generate-a-file-with-ddl-in-the-engines-sql-dialect-in-sqlalchemy  # noqa
@@ -96,7 +111,18 @@ def dump_ddl(metadata: MetaData,
 
 
 def quick_mapper(table: Table) -> Type[DeclarativeMeta]:
-    # http://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/  # noqa
+    """
+    Makes a new SQLAlchemy mapper for an existing table.
+    See
+    http://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/
+    
+    Args:
+        table: SQLAlchemy :class:`Table` object
+
+    Returns:
+        a :class:`DeclarativeMeta` class
+
+    """  # noqa
     # noinspection PyPep8Naming
     Base = declarative_base()
 
@@ -107,8 +133,11 @@ def quick_mapper(table: Table) -> Type[DeclarativeMeta]:
 
 
 class StringLiteral(String):
-    """Teach SA how to literalize various things."""
-    # http://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
+    """
+    Teach SQLAlchemy how to literalize various things.
+    See
+    http://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
+    """
     def literal_processor(self,
                           dialect: DefaultDialect) -> Callable[[Any], str]:
         super_processor = super().literal_processor(dialect)
@@ -161,13 +190,27 @@ def make_literal_query_fn(dialect: DefaultDialect) -> Callable[[str], str]:
 # noinspection PyProtectedMember
 def get_literal_query(statement: Union[Query, Executable],
                       bind: Connectable = None) -> str:
-    # http://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
     """
-    print a query, with values filled in
-    for debugging purposes *only*
-    for security, you should always separate queries from their values
-    please also note that this function is quite slow
-    """
+    Takes an SQLAlchemy statement and produces a literal SQL version, with
+    values filled in.
+    
+    As per
+    http://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
+    
+    Notes:
+    - for debugging purposes *only*
+    - insecure; you should always separate queries from their values
+    - please also note that this function is quite slow 
+    
+    Args:
+        statement: the SQL statement (a SQLAlchemy object) to use
+        bind: if the statement is unbound, you will need to specify an object
+            here that supports SQL execution 
+
+    Returns:
+        a string literal version of the query.
+
+    """  # noqa
     # log.debug("statement: {}".format(repr(statement)))
     # log.debug("statement.bind: {}".format(repr(statement.bind)))
     if isinstance(statement, Query):
@@ -242,6 +285,19 @@ def dump_table_as_insert_sql(engine: Engine,
                              wheredict: Dict[str, Any] = None,
                              include_ddl: bool = False,
                              multirow: bool = False) -> None:
+    """
+    Reads a table from the database, and writes SQL to replicate the table's
+    data to the output ``fileobj``.
+
+    Args:
+        engine: SQLAlchemy :class:`Engine`
+        table_name: name of the table
+        fileobj: file-like object to write to
+        wheredict: optional dictionary of ``{column_name: value}`` to use as
+            ``WHERE`` filters
+        include_ddl: if ``True``, include the DDL to create the table as well
+        multirow: write multi-row ``INSERT`` statements
+    """
     # http://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
     # http://docs.sqlalchemy.org/en/latest/faq/sqlexpressions.html
     # http://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/  # noqa
@@ -319,6 +375,16 @@ def dump_database_as_insert_sql(engine: Engine,
                                 fileobj: TextIO = sys.stdout,
                                 include_ddl: bool = False,
                                 multirow: bool = False) -> None:
+    """
+    Reads an entire database and writes SQL to replicate it to the output
+    file-like object.
+
+    Args:
+        engine: SQLAlchemy :class:`Engine`
+        fileobj: file-like object to write to
+        include_ddl: if ``True``, include the DDL to create the table as well
+        multirow: write multi-row ``INSERT`` statements
+    """
     for tablename in get_table_names(engine):
         dump_table_as_insert_sql(
             engine=engine,
@@ -332,6 +398,15 @@ def dump_database_as_insert_sql(engine: Engine,
 def dump_orm_object_as_insert_sql(engine: Engine,
                                   obj: object,
                                   fileobj: TextIO) -> None:
+    """
+    Takes a SQLAlchemy ORM object, and writes ``INSERT`` SQL to replicate it
+    to the output file-like object.
+
+    Args:
+        engine: SQLAlchemy :class:`Engine`
+        obj: SQLAlchemy ORM object to write
+        fileobj: file-like object to write to
+    """
     # literal_query = make_literal_query_fn(engine.dialect)
     insp = inspect(obj)
     # insp: an InstanceState
@@ -374,7 +449,15 @@ def bulk_insert_extras(dialect_name: str,
                        fileobj: TextIO,
                        start: bool) -> None:
     """
-    Writes bulk insert preamble (start=True) or end (start=False).
+    Writes bulk ``INSERT`` preamble (start=True) or end (start=False).
+
+    For MySQL, this temporarily switches off autocommit behaviour and index/FK
+    checks, for speed, then re-enables them at the end and commits.
+
+    Args:
+        dialect_name: SQLAlchemy dialect name (see :class:`SqlaDialectName`)
+        fileobj: file-like object to write to
+        start: if ``True``, write preamble; if ``False``, write end
     """
     lines = []
     if dialect_name == SqlaDialectName.MYSQL:
@@ -398,18 +481,24 @@ def dump_orm_tree_as_insert_sql(engine: Engine,
                                 fileobj: TextIO) -> None:
     """
     Sends an object, and all its relations (discovered via "relationship"
-    links) as INSERT commands in SQL, to fileobj.
+    links) as ``INSERT`` commands in SQL, to ``fileobj``.
+
+    Args:
+        engine: SQLAlchemy :class:`Engine`
+        baseobj: starting SQLAlchemy ORM object
+        fileobj: file-like object to write to
 
     Problem: foreign key constraints.
+    
     - MySQL/InnoDB doesn't wait to the end of a transaction to check FK
       integrity (which it should):
       http://stackoverflow.com/questions/5014700/in-mysql-can-i-defer-referential-integrity-checks-until-commit  # noqa
     - PostgreSQL can.
     - Anyway, slightly ugly hacks...
-      https://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html  # noqa
+      https://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
     - Not so obvious how we can iterate through the list of ORM objects and
       guarantee correct insertion order with respect to all FKs.
-    """
+    """  # noqa
     writeline_nl(
         fileobj,
         sql_comment("Data for all objects related to the first below:"))

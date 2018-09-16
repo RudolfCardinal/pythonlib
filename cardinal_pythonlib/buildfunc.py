@@ -22,7 +22,8 @@
 
 ===============================================================================
 
-Support for building software.
+**Support for building software.**
+
 """
 
 import io
@@ -81,7 +82,18 @@ def git_clone(prettyname: str, url: str, directory: str,
               run_func: Callable[[List[str]], Any] = None) -> bool:
     """
     Fetches a Git repository, unless we have it already.
-    Returns: did we need to do anything?
+
+    Args:
+        prettyname: name to display to user
+        url: URL
+        directory: destination directory
+        branch: repository branch
+        commit: repository commit tag
+        clone_options: additional options to pass to ``git clone``
+        run_func: function to use to call an external command
+
+    Returns:
+        did we need to do anything?
     """
     run_func = run_func or subprocess.check_call
     clone_options = clone_options or []  # type: List[str]
@@ -130,6 +142,15 @@ def untar_to_directory(tarfile: str, directory: str,
                        run_func: Callable[[List[str]], Any] = None) -> None:
     """
     Unpacks a TAR file into a specified directory.
+
+    Args:
+        tarfile: filename of the ``.tar`` file
+        directory: destination directory
+        verbose: be verbose?
+        gzipped: is the ``.tar`` also gzipped, e.g. a ``.tar.gz`` file?
+        skip_if_dir_exists: don't do anything if the destrination directory
+            exists?
+        run_func: function to use to call an external command
     """
     if skip_if_dir_exists and os.path.isdir(directory):
         log.info("Skipping extraction of {} as directory {} exists".format(
@@ -192,10 +213,38 @@ def run(args: List[str],
         **kwargs) -> Tuple[str, str]:
     """
     Runs an external process, announcing it.
-    Optionally, retrieves its stdout and/or stderr output (if not retrieved,
+
+    Optionally, retrieves its ``stdout`` and/or ``stderr`` output (if not retrieved,
     the output will be visible to the user).
-    Returns a tuple: (stdout, stderr). If the output wasn't captured, an empty
-    string will take its place in this tuple.
+
+
+    Args:
+        args: list of command-line arguments (the first being the executable)
+
+        env: operating system environment to use (if ``None``, the current OS
+            environment will be used)
+
+        capture_stdout: capture the command's ``stdout``?
+
+        echo_stdout: allow the command's ``stdout`` to go to ``sys.stdout``?
+
+        capture_stderr: capture the command's ``stderr``?
+
+        echo_stderr: allow the command's ``stderr`` to go to ``sys.stderr``?
+
+        debug_show_env: be verbose and show the environment used before calling
+
+        encoding: encoding to use to translate the command's output
+
+        allow_failure: if ``True``, continues if the command returns a
+            non-zero (failure) exit code; if ``False``, raises an error if
+            that happens
+
+        kwargs: additional arguments to :func:`teed_call`
+
+    Returns:
+        a tuple: ``(stdout, stderr)``. If the output wasn't captured, an empty
+        string will take its place in this tuple.
     """
     cwd = os.getcwd()
     # log.debug("External command Python form: {}".format(args))
@@ -275,6 +324,15 @@ def fetch(args: List[str], env: Dict[str, str] = None,
           encoding: str = sys.getdefaultencoding()) -> str:
     """
     Run a command and returns its stdout.
+
+    Args:
+        args: the command-line arguments
+        env: the operating system environment to use
+        encoding: the encoding to use for ``stdout``
+
+    Returns:
+        the command's ``stdout`` output
+
     """
     stdout, _ = run(args, env=env, capture_stdout=True,
                     echo_stdout=False, encoding=encoding)

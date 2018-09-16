@@ -116,7 +116,18 @@ First started in 2009.
 
 - separation of version string for ``setup.py``
 
-**1.0.24, 2018-09-11**
+**1.0.24, 2018-09-11 to 2018-09-14**
 
 - extra debug option (``debug_wkhtmltopdf_args``) for ``get_pdf_from_html``
 - Sphinx autodocumentation.
+- ``create_base64encoded_randomness()`` removed from ``crypto.py`` as was
+  duplicated in ``randomness.py``.
+- removed all requirements (temporarily? permanently?) as we were having
+  problems installing on machines with wrong compiler versions or absent
+  compilers, but didn't need those specific sub-dependencies; so consequence is
+  that packages that use this software need to add additional requirements.
+
+**1.0.25, 2018-09-16**
+
+- Dependencies put back, except dependency on ``regex`` removed.
+- Further documentation.

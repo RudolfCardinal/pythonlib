@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Support functions for logging.
+**Support functions for logging.**
 
 See https://docs.python.org/3.4/howto/logging.html#library-config
 
@@ -30,28 +30,36 @@ USER CODE should use the following general methods.
 
 (a) Simple:
 
-    import logging
-    log = logging.getLogger(__name__)  # for your own logs
-    logging.basicConfig()
+    .. code-block:: python
+
+        import logging
+        log = logging.getLogger(__name__)  # for your own logs
+        logging.basicConfig()
 
 (b) More complex:
 
-    import logging
-    log = logging.getLogger(__name__)
-    logging.basicConfig(format=LOG_FORMAT, datefmt=LOG_DATEFMT,
-                        level=loglevel)
+    .. code-block:: python
+
+        import logging
+        log = logging.getLogger(__name__)
+        logging.basicConfig(format=LOG_FORMAT, datefmt=LOG_DATEFMT,
+                            level=loglevel)
 
 (c) Using colour conveniently:
 
-    import logging
-    mylogger = logging.getLogger(__name__)
-    rootlogger = logging.getLogger()
+    .. code-block:: python
 
-    from whisker.log import configure_logger_for_colour
-    configure_logger_for_colour(rootlogger)
+        import logging
+        mylogger = logging.getLogger(__name__)
+        rootlogger = logging.getLogger()
+
+        from whisker.log import configure_logger_for_colour
+        configure_logger_for_colour(rootlogger)
 
 
 LIBRARY CODE should use the following general methods.
+
+.. code-block:: python
 
     import logging
     log = logging.getLogger(__name__)
@@ -63,7 +71,7 @@ LIBRARY CODE should use the following general methods.
 
     # LIBRARY CODE SHOULD NOT ADD ANY OTHER HANDLERS; see above.
 
-DO NOT call this module "logging"! Many things may get confused
+DO NOT call this module "logging"! Many things may get confused.
 
 """
 
@@ -150,8 +158,9 @@ def configure_logger_for_colour(logger: logging.Logger,
                                 with_thread_id: bool = False) -> None:
     """
     Applies a preconfigured datetime/colour scheme to a logger.
-    Should ONLY be called from the "if __name__ == 'main'" script:
-        https://docs.python.org/3.4/howto/logging.html#library-config
+
+    Should ONLY be called from the ``if __name__ == 'main'`` script;
+    see https://docs.python.org/3.4/howto/logging.html#library-config.
     """
     if remove_existing:
         logger.handlers = []  # http://stackoverflow.com/questions/7484454
@@ -166,6 +175,12 @@ def configure_logger_for_colour(logger: logging.Logger,
 def main_only_quicksetup_rootlogger(level: int = logging.DEBUG,
                                     with_process_id: bool = False,
                                     with_thread_id: bool = False) -> None:
+    """
+    Quick function to set up the root logger for colour.
+
+    Should ONLY be called from the ``if __name__ == 'main'`` script;
+    see https://docs.python.org/3.4/howto/logging.html#library-config.
+    """
     # Nasty. Only call from "if __name__ == '__main__'" clauses!
     rootlogger = logging.getLogger()
     configure_logger_for_colour(rootlogger, level, remove_existing=True,
@@ -220,8 +235,10 @@ def reset_logformat_timestamped(logger: logging.Logger,
 def configure_all_loggers_for_colour(remove_existing: bool = True) -> None:
     """
     Applies a preconfigured datetime/colour scheme to ALL logger.
-    Should ONLY be called from the "if __name__ == 'main'" script:
-        https://docs.python.org/3.4/howto/logging.html#library-config
+
+    Should ONLY be called from the ``if __name__ == 'main'`` script;
+    see https://docs.python.org/3.4/howto/logging.html#library-config.
+
     Generally MORE SENSIBLE just to apply a handler to the root logger.
     """
     handler = get_colour_handler()
@@ -232,8 +249,10 @@ def apply_handler_to_root_log(handler: logging.Handler,
                               remove_existing: bool = False) -> None:
     """
     Applies a handler to all logs, optionally removing existing handlers.
-    Should ONLY be called from the "if __name__ == 'main'" script:
-        https://docs.python.org/3.4/howto/logging.html#library-config
+
+    Should ONLY be called from the ``if __name__ == 'main'`` script;
+    see https://docs.python.org/3.4/howto/logging.html#library-config.
+
     Generally MORE SENSIBLE just to apply a handler to the root logger.
     """
     rootlog = logging.getLogger()
@@ -246,8 +265,10 @@ def apply_handler_to_all_logs(handler: logging.Handler,
                               remove_existing: bool = False) -> None:
     """
     Applies a handler to all logs, optionally removing existing handlers.
-    Should ONLY be called from the "if __name__ == 'main'" script:
-        https://docs.python.org/3.4/howto/logging.html#library-config
+
+    Should ONLY be called from the ``if __name__ == 'main'`` script;
+    see https://docs.python.org/3.4/howto/logging.html#library-config.
+
     Generally MORE SENSIBLE just to apply a handler to the root logger.
     """
     # noinspection PyUnresolvedReferences
@@ -262,8 +283,9 @@ def copy_root_log_to_file(filename: str,
                           datefmt: str = LOG_DATEFMT) -> None:
     """
     Copy all currently configured logs to the specified file.
-    Should ONLY be called from the "if __name__ == 'main'" script:
-        https://docs.python.org/3.4/howto/logging.html#library-config
+
+    Should ONLY be called from the ``if __name__ == 'main'`` script;
+    see https://docs.python.org/3.4/howto/logging.html#library-config.
     """
     fh = logging.FileHandler(filename)
     # default file mode is 'a' for append
@@ -277,8 +299,9 @@ def copy_all_logs_to_file(filename: str,
                           datefmt: str = LOG_DATEFMT) -> None:
     """
     Copy all currently configured logs to the specified file.
-    Should ONLY be called from the "if __name__ == 'main'" script:
-        https://docs.python.org/3.4/howto/logging.html#library-config
+
+    Should ONLY be called from the ``if __name__ == 'main'`` script;
+    see https://docs.python.org/3.4/howto/logging.html#library-config.
     """
     fh = logging.FileHandler(filename)
     # default file mode is 'a' for append

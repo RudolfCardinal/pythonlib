@@ -21,6 +21,10 @@
     limitations under the License.
 
 ===============================================================================
+
+**Class to refer to database tables either by name or by SQLAlchemy Table
+object.**
+
 """
 
 import logging
@@ -40,13 +44,21 @@ log = BraceStyleAdapter(log)
 
 class TableIdentity(object):
     """
-    Convenient way of passing around Table objects when you might know either
-    either its name or the Table object itself.
+    Convenient way of passing around SQLAlchemy :class:`Table` objects when you
+    might know either either its name or the :class:`Table` object itself.
     """
     def __init__(self,
                  tablename: str = None,
                  table: Table = None,
                  metadata: MetaData = None) -> None:
+        """
+        Initialize with either ``tablename`` or ``table``, not both.
+
+        Args:
+            tablename: string name of the table
+            table: SQLAlchemy :class:`Table` object
+            metadata: optional :class:`MetaData` object
+        """
         assert table is not None or tablename, "No table information provided"
         assert not (tablename and table is not None), (
             "Specify either table or tablename, not both")
@@ -66,6 +78,11 @@ class TableIdentity(object):
 
     @property
     def table(self) -> Table:
+        """
+        Returns a SQLAlchemy :class:`Table` object. This is either the
+        :class:`Table` object that was used for initialization, or one that
+        was constructed from the ``tablename`` plus the ``metadata``.
+        """
         if self._table is not None:
             return self._table
         assert self._metadata, (
@@ -81,15 +98,22 @@ class TableIdentity(object):
 
     @property
     def tablename(self) -> str:
+        """
+        Returns the string name of the table.
+        """
         if self._tablename:
             return self._tablename
         return self.table.name
 
     def set_metadata(self, metadata: MetaData) -> None:
+        """
+        Sets the :class:`MetaData`.
+        """
         self._metadata = metadata
 
     def set_metadata_if_none(self, metadata: MetaData) -> None:
+        """
+        Sets the :class:`MetaData` unless it was set already.
+        """
         if self._metadata is None:
             self._metadata = metadata
-
-

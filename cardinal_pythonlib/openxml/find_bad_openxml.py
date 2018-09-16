@@ -21,6 +21,11 @@
     limitations under the License.
 
 ===============================================================================
+
+**Tool to scan rescued Microsoft Office OpenXML files (produced by the
+"find_recovered_openxml.py" tool in this kit; q.v.) and detect bad
+(corrupted) ones.**
+
 """
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
@@ -65,11 +70,17 @@ NULL_DATE_TIME = (1980, 1, 1, 0, 0, 0)
 
 
 def gen_from_stdin() -> Generator[str, None, None]:
+    """
+    Yields stripped lines from stdin.
+    """
     for line in stdin.readlines():
         yield line.strip()
 
 
 def is_openxml_good(filename: str) -> bool:
+    """
+    Determines whether an OpenXML file appears to be good (not corrupted).
+    """
     try:
         log.debug("Trying: {}", filename)
         with ZipFile(filename, 'r') as zip_ref:
@@ -131,6 +142,17 @@ def is_openxml_good(filename: str) -> bool:
 def process_openxml_file(filename: str,
                          print_good: bool,
                          delete_if_bad: bool) -> None:
+    """
+    Prints the filename of, or deletes, an OpenXML file depending on whether
+    it is corrupt or not.
+
+    Args:
+        filename: filename to check
+        print_good: if ``True``, then prints the filename if the file
+            appears good.
+        delete_if_bad: if ``True``, then deletes the file if the file
+            appears corrupt.
+    """
     print_bad = not print_good
     try:
         file_good = is_openxml_good(filename)
@@ -149,6 +171,10 @@ def process_openxml_file(filename: str,
 
 
 def main() -> None:
+    """
+    Command-line handler for the ``find_bad_openxml`` tool.
+    Use the ``--help`` option for help.
+    """
     parser = ArgumentParser(
         formatter_class=RawDescriptionHelpFormatter,
         description="""

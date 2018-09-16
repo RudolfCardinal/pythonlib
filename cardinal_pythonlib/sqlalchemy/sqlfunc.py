@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions to operate on SQL clauses for SQLAlchemy Core.**
+
 """
 
 import logging
@@ -47,6 +50,10 @@ log = BraceStyleAdapter(log)
 # =============================================================================
 
 def fail_unknown_dialect(compiler: "SQLCompiler", task: str) -> None:
+    """
+    Raise :exc:`NotImplementedError` in relation to a dialect for which a
+    function hasn't been implemented (with a helpful error message).
+    """
     raise NotImplementedError(
         "Don't know how to {task} on dialect {dialect!r}. "
         "(Check also: if you printed the SQL before it was bound to an "
@@ -60,6 +67,10 @@ def fail_unknown_dialect(compiler: "SQLCompiler", task: str) -> None:
 
 def fetch_processed_single_clause(element: "ClauseElement",
                                   compiler: "SQLCompiler") -> str:
+    """
+    Takes a clause element that must have a single clause, and converts it
+    to raw SQL text.
+    """
     if len(element.clauses) != 1:
         raise TypeError("Only one argument supported; {} were passed".format(
             len(element.clauses)))
@@ -71,15 +82,40 @@ def fetch_processed_single_clause(element: "ClauseElement",
 # =============================================================================
 # Extract year from a DATE/DATETIME etc.
 # =============================================================================
-# YEAR, or func.year(), is specific to some DBs, e.g. MySQL
-# so is EXTRACT, or func.extract(); http://modern-sql.com/feature/extract
-#
-# Use this as:
-#   from cardinal_pythonlib.sqlalchemy.sqlfunc import extract_year
-# ... then use extract_year() in an SQLAlchemy SELECT expression.
 
 # noinspection PyPep8Naming
 class extract_year(FunctionElement):
+    """
+    Implements an SQLAlchemy :func:`extract_year` function, to extract the
+    year from a date/datetime column.
+
+    ``YEAR``, or ``func.year()``, is specific to some DBs, e.g. MySQL.
+    So is ``EXTRACT``, or ``func.extract()``;
+    http://modern-sql.com/feature/extract.
+
+    This function therefore implements an ``extract_year`` function across
+    multiple databases.
+
+    Use this as:
+
+    .. code-block:: python
+
+      from cardinal_pythonlib.sqlalchemy.sqlfunc import extract_year
+
+    ... then use :func:`extract_year` in an SQLAlchemy ``SELECT`` expression.
+
+    Here's an example from CamCOPS:
+
+    .. code-block:: python
+
+        select_fields = [
+            literal(cls.__tablename__).label("task"),
+            extract_year(cls._when_added_batch_utc).label("year"),
+            extract_month(cls._when_added_batch_utc).label("month"),
+            func.count().label("num_tasks_added"),
+        ]
+
+    """
     type = Numeric()
     name = 'extract_year'
 
@@ -88,6 +124,9 @@ class extract_year(FunctionElement):
 @compiles(extract_year)
 def extract_year_default(element: "ClauseElement",
                          compiler: "SQLCompiler", **kw) -> None:
+    """
+    Default implementation of :func:, which raises :exc:`NotImplementedError`.
+    """
     fail_unknown_dialect(compiler, "extract year from date")
 
 
@@ -127,6 +166,10 @@ def extract_year_strftime(element: "ClauseElement",
 
 # noinspection PyPep8Naming
 class extract_month(FunctionElement):
+    """
+    Implements an SQLAlchemy :func:`extract_month` function. See
+    :func:`extract_year`.
+    """
     type = Numeric()
     name = 'extract_month'
 
@@ -170,6 +213,10 @@ def extract_month_strftime(element: "ClauseElement",
 
 # noinspection PyPep8Naming
 class extract_day_of_month(FunctionElement):
+    """
+    Implements an SQLAlchemy :func:`extract_day` function (to extract the day
+    of the month from a date/datetime expression). See :func:`extract_year`.
+    """
     type = Numeric()
     name = 'extract_day'
 

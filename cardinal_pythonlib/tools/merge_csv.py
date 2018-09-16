@@ -21,6 +21,11 @@
     limitations under the License.
 
 ===============================================================================
+
+**Command-line tool to merge multiple comma-separated value (CSV) or
+tab-separated value (TSV) files, as long as they don't have incompatible
+headers.**
+
 """
 
 import argparse
@@ -40,6 +45,17 @@ def merge_csv(filenames: List[str],
               output_dialect: str = 'excel',
               debug: bool = False,
               headers: bool = True) -> None:
+    """
+    Amalgamate multiple CSV/TSV/similar files into one.
+
+    Args:
+        filenames: list of filenames to process
+        outfile: file-like object to write output to
+        input_dialect: dialect of input files, as passed to ``csv.reader``
+        output_dialect: dialect to write, as passed to ``csv.writer``
+        debug: be verbose?
+        headers: do the files have header lines?
+    """
     writer = csv.writer(outfile, dialect=output_dialect)
     written_header = False
     header_items = []  # type: List(str)
@@ -76,6 +92,9 @@ def merge_csv(filenames: List[str],
 
 
 def main():
+    """
+    Command-line processor. See ``--help`` for details.
+    """
     main_only_quicksetup_rootlogger()
 
     parser = argparse.ArgumentParser()

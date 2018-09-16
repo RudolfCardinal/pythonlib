@@ -22,9 +22,13 @@
 
 ===============================================================================
 
-See notes_on_pickle_json.txt
+**Functions to make it easy to serialize Python objects to/from JSON.**
 
-THE STANDARD PYTHON REPRESENTATION USED IS A DICTIONARY LIKE THIS:
+See ``notes_on_pickle_json.txt``.
+
+The standard Python representation used internally is a dictionary like this:
+
+.. code-block:: python
 
     {
         __type__: 'MyClass',
@@ -36,9 +40,12 @@ THE STANDARD PYTHON REPRESENTATION USED IS A DICTIONARY LIKE THIS:
         }
     }
 
-We will call this an InitDict.
+We will call this an ``InitDict``.
+
 Sometimes positional arguments aren't necessary and it's convenient to work
 also with the simpler dictionary:
+
+.. code-block:: python
 
     {
         'some': 1,
@@ -46,7 +53,7 @@ also with the simpler dictionary:
         'args': [2, 3, 4],
     }
 
-... which we'll call a KwargsDict.
+... which we'll call a ``KwargsDict``.
 
 """
 
@@ -114,22 +121,37 @@ INIT_KWARGS_FN_NAME = 'init_kwargs'
 # =============================================================================
 
 def args_kwargs_to_initdict(args: ArgsList, kwargs: KwargsDict) -> InitDict:
+    """
+    Converts a set of ``args`` and ``kwargs`` to an ``InitDict``.
+    """
     return {ARGS_LABEL: args,
             KWARGS_LABEL: kwargs}
 
 
 def kwargs_to_initdict(kwargs: KwargsDict) -> InitDict:
+    """
+    Converts a set of ``kwargs`` to an ``InitDict``.
+    """
     return {ARGS_LABEL: [],
             KWARGS_LABEL: kwargs}
 
 
 # noinspection PyUnusedLocal
 def obj_with_no_args_to_init_dict(obj: Any) -> InitDict:
+    """
+    Creates an empty ``InitDict``, for use with an object that takes no
+    arguments at creation.
+    """
+
     return {ARGS_LABEL: [],
             KWARGS_LABEL: {}}
 
 
 def strip_leading_underscores_from_keys(d: Dict) -> Dict:
+    """
+    Clones a dictionary, removing leading underscores from key names.
+    Raises ``ValueError`` if this causes an attribute conflict.
+    """
     newdict = {}
     for k, v in d.items():
         if k.startswith('_'):
@@ -141,6 +163,10 @@ def strip_leading_underscores_from_keys(d: Dict) -> Dict:
 
 
 def verify_initdict(initdict: InitDict) -> None:
+    """
+    Ensures that its parameter is a proper ``InitDict``, or raises
+    ``ValueError``.
+    """
     if (not isinstance(initdict, dict) or
             ARGS_LABEL not in initdict or
             KWARGS_LABEL not in initdict):
@@ -156,10 +182,13 @@ def initdict_to_instance(d: InitDict, cls: ClassType) -> Any:
     Converse of simple_to_dict().
     Given that JSON dictionary, we will end up re-instantiating the class with
 
+    .. code-block:: python
+
         d = {'a': 1, 'b': 2, 'c': 3}
         new_x = SimpleClass(**d)
 
-    We'll also support arbitrary creation, by using both *args and **kwargs.
+    We'll also support arbitrary creation, by using both ``*args`` and
+    ``**kwargs``.
     """
     args = d.get(ARGS_LABEL, [])
     kwargs = d.get(KWARGS_LABEL, {})
@@ -173,55 +202,65 @@ def initdict_to_instance(d: InitDict, cls: ClassType) -> Any:
 
 def instance_to_initdict_simple(obj: Any) -> InitDict:
     """
-    For use when object attributes (found in obj.__dict__) should be mapped
+    For use when object attributes (found in ``obj.__dict__``) should be mapped
     directly to the serialized JSON dictionary. Typically used for classes
     like:
 
-class SimpleClass(object):
-    def __init__(self, a, b, c):
-        self.a = a
-        self.b = b
-        self.c = c
+    .. code-block:: python
 
-    Here, after
+        class SimpleClass(object):
+            def __init__(self, a, b, c):
+                self.a = a
+                self.b = b
+                self.c = c
 
-        x = SimpleClass(a=1, b=2, c=3)
+            Here, after
 
-    we will find that
+                x = SimpleClass(a=1, b=2, c=3)
 
-        x.__dict__ == {'a': 1, 'b': 2, 'c': 3}
+            we will find that
+
+                x.__dict__ == {'a': 1, 'b': 2, 'c': 3}
 
     and that dictionary is a reasonable thing to serialize to JSON as keyword
     arguments.
 
-    We'll also support arbitrary creation, by using both *args and **kwargs.
-    We may not use this format much, but it has the advantage of being an
-    arbitrarily correct format for Python class construction.
+    We'll also support arbitrary creation, by using both ``*args`` and
+    ``**kwargs``. We may not use this format much, but it has the advantage of
+    being an arbitrarily correct format for Python class construction.
     """
     return kwargs_to_initdict(obj.__dict__)
 
 
 def instance_to_initdict_stripping_underscores(obj: Instance) -> InitDict:
     """
-    This is appropriate when a class uses a '_' prefix for all its __init__
-    parameters, like this:
+    This is appropriate when a class uses a ``'_'`` prefix for all its
+    ``__init__`` parameters, like this:
 
-class UnderscoreClass(object):
-    def __init__(self, a, b, c):
-        self._a = a
-        self._b = b
-        self._c = c
+    .. code-block:: python
+
+        class UnderscoreClass(object):
+            def __init__(self, a, b, c):
+                self._a = a
+                self._b = b
+                self._c = c
 
     Here, after
+
+    .. code-block:: python
 
         y = UnderscoreClass(a=1, b=2, c=3)
 
     we will find that
 
+    .. code-block:: python
+
         y.__dict__ == {'_a': 1, '_b': 2, '_c': 3}
 
-    but we would like to serialize the parameters we can pass back to __init__,
-    by removing the leading underscores, like this:
+    but we would like to serialize the parameters we can pass back to
+    ``__init__``, by removing the leading underscores, like this:
+
+    .. code-block:: python
 
         {'a': 1, 'b': 2, 'c': 3}
     """
@@ -234,8 +273,8 @@ def wrap_kwargs_to_initdict(init_kwargs_fn: InitKwargsFnType,
                             check_result: bool = True) \
         -> InstanceToInitDictFnType:
     """
-    Wraps a function producing a KwargsDict, making it into a function
-    producing an InitDict.
+    Wraps a function producing a ``KwargsDict``, making it into a function
+    producing an ``InitDict``.
     """
     def wrapper(obj: Instance) -> InitDict:
         result = init_kwargs_fn(obj)
@@ -254,8 +293,8 @@ def wrap_args_kwargs_to_initdict(init_args_kwargs_fn: InitArgsKwargsFnType,
                                  check_result: bool = True) \
         -> InstanceToInitDictFnType:
     """
-    Wraps a function producing a KwargsDict, making it into a function
-    producing an InitDict.
+    Wraps a function producing a ``KwargsDict``, making it into a function
+    producing an ``InitDict``.
     """
     def wrapper(obj: Instance) -> InitDict:
         result = init_args_kwargs_fn(obj)
@@ -277,6 +316,10 @@ def wrap_args_kwargs_to_initdict(init_args_kwargs_fn: InitArgsKwargsFnType,
 # =============================================================================
 
 def make_instance_to_initdict(attributes: List[str]) -> InstanceToDictFnType:
+    """
+    Returns a function that takes an object (instance) and produces an
+    ``InitDict`` enabling its re-creation.
+    """
     def custom_instance_to_initdict(x: Instance) -> InitDict:
         kwargs = {}
         for a in attributes:
@@ -291,6 +334,9 @@ def make_instance_to_initdict(attributes: List[str]) -> InstanceToDictFnType:
 # =============================================================================
 
 class JsonDescriptor(object):
+    """
+    Describe how a Python class should be serialized to/from JSON.
+    """
     def __init__(self,
                  typename: str,
                  obj_to_dict_fn: InstanceToDictFnType,
@@ -355,10 +401,14 @@ def register_class_for_json(
         default_factory: DefaultFactoryFnType = None) -> None:
     """
     Registers the class cls for JSON serialization.
-    - If both obj_to_dict_fn and dict_to_obj_fn are registered, the framework
-      uses these to convert instances of the class to/from Python dictionaries,
-      which are in turn serialized to JSON.
+
+    - If both ``obj_to_dict_fn`` and dict_to_obj_fn are registered, the
+      framework uses these to convert instances of the class to/from Python
+      dictionaries, which are in turn serialized to JSON.
+
     - Otherwise:
+
+      .. code-block:: python
 
         if method == 'simple':
             # ... uses simple_to_dict and simple_from_dict (q.v.)
@@ -400,32 +450,38 @@ def register_for_json(*args, **kwargs) -> Any:
     """
     Class decorator to register classes with our JSON system.
 
-    - If method is 'provides_init_args_kwargs', the class provides a
+    - If method is ``'provides_init_args_kwargs'``, the class provides a
       function
+
+      .. code-block:: python
 
         def init_args_kwargs(self) -> Tuple[List[Any], Dict[str, Any]]
 
-      that returns an (args, kwargs) tuple, suitable for passing to its
-      __init__() function as __init__(*args, **kwargs).
+      that returns an ``(args, kwargs)`` tuple, suitable for passing to its
+      ``__init__()`` function as ``__init__(*args, **kwargs)``.
 
-    - If method is 'provides_init_kwargs', the class provides a function
+    - If method is ``'provides_init_kwargs'``, the class provides a function
+
+      .. code-block:: python
 
         def init_kwargs(self) -> Dict
 
-      that returns a dictionary kwargs suitable for passing to its __init__()
-      function as __init__(**kwargs).
+      that returns a dictionary ``kwargs`` suitable for passing to its
+      ``__init__()`` function as ``__init__(**kwargs)``.
 
-    - Otherwise, the method argument is as for register_class_for_json().
+    - Otherwise, the method argument is as for ``register_class_for_json()``.
 
     Usage looks like:
 
-    @register_for_json(method=METHOD_STRIP_UNDERSCORE)
-    class TableId(object):
-        def __init__(self, db: str = '', schema: str = '',
-                     table: str = '') -> None:
-            self._db = db
-            self._schema = schema
-            self._table = table
+    .. code-block:: python
+
+        @register_for_json(method=METHOD_STRIP_UNDERSCORE)
+        class TableId(object):
+            def __init__(self, db: str = '', schema: str = '',
+                         table: str = '') -> None:
+                self._db = db
+                self._schema = schema
+                self._table = table
 
     """
     if DEBUG:
@@ -513,6 +569,9 @@ def register_for_json(*args, **kwargs) -> Any:
 
 
 def dump_map(file: TextIO = sys.stdout) -> None:
+    """
+    Prints the JSON "registered types" map to the specified file.
+    """
     pp = pprint.PrettyPrinter(indent=4, stream=file)
     print("Type map: ", file=file)
     pp.pprint(TYPE_MAP)
@@ -523,6 +582,10 @@ def dump_map(file: TextIO = sys.stdout) -> None:
 # =============================================================================
 
 class JsonClassEncoder(json.JSONEncoder):
+    """
+    Provides a JSON encoder whose ``default`` method encodes a Python object
+    to JSON with reference to our ``TYPE_MAP``.
+    """
     def default(self, obj: Instance) -> Any:
         typename = type(obj).__qualname__  # preferable to __name__, as above
         if typename in TYPE_MAP:
@@ -539,6 +602,10 @@ class JsonClassEncoder(json.JSONEncoder):
 
 
 def json_class_decoder_hook(d: Dict) -> Any:
+    """
+    Provides a JSON decoder that converts dictionaries to Python objects if
+    suitable methods are found in our ``TYPE_MAP``.
+    """
     if TYPE_LABEL in d:
         typename = d.get(TYPE_LABEL)
         if typename in TYPE_MAP:
@@ -559,12 +626,18 @@ def json_class_decoder_hook(d: Dict) -> Any:
 
 def json_encode(obj: Instance, **kwargs) -> str:
     """
-    The **kwargs can be used to pass things like 'indent', for formatting.
+    Encodes an object to JSON using our custom encoder.
+
+    The ``**kwargs`` can be used to pass things like ``'indent'``, for
+    formatting.
     """
     return json.dumps(obj, cls=JsonClassEncoder, **kwargs)
 
 
 def json_decode(s: str) -> Any:
+    """
+    Decodes an object from JSON using our custom decoder.
+    """
     try:
         return json.JSONDecoder(object_hook=json_class_decoder_hook).decode(s)
     except json.JSONDecodeError:
@@ -620,19 +693,25 @@ register_class_for_json(
 # Since this is a family of classes, we provide a decorator.
 
 def enum_to_dict_fn(e: Enum) -> Dict[str, Any]:
+    """
+    Converts an ``Enum`` to a ``dict``.
+    """
     return {
         'name': e.name
     }
 
 
 def dict_to_enum_fn(d: Dict[str, Any], enum_class: Type[Enum]) -> Enum:
+    """
+    Converts an ``dict`` to a ``Enum``.
+    """
     return enum_class[d['name']]
 
 
 def register_enum_for_json(*args, **kwargs) -> Any:
     """
-    Class decorator to register Enum-derived classes with our JSON system.
-    See comments/help for @register_for_json, above.
+    Class decorator to register ``Enum``-derived classes with our JSON system.
+    See comments/help for ``@register_for_json``, above.
     """
     if len(args) == 1 and len(kwargs) == 0 and callable(args[0]):
         # called as @register_enum_for_json
@@ -654,6 +733,9 @@ def register_enum_for_json(*args, **kwargs) -> Any:
 # -----------------------------------------------------------------------------
 
 def pendulum_to_dict(p: DateTime) -> Dict[str, Any]:
+    """
+    Converts a ``Pendulum`` or ``datetime`` object to a ``dict``.
+    """
     return {
         'iso': str(p)
     }
@@ -662,6 +744,9 @@ def pendulum_to_dict(p: DateTime) -> Dict[str, Any]:
 # noinspection PyUnusedLocal
 def dict_to_pendulum(d: Dict[str, Any],
                      pendulum_class: ClassType) -> DateTime:
+    """
+    Converts a ``dict`` object back to a ``Pendulum``.
+    """
     return pendulum.parse(d['iso'])
 
 
@@ -677,6 +762,9 @@ register_class_for_json(
 # -----------------------------------------------------------------------------
 
 def pendulumdate_to_dict(p: Date) -> Dict[str, Any]:
+    """
+    Converts a ``pendulum.Date`` object to a ``dict``.
+    """
     return {
         'iso': str(p)
     }
@@ -685,6 +773,9 @@ def pendulumdate_to_dict(p: Date) -> Dict[str, Any]:
 # noinspection PyUnusedLocal
 def dict_to_pendulumdate(d: Dict[str, Any],
                          pendulumdate_class: ClassType) -> Date:
+    """
+    Converts a ``dict`` object back to a ``pendulum.Date``.
+    """
     # noinspection PyTypeChecker
     return pendulum.parse(d['iso']).date()
 
@@ -741,6 +832,10 @@ register_class_for_json(
 # =============================================================================
 
 def simple_eq(one: Instance, two: Instance, attrs: List[str]) -> bool:
+    """
+    Test if two objects are equal, based on a comparison of the specified
+    attributes ``attrs``.
+    """
     return all(getattr(one, a) == getattr(two, a) for a in attrs)
 
 

@@ -21,6 +21,10 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions to work with SQLAlchemy schemas (schemata) directly, via SQLAlchemy
+Core.**
+
 """
 
 import ast
@@ -64,39 +68,60 @@ POSTGRES_DEFAULT_SCHEMA = 'public'
 # =============================================================================
 
 def get_table_names(engine: Engine) -> List[str]:
+    """
+    Returns a list of database table names from the :class:`Engine`.
+    """
     insp = Inspector.from_engine(engine)
     return insp.get_table_names()
 
 
 def get_view_names(engine: Engine) -> List[str]:
+    """
+    Returns a list of database view names from the :class:`Engine`.
+    """
     insp = Inspector.from_engine(engine)
     return insp.get_view_names()
 
 
 def table_exists(engine: Engine, tablename: str) -> bool:
+    """
+    Does the named table exist in the database?
+    """
     return tablename in get_table_names(engine)
 
 
 def view_exists(engine: Engine, viewname: str) -> bool:
+    """
+    Does the named view exist in the database?
+    """
     return viewname in get_view_names(engine)
 
 
 def table_or_view_exists(engine: Engine, table_or_view_name: str) -> bool:
+    """
+    Does the named table/view exist (either as a table or as a view) in the
+    database?
+    """
     tables_and_views = get_table_names(engine) + get_view_names(engine)
     return table_or_view_name in tables_and_views
 
 
 class SqlaColumnInspectionInfo(object):
     """
-    Clearer way of getting information than the plain dict that SQLAlchemy
+    Class to represent information from inspecting a database column.
+
+    A clearer way of getting information than the plain ``dict`` that SQLAlchemy
     uses.
     """
     def __init__(self, sqla_info_dict: Dict[str, Any]) -> None:
         """
-        sqla_info_dict: see
-        - http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns  # noqa
-        - https://bitbucket.org/zzzeek/sqlalchemy/issues/4051/sqlalchemyenginereflectioninspectorget_col  # noqa
-        """
+        Args:
+            sqla_info_dict:
+                see
+        
+                - http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns
+                - https://bitbucket.org/zzzeek/sqlalchemy/issues/4051/sqlalchemyenginereflectioninspectorget_col
+        """  # noqa
         # log.debug(repr(sqla_info_dict))
         self.name = sqla_info_dict['name']  # type: str
         self.type = sqla_info_dict['type']  # type: TypeEngine
@@ -110,6 +135,10 @@ class SqlaColumnInspectionInfo(object):
 def gen_columns_info(engine: Engine,
                      tablename: str) -> Generator[SqlaColumnInspectionInfo,
                                                   None, None]:
+    """
+    For the specified table, generate column information as
+    :class:`SqlaColumnInspectionInfo` objects.
+    """
     # Dictionary structure: see
     # http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns  # noqa
     insp = Inspector.from_engine(engine)
@@ -119,6 +148,11 @@ def gen_columns_info(engine: Engine,
 
 def get_column_info(engine: Engine, tablename: str,
                     columnname: str) -> Optional[SqlaColumnInspectionInfo]:
+    """
+    For the specified column in the specified table, get column information
+    as a :class:`SqlaColumnInspectionInfo` object (or ``None`` if such a
+    column can't be found).
+    """
     for info in gen_columns_info(engine, tablename):
         if info.name == columnname:
             return info
@@ -127,6 +161,14 @@ def get_column_info(engine: Engine, tablename: str,
 
 def get_column_type(engine: Engine, tablename: str,
                     columnname: str) -> Optional[TypeEngine]:
+    """
+    For the specified column in the specified table, get its type as an
+    instance of an SQLAlchemy column type class (or ``None`` if such a column
+    can't be found).
+
+    For more on :class:`TypeEngine`, see
+    :func:`cardinal_pythonlib.orm_inspect.coltype_as_typeengine`.
+    """
     for info in gen_columns_info(engine, tablename):
         if info.name == columnname:
             return info.type
@@ -134,6 +176,9 @@ def get_column_type(engine: Engine, tablename: str,
 
 
 def get_column_names(engine: Engine, tablename: str) -> List[str]:
+    """
+    Get all the database column names for the specified table.
+    """
     return [info.name for info in gen_columns_info(engine, tablename)]
 
 
@@ -143,7 +188,8 @@ def get_column_names(engine: Engine, tablename: str) -> List[str]:
 
 def get_pk_colnames(table_: Table) -> List[str]:
     """
-    If a table has a PK, this will return its name; otherwise, None.
+    If a table has a PK, this will return its database column name(s);
+    otherwise, ``None``.
     """
     pk_names = []  # type: List[str]
     for col in table_.columns:
@@ -155,10 +201,11 @@ def get_pk_colnames(table_: Table) -> List[str]:
 def get_single_int_pk_colname(table_: Table) -> Optional[str]:
     """
     If a table has a single-field (non-composite) integer PK, this will
-    return its name; otherwise, None.
+    return its database column name; otherwise, None.
 
-    Note that it is fine to have both a composite primary key and a separate
-    IDENTITY (AUTOINCREMENT) integer field.
+    Note that it is legitimate for a database table to have both a composite
+    primary key and a separate ``IDENTITY`` (``AUTOINCREMENT``) integer field.
+    This function won't find such columns.
     """
     n_pks = 0
     int_pk_names = []
@@ -174,13 +221,16 @@ def get_single_int_pk_colname(table_: Table) -> Optional[str]:
 
 def get_single_int_autoincrement_colname(table_: Table) -> Optional[str]:
     """
-    If a table has a single integer AUTOINCREMENT column, this will
-    return its name; otherwise, None.
+    If a table has a single integer ``AUTOINCREMENT`` column, this will
+    return its name; otherwise, ``None``.
 
-    - It's unlikely that a database has >1 AUTOINCREMENT field anyway, but we
-      should check.
-    - SQL Server's IDENTITY keyword is equivalent to MySQL's AUTOINCREMENT.
+    - It's unlikely that a database has >1 ``AUTOINCREMENT`` field anyway, but
+      we should check.
+    - SQL Server's ``IDENTITY`` keyword is equivalent to MySQL's
+      ``AUTOINCREMENT``.
     - Verify against SQL Server:
+
+      .. code-block:: sql
 
         SELECT table_name, column_name
         FROM information_schema.columns
@@ -193,10 +243,12 @@ def get_single_int_autoincrement_colname(table_: Table) -> Optional[str]:
 
     - Also:
 
+      .. code-block:: sql
+
         sp_columns 'tablename';
 
-        ... which is what SQLAlchemy does (dialects/mssql/base.py, in
-        get_columns).
+      ... which is what SQLAlchemy does (``dialects/mssql/base.py``, in
+      :func:`get_columns`).
     """
     n_autoinc = 0
     int_autoinc_names = []
@@ -214,6 +266,10 @@ def get_single_int_autoincrement_colname(table_: Table) -> Optional[str]:
 
 
 def get_effective_int_pk_col(table_: Table) -> Optional[str]:
+    """
+    If a table has a single integer primary key, or a single integer
+    ``AUTOINCREMENT`` column, return its column name; otherwise, ``None``.
+    """
     return (
         get_single_int_pk_colname(table_) or
         get_single_int_autoincrement_colname(table_) or
@@ -226,6 +282,9 @@ def get_effective_int_pk_col(table_: Table) -> Optional[str]:
 # =============================================================================
 
 def index_exists(engine: Engine, tablename: str, indexname: str) -> bool:
+    """
+    Does the specified index exist for the specified table?
+    """
     insp = Inspector.from_engine(engine)
     return any(i['name'] == indexname for i in insp.get_indexes(tablename))
 
@@ -233,6 +292,11 @@ def index_exists(engine: Engine, tablename: str, indexname: str) -> bool:
 def mssql_get_pk_index_name(engine: Engine,
                             tablename: str,
                             schemaname: str = MSSQL_DEFAULT_SCHEMA) -> str:
+    """
+    For Microsoft SQL Server specifically: fetch the name of the PK index
+    for the specified table (in the specified schema), or ``''`` if none is
+    found.
+    """
     # http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.Connection.execute  # noqa
     # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html#sqlalchemy.sql.expression.text  # noqa
     # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html#sqlalchemy.sql.expression.TextClause.bindparams  # noqa
@@ -261,6 +325,10 @@ WHERE
 def mssql_table_has_ft_index(engine: Engine,
                              tablename: str,
                              schemaname: str = MSSQL_DEFAULT_SCHEMA) -> bool:
+    """
+    For Microsoft SQL Server specifically: does the specified table (in the
+    specified schema) have at least one full-text index?
+    """
     query = text("""
 SELECT
     COUNT(*)
@@ -283,6 +351,12 @@ WHERE
 
 
 def mssql_transaction_count(engine_or_conn: Union[Connection, Engine]) -> int:
+    """
+    For Microsoft SQL Server specifically: fetch the value of the ``TRANCOUNT``
+    variable (see e.g.
+    https://docs.microsoft.com/en-us/sql/t-sql/functions/trancount-transact-sql?view=sql-server-2017).
+    Returns ``None`` if it can't be found (unlikely?).
+    """
     sql = "SELECT @@TRANCOUNT"
     with contextlib.closing(
             engine_or_conn.execute(sql)) as result:  # type: ResultProxy  # noqa
@@ -296,6 +370,29 @@ def add_index(engine: Engine,
               unique: bool = False,
               fulltext: bool = False,
               length: int = None) -> None:
+    """
+    Adds an index to a database column (or, in restricted circumstances,
+    several columns).
+
+    The table name is worked out from the :class:`Column` object.
+
+    Args:
+        engine: SQLAlchemy :class:`Engine` object
+        sqla_column: single column to index
+        multiple_sqla_columns: multiple columns to index (see below)
+        unique: make a ``UNIQUE`` index?
+        fulltext: make a ``FULLTEXT`` index?
+        length: index length to use (default ``None``)
+
+    Restrictions:
+
+    - Specify either ``sqla_column`` or ``multiple_sqla_columns``, not both.
+    - The normal method is ``sqla_column``.
+    - ``multiple_sqla_columns`` is only used for Microsoft SQL Server full-text
+      indexing (as this database permits only one full-text index per table,
+      though that index can be on multiple columns).
+
+    """
     # We used to process a table as a unit; this makes index creation faster
     # (using ALTER TABLE).
     # http://dev.mysql.com/doc/innodb/1.1/en/innodb-create-index-examples.html  # noqa
@@ -437,6 +534,10 @@ def add_index(engine: Engine,
 
 def make_bigint_autoincrement_column(column_name: str,
                                      dialect: Dialect) -> Column:
+    """
+    Returns an instance of :class:`Column` representing a :class:`BigInteger`
+    ``AUTOINCREMENT`` column in the specified :class:`Dialect`.
+    """
     # noinspection PyUnresolvedReferences
     if dialect.name == SqlaDialectName.MSSQL:
         return Column(column_name, BigInteger,
@@ -452,10 +553,14 @@ def make_bigint_autoincrement_column(column_name: str,
 
 def column_creation_ddl(sqla_column: Column, dialect: Dialect) -> str:
     """
+    Returns DDL to create a column, using the specified dialect.
+
     The column should already be bound to a table (because e.g. the SQL Server
     dialect requires this for DDL generation).
 
     Manual testing:
+    
+    .. code-block:: python
 
         from sqlalchemy.schema import Column, CreateColumn, MetaData, Sequence, Table
         from sqlalchemy.sql.sqltypes import BigInteger
@@ -475,9 +580,10 @@ def column_creation_ddl(sqla_column: Column, dialect: Dialect) -> str:
 
     If you don't append the column to a Table object, the DDL generation step
     gives:
+    
+    .. code-block:: none
 
-        sqlalchemy.exc.CompileError: mssql requires Table-bound columns in
-        order to generate DDL
+        sqlalchemy.exc.CompileError: mssql requires Table-bound columns in order to generate DDL
     """  # noqa
     return str(CreateColumn(sqla_column).compile(dialect=dialect))
 
@@ -485,8 +591,11 @@ def column_creation_ddl(sqla_column: Column, dialect: Dialect) -> str:
 # noinspection PyUnresolvedReferences
 def giant_text_sqltype(dialect: Dialect) -> str:
     """
+    Returns the SQL column type used to make very large text columns for a
+    given dialect.
+
     Args:
-        dialect: a SQLAlchemy dialect class
+        dialect: a SQLAlchemy :class:`Dialect`
     Returns:
         the SQL data type of "giant text", typically 'LONGTEXT' for MySQL
         and 'NVARCHAR(MAX)' for SQL Server.
@@ -520,7 +629,10 @@ RE_COLTYPE_WITH_TWO_PARAMS = re.compile(
 def _get_sqla_coltype_class_from_str(coltype: str,
                                      dialect: Dialect) -> Type[TypeEngine]:
     """
-    Upper- and lower-case search.
+    Returns the SQLAlchemy class corresponding to a particular SQL column
+    type in a given dialect.
+
+    Performs an upper- and lower-case search.
     For example, the SQLite dialect uses upper case, and the
     MySQL dialect uses lower case.
     """
@@ -533,6 +645,11 @@ def _get_sqla_coltype_class_from_str(coltype: str,
 
 
 def get_list_of_sql_string_literals_from_quoted_csv(x: str) -> List[str]:
+    """
+    Used to extract SQL column type parameters. For example, MySQL has column
+    types that look like ``ENUM('a', 'b', 'c', 'd')``. This function takes the
+    ``"'a', 'b', 'c', 'd'"`` and converts it to ``['a', 'b', 'c', 'd']``.
+    """
     f = io.StringIO(x)
     reader = csv.reader(f, delimiter=',', quotechar="'", quoting=csv.QUOTE_ALL,
                         skipinitialspace=True)
@@ -545,43 +662,55 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
                                       dialect: Dialect) -> TypeEngine:
     """
     Args:
-        dialect: a SQLAlchemy dialect class
-        coltype: a str() representation, e.g. from str(c['type']) where
-            c is an instance of sqlalchemy.sql.schema.Column.
+        dialect: a SQLAlchemy :class:`Dialect` class
+
+        coltype: a ``str()`` representation, e.g. from ``str(c['type'])`` where
+            ``c`` is an instance of :class:`sqlalchemy.sql.schema.Column`.
+
     Returns:
-        a Python object that is a subclass of sqlalchemy.types.TypeEngine
+        a Python object that is a subclass of
+        :class:`sqlalchemy.types.TypeEngine`
+
     Example:
-        get_sqla_coltype_from_string('INTEGER(11)', engine.dialect)
-            -> Integer(length=11)
+
+        .. code-block:: python
+
+            get_sqla_coltype_from_string('INTEGER(11)', engine.dialect)
+            # gives: Integer(length=11)
 
     Notes:
-        -   sqlalchemy.engine.default.DefaultDialect is the dialect base class
-        -   a dialect contains these things of interest:
-                ischema_names: string-to-class dictionary
-                type_compiler: instance of e.g.
-                    sqlalchemy.sql.compiler.GenericTypeCompiler
-                    ... has a process() method
-                    ... but that operates on TypeEngine objects
-                get_columns: takes a table name, inspects the database
-        -   example of the dangers of eval:
-            http://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
-        -   An example of a function doing the reflection/inspection within
-            SQLAlchemy is sqlalchemy.dialects.mssql.base.MSDialect.get_columns,
-            which has this lookup:
-                coltype = self.ischema_names.get(type, None)
+
+    - :class:`sqlalchemy.engine.default.DefaultDialect` is the dialect base
+      class
+
+    - a dialect contains these things of interest:
+
+      - ``ischema_names``: string-to-class dictionary
+      - ``type_compiler``: instance of e.g.
+        :class:`sqlalchemy.sql.compiler.GenericTypeCompiler`. This has a
+        ``process()`` method, but that operates on :class:`TypeEngine` objects.
+      - ``get_columns``: takes a table name, inspects the database
+
+    - example of the dangers of ``eval``:
+      http://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
+
+    - An example of a function doing the reflection/inspection within
+      SQLAlchemy is
+      :func:`sqlalchemy.dialects.mssql.base.MSDialect.get_columns`,
+      which has this lookup: ``coltype = self.ischema_names.get(type, None)``
 
     Caveats:
-        -   the parameters, e.g. DATETIME(6), do NOT necessarily either work at
-            all or work correctly. For example, SQLAlchemy will happily spit
-            out 'INTEGER(11)' but its sqlalchemy.sql.sqltypes.INTEGER class
-            takes no parameters, so you get:
-                TypeError: object() takes no parameters
-            Similarly, MySQL's DATETIME(6) uses the 6 to refer to precision,
-            but the DATETIME class in SQLAlchemy takes only a boolean parameter
-            (timezone).
-        -   However, sometimes we have to have parameters, e.g. VARCHAR length.
-        -   Thus, this is a bit useless.
-        -   Fixed, with a few special cases.
+
+    - the parameters, e.g. ``DATETIME(6)``, do NOT necessarily either work at
+      all or work correctly. For example, SQLAlchemy will happily spit out
+      ``'INTEGER(11)'`` but its :class:`sqlalchemy.sql.sqltypes.INTEGER` class
+      takes no parameters, so you get the error ``TypeError: object() takes no
+      parameters``. Similarly, MySQL's ``DATETIME(6)`` uses the 6 to refer to
+      precision, but the ``DATETIME`` class in SQLAlchemy takes only a boolean
+      parameter (timezone).
+    - However, sometimes we have to have parameters, e.g. ``VARCHAR`` length.
+    - Thus, this is a bit useless.
+    - Fixed, with a few special cases.
     """
     size = None  # type: int
     dp = None  # type: int
@@ -675,6 +804,9 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
 # =============================================================================
 
 def remove_collation(coltype: TypeEngine) -> TypeEngine:
+    """
+    Returns a copy of the specific column type with any ``COLLATION`` removed.
+    """
     if not getattr(coltype, 'collation', None):
         return coltype
     newcoltype = copy.copy(coltype)
@@ -690,10 +822,30 @@ def convert_sqla_type_for_dialect(
         convert_mssql_timestamp: bool = True,
         expand_for_scrubbing: bool = False) -> TypeEngine:
     """
-    - The purpose of expand_for_scrubbing is that, for example, a VARCHAR(200)
-      field containing one or more instances of "Jones", where "Jones" is to be
-      replaced with "[XXXXXX]", will get longer (by an unpredictable amount).
-      So, better to expand to unlimited length.
+    Converts an SQLAlchemy column type from one SQL dialect to another.
+
+    Args:
+        coltype: SQLAlchemy column type in the source dialect
+
+        dialect: destination :class:`Dialect`
+
+        strip_collation: remove any ``COLLATION`` information?
+
+        convert_mssql_timestamp:
+            since you cannot write to a SQL Server ``TIMESTAMP`` field, setting
+            this option to ``True`` (the default) converts such types to
+            something equivalent but writable.
+
+        expand_for_scrubbing:
+            The purpose of expand_for_scrubbing is that, for example, a
+            ``VARCHAR(200)`` field containing one or more instances of
+            ``Jones``, where ``Jones`` is to be replaced with ``[XXXXXX]``,
+            will get longer (by an unpredictable amount). So, better to expand
+            to unlimited length.
+
+    Returns:
+        an SQLAlchemy column type instance, in the destination dialect
+
     """
     assert coltype is not None
 
@@ -781,6 +933,13 @@ def convert_sqla_type_for_dialect(
 
 def _coltype_to_typeengine(coltype: Union[TypeEngine,
                                           VisitableType]) -> TypeEngine:
+    """
+    An example is simplest: if you pass in ``Integer()`` (an instance of
+    :class:`TypeEngine`), you'll get ``Integer()`` back. If you pass in
+    ``Integer`` (an instance of :class:`VisitableType`), you'll also get
+    ``Integer()`` back. The function asserts that its return type is an
+    instance of :class:`TypeEngine`.
+    """
     if isinstance(coltype, VisitableType):
         coltype = coltype()
     assert isinstance(coltype, TypeEngine)
@@ -788,6 +947,9 @@ def _coltype_to_typeengine(coltype: Union[TypeEngine,
 
 
 def is_sqlatype_binary(coltype: Union[TypeEngine, VisitableType]) -> bool:
+    """
+    Is the SQLAlchemy column type a binary type?
+    """
     # Several binary types inherit internally from _Binary, making that the
     # easiest to check.
     coltype = _coltype_to_typeengine(coltype)
@@ -796,22 +958,35 @@ def is_sqlatype_binary(coltype: Union[TypeEngine, VisitableType]) -> bool:
 
 
 def is_sqlatype_date(coltype: TypeEngine) -> bool:
+    """
+    Is the SQLAlchemy column type a date type?
+    """
     coltype = _coltype_to_typeengine(coltype)
     # noinspection PyProtectedMember
     return isinstance(coltype, sqltypes._DateAffinity)
 
 
 def is_sqlatype_integer(coltype: Union[TypeEngine, VisitableType]) -> bool:
+    """
+    Is the SQLAlchemy column type an integer type?
+    """
     coltype = _coltype_to_typeengine(coltype)
     return isinstance(coltype, sqltypes.Integer)
 
 
 def is_sqlatype_numeric(coltype: Union[TypeEngine, VisitableType]) -> bool:
+    """
+    Is the SQLAlchemy column type one that inherits from :class:`Numeric`,
+    such as :class:`Float`, :class:`Decimal`?
+    """
     coltype = _coltype_to_typeengine(coltype)
     return isinstance(coltype, sqltypes.Numeric)  # includes Float, Decimal
 
 
 def is_sqlatype_string(coltype: Union[TypeEngine, VisitableType]) -> bool:
+    """
+    Is the SQLAlchemy column type a string type?
+    """
     coltype = _coltype_to_typeengine(coltype)
     return isinstance(coltype, sqltypes.String)
 
@@ -819,6 +994,10 @@ def is_sqlatype_string(coltype: Union[TypeEngine, VisitableType]) -> bool:
 def is_sqlatype_text_of_length_at_least(
         coltype: Union[TypeEngine, VisitableType],
         min_length: int = 1000) -> bool:
+    """
+    Is the SQLAlchemy column type a string type that's at least the specified
+    length?
+    """
     coltype = _coltype_to_typeengine(coltype)
     if not isinstance(coltype, sqltypes.String):
         return False  # not a string/text type at all
@@ -829,6 +1008,10 @@ def is_sqlatype_text_of_length_at_least(
 
 def is_sqlatype_text_over_one_char(
         coltype: Union[TypeEngine, VisitableType]) -> bool:
+    """
+    Is the SQLAlchemy column type a string type that's more than one character
+    long?
+    """
     coltype = _coltype_to_typeengine(coltype)
     return is_sqlatype_text_of_length_at_least(coltype, 2)
 
@@ -836,14 +1019,24 @@ def is_sqlatype_text_over_one_char(
 def does_sqlatype_merit_fulltext_index(
         coltype: Union[TypeEngine, VisitableType],
         min_length: int = 1000) -> bool:
+    """
+    Is the SQLAlchemy column type a type that might merit a ``FULLTEXT``
+    index (meaning a string type of at least ``min_length``)?
+    """
     coltype = _coltype_to_typeengine(coltype)
     return is_sqlatype_text_of_length_at_least(coltype, min_length)
 
 
 def does_sqlatype_require_index_len(
         coltype: Union[TypeEngine, VisitableType]) -> bool:
-    # MySQL, at least, requires index length to be specified for BLOB and TEXT
-    # columns: http://dev.mysql.com/doc/refman/5.7/en/create-index.html
+    """
+    Is the SQLAlchemy column type one that requires its indexes to have a
+    length specified?
+
+    (MySQL, at least, requires index length to be specified for ``BLOB`` and
+    ``TEXT`` columns:
+    http://dev.mysql.com/doc/refman/5.7/en/create-index.html.)
+    """
     coltype = _coltype_to_typeengine(coltype)
     if isinstance(coltype, sqltypes.Text):
         return True
@@ -857,15 +1050,19 @@ def does_sqlatype_require_index_len(
 # =============================================================================
 
 def hack_in_mssql_xml_type():
-    """
+    r"""
+    Modifies SQLAlchemy's type map for Microsoft SQL Server to support XML.
+    
     SQLAlchemy does not support the XML type in SQL Server (mssql).
     Upon reflection, we get:
-       sqlalchemy\dialects\mssql\base.py:1921: SAWarning: Did not recognize
-       type 'xml' of column '...'
+    
+    .. code-block:: none
+    
+       sqlalchemy\dialects\mssql\base.py:1921: SAWarning: Did not recognize type 'xml' of column '...'
 
-    We will convert anything of type XML into type TEXT.
+    We will convert anything of type ``XML`` into type ``TEXT``.
 
-    """
+    """  # noqa
     log.debug("Adding type 'xml' to SQLAlchemy reflection for dialect 'mssql'")
     mssql.base.ischema_names['xml'] = mssql.base.TEXT
     # http://stackoverflow.com/questions/32917867/sqlalchemy-making-schema-reflection-find-use-a-custom-type-for-all-instances  # noqa
@@ -879,12 +1076,25 @@ def hack_in_mssql_xml_type():
 # =============================================================================
 
 def column_types_equal(a_coltype: TypeEngine, b_coltype: TypeEngine) -> bool:
-    # http://stackoverflow.com/questions/34787794/sqlalchemy-column-type-comparison  # noqa
-    # IMPERFECT:
+    """
+    Checks that two SQLAlchemy column types are equal (by comparing ``str()``
+    versions of them).
+    
+    See http://stackoverflow.com/questions/34787794/sqlalchemy-column-type-comparison.
+    
+    IMPERFECT. 
+    """  # noqa
     return str(a_coltype) == str(b_coltype)
 
 
 def columns_equal(a: Column, b: Column) -> bool:
+    """
+    Are two SQLAlchemy columns are equal? Checks based on:
+
+    - column ``name``
+    - column ``type`` (see :func:`column_types_equal`)
+    - ``nullable``
+    """
     return (
         a.name == b.name and
         column_types_equal(a.type, b.type) and
@@ -893,6 +1103,10 @@ def columns_equal(a: Column, b: Column) -> bool:
 
 
 def column_lists_equal(a: List[Column], b: List[Column]) -> bool:
+    """
+    Are all columns in list ``a`` equal to their counterparts in list ``b``,
+    as per :func:`columns_equal`?
+    """
     n = len(a)
     if len(b) != n:
         return False
@@ -904,11 +1118,18 @@ def column_lists_equal(a: List[Column], b: List[Column]) -> bool:
 
 
 def indexes_equal(a: Index, b: Index) -> bool:
-    # Unsure.
+    """
+    Are two indexes equal? Checks by comparing ``str()`` versions of them.
+    (AM UNSURE IF THIS IS ENOUGH.)
+    """
     return str(a) == str(b)
 
 
 def index_lists_equal(a: List[Index], b: List[Index]) -> bool:
+    """
+    Are all indexes in list ``a`` equal to their counterparts in list ``b``,
+    as per :func:`indexes_equal`?
+    """
     n = len(a)
     if len(b) != n:
         return False

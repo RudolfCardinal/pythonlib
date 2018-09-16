@@ -41,15 +41,18 @@ log.addHandler(logging.NullHandler())
 def import_submodules(package: Union[str, ModuleType],
                       base_package_for_relative_import: str = None,
                       recursive: bool = True) -> Dict[str, ModuleType]:
-    # http://stackoverflow.com/questions/3365740/how-to-import-all-submodules
-    """ Import all submodules of a module, recursively, including subpackages
-
-    :param package: package (name or actual module)
-    :param base_package_for_relative_import: path to prepend?
-    :param recursive: import submodules too
-    :type package: str | module
-    :rtype: dict[str, types.ModuleType]
     """
+    Import all submodules of a module, recursively, including subpackages
+
+    Args:
+        package: package (name or actual module)
+        base_package_for_relative_import: path to prepend?
+        recursive: import submodules too?
+
+    Returns:
+
+    """
+    # http://stackoverflow.com/questions/3365740/how-to-import-all-submodules
     if isinstance(package, str):
         package = importlib.import_module(package,
                                           base_package_for_relative_import)

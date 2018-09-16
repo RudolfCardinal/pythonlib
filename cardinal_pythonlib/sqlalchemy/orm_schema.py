@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions to work with SQLAlchemy schemas (schemata) via ORM objects.**
+
 """
 
 import logging
@@ -47,6 +50,15 @@ log = BraceStyleAdapter(log)
 def create_table_from_orm_class(engine: Engine,
                                 ormclass: DeclarativeMeta,
                                 without_constraints: bool = False) -> None:
+    """
+    From an SQLAlchemy ORM class, creates the database table via the specified
+    engine, using a ``CREATE TABLE`` SQL (DDL) statement.
+
+    Args:
+        engine: SQLAlchemy :class:`Engine` object
+        ormclass: SQLAlchemy ORM class
+        without_constraints: don't add foreign key constraints
+    """
     table = ormclass.__table__  # type: Table
     log.info("Creating table {} on engine {}{}",
              table.name,

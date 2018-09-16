@@ -22,50 +22,47 @@
 
 ===============================================================================
 
-Converts a bunch of stuff to text, either from external files or from in-memory
-binary objects (BLOBs).
+**Converts a bunch of stuff to text, either from external files or from
+in-memory binary objects (BLOBs).**
 
 Prerequisites:
+
+.. code-block:: bash
 
     sudo apt-get install antiword
     pip install docx pdfminer
 
-Author: Rudolf Cardinal (rudolf@pobox.com)
-Created: Feb 2015
-Last update: 24 Sep 2015
-
-Copyright/licensing:
-
-    Copyright (C) 2015-2015 Rudolf Cardinal (rudolf@pobox.com).
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+- Author: Rudolf Cardinal (rudolf@pobox.com)
+- Created: Feb 2015
+- Last update: 24 Sep 2015
 
 See also:
-    Word
-        http://stackoverflow.com/questions/125222
-        http://stackoverflow.com/questions/42482
-    PDF
-        http://stackoverflow.com/questions/25665
-        https://pypi.python.org/pypi/slate
-        http://stackoverflow.com/questions/5725278
-    RTF
-        unrtf
-        http://superuser.com/questions/243084/rtf-to-txt-on-unix
-    Multi-purpose:
-        https://pypi.python.org/pypi/fulltext/
-        https://media.readthedocs.org/pdf/textract/latest/textract.pdf
-    DOCX
-        http://etienned.github.io/posts/extract-text-from-word-docx-simply/
+
+- Word
+
+  - http://stackoverflow.com/questions/125222
+  - http://stackoverflow.com/questions/42482
+
+- PDF
+
+  - http://stackoverflow.com/questions/25665
+  - https://pypi.python.org/pypi/slate
+  - http://stackoverflow.com/questions/5725278
+
+- RTF
+
+  - unrtf
+  - http://superuser.com/questions/243084/rtf-to-txt-on-unix
+
+- Multi-purpose:
+
+  - https://pypi.python.org/pypi/fulltext/
+  - https://media.readthedocs.org/pdf/textract/latest/textract.pdf
+
+- DOCX
+
+  - http://etienned.github.io/posts/extract-text-from-word-docx-simply/
+
 """
 
 
@@ -168,6 +165,7 @@ AVAILABILITY = 'availability'
 CONVERTER = 'converter'
 DEFAULT_WIDTH = 120
 DEFAULT_MIN_COL_WIDTH = 15
+SYS_ENCODING = sys.getdefaultencoding()
 ENCODING = "utf-8"
 
 # =============================================================================
@@ -187,7 +185,9 @@ tools = {
 
 def does_unrtf_support_quiet() -> bool:
     """
-    The unrtf tool supports the '--quiet' argument from version XXX.
+    The unrtf tool supports the '--quiet' argument from a version that I'm not
+    quite sure of, where ``0.19.3 < version <= 0.21.9``. We check against
+    0.21.9 here.
     """
     required_unrtf_version = Version("0.21.9")
     # ... probably: http://hg.savannah.gnu.org/hgweb/unrtf/
@@ -213,8 +213,56 @@ UNRTF_SUPPORTS_QUIET = does_unrtf_support_quiet()
 
 
 def update_external_tools(tooldict: Dict[str, str]) -> None:
+    """
+    Update the global map of tools.
+
+    Args:
+        tooldict: dictionary whose keys are tools names and whose values are
+            paths to the executables
+    """
     global tools
     tools.update(tooldict)
+
+
+# =============================================================================
+# Text-processing config class
+# =============================================================================
+
+class TextProcessingConfig(object):
+    """
+    Class to manage control parameters for text extraction, without having
+    to pass a lot of mysterious ``**kwargs`` around and lose track of what it
+    means.
+
+    All converter functions take one of these objects as a parameter.
+    """
+
+    def __init__(self,
+                 encoding: str = None,
+                 width: int = DEFAULT_WIDTH,
+                 min_col_width: int = DEFAULT_MIN_COL_WIDTH,
+                 plain: bool = False,
+                 docx_in_order: bool = True) -> None:
+        """
+        Args:
+            encoding: optional text file encoding to try in addition to
+                :func:`sys.getdefaultencoding`.
+            width: overall word-wrapping width
+            min_col_width: minimum column width for tables
+            plain: as plain as possible (e.g. for natural language processing);
+                see :func:`docx_process_table`
+            docx_in_order: for DOCX files: if ``True``, process paragraphs and
+                tables in the order they occur; if ``False``, process all
+                paragraphs followed by all tables
+        """
+        self.encoding = encoding
+        self.width = width
+        self.min_col_width = min_col_width
+        self.plain = plain
+        self.docx_in_order = docx_in_order
+
+
+_DEFAULT_CONFIG = TextProcessingConfig()
 
 
 # =============================================================================
@@ -223,7 +271,18 @@ def update_external_tools(tooldict: Dict[str, str]) -> None:
 
 def get_filelikeobject(filename: str = None,
                        blob: bytes = None) -> BinaryIO:
-    """Guard the use of this function with 'with'."""
+    """
+    Open a file-like object.
+
+    Guard the use of this function with ``with``.
+
+    Args:
+        filename: for specifying via a filename
+        blob: for specifying via an in-memory ``bytes`` object
+
+    Returns:
+        a :class:`BinaryIO` object
+    """
     if not filename and not blob:
         raise ValueError("no filename and no blob")
     if filename and blob:
@@ -235,9 +294,10 @@ def get_filelikeobject(filename: str = None,
 
 
 # noinspection PyUnusedLocal
-def get_file_contents(filename: str = None, blob: bytes = None,
-                      **kwargs) -> bytes:
-    """Returns binary contents of a file, or blob."""
+def get_file_contents(filename: str = None, blob: bytes = None) -> bytes:
+    """
+    Returns the binary contents of a file, or of a BLOB.
+    """
     if not filename and not blob:
         raise ValueError("no filename and no blob")
     if filename and blob:
@@ -249,6 +309,9 @@ def get_file_contents(filename: str = None, blob: bytes = None,
 
 
 def get_chardet_encoding(binary_contents: bytes) -> Optional[str]:
+    """
+    Guess the character set encoding of the specified ``binary_contents``.
+    """
     if not binary_contents:
         return None
     if chardet is None or UniversalDetector is None:
@@ -277,21 +340,23 @@ def get_chardet_encoding(binary_contents: bytes) -> Optional[str]:
     return guess['encoding']
 
 
-def get_file_contents_text(filename: str = None, blob: bytes = None,
-                           encoding: str = None,
-                           **kwargs) -> str:
-    """Returns string contents of a file, or blob."""
-    binary_contents = get_file_contents(filename=filename, blob=blob, **kwargs)
+def get_file_contents_text(
+        filename: str = None, blob: bytes = None,
+        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+    """
+    Returns the string contents of a file, or of a BLOB.
+    """
+    binary_contents = get_file_contents(filename=filename, blob=blob)
     # 1. Try the encoding the user specified
-    if encoding:
+    if config.encoding:
         try:
-            return binary_contents.decode(encoding)
+            return binary_contents.decode(config.encoding)
         except ValueError:  # of which UnicodeDecodeError is more specific
             # ... https://docs.python.org/3/library/codecs.html
             pass
     # 2. Try the system encoding
     sysdef = sys.getdefaultencoding()
-    if sysdef != encoding:
+    if sysdef != config.encoding:
         try:
             return binary_contents.decode(sysdef)
         except ValueError:
@@ -306,9 +371,10 @@ def get_file_contents_text(filename: str = None, blob: bytes = None,
         "filename={}".format(repr(filename)) if filename else "blob"))
 
 
-def get_cmd_output(*args, **kwargs) -> str:
-    """Returns text output of a command."""
-    encoding = kwargs.get("encoding", ENCODING)
+def get_cmd_output(*args, encoding: str = SYS_ENCODING) -> str:
+    """
+    Returns text output of a command.
+    """
     log.debug("get_cmd_output(): args = {}".format(repr(args)))
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
     stdout, stderr = p.communicate()
@@ -316,9 +382,10 @@ def get_cmd_output(*args, **kwargs) -> str:
 
 
 def get_cmd_output_from_stdin(stdint_content_binary: bytes,
-                              *args, **kwargs) -> str:
-    """Returns text output of a command, passing binary data in via stdin."""
-    encoding = kwargs.get("encoding", ENCODING)
+                              *args, encoding: str = SYS_ENCODING) -> str:
+    """
+    Returns text output of a command, passing binary data in via stdin.
+    """
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     stdout, stderr = p.communicate(input=stdint_content_binary)
     return stdout.decode(encoding, errors='ignore')
@@ -330,8 +397,11 @@ def get_cmd_output_from_stdin(stdint_content_binary: bytes,
 
 # noinspection PyUnresolvedReferences,PyUnusedLocal
 def convert_pdf_to_txt(filename: str = None, blob: bytes = None,
-                       **kwargs) -> str:
-    """Pass either a filename or a binary object."""
+                       config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+    """
+    Converts a PDF file to text.
+    Pass either a filename or a binary object.
+    """
     pdftotext = tools['pdftotext']
     if pdftotext:  # External command method
         if filename:
@@ -363,6 +433,9 @@ def convert_pdf_to_txt(filename: str = None, blob: bytes = None,
 
 
 def availability_pdf() -> bool:
+    """
+    Is a PDF-to-text tool available?
+    """
     pdftotext = tools['pdftotext']
     if pdftotext:
         return True
@@ -403,6 +476,20 @@ DOCX_TABLE_CELL = docx_qn('tc')
 
 
 def gen_xml_files_from_docx(fp: BinaryIO) -> Iterator[str]:
+    """
+    Generate XML files (as strings) from a DOCX file.
+
+    Args:
+        fp: :class:`BinaryIO` object for reading the ``.DOCX`` file
+
+    Yields:
+        the string contents of each individual XML file within the ``.DOCX``
+        file
+
+    Raises:
+        zipfile.BadZipFile: if the zip is unreadable (encrypted?)
+
+    """
     try:
         z = zipfile.ZipFile(fp)
         filelist = z.namelist()
@@ -418,14 +505,37 @@ def gen_xml_files_from_docx(fp: BinaryIO) -> Iterator[str]:
         raise zipfile.BadZipFile("File is not a zip file - encrypted DOCX?")
 
 
-def docx_text_from_xml(xml: str, **kwargs) -> str:
+def docx_text_from_xml(xml: str, config: TextProcessingConfig) -> str:
+    """
+    Converts an XML tree of a DOCX file to string contents.
+
+    Args:
+        xml: raw XML text
+        config: :class:`TextProcessingConfig` control object
+
+    Returns:
+        contents as a string
+    """
     root = ElementTree.fromstring(xml)
-    return docx_text_from_xml_node(root, 0, **kwargs)
+    return docx_text_from_xml_node(root, 0, config)
 
 
 def docx_text_from_xml_node(node: ElementTree.Element,
                             level: int,
-                            **kwargs) -> str:
+                            config: TextProcessingConfig) -> str:
+    """
+    Returns text from an XML node within a DOCX file.
+
+    Args:
+        node: an XML node
+        level: current level in XML hierarchy (used for recursion; start level
+            is 0)
+        config: :class:`TextProcessingConfig` control object
+
+    Returns:
+        contents as a string
+
+    """
     text = ''
     # log.debug("Level {}, tag {}".format(level, node.tag))
     if node.tag == DOCX_TEXT:
@@ -438,14 +548,17 @@ def docx_text_from_xml_node(node: ElementTree.Element,
         text += '\n\n'
 
     if node.tag == DOCX_TABLE:
-        text += '\n\n' + docx_table_from_xml_node(node, level, **kwargs)
+        text += '\n\n' + docx_table_from_xml_node(node, level, config)
     else:
         for child in node:
-            text += docx_text_from_xml_node(child, level + 1, **kwargs)
+            text += docx_text_from_xml_node(child, level + 1, config)
     return text
 
 
 class CustomDocxParagraph(object):
+    """
+    Represents a paragraph of text in a DOCX file.
+    """
     def __init__(self, text: str = '') -> None:
         self.text = text or ''
 
@@ -454,6 +567,10 @@ class CustomDocxParagraph(object):
 
 
 class CustomDocxTableCell(object):
+    """
+    Represents a cell within a table of a DOCX file.
+    May contain several paragraphs.
+    """
     def __init__(self, paragraphs: List[CustomDocxParagraph] = None) -> None:
         self.paragraphs = paragraphs or []
 
@@ -466,6 +583,10 @@ class CustomDocxTableCell(object):
 
 
 class CustomDocxTableRow(object):
+    """
+    Represents a row within a table of a DOCX file.
+    May contain several cells (one per column).
+    """
     def __init__(self, cells: List[CustomDocxTableCell] = None) -> None:
         self.cells = cells or []
 
@@ -483,6 +604,10 @@ class CustomDocxTableRow(object):
 
 
 class CustomDocxTable(object):
+    """
+    Represents a table of a DOCX file.
+    May contain several rows.
+    """
     def __init__(self, rows: List[CustomDocxTableRow] = None) -> None:
         self.rows = rows or []
 
@@ -504,7 +629,21 @@ class CustomDocxTable(object):
 
 def docx_table_from_xml_node(table_node: ElementTree.Element,
                              level: int,
-                             **kwargs) -> str:
+                             config: TextProcessingConfig) -> str:
+    """
+    Converts an XML node representing a DOCX table into a textual
+    representation.
+
+    Args:
+        table_node: XML node
+        level: current level in XML hierarchy (used for recursion; start level
+            is 0)
+        config: :class:`TextProcessingConfig` control object
+
+    Returns:
+        string representation
+
+    """
     table = CustomDocxTable()
     for row_node in table_node:
         if row_node.tag != DOCX_TABLE_ROW:
@@ -515,10 +654,10 @@ def docx_table_from_xml_node(table_node: ElementTree.Element,
                 continue
             table.new_cell()
             for para_node in cell_node:
-                text = docx_text_from_xml_node(para_node, level, **kwargs)
+                text = docx_text_from_xml_node(para_node, level, config)
                 if text:
                     table.add_paragraph(text)
-    return docx_process_table(table, **kwargs)
+    return docx_process_table(table, config)
 
 
 # -----------------------------------------------------------------------------
@@ -526,6 +665,16 @@ def docx_table_from_xml_node(table_node: ElementTree.Element,
 # -----------------------------------------------------------------------------
 
 def docx_process_simple_text(text: str, width: int) -> str:
+    """
+    Word-wraps text.
+
+    Args:
+        text: text to process
+        width: width to word-wrap to (or 0 to skip word wrapping)
+
+    Returns:
+        wrapped text
+    """
     if width:
         return '\n'.join(textwrap.wrap(text, width=width))
     else:
@@ -533,11 +682,11 @@ def docx_process_simple_text(text: str, width: int) -> str:
 
 
 def docx_process_table(table: DOCX_TABLE_TYPE,
-                       width: int,
-                       min_col_width: int,
-                       plain: bool = False) -> str:
+                       config: TextProcessingConfig) -> str:
     """
-    Structure:
+    Converts a DOCX table to text.
+
+    Structure representing a DOCX table:
 
     .. code-block:: none
 
@@ -546,10 +695,12 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
                 .cells[]
                     .paragraphs[]
                         .text
-    That's the structure of a docx.table.Table object, but also of our homebrew
-    creation, CustomDocxTable.
 
-    The 'plain' option optimizes for natural language processing, by:
+    That's the structure of a :class:`docx.table.Table` object, but also of our
+    homebrew creation, :class:`CustomDocxTable`.
+
+    The ``plain`` option optimizes for natural language processing, by:
+
     - removing vertical lines:
 
       .. code-block:: none
@@ -615,12 +766,12 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
         header=False,
         border=True,
         hrules=prettytable.ALL,
-        vrules=prettytable.NONE if plain else prettytable.ALL,
+        vrules=prettytable.NONE if config.plain else prettytable.ALL,
     )
     pt.align = 'l'
     pt.valign = 't'
-    pt.max_width = max(width // ncols, min_col_width)
-    if plain:
+    pt.max_width = max(config.width // ncols, config.min_col_width)
+    if config.plain:
         # noinspection PyTypeChecker
         for row in table.rows:
             for i, cell in enumerate(row.cells):
@@ -658,16 +809,18 @@ def docx_docx_iter_block_items(parent: DOCX_CONTAINER_TYPE) \
         -> Iterator[DOCX_BLOCK_ITEM_TYPE]:
     # only called if docx loaded
     """
-    https://github.com/python-openxml/python-docx/issues/40
+    Iterate through items of a DOCX file.
 
-    Yield each paragraph and table child within *parent*, in document order.
-    Each returned value is an instance of either Table or Paragraph. *parent*
-    would most commonly be a reference to a main Document object, but
-    also works for a _Cell object, which itself can contain paragraphs and
-    tables.
+    See https://github.com/python-openxml/python-docx/issues/40.
 
-    NOTE: uses internals of the python-docx (docx) library; subject to change;
-    this version works with docx 0.8.5
+    Yield each paragraph and table child within ``parent``, in document order.
+    Each returned value is an instance of either :class:`Table` or
+    :class:`Paragraph`. ``parent`` would most commonly be a reference to a main
+    :class:`Document` object, but also works for a :class:`_Cell` object, which
+    itself can contain paragraphs and tables.
+
+    NOTE: uses internals of the ``python-docx`` (``docx``) library; subject to
+    change; this version works with ``docx==0.8.5``.
     """
     if isinstance(parent, docx.document.Document):
         parent_elm = parent.element.body
@@ -685,93 +838,108 @@ def docx_docx_iter_block_items(parent: DOCX_CONTAINER_TYPE) \
 
 # noinspection PyUnresolvedReferences
 def docx_docx_gen_text(doc: DOCX_DOCUMENT_TYPE,
-                       width: int,
-                       min_col_width: int,
-                       in_order: bool = True) -> Iterator[str]:
+                       config: TextProcessingConfig) -> Iterator[str]:
     # only called if docx loaded
+    """
+    Iterate through a DOCX file and yield text.
+
+    Args:
+        doc: DOCX document to process
+        config: :class:`TextProcessingConfig` control object
+
+    Yields:
+        pieces of text (paragraphs)
+
+    """
     if in_order:
         for thing in docx_docx_iter_block_items(doc):
             if isinstance(thing, docx.text.paragraph.Paragraph):
-                yield docx_process_simple_text(thing.text, width)
+                yield docx_process_simple_text(thing.text, config.width)
             elif isinstance(thing, docx.table.Table):
-                yield docx_process_table(thing, width, min_col_width)
+                yield docx_process_table(thing, config)
     else:
         for paragraph in doc.paragraphs:
-            yield docx_process_simple_text(paragraph.text, width)
+            yield docx_process_simple_text(paragraph.text, config.width)
         for table in doc.tables:
-            yield docx_process_table(table, width, min_col_width)
+            yield docx_process_table(table, config)
 
 
 # noinspection PyUnusedLocal
-def convert_docx_to_text(filename: str = None,
-                         blob: bytes = None,
-                         width: int = DEFAULT_WIDTH,
-                         min_col_width: int = 15,
-                         plain: bool = False,
-                         **kwargs) -> str:
+def convert_docx_to_text(
+        filename: str = None, blob: bytes = None,
+        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
     """
+    Converts a DOCX file to text.
     Pass either a filename or a binary object.
 
-    -   Old docx (https://pypi.python.org/pypi/python-docx) has been superseded
-        (see https://github.com/mikemaccana/python-docx).
+    Args:
+        filename: filename to process
+        blob: binary ``bytes`` object to process
+        config: :class:`TextProcessingConfig` control object
 
-        -   docx.opendocx(file) uses zipfile.ZipFile, which can take either a
-            filename or a file-like object
-            (https://docs.python.org/2/library/zipfile.html).
+    Returns:
+        text contents
 
-        -   Method was:
+    Notes:
 
-            .. code-block:: python
+    - Old ``docx`` (https://pypi.python.org/pypi/python-docx) has been
+      superseded (see https://github.com/mikemaccana/python-docx).
 
-                with get_filelikeobject(filename, blob) as fp:
-                    document = docx.opendocx(fp)
-                    paratextlist = docx.getdocumenttext(document)
-                return '\n\n'.join(paratextlist)
+      - ``docx.opendocx(file)`` uses :class:`zipfile.ZipFile`, which can take
+        either a filename or a file-like object
+        (https://docs.python.org/2/library/zipfile.html).
 
-    -   Newer docx is python-docx
+      - Method was:
 
-        - https://pypi.python.org/pypi/python-docx
-        - https://python-docx.readthedocs.org/en/latest/
-        - http://stackoverflow.com/questions/25228106
+        .. code-block:: python
 
-        However, it uses lxml, which has C dependencies, so it doesn't always
-        install properly on e.g. bare Windows machines.
+            with get_filelikeobject(filename, blob) as fp:
+                document = docx.opendocx(fp)
+                paratextlist = docx.getdocumenttext(document)
+            return '\n\n'.join(paratextlist)
 
-        PERFORMANCE of my method:
+    - Newer ``docx`` is python-docx
 
-            -   nice table formatting
-            -   but tables grouped at end, not in sensible places
-            -   can iterate via "doc.paragraphs" and "doc.tables" but not in
-                true document order, it seems
-            -   others have noted this too:
-                https://github.com/python-openxml/python-docx/issues/40
-                https://github.com/deanmalmgren/textract/pull/92
+      - https://pypi.python.org/pypi/python-docx
+      - https://python-docx.readthedocs.org/en/latest/
+      - http://stackoverflow.com/questions/25228106
 
-    -   docx2txt is at https://pypi.python.org/pypi/docx2txt/0.6; this is
-        pure Python. Its command-line function appears to be for Python 2 only
-        (2016-04-21: crashes under Python 3; is due to an encoding bug).
-        However, it seems fine as a library.
-        It doesn't handle in-memory blobs properly, though, so we need to
-        extend it.
+      However, it uses ``lxml``, which has C dependencies, so it doesn't always
+      install properly on e.g. bare Windows machines.
 
-        PERFORMANCE OF ITS process() function:
+      PERFORMANCE of my method:
 
-        - all text comes out
-        - table text is in a sensible place
-        - table formatting is lost.
+      - nice table formatting
+      - but tables grouped at end, not in sensible places
+      - can iterate via ``doc.paragraphs`` and ``doc.tables`` but not in
+        true document order, it seems
+      - others have noted this too:
 
-    -   Other manual methods (not yet implemented):
-        http://etienned.github.io/posts/extract-text-from-word-docx-simply/
+        - https://github.com/python-openxml/python-docx/issues/40
+        - https://github.com/deanmalmgren/textract/pull/92
 
-        ... looks like it won't deal with header stuff (etc.) that docx2txt
-            handles.
+    - ``docx2txt`` is at https://pypi.python.org/pypi/docx2txt/0.6; this is
+      pure Python. Its command-line function appears to be for Python 2 only
+      (2016-04-21: crashes under Python 3; is due to an encoding bug). However,
+      it seems fine as a library. It doesn't handle in-memory blobs properly,
+      though, so we need to extend it.
 
-    -   Upshot: we need a DIY version.
+      PERFORMANCE OF ITS ``process()`` function:
 
-    -   See also this "compile lots of techniques" libraries, which has C
-        dependencies:
+      - all text comes out
+      - table text is in a sensible place
+      - table formatting is lost.
 
-            http://textract.readthedocs.org/en/latest/
+    - Other manual methods (not yet implemented):
+      http://etienned.github.io/posts/extract-text-from-word-docx-simply/.
+
+      Looks like it won't deal with header stuff (etc.) that ``docx2txt``
+      handles.
+
+    - Upshot: we need a DIY version.
+
+    - See also this "compile lots of techniques" libraries, which has C
+      dependencies: http://textract.readthedocs.org/en/latest/
 
     """
 
@@ -779,25 +947,21 @@ def convert_docx_to_text(filename: str = None,
         text = ''
         with get_filelikeobject(filename, blob) as fp:
             for xml in gen_xml_files_from_docx(fp):
-                text += docx_text_from_xml(xml,
-                                           width=width,
-                                           min_col_width=min_col_width,
-                                           plain=plain)
+                text += docx_text_from_xml(xml, config)
         return text
-    elif docx:
-        with get_filelikeobject(filename, blob) as fp:
-            # noinspection PyUnresolvedReferences
-            document = docx.Document(fp)
-            return '\n\n'.join(
-                docx_docx_gen_text(document, width=width,
-                                   min_col_width=min_col_width))
-    elif docx2txt:
-        if filename:
-            return docx2txt.process(filename)
-        else:
-            raise NotImplementedError("docx2txt BLOB handling not written")
-    else:
-        raise AssertionError("No DOCX-reading tool available")
+    # elif docx:
+    #     with get_filelikeobject(filename, blob) as fp:
+    #         # noinspection PyUnresolvedReferences
+    #         document = docx.Document(fp)
+    #         return '\n\n'.join(
+    #             docx_docx_gen_text(document, config))
+    # elif docx2txt:
+    #     if filename:
+    #         return docx2txt.process(filename)
+    #     else:
+    #         raise NotImplementedError("docx2txt BLOB handling not written")
+    # else:
+    #     raise AssertionError("No DOCX-reading tool available")
 
 
 # =============================================================================
@@ -807,8 +971,12 @@ def convert_docx_to_text(filename: str = None,
 # noinspection PyUnusedLocal
 def convert_odt_to_text(filename: str = None,
                         blob: bytes = None,
-                        **kwargs) -> str:
-    """Pass either a filename or a binary object."""
+                        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+    """
+    Converts an OpenOffice ODT file to text.
+
+    Pass either a filename or a binary object.
+    """
     # We can't use exactly the same method as for DOCX files, using docx:
     # sometimes that works, but sometimes it falls over with:
     # KeyError: "There is no item named 'word/document.xml' in the archive"
@@ -828,9 +996,13 @@ def convert_odt_to_text(filename: str = None,
 # =============================================================================
 
 # noinspection PyUnusedLocal
-def convert_html_to_text(filename: str = None,
-                         blob: bytes = None,
-                         **kwargs) -> str:
+def convert_html_to_text(
+        filename: str = None,
+        blob: bytes = None,
+        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+    """
+    Converts HTML to text.
+    """
     with get_filelikeobject(filename, blob) as fp:
         soup = bs4.BeautifulSoup(fp)
         return soup.get_text()
@@ -843,7 +1015,10 @@ def convert_html_to_text(filename: str = None,
 # noinspection PyUnusedLocal
 def convert_xml_to_text(filename: str = None,
                         blob: bytes = None,
-                        **kwargs) -> str:
+                        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+    """
+    Converts XML to text.
+    """
     with get_filelikeobject(filename, blob) as fp:
         soup = bs4.BeautifulStoneSoup(fp)
         return soup.get_text()
@@ -856,7 +1031,10 @@ def convert_xml_to_text(filename: str = None,
 # noinspection PyUnresolvedReferences,PyUnusedLocal
 def convert_rtf_to_text(filename: str = None,
                         blob: bytes = None,
-                        **kwargs) -> str:
+                        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+    """
+    Converts RTF to text.
+    """
     unrtf = tools['unrtf']
     if unrtf:  # Best
         args = [unrtf, '--text', '--nopict']
@@ -879,6 +1057,9 @@ def convert_rtf_to_text(filename: str = None,
 
 
 def availability_rtf() -> bool:
+    """
+    Is an RTF processor available?
+    """
     unrtf = tools['unrtf']
     if unrtf:
         return True
@@ -897,20 +1078,25 @@ def availability_rtf() -> bool:
 # noinspection PyUnusedLocal
 def convert_doc_to_text(filename: str = None,
                         blob: bytes = None,
-                        width: int = DEFAULT_WIDTH,
-                        **kwargs) -> str:
+                        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+    """
+    Converts Microsoft Word DOC files to text.
+    """
     antiword = tools['antiword']
     if antiword:
         if filename:
-            return get_cmd_output(antiword, '-w', str(width), filename)
+            return get_cmd_output(antiword, '-w', str(config.width), filename)
         else:
             return get_cmd_output_from_stdin(blob, antiword, '-w',
-                                             str(width), '-')
+                                             str(config.width), '-')
     else:
         raise AssertionError("No DOC-reading tool available")
 
 
 def availability_doc() -> bool:
+    """
+    Is a DOC processor available?
+    """
     antiword = tools['antiword']
     return bool(antiword)
 
@@ -920,10 +1106,14 @@ def availability_doc() -> bool:
 # =============================================================================
 
 # noinspection PyUnusedLocal
-def convert_anything_to_text(filename: str = None,
-                             blob: bytes = None,
-                             **kwargs) -> str:
-    # strings is a standard Unix command to get text from any old rubbish
+def convert_anything_to_text(
+        filename: str = None,
+        blob: bytes = None,
+        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+    """
+    Convert arbitrary files to text, using ``strings`` or ``strings2``.
+    (``strings`` is a standard Unix command to get text from any old rubbish.)
+    """
     strings = tools['strings'] or tools['strings2']
     if strings:
         if filename:
@@ -935,6 +1125,10 @@ def convert_anything_to_text(filename: str = None,
 
 
 def availability_anything() -> bool:
+    """
+    Is a generic "something-to-text" processor available?
+    """
+
     strings = tools['strings'] or tools['strings2']
     return bool(strings)
 
@@ -944,8 +1138,9 @@ def availability_anything() -> bool:
 # =============================================================================
 
 ext_map = {
-    # Converter functions must be of the form func(filename, blob, **kwargs):
-    # Availability must be either a boolean or a function that takes no params.
+    # Converter functions must be of the form: func(filename, blob, config).
+    # Availability must be either a boolean literal or a function that takes no
+    # params.
     '.csv': {
         CONVERTER: get_file_contents_text,
         AVAILABILITY: True,
@@ -1016,10 +1211,14 @@ ext_map = {
 def document_to_text(filename: str = None,
                      blob: bytes = None,
                      extension: str = None,
-                     plain: bool = False,
-                     width: int = DEFAULT_WIDTH,
-                     min_col_width: int = DEFAULT_MIN_COL_WIDTH) -> str:
+                     config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
     """
+    Converts a document to text.
+
+    This function selects a processor based on the file extension (either from
+    the filename, or, in the case of a BLOB, the extension specified manually
+    via the ``extension`` parameter).
+
     Pass either a filename or a binary object.
 
     - Raises an exception for malformed arguments, missing files, bad
@@ -1055,15 +1254,13 @@ def document_to_text(filename: str = None,
             extension))
         info = ext_map[None]
     func = info[CONVERTER]
-    kwargs = {
-        'plain': plain,
-        'width': width,
-        'min_col_width': min_col_width,
-    }
-    return func(filename, blob, **kwargs)
+    return func(filename, blob, config)
 
 
 def is_text_extractor_available(extension: str) -> bool:
+    """
+    Is a text extractor available for the specified extension?
+    """
     if extension is not None:
         extension = extension.lower()
     info = ext_map.get(extension)
@@ -1080,6 +1277,10 @@ def is_text_extractor_available(extension: str) -> bool:
 
 
 def require_text_extractor(extension: str) -> None:
+    """
+    Require that a text extractor is available for the specified extension,
+    or raise :exc:`ValueError`.
+    """
     if not is_text_extractor_available(extension):
         raise ValueError(
             "No text extractor available for extension: {}".format(extension))
@@ -1090,6 +1291,9 @@ def require_text_extractor(extension: str) -> None:
 # =============================================================================
 
 def main() -> None:
+    """
+    Command-line processor. See ``--help`` for details.
+    """
     logging.basicConfig(level=logging.DEBUG)
     parser = argparse.ArgumentParser()
     parser.add_argument("inputfile", nargs="?", help="Input file name")
@@ -1122,9 +1326,12 @@ def main() -> None:
     if not args.inputfile:
         parser.print_help(sys.stderr)
         return
-    result = document_to_text(
-        filename=args.inputfile, plain=args.plain,
-        width=args.width, min_col_width=args.min_col_width)
+    config = TextProcessingConfig(
+        width=args.width,
+        min_col_width=args.min_col_width,
+        plain=args.plain,
+    )
+    result = document_to_text(filename=args.inputfile, config=config)
     if result is None:
         return
     else:

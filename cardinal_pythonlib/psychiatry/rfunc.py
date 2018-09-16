@@ -22,12 +22,12 @@
 
 ===============================================================================
 
-WORK IN PROGRESS. Doesn't do much that's useful at present.
+**WORK IN PROGRESS. Doesn't do much that's useful at present.**
 
 Functions to be used from R via reticulate
 (https://cran.r-project.org/web/packages/reticulate/index.html).
 
-See drugs.py for notes on how to get reticulate talking to this library.
+See ``drugs.py`` for notes on how to get reticulate talking to this library.
 
 Briefly:
 
@@ -75,7 +75,7 @@ from typing import Any, Dict
 # =============================================================================
 
 def get_python_repr(x: Any) -> str:
-    """
+    r"""
     A few notes:
     
     **data.table()**
@@ -114,7 +114,7 @@ def get_python_repr(x: Any) -> str:
 
 def get_python_repr_of_type(x: Any) -> str:
     """
-    See get_python_repr.
+    See ``get_python_repr``.
 
     .. code-block:: r
 

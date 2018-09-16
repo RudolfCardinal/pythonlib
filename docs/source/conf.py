@@ -12,10 +12,12 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
+
+import os
+import sys
 # sys.path.insert(0, os.path.abspath('.'))
+
+import django
 
 from cardinal_pythonlib.version_string import VERSION_STRING
 
@@ -46,6 +48,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.imgmath',
     'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -174,3 +177,17 @@ todo_include_todos = True
 
 autoclass_content = 'both'
 # https://stackoverflow.com/questions/5599254/how-to-use-sphinxs-autodoc-to-document-a-classs-init-self-method  # noqa
+
+
+# =============================================================================
+# For Django
+# =============================================================================
+# https://stackoverflow.com/questions/36228537/django-settings-module-not-defined-when-building-sphinx-documentation
+
+# But in practice:
+import django
+from django.conf import settings
+settings.configure()
+django.setup()
+
+os.environ["_SPHINX_AUTODOC_IN_PROGRESS"] = "true"

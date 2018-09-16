@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions for dealing with Excel spreadsheets.**
+
 """
 
 
@@ -34,6 +37,10 @@ log.addHandler(logging.NullHandler())
 
 
 def excel_to_bytes(wb: Workbook) -> bytes:
+    """
+    Obtain a binary version of an :class:`openpyxl.Workbook` representation of
+    an Excel file.
+    """
     memfile = io.BytesIO()
     wb.save(memfile)
     return memfile.getvalue()

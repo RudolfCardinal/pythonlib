@@ -22,12 +22,16 @@
 
 ===============================================================================
 
+**Command-line tool to make booklets from PDFs.**
+
 RNC, 18 Nov 2017.
 
 PURPOSE:
 
 Take a PDF created with pdfnup or similar, with A4 sheets and two pages per
 sheet, like this:
+
+.. code-block:: none
 
     PDF page 1      +-----+-----+
                     |     |     |
@@ -48,6 +52,8 @@ sheet, like this:
                     +-----+-----+
 
 and create a similar PDF but like this:
+
+.. code-block:: none
 
     PDF page 1      +-----+-----+
                     |     |     |
@@ -70,24 +76,26 @@ and create a similar PDF but like this:
 so it can be printed double-sided and folded into an A5 booklet.
 
 DEFINITIONS
-    page = one side of a piece of paper BUT HERE, IN A BOOK CONTEXT, half that,
-        i.e. what ends up as a book "page"
-    pair = two pages, making up one side of a sheet/leaf
-    sheet = one piece of paper (= leaf) (= 4 pages, here)
+
+- page = one side of a piece of paper BUT HERE, IN A BOOK CONTEXT, half that,
+  i.e. what ends up as a book "page"
+- pair = two pages, making up one side of a sheet/leaf
+- sheet = one piece of paper (= leaf) (= 4 pages, here)
 
 PRINTING
-    It's our job here to make pairs from pages, and to create a PDF where each
-    PDF page is a pair.
 
-    It's the printer's job to make sheets from pages. When printing in duplex,
-    you will need to use SHORT-EDGE BINDING (if you use long-edge binding, the
-    reverse sides will be inverted).
+It's our job here to make pairs from pages, and to create a PDF where each
+PDF page is a pair.
+
+It's the printer's job to make sheets from pages. When printing in duplex,
+you will need to use SHORT-EDGE BINDING (if you use long-edge binding, the
+reverse sides will be inverted).
 
 FURTHER THOUGHT 19 Nov 2017
 
-    We can, of course, support LONG-EDGE binding as well; that just requires
-    an extra step of rotating all the even-numbered pages from the preceding
-    step. Supported, as below.
+We can, of course, support LONG-EDGE binding as well; that just requires
+an extra step of rotating all the even-numbered pages from the preceding
+step. Supported, as below.
 
 """
 
@@ -195,7 +203,7 @@ def run(args: List[str],
         encoding: str = sys.getdefaultencoding()) -> Tuple[str, str]:
     """
     Run an external command +/- return the results.
-    Returns a (stdout, stderr) tuple (both are blank strings if the output
+    Returns a ``(stdout, stderr)`` tuple (both are blank strings if the output
     wasn't wanted).
     """
     printable = " ".join(shlex.quote(x) for x in args).replace("\n", r"\n")
@@ -227,7 +235,7 @@ def get_page_count(filename: str) -> int:
 def make_blank_pdf(filename: str, paper: str = "A4") -> None:
     """
     NOT USED.
-    Makes a blank single-page PDF, using ImageMagick's "convert".
+    Makes a blank single-page PDF, using ImageMagick's ``convert``.
     """
     # https://unix.stackexchange.com/questions/277892/how-do-i-create-a-blank-pdf-from-the-command-line  # noqa
     require(CONVERT, HELP_MISSING_IMAGEMAGICK)
@@ -374,6 +382,9 @@ def convert_to_foldable(input_filename: str,
 # =============================================================================
 
 class TestPdfToBooklet(unittest.TestCase):
+    """
+    Unit tests.
+    """
     def test_sequence(self) -> None:
         for n_sheets in range(1, 8 + 1):
             log.info("{!r}", page_sequence(n_sheets=n_sheets, one_based=True))
@@ -384,6 +395,9 @@ class TestPdfToBooklet(unittest.TestCase):
 # =============================================================================
 
 def main() -> None:
+    """
+    Command-line processor. See ``--help`` for details.
+    """
     main_only_quicksetup_rootlogger(level=logging.DEBUG)
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter

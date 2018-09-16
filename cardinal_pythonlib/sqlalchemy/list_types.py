@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**SQLAlchemy type classes to store different kinds of lists in a database.**
+
 """
 
 import csv
@@ -45,9 +48,9 @@ log = BraceStyleAdapter(log)
 class StringListType(TypeDecorator):
     """
     Store a list of strings as CSV.
-    Rather less arbitrary in its encoding requirements than e.g.
-    http://sqlalchemy-utils.readthedocs.io/en/latest/_modules/sqlalchemy_utils/types/scalar_list.html#ScalarListType  # noqa
-    """
+    (Rather less arbitrary in its encoding requirements than e.g.
+    http://sqlalchemy-utils.readthedocs.io/en/latest/_modules/sqlalchemy_utils/types/scalar_list.html#ScalarListType.)
+    """  # noqa
     impl = UnicodeText()
 
     @property

@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Query helper functions using the SQLAlchemy Core.**
+
 """
 
 import logging
@@ -51,6 +54,19 @@ log = BraceStyleAdapter(log)
 def get_rows_fieldnames_from_raw_sql(
         session: Union[Session, Engine, Connection],
         sql: str) -> Tuple[Sequence[Sequence[Any]], Sequence[str]]:
+    """
+    Returns results and column names from a query.
+
+    Args:
+        session: SQLAlchemy :class:`Session`, :class:`Engine`, or
+            :class:`Connection` object
+        sql: raw SQL to execure
+
+    Returns:
+        ``(rows, fieldnames)`` where ``rows`` is the usual set of results and
+        ``fieldnames`` are the name of the result columns/fields.
+
+    """
     result = session.execute(sql)  # type: ResultProxy
     fieldnames = result.keys()
     rows = result.fetchall()
@@ -65,6 +81,19 @@ def get_rows_fieldnames_from_raw_sql(
 def count_star(session: Union[Session, Engine, Connection],
                tablename: str,
                *criteria: Any) -> int:
+    """
+    Returns the result of ``COUNT(*)`` from the specified table (with
+    additional ``WHERE`` criteria if desired).
+
+    Args:
+        session: SQLAlchemy :class:`Session`, :class:`Engine`, or
+            :class:`Connection` object
+        tablename: name of the table
+        criteria: optional SQLAlchemy "where" criteria
+
+    Returns:
+        a scalar
+    """
     # works if you pass a connection or a session or an engine; all have
     # the execute() method
     query = select([func.count()]).select_from(table(tablename))
@@ -81,6 +110,19 @@ def count_star_and_max(session: Union[Session, Engine, Connection],
                        tablename: str,
                        maxfield: str,
                        *criteria: Any) -> Tuple[int, Optional[int]]:
+    """
+
+    Args:
+        session: SQLAlchemy :class:`Session`, :class:`Engine`, or
+            :class:`Connection` object
+        tablename: name of the table
+        maxfield: name of column (field) to take the ``MAX()`` of
+        criteria: optional SQLAlchemy "where" criteria
+
+    Returns:
+        a tuple: ``(count, maximum)``
+
+    """
     query = select([
         func.count(),
         func.max(column(maxfield))
@@ -100,14 +142,25 @@ def count_star_and_max(session: Union[Session, Engine, Connection],
 def exists_in_table(session: Session, table_: Table, *criteria: Any) -> bool:
     """
     Implements an efficient way of detecting if a record or records exist;
-    should be faster than COUNT(*) in some circumstances.
+    should be faster than ``COUNT(*)`` in some circumstances.
+
+    Args:
+        session: SQLAlchemy :class:`Session`, :class:`Engine`, or
+            :class:`Connection` object
+        table_: SQLAlchemy :class:`Table` object
+        criteria: optional SQLAlchemy "where" criteria
+
+    Returns:
+        a boolean
 
     Prototypical use:
 
-    return exists_in_table(session,
-                           table,
-                           column(fieldname1) == value2,
-                           column(fieldname2) == value2)
+    .. code-block:: python
+
+        return exists_in_table(session,
+                               table,
+                               column(fieldname1) == value2,
+                               column(fieldname2) == value2)
     """
     exists_clause = exists().select_from(table_)
     # ... EXISTS (SELECT * FROM tablename)
@@ -131,12 +184,23 @@ def exists_plain(session: Session, tablename: str, *criteria: Any) -> bool:
     Implements an efficient way of detecting if a record or records exist;
     should be faster than COUNT(*) in some circumstances.
 
+    Args:
+        session: SQLAlchemy :class:`Session`, :class:`Engine`, or
+            :class:`Connection` object
+        tablename: name of the table
+        criteria: optional SQLAlchemy "where" criteria
+
+    Returns:
+        a boolean
+
     Prototypical use:
 
-    return exists_plain(config.destdb.session,
-                        dest_table_name,
-                        column(fieldname1) == value2,
-                        column(fieldname2) == value2)
+    .. code-block:: python
+
+        return exists_plain(config.destdb.session,
+                            dest_table_name,
+                            column(fieldname1) == value2,
+                            column(fieldname2) == value2)
     """
     return exists_in_table(session, table(tablename), *criteria)
 
@@ -147,8 +211,21 @@ def exists_plain(session: Session, tablename: str, *criteria: Any) -> bool:
 
 def fetch_all_first_values(session: Session,
                            select_statement: Select) -> List[Any]:
-    # A Core version of this sort of thing:
-    # http://xion.io/post/code/sqlalchemy-query-values.html
+    """
+    Returns a list of the first values in each row returned by a ``SELECT``
+    query.
+
+    A Core version of this sort of thing:
+    http://xion.io/post/code/sqlalchemy-query-values.html
+
+    Args:
+        session: SQLAlchemy :class:`Session` object
+        select_statement: SQLAlchemy :class:`Select` object
+
+    Returns:
+        a list of the first value of each result row
+
+    """
     rows = session.execute(select_statement)  # type: ResultProxy
     try:
         return [x for (x,) in rows]

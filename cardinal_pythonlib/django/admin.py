@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Helper functions for the Django admin site.**
+
 """
 
 from typing import Any, Callable
@@ -44,8 +47,9 @@ def disable_bool_icon(
     Disable boolean icons for a Django ModelAdmin field.
     The '_meta' attribute is present on Django model classes and instances.
 
-    model_class: Union[Model, Type[Model]]
-        ... only the type checker in Py3.5 is broken; see files.py
+    model_class: ``Union[Model, Type[Model]]``
+
+    ... only the type checker in Py3.5 is broken; see ``files.py``
     """
     # noinspection PyUnusedLocal
     def func(self, obj):

@@ -22,6 +22,8 @@
 
 ===============================================================================
 
+**Extensions to dogpile.cache.**
+
 1.  The basic cache objects.
 
 2.  FIX FOR DOGPILE.CACHE FOR DECORATED FUNCTIONS, 2017-07-28 (PLUS SOME OTHER
@@ -30,7 +32,9 @@
         https://bitbucket.org/zzzeek/dogpile.cache/issues/96/error-in-python-35-with-use-of-deprecated
 
     This fixes a crash using type-hinted functions under Python 3.5 with 
-    dogpile.cache==0.6.4:
+    ``dogpile.cache==0.6.4``:
+    
+    .. code-block:: none
 
         Traceback (most recent call last):
           File "/usr/lib/python3.5/runpy.py", line 184, in _run_module_as_main
@@ -50,12 +54,13 @@
         ValueError: Function has keyword-only arguments or annotations, use getfullargspec() API which can support them
 
 3.  Other improvements include:
+
     - the cache decorators operate as:
-        PER-INSTANCE caches for class instances, provided the first parameter 
-            is named "self"; 
-        PER-CLASS caches for classmethods, provided the first parameter is 
-            named "cls";
-        PER-FUNCTION caches for staticmethods and plain functions
+        - PER-INSTANCE caches for class instances, provided the first parameter 
+          is named "self"; 
+        - PER-CLASS caches for classmethods, provided the first parameter is 
+          named "cls";
+        - PER-FUNCTION caches for staticmethods and plain functions
         
     - keyword arguments are supported
     
@@ -63,10 +68,11 @@
       cache decorator)
     
     - Note that this sort of cache relies on the generation of a STRING KEY
-      from the function arguments. It uses the hex(id()) function for self/cls
-      arguments, and the to_str() function, passed as a parameter, for others
-      (for which the default is "repr"; see discussion below as to why "repr"
-      is suitable while "str" is not).
+      from the function arguments. It uses the ``hex(id())`` function for
+      ``self``/``cls`` arguments, and the ``to_str()`` function, passed as a
+      parameter, for others (for which the default is ``"repr"``; see
+      discussion below as to why ``"repr"`` is suitable while ``"str"`` is
+      not).
 
 """  # noqa
 
@@ -99,6 +105,9 @@ log.addHandler(logging.NullHandler())
 # =============================================================================
 
 def repr_parameter(param: inspect.Parameter) -> str:
+    """
+    Provides a ``repr``-style representation of a function parameter.
+    """
     return (
         "Parameter(name={name}, annotation={annotation}, kind={kind}, "
         "default={default}".format(
@@ -107,7 +116,23 @@ def repr_parameter(param: inspect.Parameter) -> str:
     )
 
 
-def get_namespace(fn: Callable, namespace: str) -> str:
+def get_namespace(fn: Callable, namespace: Optional[str]) -> str:
+    """
+    Returns a representation of a function's name (perhaps within a namespace),
+    like
+
+    .. code-block:: none
+
+        mymodule:MyClass.myclassfunc  # with no namespace
+        mymodule:MyClass.myclassfunc|somenamespace  # with a namespace
+
+    Args:
+        fn: a function
+        namespace: an optional namespace, which can be of any type but is
+            normally a ``str``; if not ``None``, ``str(namespace)`` will be
+            added to the result. See
+            https://dogpilecache.readthedocs.io/en/latest/api.html#dogpile.cache.region.CacheRegion.cache_on_arguments
+    """  # noqa
     # See hidden attributes with dir(fn)
     # noinspection PyUnresolvedReferences
     return "{module}:{name}{extra}".format(
@@ -126,21 +151,33 @@ def fkg_allowing_type_hints(
         fn: Callable,
         to_str: Callable[[Any], str] = repr) -> Callable[[Any], str]:
     """
-    Replacement for dogpile.cache.util.function_key_generator that handles
-    type-hinted functions like
+    Replacement for :func:`dogpile.cache.util.function_key_generator` that
+    handles type-hinted functions like
 
-            def testfunc(param: str) -> str:
-                return param + "hello"
+    .. code-block:: python
 
-        ... at which inspect.getargspec() balks
-        ... plus inspect.getargspec() is deprecated in Python 3
+        def testfunc(param: str) -> str:
+            return param + "hello"
 
-    Return a function that generates a string key, based on a given function as
-    well as arguments to the returned function itself.
+    ... at which :func:`inspect.getargspec` balks; plus
+    :func:`inspect.getargspec` is deprecated in Python 3.
+
+    Used as an argument to e.g. ``@cache_region_static.cache_on_arguments()``.
 
     Also modified to make the cached function unique per INSTANCE for normal
     methods of a class.
 
+    Args:
+        namespace: optional namespace, as per :func:`get_namespace`
+        fn: function to generate a key for (usually the function being
+            decorated)
+        to_str: function to apply to map arguments to a string (to make a
+            unique key for a particular call to the function); by default it
+            is :func:`repr`
+
+    Returns:
+        a function that generates a string key, based on a given function as
+        well as arguments to the returned function itself.
     """
 
     namespace = get_namespace(fn, namespace)
@@ -151,6 +188,10 @@ def fkg_allowing_type_hints(
     has_self = bool(argnames and argnames[0] in ('self', 'cls'))
 
     def generate_key(*args: Any, **kw: Any) -> str:
+        """
+        Makes the actual key for a specific call to the decorated function,
+        with particular ``args``/``kwargs``.
+        """
         if kw:
             raise ValueError("This dogpile.cache key function generator, "
                              "fkg_allowing_type_hints, "
@@ -172,8 +213,8 @@ def multikey_fkg_allowing_type_hints(
         fn: Callable,
         to_str: Callable[[Any], str] = repr) -> Callable[[Any], List[str]]:
     """
-    Equivalent of dogpile.cache function_multi_key_generator, but using
-    inspect.signature() instead.
+    Equivalent of :func:`dogpile.cache.util.function_multi_key_generator`, but
+    using :func:`inspect.signature` instead.
 
     Also modified to make the cached function unique per INSTANCE for normal
     methods of a class.
@@ -209,21 +250,21 @@ def kw_fkg_allowing_type_hints(
         fn: Callable,
         to_str: Callable[[Any], str] = repr) -> Callable[[Any], str]:
     """
-    As for fkg_allowing_type_hints, but allowing keyword arguments.
+    As for :func:`fkg_allowing_type_hints`, but allowing keyword arguments.
 
-    For kwargs passed in, we will build a dict of all argname (key) argvalue
-    (values) including default args from the argspec and then alphabetize the
-    list before generating the key.
+    For ``kwargs`` passed in, we will build a ``dict`` of all argname (key) to
+    argvalue (values) pairs, including default args from the argspec, and then
+    alphabetize the list before generating the key.
 
-    NOTE ALSO that once we have keyword arguments, we should be using repr(),
-    because we need to distinguish
+    NOTE ALSO that once we have keyword arguments, we should be using
+    :func:`repr`, because we need to distinguish
 
-    .. code-block:: none
+    .. code-block:: python
 
         kwargs = {'p': 'another', 'q': 'thing'}
-        ... which compat.string_type will make into
-                p=another q=thing
-        ... from
+        # ... which compat.string_type will make into
+        #         p=another q=thing
+        # ... from
         kwargs = {'p': 'another q=thing'}
 
     Also modified to make the cached function unique per INSTANCE for normal

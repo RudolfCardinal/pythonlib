@@ -23,12 +23,9 @@
 ===============================================================================
 """
 
-
+import re
 from typing import Any, Dict, Iterable, List
 import unicodedata
-
-# noinspection PyCompatibility
-import regex
 
 
 # =============================================================================
@@ -38,6 +35,7 @@ import regex
 def find_nth(s: str, x: str, n: int = 0, overlap: bool = False) -> int:
     """
     Finds the position of nth occurrence of x in s, or -1 if there isn't one.
+
     - The n parameter is zero-based (i.e. 0 for the first, 1 for the second...).
     - If overlap is true, allows fragments to overlap. If not, they must be
       distinct.
@@ -69,12 +67,16 @@ def split_string(x: str, n: int) -> List[str]:
 # =============================================================================
 
 def multiple_replace(text: str, rep: Dict[str, str]) -> str:
-    """Returns text in which the keys of rep (a dict) have been replaced by
-    their values."""
-    # http://stackoverflow.com/questions/6116978/python-replace-multiple-strings  # noqa
-    rep = dict((regex.escape(k), v) for k, v in rep.items())
-    pattern = regex.compile("|".join(rep.keys()))
-    return pattern.sub(lambda m: rep[regex.escape(m.group(0))], text)
+    """
+    Returns a version of ``text`` in which the keys of ``rep`` (a dict) have
+    been replaced by their values.
+
+    As per
+    http://stackoverflow.com/questions/6116978/python-replace-multiple-strings.
+    """
+    rep = dict((re.escape(k), v) for k, v in rep.items())
+    pattern = re.compile("|".join(rep.keys()))
+    return pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
 
 
 def replace_in_list(stringlist: Iterable[str],

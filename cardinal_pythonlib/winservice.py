@@ -275,6 +275,7 @@ try:
     import win32service  # part of pypiwin32
     # noinspection PyPackageRequirements
     import win32serviceutil  # part of pypiwin32
+    from win32serviceutil import ServiceFramework
 except ImportError:
     # this makes the type checker less unhappy
     servicemanager = None
@@ -282,7 +283,10 @@ except ImportError:
     win32event = None
     win32service = None
     win32serviceutil = None
-    raise
+    if os.environ["_SPHINX_AUTODOC_IN_PROGRESS"]:
+        ServiceFramework = object  # duff thing for inheritance
+    else:
+        raise
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -574,7 +578,7 @@ class ProcessManager(object):
 # Windows service framework
 # =============================================================================
 
-class WindowsService(win32serviceutil.ServiceFramework):
+class WindowsService(ServiceFramework):
     """
     Derived classes must set the following class properties:
 
@@ -714,13 +718,20 @@ class WindowsService(win32serviceutil.ServiceFramework):
                       kill_timeout_sec: float = 5) -> None:
         """
         Run multiple child processes.
+
         Args:
-            procdetails: list of dictionaries: {
-                'name': name (str),
-                'procargs': list of command arguments, passed to Popen,
-                'logfile_out': log file name for stdout,
-                'logfile_err': log file name for stderr,
-            }
+
+            procdetails: list of dictionaries:
+
+                .. code-block:: none
+
+                    {
+                        'name': name (str),
+                        'procargs': list of command arguments, passed to Popen,
+                        'logfile_out': log file name for stdout,
+                        'logfile_err': log file name for stderr,
+                    }
+
             subproc_run_timeout_sec:
             stop_event_timeout_ms:
             kill_timeout_sec:

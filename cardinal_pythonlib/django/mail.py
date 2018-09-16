@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**E-mail backend for Django that fixes a TLS bug.**
+
 """
 
 import logging
@@ -36,13 +39,20 @@ log.addHandler(logging.NullHandler())
 
 class SmtpEmailBackendTls1(EmailBackend):
     """
-    Overrides EmailBackend to require TLS v1.
+    Overrides ``django.core.mail.backends.smtp.EmailBackend`` to require TLS
+    v1.
     Use this if your existing TLS server gives the error:
+
+    .. code-block:: none
+
         ssl.SSLEOFError: EOF occurred in violation of protocol (_ssl.c:600)
+
     ... which appears to be a manifestation of changes in Python's
-    smtplib library, which relies on its ssl library, which relies on OpenSSL.
-    Something here has changed and now some servers that only support TLS
-    version 1.0 don't work. In these situations, the following code fails:
+    ``smtplib`` library, which relies on its ``ssl`` library, which relies on
+    OpenSSL. Something here has changed and now some servers that only support
+    TLS version 1.0 don't work. In these situations, the following code fails:
+
+    .. code-block:: python
 
         import smtplib
         s = smtplib.SMTP(host, port)  # port typically 587
@@ -52,6 +62,8 @@ class SmtpEmailBackendTls1(EmailBackend):
 
     and this works:
 
+    .. code-block:: python
+
         import smtplib
         import ssl
         s = smtplib.SMTP(host, port)
@@ -60,6 +72,9 @@ class SmtpEmailBackendTls1(EmailBackend):
         s.starttls(context=c)  # works
 
     then to send a simple message:
+
+    .. code-block:: python
+
         s.login(user, password)
         s.sendmail(sender, recipient, message)
     """

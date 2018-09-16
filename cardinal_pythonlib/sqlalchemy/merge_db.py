@@ -22,31 +22,42 @@
 
 ===============================================================================
 
-    Note in passing: there is no common base class for SQLAlchemy ORM
-    instances (it's not DeclarativeMeta). For example, in CamCOPS:
+**Function "merge_db" to merge two databases via SQLAlchemy.**
 
-        > Phq9.__bases__
-        (<class 'camcops_server.cc_modules.cc_task.TaskHasPatientMixin'>,
-         <class 'camcops_server.cc_modules.cc_task.Task'>,
-         <class 'sqlalchemy.ext.declarative.api.Base'>)
+*Notes:*
 
-    ... and that last "Base" isn't a permanent class, just a newly named thing;
-    see sqlalchemy.ext.declarative.api.declarative_base().
+Note in passing: there is no common base class for SQLAlchemy ORM instances
+(it's not :class:`DeclarativeMeta`). For example, in CamCOPS:
 
-    Again, with the CamCOPS classes:
+.. code-block:: none
 
-        > issubclass(Phq9, Base)
-        True
+    > Phq9.__bases__
+    (<class 'camcops_server.cc_modules.cc_task.TaskHasPatientMixin'>,
+     <class 'camcops_server.cc_modules.cc_task.Task'>,
+     <class 'sqlalchemy.ext.declarative.api.Base'>)
 
-        > issubclass(Base, DeclarativeMeta)
-        False
+... and that last :class:`Base` isn't a permanent class, just a newly named
+thing; see :func:`sqlalchemy.ext.declarative.api.declarative_base`.
 
-        > Base.__bases__
-        (<class 'object'>,)
+Again, with the CamCOPS classes:
 
-    So the best type hints we have are:
-        class: Type
-        instance: object
+.. code-block:: none
+
+    > issubclass(Phq9, Base)
+    True
+
+    > issubclass(Base, DeclarativeMeta)
+    False
+
+    > Base.__bases__
+    (<class 'object'>,)
+
+So the best type hints we have are:
+
+.. code-block:: none
+
+    class: Type
+    instance: object
 
 """
 
@@ -99,9 +110,10 @@ log = BraceStyleAdapter(log)
 class TableDependency(object):
     """
     Stores a table dependency for use in functions such as
-    sqlalchemy.schema.sort_tables, which requires a tuple of two Table objects,
-    in the order (parent, child), where "child" depends on "parent" (e.g.
-    a field like child.parent_id refers to parent.id).
+    :func:`sqlalchemy.schema.sort_tables`, which requires a tuple of two
+    :class:`Table` objects, in the order ``(parent, child)``, where ``child``
+    depends on ``parent`` (e.g. a field like ``child.parent_id`` refers to
+    ``parent.id``).
     """
     def __init__(self,
                  parent_table_id: TableIdentity = None,
@@ -111,6 +123,10 @@ class TableDependency(object):
                  parent_tablename: str = None,
                  child_tablename: str = None,
                  metadata: MetaData = None) -> None:
+        """
+        The parent and child tables can be specified by name, :class:`Table`
+        object, or our :class:`TableIdentity` descriptor class.
+        """
         overspecified = "Don't specify table with both TableIdentity and " \
                         "Table/tablename"
         if parent_table_id:
@@ -137,30 +153,53 @@ class TableDependency(object):
             self.child_tablename, self.parent_tablename)
 
     def set_metadata(self, metadata: MetaData) -> None:
+        """
+        Sets the metadata for the parent and child tables.
+        """
         self._parent.set_metadata(metadata)
         self._child.set_metadata(metadata)
 
     def set_metadata_if_none(self, metadata: MetaData) -> None:
+        """
+        Sets the metadata for the parent and child tables, unless they were
+        set already.
+        """
         self._parent.set_metadata_if_none(metadata)
         self._child.set_metadata_if_none(metadata)
 
     @property
     def parent_table(self) -> Table:
+        """
+        Returns the parent table as a :class:`Table`.
+        """
         return self._parent.table
 
     @property
     def child_table(self) -> Table:
+        """
+        Returns the child table as a :class:`Table`.
+        """
         return self._child.table
 
     @property
     def parent_tablename(self) -> str:
+        """
+        Returns the parent table's string name.
+        """
         return self._parent.tablename
 
     @property
     def child_tablename(self) -> str:
+        """
+        Returns the child table's string name.
+        """
         return self._child.tablename
 
     def sqla_tuple(self) -> Tuple[Table, Table]:
+        """
+        Returns the tuple ``(parent_table, child_table)``, both as
+        :class:`Table` objects.
+        """
         return self.parent_table, self.child_table
 
 
@@ -169,7 +208,19 @@ def get_all_dependencies(metadata: MetaData,
                          sort: bool = True) \
         -> List[TableDependency]:
     """
-    See sort_tables_and_constraints() for method.
+    Describes how the tables found in the metadata depend on each other.
+    (If table B contains a foreign key to table A, for example, then B depends
+    on A.)
+
+    Args:
+        metadata: the metadata to inspect
+        extra_dependencies: additional table dependencies to specify manually
+        sort: sort into alphabetical order of (parent, child) table names?
+
+    Returns:
+        a list of :class:`TableDependency` objects
+
+    See :func:`sort_tables_and_constraints` for method.
     """
     extra_dependencies = extra_dependencies or []  # type: List[TableDependency]  # noqa
     for td in extra_dependencies:
@@ -209,10 +260,19 @@ def get_all_dependencies(metadata: MetaData,
 # =============================================================================
 
 class TableDependencyClassification(object):
+    """
+    Class to describe/classify a table in terms of its dependencies.
+    """
     def __init__(self,
                  table: Table,
                  children: List[Table] = None,
                  parents: List[Table] = None) -> None:
+        """
+        Args:
+            table: the table in question
+            children: its children (things that depend on it)
+            parents: its parents (things that it depends on)
+        """
         self.table = table
         self.children = children or []  # type: List[Table]
         self.parents = parents or []  # type: List[Table]
@@ -221,38 +281,70 @@ class TableDependencyClassification(object):
 
     @property
     def is_child(self) -> bool:
+        """
+        Is this table a child?
+        """
         return bool(self.parents)
 
     @property
     def is_parent(self) -> bool:
+        """
+        Is this table a parent?
+        """
         return bool(self.children)
 
     @property
     def standalone(self) -> bool:
+        """
+        Is this table standalone (neither a child nor a parent)?
+        """
         return not self.is_child and not self.is_parent
 
     @property
     def tablename(self) -> str:
+        """
+        Returns the table's name.
+        """
         return self.table.name
 
     @property
     def parent_names(self) -> List[str]:
+        """
+        Returns the names of this table's parents.
+        """
         return [t.name for t in self.parents]
 
     @property
     def child_names(self) -> List[str]:
+        """
+        Returns the names of this table's children.
+        """
         return [t.name for t in self.children]
 
     def set_circular(self, circular: bool, chain: List[Table] = None) -> None:
+        """
+        Mark this table as circular (or not).
+
+        Args:
+            circular: is it circular?
+            chain: if it's circular, this should be the list of tables
+                participating in the circular chain
+        """
         self.circular = circular
         self.circular_chain = chain or []  # type: List[Table]
 
     @property
     def circular_description(self) -> str:
+        """
+        Description of the circular chain.
+        """
         return " -> ".join(t.name for t in self.circular_chain)
 
     @property
     def description(self) -> str:
+        """
+        Short description.
+        """
         if self.is_parent and self.is_child:
             desc = "parent+child"
         elif self.is_parent:
@@ -278,6 +370,20 @@ def classify_tables_by_dependency_type(
         extra_dependencies: List[TableDependency] = None,
         sort: bool = True) \
         -> List[TableDependencyClassification]:
+    """
+    Inspects a metadata object (optionally adding other specified dependencies)
+    and returns a list of objects describing their dependencies.
+
+    Args:
+        metadata: the :class:`MetaData` to inspect
+        extra_dependencies: additional dependencies
+        sort: sort the results by table name?
+
+    Returns:
+        list of :class:`TableDependencyClassification` objects, one for each
+        table
+
+    """
     tables = list(metadata.tables.values())  # type: List[Table]
     all_deps = get_all_dependencies(metadata, extra_dependencies)
     tdcmap = {}  # type: Dict[Table, TableDependencyClassification]
@@ -337,52 +443,68 @@ def classify_tables_by_dependency_type(
 
 class TranslationContext(object):
     """
-    Information-passing object for user callbacks from merge_db (q.v.).
+    Information-passing object for user callbacks from :func:`merge_db`.
 
-    Attributes:
+    Args:
 
-    oldobj
-        The old object from the source session.
+        oldobj:
+            The old SQLAlchemy ORM object from the source session.
 
-    newobj
-        The framework's go at building a new object, which will be inserted
-        into the destination session.
+        newobj:
+            The framework's go at building a new SQLAlchemy ORM object, which
+            will be inserted into the destination session.
 
-        At this point, the translate_fn parameter to merge_db() will be called,
-        and the (potentially modified) "newobj" member inserted into the
-        destination session.
+            The sequence is:
 
-        The user-supplied function should REWRITE the "newobj" attribute.
+            1. ``newobj`` is created
+            2. a :class:`TranslationContext` is created, referring to
+               ``newobj``
+            3. The ``translate_fn`` parameter to :func:`merge_db` will be
+               called with the :class:`TranslationContext` as its parameter
 
-        If this is rewritten to None, the object will be skipped.
+               - the user-suppled :func:`translate_fn` function can, at this
+                 point, modify the ``newobj`` attribute
+               - if the user function sets the ``newobj`` attribute to
+                 ``None``, this object will be skipped
 
-    [It is possible that oldobj and newobj are the SAME OBJECT.]
+            4. If the :class:`TranslationContext`'s ``newobj`` member is not
+               ``None``, the new object is inserted into the destination
+               session.
 
-    objmap
-        A dictionary mapping old to new objects, for objects in tables other
-        than standalone tables.
+        objmap:
+            A dictionary mapping old to new objects, for objects in tables
+            other than standalone tables.
 
-    table
-    tablename
-        SQLAlchemy Table object and corresponding table name from the metadata.
-        (Not necessarily bound to any session, but will reflect the structure
-        of the destination, not necessarily the source, since the merge
-        operation assumes that the metadata describes the destination.)
+        table:
+            SQLAlchemy ``Table`` object from the metadata. (Not necessarily
+            bound to any session, but will reflect the structure of the
+            destination, not necessarily the source, since the merge operation
+            assumes that the metadata describes the destination.)
 
-    src_session
-    dst_session
-        The SQLAlchemy Session objects for the source/destination.
+        tablename:
+            Table name that corresponds to ``table``.
 
-    src_engine
-    dst_engine
-        The SQLAlchemy Engine objects for the source/destination.
+        src_session:
+            The SQLAlchemy :class:`Session` object for the source.
 
-    missing_src_columns
-        Names of columns known to be present in the destination but absent from
-        the source.
+        dst_session:
+            The SQLAlchemy :class:`Session` object for the destination.
 
-    info
-        Extra dictionary for additional user-specified information.
+        src_engine:
+            The SQLAlchemy :class:`Engine` object for the source.
+
+        dst_engine:
+            The SQLAlchemy :class:`Engine` object for the destination.
+
+        missing_src_columns:
+            Names of columns known to be present in the destination but absent
+            from the source.
+
+        info:
+            Extra dictionary for additional user-specified information.
+
+    It is possible that ``oldobj`` and ``newobj`` are the SAME OBJECT.
+
     """
     def __init__(self,
                  oldobj: object,
@@ -435,13 +557,13 @@ def merge_db(base_class: Type,
              prevent_eager_load: bool = True,
              trcon_info: Dict[str, Any] = None) -> None:
     """
-    Copies an entire database as far as it is described by "metadata" and
-    "base_class", from SQLAlchemy ORM session "src_session" to "dst_session",
-    and in the process:
+    Copies an entire database as far as it is described by ``metadata`` and
+    ``base_class``, from SQLAlchemy ORM session ``src_session`` to
+    ``dst_session``, and in the process:
 
     - creates new primary keys at the destination, or raises an error if it
-      doesn't know how (typically something like: "Field 'name' doesn't have a
-      default value")
+      doesn't know how (typically something like: ``Field 'name' doesn't have a
+      default value``)
 
     - maintains relationships, or raises an error if it doesn't know how
 
@@ -449,13 +571,13 @@ def merge_db(base_class: Type,
 
     Args:
         base_class:
-            your ORM base class, e.g. from Base = declarative_base()
+            your ORM base class, e.g. from ``Base = declarative_base()``
 
         src_engine:
-            SQLALchemy Engine for the source database
+            SQLALchemy :class:`Engine` for the source database
 
         dst_session:
-            SQLAlchemy Session for the destination database
+            SQLAlchemy :class:`Session` for the destination database
 
         allow_missing_src_tables:
             proceed if tables are missing from the source (allowing you to
@@ -469,23 +591,27 @@ def merge_db(base_class: Type,
             optional function called with each instance, so you can modify
             instances in the pipeline. Signature:
 
+            .. code-block:: python
+
                 def my_translate_fn(trcon: TranslationContext) -> None:
                     # We can modify trcon.newobj, or replace it (including
                     # setting trcon.newobj = None to omit this object).
                     pass
 
         skip_tables:
-            tables to skip
+            tables to skip (specified as a list of :class:`TableIdentity`)
 
         only_tables:
-            tables to restrict the processor to
+            tables to restrict the processor to (specified as a list of
+            :class:`TableIdentity`)
 
         tables_to_keep_pks_for:
             tables for which PKs are guaranteed to be safe to insert into the
-            destination database, without modification
+            destination database, without modification (specified as a list of
+            :class:`TableIdentity`)
 
         extra_table_dependencies:
-            optional list of TableDependency objects (q.v.)
+            optional list of :class:`TableDependency` objects (q.v.)
 
         dummy_run:
             don't alter the destination database
@@ -494,7 +620,7 @@ def merge_db(base_class: Type,
             show info, then stop
 
         report_every:
-            provide a progress report every n records
+            provide a progress report every *n* records
 
         flush_per_table:
             flush the session after every table (reasonable)
@@ -504,19 +630,17 @@ def merge_db(base_class: Type,
             refer to themselves)
 
         commit_with_flush:
-            COMMIT with each flush?
+            ``COMMIT`` with each flush?
 
         commit_at_end:
-            COMMIT when finished?
+            ``COMMIT`` when finished?
 
         prevent_eager_load:
             disable any eager loading (use lazy loading instead)
 
         trcon_info:
-            additional dictionary passed to TranslationContext.info
-
-    Returns:
-        None
+            additional dictionary passed to ``TranslationContext.info``
+            (see :class:`.TranslationContext`)
     """
 
     log.info("merge_db(): starting")
@@ -806,6 +930,10 @@ def merge_db(base_class: Type,
 # =============================================================================
 
 class MergeTestMixin(object):
+    """
+    Mixin to create source/destination databases as in-memory SQLite databases
+    for unit testing purposes.
+    """
     def __init__(self, *args, echo: bool = False, **kwargs) -> None:
         self.src_engine = create_engine(SQLITE_MEMORY_URL, echo=echo)  # type: Engine  # noqa
         self.dst_engine = create_engine(SQLITE_MEMORY_URL, echo=echo)  # type: Engine  # noqa
@@ -855,7 +983,9 @@ class MergeTestMixin(object):
 
 class MergeTestPlain(MergeTestMixin, unittest.TestCase):
     """
-    Notes re unit testing:
+    Unit tests for a simple merge operation.
+    
+    *Notes re unit testing:*
 
     - tests are found by virtue of the fact that their names start with
       "test"; see
@@ -863,17 +993,19 @@ class MergeTestPlain(MergeTestMixin, unittest.TestCase):
 
     - A separate instance of the class is created for each test, and in each
       case is called with:
+      
+      .. code-block:: python
 
-            setUp()
-            testSOMETHING()
-            tearDown()
+        setUp()
+        testSOMETHING()
+        tearDown()
 
       ... see https://docs.python.org/3.6/library/unittest.html#test-cases
 
-    - If you use mixins, they go AFTER unittest.TestCase; see
-      https://stackoverflow.com/questions/1323455/python-unit-test-with-base-and-sub-class  # noqa
+    - If you use mixins, they go AFTER :class:`unittest.TestCase`; see
+      https://stackoverflow.com/questions/1323455/python-unit-test-with-base-and-sub-class
 
-    """
+    """  # noqa
     def setUp(self) -> None:
         # log.info('In setUp()')
 
@@ -931,6 +1063,9 @@ class MergeTestPlain(MergeTestMixin, unittest.TestCase):
 
 
 class MergeTestCircular(MergeTestMixin, unittest.TestCase):
+    """
+    Unit tests including a circular dependency, which will fail.
+    """
 
     @unittest.expectedFailure
     def test_setup_circular(self):

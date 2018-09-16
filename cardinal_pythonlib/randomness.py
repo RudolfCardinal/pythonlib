@@ -34,8 +34,19 @@ def create_base64encoded_randomness(num_bytes: int) -> str:
     Used (for example) to generate session tokens.
     Which generator to use? See
         https://cryptography.io/en/latest/random-numbers/
-    NOT: randbytes = M2Crypto.m2.rand_bytes(num_bytes)
-    NOT: randbytes = Crypto.Random.get_random_bytes(num_bytes)
+
+    Do NOT use these methods:
+
+    .. code-block:: python
+
+        randbytes = M2Crypto.m2.rand_bytes(num_bytes) # NO!
+        randbytes = Crypto.Random.get_random_bytes(num_bytes) # NO!
+
+    Instead, do this:
+
+    .. code-block:: python
+
+        randbytes = os.urandom(num_bytes)  # YES
     """
     randbytes = os.urandom(num_bytes)  # YES
     return base64.urlsafe_b64encode(randbytes).decode('ascii')

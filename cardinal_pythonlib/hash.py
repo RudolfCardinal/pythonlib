@@ -23,17 +23,24 @@
 ===============================================================================
 
 In general, consider these hash functions:
-- hash64(), using MurmurHash3 to provide a 64-bit integer: for fast INSECURE
-  COMPARISON operations.
-- a Hmac* class for SECURE cryptographic hashes.
+
+- ``hash64()``, using MurmurHash3 to provide a 64-bit integer: for fast
+  INSECURE COMPARISON operations.
+- a ``Hmac*`` class for SECURE cryptographic hashes.
 
 Regarding None/NULL values:
+
 - For difference detection, it may be helpful to be able to compare a standard
-  hash, in which case somehash(None) == somehash("None") == 'abcdefsomething'.
+  hash, in which case ``somehash(None) == somehash("None") ==
+  'abcdefsomething'``.
+
 - It is vital not to hash NULL patient IDs, though: for example, two different
   patients without an NHS number must not be equated by comparison on a hash
   of the (NULL) NHS number.
+
 - For anonymisation, this is handled in these functions:
+
+  .. code-block:: none
 
     crate_anon/anonymise/anonymise.py / process_table()
     -> crate_anon/anonymise/configfiles.py / Config.encrypt_master_pid()

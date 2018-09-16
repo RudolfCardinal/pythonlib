@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions to help work with Python classes.**
+
 """
 
 from typing import Generator, List, Type, TypeVar
@@ -70,6 +73,24 @@ T2 = TypeVar('T2')
 def derived_class_implements_method(derived: Type[T1],
                                     base: Type[T2],
                                     method_name: str) -> bool:
+    """
+    Does a derived class implement a method (and not just inherit a base
+    class's version)?
+
+    Args:
+        derived: a derived class
+        base: a base class
+        method_name: the name of a method
+
+    Returns:
+        whether the derived class method is (a) present, and (b) different to
+        the base class's version of the same method
+
+    Note: if C derives from B derives from A, then a check on C versus A will
+    succeed if C implements the method, or if C inherits it from B but B has
+    re-implemented it compared to A.
+
+    """
     derived_method = getattr(derived, method_name, None)
     if derived_method is None:
         return False
@@ -87,6 +108,17 @@ def derived_class_implements_method(derived: Type[T1],
 # https://stackoverflow.com/questions/3862310/how-can-i-find-all-subclasses-of-a-class-given-its-name  # noqa
 
 def gen_all_subclasses(cls: Type) -> Generator[Type, None, None]:
+    """
+    Generates all subclasses of a class.
+
+    Args:
+        cls: a class
+
+    Yields:
+        all subclasses
+
+    """
+
     for s1 in cls.__subclasses__():
         yield s1
         for s2 in gen_all_subclasses(s1):
@@ -94,6 +126,16 @@ def gen_all_subclasses(cls: Type) -> Generator[Type, None, None]:
 
 
 def all_subclasses(cls: Type) -> List[Type]:
+    """
+    Returns all subclasses of a class.
+
+    Args:
+        cls: a class
+
+    Returns:
+        a list of all subclasses
+
+    """
     return list(gen_all_subclasses(cls))
 
 
@@ -102,6 +144,16 @@ def all_subclasses(cls: Type) -> List[Type]:
 # =============================================================================
 
 class ClassProperty(property):
+    """
+    One way to mark a function as a class property (logically, a combination of
+    ``@classmethod`` and ``@property``).
+
+    See
+    https://stackoverflow.com/questions/128573/using-property-on-classmethods.
+
+    However, in practice we use :class:`classproperty`, a slightly different
+    version.
+    """
     # https://stackoverflow.com/questions/128573/using-property-on-classmethods
     # noinspection PyMethodOverriding
     def __get__(self, cls, owner):
@@ -111,7 +163,13 @@ class ClassProperty(property):
 
 # noinspection PyPep8Naming
 class classproperty(object):
-    # https://stackoverflow.com/questions/128573/using-property-on-classmethods
+    """
+    Decorator to mark a function as a class property (logically, a combination
+    of ``@classmethod`` and ``@property``).
+
+    See
+    https://stackoverflow.com/questions/128573/using-property-on-classmethods
+    """
     def __init__(self, fget):
         self.fget = fget
 

@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Support functions for config (.INI) file reading
+**Support functions for config (.INI) file reading.**
 
 """
 
@@ -45,6 +45,22 @@ def get_config_string_option(parser: ConfigParser,
                              section: str,
                              option: str,
                              default: str = None) -> str:
+    """
+    Retrieves a string value from a parser.
+
+    Args:
+        parser: instance of :class:`ConfigParser`
+        section: section name within config file
+        option: option (variable) name within that section
+        default: value to return if option is absent
+
+    Returns:
+        string value
+
+    Raises:
+        ValueError: if the section is absent
+
+    """
     if not parser.has_section(section):
         raise ValueError("config missing section: " + section)
     return parser.get(section, option, fallback=default)
@@ -55,6 +71,20 @@ def read_config_string_options(obj: Any,
                                section: str,
                                options: Iterable[str],
                                default: str = None) -> None:
+    """
+    Reads config options and writes them as attributes of ``obj``, with
+    attribute names as per ``options``.
+
+    Args:
+        obj: the object to modify
+        parser: instance of :class:`ConfigParser`
+        section: section name within config file
+        options: option (variable) names within that section
+        default: value to use for any missing options
+
+    Returns:
+
+    """
     # enforce_str removed; ConfigParser always returns strings unless asked
     # specifically
     for o in options:
@@ -66,6 +96,24 @@ def get_config_multiline_option(parser: ConfigParser,
                                 section: str,
                                 option: str,
                                 default: List[str] = None) -> List[str]:
+    """
+    Retrieves a multi-line string value from a parser as a list of strings
+    (one per line, ignoring blank lines).
+
+    Args:
+        parser: instance of :class:`ConfigParser`
+        section: section name within config file
+        option: option (variable) name within that section
+        default: value to return if option is absent (``None`` is mapped to
+            ``[]``)
+
+    Returns:
+        list of strings
+
+    Raises:
+        ValueError: if the section is absent
+
+    """
     default = default or []
     if not parser.has_section(section):
         raise ValueError("config missing section: " + section)
@@ -81,6 +129,10 @@ def read_config_multiline_options(obj: Any,
                                   parser: ConfigParser,
                                   section: str,
                                   options: Iterable[str]) -> None:
+    """
+    This is to :func:`read_config_string_options` as
+    :func:`get_config_multiline_option` is to :func:`get_config_string_option`.
+    """
     for o in options:
         setattr(obj, o, get_config_multiline_option(parser, section, o))
 
@@ -89,6 +141,22 @@ def get_config_bool_option(parser: ConfigParser,
                            section: str,
                            option: str,
                            default: bool = None) -> bool:
+    """
+    Retrieves a boolean value from a parser.
+
+    Args:
+        parser: instance of :class:`ConfigParser`
+        section: section name within config file
+        option: option (variable) name within that section
+        default: value to return if option is absent
+
+    Returns:
+        string value
+
+    Raises:
+        ValueError: if the section is absent
+
+    """
     if not parser.has_section(section):
         raise ValueError("config missing section: " + section)
     return parser.getboolean(section, option, fallback=default)
@@ -107,16 +175,18 @@ def get_config_parameter(config: ConfigParser,
                          param: str,
                          fn: Callable[[Any], Any],
                          default: Any) -> Any:
-    """Fetch parameter from configparser INI file.
+    """
+    Fetch parameter from ``configparser`` ``.INI`` file.
 
     Args:
-        config: configparser object
-        section: name of INI file section
+        config: :class:`ConfigParser` object
+        section: section name within config file
         param: name of parameter within section
-        fn: function to apply to string parameter (e.g. int)
+        fn: function to apply to string parameter (e.g. ``int``)
         default: default value
+
     Returns:
-        parameter value, or fn(default)
+        parameter value, or ``None`` if ``default is None``, or ``fn(default)``
     """
     try:
         value = fn(config.get(section, param))
@@ -134,11 +204,12 @@ def get_config_parameter_boolean(config: ConfigParser,
                                  section: str,
                                  param: str,
                                  default: bool) -> bool:
-    """Get Boolean parameter from configparser INI file.
+    """
+    Get Boolean parameter from ``configparser`` ``.INI`` file.
 
     Args:
-        config: configparser object
-        section: name of INI file section
+        config: :class:`ConfigParser` object
+        section: section name within config file
         param: name of parameter within section
         default: default value
     Returns:
@@ -157,11 +228,13 @@ def get_config_parameter_loglevel(config: ConfigParser,
                                   section: str,
                                   param: str,
                                   default: int) -> int:
-    """Get loglevel parameter from configparser INI file.
+    """
+    Get ``loglevel`` parameter from ``configparser`` ``.INI`` file, e.g.
+    mapping ``'debug'`` to ``logging.DEBUG``.
 
     Args:
-        config: configparser object
-        section: name of INI file section
+        config: :class:`ConfigParser` object
+        section: section name within config file
         param: name of parameter within section
         default: default value
     Returns:
@@ -191,6 +264,18 @@ def get_config_parameter_multiline(config: ConfigParser,
                                    section: str,
                                    param: str,
                                    default: List[str]) -> List[str]:
+    """
+    Get multi-line string parameter from ``configparser`` ``.INI`` file,
+    as a list of strings (one per line, ignoring blank lines).
+
+    Args:
+        config: :class:`ConfigParser` object
+        section: section name within config file
+        param: name of parameter within section
+        default: default value
+    Returns:
+        parameter value, or default
+    """
     try:
         multiline = config.get(section, param)
         return [x.strip() for x in multiline.splitlines() if x.strip()]

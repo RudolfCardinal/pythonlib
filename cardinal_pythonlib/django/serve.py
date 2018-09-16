@@ -21,6 +21,10 @@
     limitations under the License.
 
 ===============================================================================
+
+**Helper functions to serve specific types of content via Django (e.g. raw
+files, PDFs).**
+
 """
 
 
@@ -60,10 +64,17 @@ def add_http_headers_for_attachment(response: HttpResponse,
     """
     Add HTTP headers to a Django response class object.
 
-    as_attachment: if True, browsers will generally save to disk.
-        If False, they may display it inline.
-        http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html
-    as_inline: attempt to force inline (only if not as_attachment)
+    Args:
+
+        response: ``HttpResponse`` instance
+        offered_filename: filename that the client browser will suggest
+        content_type: HTTP content type
+        as_attachment: if True, browsers will generally save to disk.
+            If False, they may display it inline.
+            http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html
+        as_inline: attempt to force inline (only if not as_attachment)
+        content_length: HTTP content length
+
     """
     if offered_filename is None:
         offered_filename = ''
@@ -89,7 +100,7 @@ def serve_file(path_to_file: str,
                as_inline: bool = False) -> HttpResponseBase:
     """
     Serve up a file from disk.
-    Two methods:
+    Two methods (chosen by ``settings.XSENDFILE``):
     (a) serve directly
     (b) serve by asking the web server to do so via the X-SendFile directive.
     """
@@ -125,7 +136,7 @@ def serve_buffer(data: bytes,
                  as_inline: bool = False) -> HttpResponse:
     """
     Serve up binary data from a buffer.
-    Options as for serve_file().
+    Options as for ``serve_file()``.
     """
     response = HttpResponse(data)
     add_http_headers_for_attachment(response,
@@ -142,6 +153,10 @@ def serve_buffer(data: bytes,
 # =============================================================================
 
 def add_download_filename(response: HttpResponse, filename: str) -> None:
+    """
+    Adds a ``Content-Disposition`` header to the HTTP response to say that
+    there is an attachment with the specified filename.
+    """
     # https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     add_http_headers_for_attachment(response)
     response['Content-Disposition'] = 'attachment; filename="{}"'.format(
@@ -151,6 +166,10 @@ def add_download_filename(response: HttpResponse, filename: str) -> None:
 def file_response(data: Union[bytes, str],  # HttpResponse encodes str if req'd
                   content_type: str,
                   filename: str) -> HttpResponse:
+    """
+    Returns an ``HttpResponse`` with an attachment containing the specified
+    data with the specified filename as an attachment.
+    """
     response = HttpResponse(data, content_type=content_type)
     add_download_filename(response, filename)
     return response
@@ -179,7 +198,7 @@ def serve_pdf_from_html(html: str,
                         offered_filename: str = "test.pdf",
                         **kwargs) -> HttpResponse:
     """
-    Same args as pdf_from_html.
+    Same args as ``pdf_from_html()``.
     WATCH OUT: may not apply e.g. wkhtmltopdf options as you'd wish.
     """
     pdf = get_pdf_from_html(html, **kwargs)

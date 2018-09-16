@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Support functions for date/time.
+**Support functions for date/time.**
 """
 
 import datetime
@@ -57,10 +57,19 @@ DateLikeType = Union[datetime.date, DateTime, Arrow]
 def coerce_to_pendulum(x: PotentialDatetimeType,
                        assume_local: bool = False) -> Optional[DateTime]:
     """
-    Converts something to a DateTime, or None.
-    May raise:
-        pendulum.parsing.exceptions.ParserError
-        ValueError
+    Converts something to a :class:`pendulum.DateTime`.
+
+    Args:
+        x: something that may be coercible to a datetime
+        assume_local: if ``True``, assume local timezone; if ``False``, assume
+            UTC
+
+    Returns:
+        a :class:`pendulum.DateTime`, or ``None``.
+
+    Raises:
+        pendulum.parsing.exceptions.ParserError: if a string fails to parse
+        ValueError: if no conversion possible
     """
     if not x:  # None and blank string
         return None
@@ -87,6 +96,21 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
 
 def coerce_to_pendulum_date(x: PotentialDatetimeType,
                             assume_local: bool = False) -> Optional[Date]:
+    """
+    Converts something to a :class:`pendulum.Date`.
+
+    Args:
+        x: something that may be coercible to a date
+        assume_local: if ``True``, assume local timezone; if ``False``, assume
+            UTC
+
+    Returns:
+        a :class:`pendulum.Date`, or ``None``.
+
+    Raises:
+        pendulum.parsing.exceptions.ParserError: if a string fails to parse
+        ValueError: if no conversion possible
+    """
     p = coerce_to_pendulum(x, assume_local=assume_local)
     return None if p is None else p.date()
 
@@ -106,14 +130,18 @@ def pendulum_to_datetime(x: DateTime) -> datetime.datetime:
 
 def pendulum_date_to_datetime_date(x: Date) -> datetime.date:
     """
-    Used, for example, where a database backend insists on datetime.date.
+    Takes a :class:`pendulum.Date` and returns a :class:`datetime.date`.
+    Used, for example, where a database backend insists on
+    :class:`datetime.date`.
     """
     return datetime.date(year=x.year, month=x.month, day=x.day)
 
 
 def pendulum_time_to_datetime_time(x: Time) -> datetime.time:
     """
-    Used, for example, where a database backend insists on datetime.time.
+    Takes a :class:`pendulum.Time` and returns a :class:`datetime.time`.
+    Used, for example, where a database backend insists on
+    :class:`datetime.time`.
     """
     return datetime.time(
         hour=x.hour, minute=x.minute, second=x.second,
@@ -129,7 +157,10 @@ def pendulum_time_to_datetime_time(x: Time) -> datetime.time:
 def format_datetime(d: PotentialDatetimeType,
                     fmt: str,
                     default: str = None) -> Optional[str]:
-    """Format a datetime with a format string, or return default if None."""
+    """
+    Format a datetime with a ``strftime`` format specification string, or
+    return ``default`` if the input is ``None``.
+    """
     d = coerce_to_pendulum(d)
     if d is None:
         return default
@@ -139,30 +170,40 @@ def format_datetime(d: PotentialDatetimeType,
 def strfdelta(tdelta: Union[datetime.timedelta, int, float, str],
               fmt='{D:02}d {H:02}h {M:02}m {S:02}s',
               inputtype='timedelta'):
-    # Modified from:
-    # https://stackoverflow.com/questions/538666/python-format-timedelta-to-string  # noqa
     """
-    Convert a datetime.timedelta object or a regular number to a custom-
-    formatted string, just like the strftime() method does for
-    datetime.datetime objects.
+    Convert a ``datetime.timedelta`` object or a regular number to a custom-
+    formatted string, just like the ``strftime()`` method does for
+    ``datetime.datetime`` objects.
 
-    The fmt argument allows custom formatting to be specified.  Fields can
-    include seconds, minutes, hours, days, and weeks.  Each field is optional.
+    The ``fmt`` argument allows custom formatting to be specified. Fields can
+    include ``seconds``, ``minutes``, ``hours``, ``days``, and ``weeks``. Each
+    field is optional.
 
     Some examples:
+
+    .. code-block:: none
+
         '{D:02}d {H:02}h {M:02}m {S:02}s' --> '05d 08h 04m 02s' (default)
         '{W}w {D}d {H}:{M:02}:{S:02}'     --> '4w 5d 8:04:02'
         '{D:2}d {H:2}:{M:02}:{S:02}'      --> ' 5d  8:04:02'
         '{H}h {S}s'                       --> '72h 800s'
 
-    The inputtype argument allows tdelta to be a regular number instead of the
-    default, which is a datetime.timedelta object.  Valid inputtype strings:
+    The ``inputtype`` argument allows ``tdelta`` to be a regular number,
+    instead of the default behaviour of treating it as a ``datetime.timedelta``
+    object.  Valid ``inputtype`` strings:
+
+    .. code-block:: none
+
+        'timedelta',        # treats input as a datetime.timedelta
         's', 'seconds',
         'm', 'minutes',
         'h', 'hours',
         'd', 'days',
         'w', 'weeks'
-    """
+
+    Modified from
+    https://stackoverflow.com/questions/538666/python-format-timedelta-to-string
+    """  # noqa
 
     # Convert tdelta to integer seconds.
     if inputtype == 'timedelta':
@@ -197,8 +238,8 @@ def strfdelta(tdelta: Union[datetime.timedelta, int, float, str],
 
 def get_tz_local() -> Timezone:  # datetime.tzinfo:
     """
-    Returns the local timezone, in Pendulum Timezone format.
-    This is a subclass of datetime.tzinfo.
+    Returns the local timezone, in :class:`pendulum.Timezone`` format.
+    (This is a subclass of :class:`datetime.tzinfo`.)
     """
     # return tzlocal.get_localzone()
     return local_timezone()
@@ -216,19 +257,25 @@ def get_tz_utc() -> Timezone:  # datetime.tzinfo:
 # =============================================================================
 
 def get_now_localtz_pendulum() -> DateTime:
-    """Get the time now in the local timezone."""
+    """
+    Get the time now in the local timezone, as a :class:`pendulum.DateTime`.
+    """
     tz = get_tz_local()
     return pendulum.now().in_tz(tz)
 
 
 def get_now_utc_pendulum() -> DateTime:
-    """Get the time now in the UTC timezone."""
+    """
+    Get the time now in the UTC timezone, as a :class:`pendulum.DateTime`.
+    """
     tz = get_tz_utc()
     return DateTime.utcnow().in_tz(tz)
 
 
 def get_now_utc_datetime() -> datetime.datetime:
-    """Get the time now in the UTC timezone."""
+    """
+    Get the time now in the UTC timezone, as a :class:`datetime.datetime`.
+    """
     return datetime.datetime.now(pendulum.UTC)
 
 
@@ -237,14 +284,18 @@ def get_now_utc_datetime() -> datetime.datetime:
 # =============================================================================
 
 def convert_datetime_to_utc(dt: PotentialDatetimeType) -> DateTime:
-    """Convert date/time with timezone to UTC (with UTC timezone)."""
+    """
+    Convert date/time with timezone to UTC (with UTC timezone).
+    """
     dt = coerce_to_pendulum(dt)
     tz = get_tz_utc()
     return dt.in_tz(tz)
 
 
 def convert_datetime_to_local(dt: PotentialDatetimeType) -> DateTime:
-    """Convert date/time with timezone to local timezone."""
+    """
+    Convert date/time with timezone to local timezone.
+    """
     dt = coerce_to_pendulum(dt)
     tz = get_tz_local()
     return dt.in_tz(tz)
@@ -257,13 +308,24 @@ def convert_datetime_to_local(dt: PotentialDatetimeType) -> DateTime:
 def get_duration_h_m(start: Union[str, DateTime],
                      end: Union[str, DateTime],
                      default: str = "N/A") -> str:
-    """Calculate the time between two dates/times expressed as strings.
+    """
+    Calculate the time between two dates/times expressed as strings.
 
-    Return format: string, as one of:
-        hh:mm
-        -hh:mm
-    or
-        default parameter
+    Args:
+        start: start date/time
+        end: end date/time
+        default: string value to return in case either of the inputs is
+            ``None``
+
+    Returns:
+        a string that is one of
+
+        .. code-block:
+
+            'hh:mm'
+            '-hh:mm'
+            default
+
     """
     start = coerce_to_pendulum(start)
     end = coerce_to_pendulum(end)
@@ -287,7 +349,16 @@ def get_age(dob: PotentialDatetimeType,
             when: PotentialDatetimeType,
             default: str = "") -> Union[int, str]:
     """
-    Age (in whole years) at a particular date, or default.
+    Age (in whole years) at a particular date, or ``default``.
+
+    Args:
+        dob: date of birth
+        when: date/time at which to calculate age
+        default: value to return if either input is ``None``
+
+    Returns:
+        age in whole years (rounded down), or ``default``
+
     """
     dob = coerce_to_pendulum_date(dob)
     when = coerce_to_pendulum_date(when)
@@ -302,7 +373,9 @@ def get_age(dob: PotentialDatetimeType,
 
 def truncate_date_to_first_of_month(
         dt: Optional[DateLikeType]) -> Optional[DateLikeType]:
-    """Change the day to the first of the month."""
+    """
+    Change the day to the first of the month.
+    """
     if dt is None:
         return None
     return dt.replace(day=1)
@@ -313,15 +386,18 @@ def truncate_date_to_first_of_month(
 # =============================================================================
 
 def get_now_utc_notz_datetime() -> datetime.datetime:
-    """Get the UTC time now, but with no timezone information."""
+    """
+    Get the UTC time now, but with no timezone information,
+    in :class:`datetime.datetime` format.
+    """
     now = datetime.datetime.utcnow()
     return now.replace(tzinfo=None)
 
 
 def coerce_to_datetime(x: Any) -> Optional[datetime.datetime]:
     """
-    Ensure an object is a datetime, or coerce to one, or raise (ValueError or
-    OverflowError, as per
+    Ensure an object is a :class:`datetime.datetime`, or coerce to one, or
+    raise :exc:`ValueError` or :exc:`OverflowError` (as per
     http://dateutil.readthedocs.org/en/latest/parser.html).
     """
     if x is None:

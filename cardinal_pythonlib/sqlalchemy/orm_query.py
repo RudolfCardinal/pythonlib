@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions to perform and manipulate SQLAlchemy ORM queries.**
+
 """
 
 import logging
@@ -50,6 +53,19 @@ log = BraceStyleAdapter(log)
 def get_rows_fieldnames_from_query(
         session: Union[Session, Engine, Connection],
         query: Query) -> Tuple[Sequence[Sequence[Any]], Sequence[str]]:
+    """
+    Returns results and column names from a query.
+
+    Args:
+        session: SQLAlchemy :class:`Session`, :class:`Engine`, or
+            :class:`Connection` object
+        query: SQLAlchemy :class:`Query`
+
+    Returns:
+        ``(rows, fieldnames)`` where ``rows`` is the usual set of results and
+        ``fieldnames`` are the name of the result columns/fields.
+
+    """
     # https://stackoverflow.com/questions/6455560/how-to-get-column-names-from-sqlalchemy-result-declarative-syntax  # noqa
     # No! Returns e.g. "User" for session.Query(User)...
     # fieldnames = [cd['name'] for cd in query.column_descriptions]
@@ -68,25 +84,39 @@ def get_rows_fieldnames_from_query(
 def bool_from_exists_clause(session: Session,
                             exists_clause: Exists) -> bool:
     """
-    Database dialects are not consistent in how EXISTS clauses can be converted
-    to a boolean answer.
+    Database dialects are not consistent in how ``EXISTS`` clauses can be
+    converted to a boolean answer. This function manages the inconsistencies.
 
     See:
-    - https://bitbucket.org/zzzeek/sqlalchemy/issues/3212/misleading-documentation-for-queryexists  # noqa
-    - http://docs.sqlalchemy.org/en/latest/orm/query.html#sqlalchemy.orm.query.Query.exists  # noqa
-    """
+    
+    - https://bitbucket.org/zzzeek/sqlalchemy/issues/3212/misleading-documentation-for-queryexists
+    - http://docs.sqlalchemy.org/en/latest/orm/query.html#sqlalchemy.orm.query.Query.exists
+    
+    Specifically, we want this:
+    
+    *SQL Server*
+    
+    .. code-block:: sql
+    
+        SELECT 1 WHERE EXISTS (SELECT 1 FROM table WHERE ...)
+        -- ... giving 1 or None (no rows)
+        -- ... fine for SQL Server, but invalid for MySQL (no FROM clause)
+        
+    *Others, including MySQL*
+    
+    .. code-block:: sql
+    
+        SELECT EXISTS (SELECT 1 FROM table WHERE ...)
+        -- ... giving 1 or 0
+        -- ... fine for MySQL, but invalid syntax for SQL Server
+    
+    """  # noqa
     if session.get_bind().dialect.name == SqlaDialectName.MSSQL:
         # SQL Server
         result = session.query(literal(True)).filter(exists_clause).scalar()
-        # SELECT 1 WHERE EXISTS (SELECT 1 FROM table WHERE ...)
-        # ... giving 1 or None (no rows)
-        # ... fine for SQL Server, but invalid for MySQL (no FROM clause)
     else:
         # MySQL, etc.
         result = session.query(exists_clause).scalar()
-        # SELECT EXISTS (SELECT 1 FROM table WHERE ...)
-        # ... giving 1 or 0
-        # ... fine for MySQL, but invalid syntax for SQL server
     return bool(result)
 
 
@@ -94,7 +124,13 @@ def exists_orm(session: Session,
                ormclass: DeclarativeMeta,
                *criteria: Any) -> bool:
     """
+    Detects whether a database record exists for the specified ``ormclass``
+    and ``criteria``.
+
     Example usage:
+
+    .. code-block:: python
+
         bool_exists = exists_orm(session, MyClass, MyClass.myfield == value)
     """
     # http://docs.sqlalchemy.org/en/latest/orm/query.html
@@ -109,13 +145,27 @@ def exists_orm(session: Session,
 # =============================================================================
 # Get or create (SQLAlchemy ORM)
 # =============================================================================
-# http://stackoverflow.com/questions/2546207
-# ... composite of several suggestions
 
 def get_or_create(session: Session,
                   model: DeclarativeMeta,
                   defaults: Dict[str, Any] = None,
                   **kwargs: Any) -> Tuple[Any, bool]:
+    """
+    Fetches an ORM object from the database, or creates one if none existed.
+
+    Args:
+        session: an SQLAlchemy :class:`Session`
+        model: an SQLAlchemy ORM class
+        defaults: default initialization arguments (in addition to relevant
+            filter criteria) if we have to create a new instance
+        kwargs: optional filter criteria
+
+    Returns:
+        a tuple ``(instance, newly_created)``
+
+    See http://stackoverflow.com/questions/2546207 (this function is a
+    composite of several suggestions).
+    """
     instance = session.query(model).filter_by(**kwargs).first()
     if instance:
         return instance, False
@@ -134,17 +184,27 @@ def get_or_create(session: Session,
 
 # noinspection PyAbstractClass
 class CountStarSpecializedQuery(Query):
-    """
-    Optimizes COUNT(*) queries.
-    See
-        https://stackoverflow.com/questions/12941416/how-to-count-rows-with-select-count-with-sqlalchemy  # noqa
+    def __init__(self, *args, **kwargs) -> None:
+        """
+        Optimizes ``COUNT(*)`` queries.
 
-    Example use:
-        q = CountStarSpecializedQuery([cls], session=dbsession)\
-            .filter(cls.username == username)
-        return q.count_star()
-    """
+        See https://stackoverflow.com/questions/12941416/how-to-count-rows-with-select-count-with-sqlalchemy
+
+        Example use:
+
+        .. code-block:: python
+
+            q = CountStarSpecializedQuery([cls], session=dbsession)\
+                .filter(cls.username == username)
+            return q.count_star()
+
+        """
+        super().__init__(*args, **kwargs)
+
     def count_star(self) -> int:
+        """
+        Implements the ``COUNT(*)`` specialization.
+        """
         count_query = (self.statement.with_only_columns([func.count()])
                        .order_by(None))
         return self.session.execute(count_query).scalar()

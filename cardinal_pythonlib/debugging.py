@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Offers the getch() and kbhit() functions.
+**Functions for debugging.**
 
 """
 
@@ -45,6 +45,10 @@ log.addHandler(logging.NullHandler())
 # =============================================================================
 
 def pdb_run(func: Callable, *args: Any, **kwargs: Any) -> None:
+    """
+    Calls ``func(*args, **kwargs)``; if it raises an exception, break into
+    the ``pdb`` debugger.
+    """
     # noinspection PyBroadException
     try:
         func(*args, **kwargs)
@@ -67,6 +71,13 @@ def cause_segfault() -> None:
 # =============================================================================
 
 def get_class_name_from_frame(fr: FrameType) -> Optional[str]:
+    """
+    A frame contains information about a specific call in the Python call
+    stack; see https://docs.python.org/3/library/inspect.html.
+
+    If the call was to a member function of a class, this function attempts
+    to read the class's name. It returns ``None`` otherwise.
+    """
     # http://stackoverflow.com/questions/2203424/python-how-to-retrieve-class-information-from-a-frame-object  # noqa
     args, _, _, value_dict = inspect.getargvalues(fr)
     # we check the first parameter for the frame function is named 'self'
@@ -87,6 +98,43 @@ def get_caller_name(back: int = 0) -> str:
     """
     Return details about the CALLER OF THE CALLER (plus n calls further back)
     of this function.
+
+    So, if your function calls :func:`get_caller_name`, it will return the
+    name of the function that called your function! (Or ``back`` calls further
+    back.)
+
+    Example:
+
+    .. code-block:: python
+
+        from cardinal_pythonlib.debugging import get_caller_name
+
+        def who_am_i():
+            return get_caller_name()
+
+        class MyClass(object):
+            def classfunc(self):
+                print("I am: " + who_am_i())
+                print("I was called by: " + get_caller_name())
+                print("That was called by: " + get_caller_name(back=1))
+
+        def f2():
+            x = MyClass()
+            x.classfunc()
+
+        def f1():
+            f2()
+
+        f1()
+
+    will produce:
+
+    .. code-block:: none
+
+        I am: MyClass.classfunc
+        I was called by: f2
+        That was called by: f1
+
     """
     # http://stackoverflow.com/questions/5067604/determine-function-name-from-within-that-function-without-using-traceback  # noqa
     try:
@@ -107,6 +155,86 @@ def get_caller_name(back: int = 0) -> str:
 # =============================================================================
 
 def get_caller_stack_info(start_back: int = 1) -> List[str]:
+    r"""
+    Retrieves a textual representation of the call stack.
+
+    Args:
+        start_back: number of calls back in the frame stack (starting
+            from the frame stack as seen by :func:`get_caller_stack_info`)
+            to begin with
+
+    Returns:
+        list of descriptions
+
+    Example:
+
+    .. code-block:: python
+
+        from cardinal_pythonlib.debugging import get_caller_stack_info
+
+        def who_am_i():
+            return get_caller_name()
+
+        class MyClass(object):
+            def classfunc(self):
+                print("Stack info:\n" + "\n".join(get_caller_stack_info()))
+
+        def f2():
+            x = MyClass()
+            x.classfunc()
+
+        def f1():
+            f2()
+
+        f1()
+
+    if called from the Python prompt will produce:
+
+    .. code-block:: none
+
+        Stack info:
+        <module>()
+        ... defined at <stdin>:1
+        ... line 1 calls next in stack; code is:
+
+        f1()
+        ... defined at <stdin>:1
+        ... line 2 calls next in stack; code is:
+
+        f2()
+        ... defined at <stdin>:1
+        ... line 3 calls next in stack; code is:
+
+        classfunc(self=<__main__.MyClass object at 0x7f86a009c6d8>)
+        ... defined at <stdin>:2
+        ... line 3 calls next in stack; code is:
+
+    and if called from a Python file will produce:
+
+    .. code-block:: none
+
+        Stack info:
+        <module>()
+        ... defined at /home/rudolf/tmp/stack.py:1
+        ... line 17 calls next in stack; code is:
+        f1()
+
+        f1()
+        ... defined at /home/rudolf/tmp/stack.py:14
+        ... line 15 calls next in stack; code is:
+            f2()
+
+        f2()
+        ... defined at /home/rudolf/tmp/stack.py:10
+        ... line 12 calls next in stack; code is:
+            x.classfunc()
+
+        classfunc(self=<__main__.MyClass object at 0x7fd7a731f358>)
+        ... defined at /home/rudolf/tmp/stack.py:7
+        ... line 8 calls next in stack; code is:
+                print("Stack info:\n" + "\n".join(get_caller_stack_info()))
+
+    """
     # "0 back" is debug_callers, so "1 back" its caller
     # https://docs.python.org/3/library/inspect.html
     callers = []  # type: List[str]
@@ -136,10 +264,18 @@ def get_caller_stack_info(start_back: int = 1) -> List[str]:
 
 
 # =============================================================================
-# Show the structore of an object in detail
+# Show the structure of an object in detail
 # =============================================================================
 
 def debug_object(obj, log_level: int = logging.DEBUG) -> None:
+    """
+    Sends details about a Python to the log, specifically its ``repr()``
+    representation, and all of its attributes with their name, value, and type.
+
+    Args:
+        obj: object to debug
+        log_level: log level to use; default is ``logging.DEBUG``
+    """
     msgs = ["For {o!r}:".format(o=obj)]
     for attrname in dir(obj):
         attribute = getattr(obj, attrname)

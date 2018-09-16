@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Sends e-mails from the command line.
+**Sends e-mails from the command line.**
 
 """
 
@@ -38,10 +38,13 @@ import os
 import re
 import smtplib
 import sys
-from typing import Iterable, Tuple
+from typing import Iterable, List, Tuple, Union
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
+
+STANDARD_SMTP_PORT = 25
+STANDARD_TLS_PORT = 587
 
 
 # =============================================================================
@@ -49,7 +52,7 @@ log.addHandler(logging.NullHandler())
 # =============================================================================
 
 def send_email(sender: str,
-               recipient: str,
+               recipient: Union[str, List[str]],
                subject: str,
                body: str,
                host: str,
@@ -63,7 +66,31 @@ def send_email(sender: str,
                attachment_binary_filenames: Iterable[str] = None,
                charset: str = "utf8",
                verbose: bool = False) -> Tuple[bool, str]:
-    """Sends an e-mail in text/html format using SMTP via TLS."""
+    """
+    Sends an e-mail in text/html format using SMTP via TLS.
+
+    Args:
+        sender: name of the sender
+        recipient: e-mail address(es) of the recipients
+        subject: e-mail subject
+        body: e-mail body
+        host: mail server host
+        user: username on mail server
+        password: password for username on mail server
+        port: port to use, or ``None`` for protocol default
+        use_tls: use TLS, rather than plain SMTP?
+        content_type: MIME type for content, default ``text/plain``
+        attachment_filenames: filenames of attachments to add
+        attachment_binaries: binary objects to add as attachments
+        attachment_binary_filenames: filenames corresponding to
+            ``attachment_binaries``
+        charset: character set, default ``utf8``
+        verbose: be verbose?
+
+    Returns:
+         tuple: ``(success, error_or_success_message)``
+
+    """
     # http://segfault.in/2010/12/sending-gmail-from-python/
     # http://stackoverflow.com/questions/64505
     # http://stackoverflow.com/questions/3362600
@@ -71,7 +98,7 @@ def send_email(sender: str,
     attachment_binaries = attachment_binaries or []
     attachment_binary_filenames = attachment_binary_filenames or []
     if port is None:
-        port = 587 if use_tls else 25
+        port = STANDARD_TLS_PORT if use_tls else STANDARD_SMTP_PORT
     if content_type == "text/plain":
         msgbody = email.mime.text.MIMEText(body, "plain", charset)
     elif content_type == "text/html":
@@ -180,14 +207,17 @@ _SIMPLE_EMAIL_REGEX = re.compile("[^@]+@[^@]+\.[^@]+")
 
 
 def is_email_valid(email_: str) -> bool:
-    """Performs a very basic check that a string appears to be an e-mail
-    address."""
+    """
+    Performs a very basic check that a string appears to be an e-mail address.
+    """
     # Very basic checks!
     return _SIMPLE_EMAIL_REGEX.match(email_) is not None
 
 
 def get_email_domain(email_: str) -> str:
-    """Returns the domain part of an e-mail address."""
+    """
+    Returns the domain part of an e-mail address.
+    """
     return email_.split("@")[1]
 
 
@@ -196,6 +226,9 @@ def get_email_domain(email_: str) -> str:
 # =============================================================================
 
 def main() -> None:
+    """
+    Command-line processor. See ``--help`` for details.
+    """
     logging.basicConfig()
     log.setLevel(logging.DEBUG)
     parser = argparse.ArgumentParser(

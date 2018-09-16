@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Miscellaneous other conversions.
+**Miscellaneous other conversions.**
 
 """
 
@@ -41,29 +41,42 @@ log.addHandler(logging.NullHandler())
 # =============================================================================
 
 def convert_to_bool(x: Any, default: bool = None) -> bool:
+    """
+    Transforms its input to a ``bool`` (or returns ``default`` if ``x`` is
+    falsy but not itself a boolean). Accepts various common string versions.
+    """
     if isinstance(x, bool):
         return x
+
     if not x:  # None, zero, blank string...
         return default
+
     try:
         return int(x) != 0
     except (TypeError, ValueError):
         pass
+
     try:
         return float(x) != 0
     except (TypeError, ValueError):
         pass
+
     if not isinstance(x, str):
-        raise Exception("Unknown thing being converted to bool: {}".format(x))
+        raise Exception("Unknown thing being converted to bool: {!r}".format(x))
+
     x = x.upper()
     if x in ["Y", "YES", "T", "TRUE"]:
         return True
     if x in ["N", "NO", "F", "FALSE"]:
         return False
-    raise Exception("Unknown thing being converted to bool: {}".format(x))
+
+    raise Exception("Unknown thing being converted to bool: {!r}".format(x))
 
 
 def convert_to_int(x: Any, default: int = None) -> int:
+    """
+    Transforms its input into an integer, or returns ``default``.
+    """
     try:
         return int(x)
     except (TypeError, ValueError):
@@ -77,11 +90,19 @@ def convert_to_int(x: Any, default: int = None) -> int:
 def convert_attrs_to_bool(obj: Any,
                           attrs: Iterable[str],
                           default: bool = None) -> None:
+    """
+    Applies :func:`convert_to_bool` to the specified attributes of an object,
+    modifying it in place.
+    """
     for a in attrs:
         setattr(obj, a, convert_to_bool(getattr(obj, a), default=default))
 
 
 def convert_attrs_to_uppercase(obj: Any, attrs: Iterable[str]) -> None:
+    """
+    Converts the specified attributes of an object to upper case, modifying
+    the object in place.
+    """
     for a in attrs:
         value = getattr(obj, a)
         if value is None:
@@ -90,6 +111,10 @@ def convert_attrs_to_uppercase(obj: Any, attrs: Iterable[str]) -> None:
 
 
 def convert_attrs_to_lowercase(obj: Any, attrs: Iterable[str]) -> None:
+    """
+    Converts the specified attributes of an object to lower case, modifying
+    the object in place.
+    """
     for a in attrs:
         value = getattr(obj, a)
         if value is None:
@@ -100,6 +125,10 @@ def convert_attrs_to_lowercase(obj: Any, attrs: Iterable[str]) -> None:
 def convert_attrs_to_int(obj: Any,
                          attrs: Iterable[str],
                          default: int = None) -> None:
+    """
+    Applies :func:`convert_to_int` to the specified attributes of an object,
+    modifying it in place.
+    """
     for a in attrs:
         value = convert_to_int(getattr(obj, a), default=default)
         setattr(obj, a, value)
@@ -128,8 +157,12 @@ REGEX_BASE64_64FORMAT = re.compile("""
 
 def hex_xformat_encode(v: bytes) -> str:
     """
-    Encode in X'{hex}' format.
+    Encode its input in ``X'{hex}'`` format.
+
     Example:
+
+    .. code-block:: python
+
         special_hex_encode(b"hello") == "X'68656c6c6f'"
     """
     return "X'{}'".format(binascii.hexlify(v).decode("ascii"))
@@ -137,16 +170,23 @@ def hex_xformat_encode(v: bytes) -> str:
 
 def hex_xformat_decode(s: str) -> Optional[bytes]:
     """
-    Reverse hex_xformat_encode().
+    Reverse :func:`hex_xformat_encode`.
+
     The parameter is a hex-encoded BLOB like
+
+    .. code-block:: none
+
         "X'CDE7A24B1A9DBA3148BCB7A0B9DA5BB6A424486C'"
+
+    Original purpose and notes:
+
+    - SPECIAL HANDLING for BLOBs: a string like ``X'01FF'`` means a hex-encoded
+      BLOB. Titanium is rubbish at BLOBs, so we encode them as special string
+      literals.
+    - SQLite uses this notation: https://sqlite.org/lang_expr.html
+    - Strip off the start and end and convert it to a byte array:
+      http://stackoverflow.com/questions/5649407
     """
-    # SPECIAL HANDLING for BLOBs: a string like X'01FF' means a hex-
-    # encoded BLOB. Titanium is rubbish at blobs, so we encode them as
-    # special string literals.
-    # SQLite uses this notation: https://sqlite.org/lang_expr.html
-    # Strip off the start and end and convert it to a byte array:
-    # http://stackoverflow.com/questions/5649407
     if len(s) < 3 or not s.startswith("X'") or not s.endswith("'"):
         return None
     return binascii.unhexlify(s[2:-1])
@@ -158,8 +198,12 @@ def hex_xformat_decode(s: str) -> Optional[bytes]:
 
 def base64_64format_encode(v: bytes) -> str:
     """
-    Encode in 64'{base64encoded}' format.
+    Encode in ``64'{base64encoded}'`` format.
+
     Example:
+
+    .. code-block:: python
+
         base64_64format_encode(b"hello") == "64'aGVsbG8='"
     """
     return "64'{}'".format(base64.b64encode(v).decode('ascii'))
@@ -167,13 +211,17 @@ def base64_64format_encode(v: bytes) -> str:
 
 def base64_64format_decode(s: str) -> Optional[bytes]:
     """
-    Reverse base64_64format_encode().
+    Reverse :func:`base64_64format_encode`.
+
+    Original purpose and notes:
+
+    - THIS IS ANOTHER WAY OF DOING BLOBS: base64 encoding, e.g. a string like
+      ``64'cGxlYXN1cmUu'`` is a base-64-encoded BLOB (the ``64'...'`` bit is my
+      representation).
+    - regex from http://stackoverflow.com/questions/475074
+    - better one from http://www.perlmonks.org/?node_id=775820
+
     """
-    # THIS IS ANOTHER WAY OF DOING BLOBS: base64 encoding
-    # e.g. a string like 64'cGxlYXN1cmUu' is a base-64-encoded BLOB
-    # (the 64'...' bit is my representation)
-    # regex from http://stackoverflow.com/questions/475074
-    # better one from http://www.perlmonks.org/?node_id=775820
     if len(s) < 4 or not s.startswith("64'") or not s.endswith("'"):
         return None
     return base64.b64decode(s[3:-1])

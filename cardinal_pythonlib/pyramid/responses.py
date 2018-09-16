@@ -21,6 +21,10 @@
     limitations under the License.
 
 ===============================================================================
+
+**Specialized response types for Pyramid (which implement MIME types and
+suggested download methods, etc.).**
+
 """
 
 from pyramid.response import Response

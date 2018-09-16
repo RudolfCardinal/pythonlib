@@ -22,13 +22,18 @@
 
 ===============================================================================
 
-See django.core.management.commands.startproject.Command.handle
+**Generates a new random secret key suitable for use with Django.**
+
+See ``django.core.management.commands.startproject.Command.handle``.
 """
 
 from django.utils.crypto import get_random_string
 
 
-def main():
+def main() -> None:
+    """
+    Generates a new Django secret key and prints it to stdout.
+    """
     chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'  # valid chars
     key = get_random_string(50, chars)
     print(key)

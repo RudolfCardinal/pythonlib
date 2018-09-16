@@ -28,10 +28,15 @@ Support functions for user interaction.
 
 
 import getpass
+import os
 from typing import Optional
 
-import tkinter
-from tkinter import filedialog
+try:
+    import tkinter
+    from tkinter import filedialog
+except ImportError:
+    if not os.environ["_SPHINX_AUTODOC_IN_PROGRESS"]:
+        raise
 
 
 def ask_user(prompt: str, default: str = None) -> Optional[str]:

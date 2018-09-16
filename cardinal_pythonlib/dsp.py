@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Digital signal processing functions
+**Digital signal processing functions.**
 
 """
 
@@ -39,13 +39,33 @@ FLOATS_TYPE = Union[List[float], np.ndarray]
 # =============================================================================
 
 def normalized_frequency(f: float, sampling_freq: float) -> float:
+    """
+    Returns a normalized frequency:
+
+    Args:
+        f: frequency :math:`f`
+        sampling_freq: sampling frequency :math:`f_s`
+
+    Returns:
+        normalized frequency
+
+            .. math::
+
+                f_n = f / (f_s / 2)
+                
+    Principles:
+    
+    - if maximum frequency of interest is :math:`f`, then you should sample at
+      the Nyquist rate of :math:`2f`;
+    - if you sample at :math:`f_s`, then the maximum frequency is
+      the Nyquist frequency :math:`0.5 f_s`
+    - if you sample at :math:`2f`, then the normalized frequency is
+      the range :math:`[0, 1]` for the frequency range :math:`[0, f]`.
+    - e.g. see https://en.wikipedia.org/wiki/Nyquist_frequency,
+      https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirnotch.html
+
+    """  # noqa
     return f / (sampling_freq / 2.0)
-    # e.g. see https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirnotch.html  # noqa
-    # Principle:
-    # - if maximum frequency of interest is f, then you should sample at the
-    #   Nyquist frequency of 2f;
-    # - conversely, if you sample at 2f, then the normalized frequency is the
-    #   range [0, 1] for the frequency range [0, f].
 
 
 def lowpass_filter(data: FLOATS_TYPE,
@@ -54,7 +74,17 @@ def lowpass_filter(data: FLOATS_TYPE,
                    numtaps: int) -> FLOATS_TYPE:
     """
     Apply a low-pass filter to the data.
-    Returns filtered data.
+
+    Args:
+        data: time series of the data
+        sampling_freq_hz: sampling frequency :math:`f_s`, in Hz
+            (or other consistent units)
+        cutoff_freq_hz: filter cutoff frequency in Hz
+            (or other consistent units)
+        numtaps: number of filter taps
+
+    Returns:
+        filtered data
 
     Note: number of filter taps = filter order + 1
     """
@@ -73,7 +103,19 @@ def highpass_filter(data: FLOATS_TYPE,
                     numtaps: int) -> FLOATS_TYPE:
     """
     Apply a high-pass filter to the data.
-    Returns filtered data.
+
+    Args:
+        data: time series of the data
+        sampling_freq_hz: sampling frequency :math:`f_s`, in Hz
+            (or other consistent units)
+        cutoff_freq_hz: filter cutoff frequency in Hz
+            (or other consistent units)
+        numtaps: number of filter taps
+
+    Returns:
+        filtered data
+
+    Note: number of filter taps = filter order + 1
     """
     coeffs = firwin(
         numtaps=numtaps,
@@ -91,7 +133,21 @@ def bandpass_filter(data: FLOATS_TYPE,
                     numtaps: int) -> FLOATS_TYPE:
     """
     Apply a band-pass filter to the data.
-    Returns filtered data.
+
+    Args:
+        data: time series of the data
+        sampling_freq_hz: sampling frequency :math:`f_s`, in Hz
+            (or other consistent units)
+        lower_freq_hz: filter cutoff lower frequency in Hz
+            (or other consistent units)
+        upper_freq_hz: filter cutoff upper frequency in Hz
+            (or other consistent units)
+        numtaps: number of filter taps
+
+    Returns:
+        filtered data
+
+    Note: number of filter taps = filter order + 1
     """
     f1 = normalized_frequency(lower_freq_hz, sampling_freq_hz)
     f2 = normalized_frequency(upper_freq_hz, sampling_freq_hz)
@@ -110,7 +166,17 @@ def notch_filter(data: FLOATS_TYPE,
                  quality_factor: float) -> FLOATS_TYPE:
     """
     Design and use a notch (band reject) filter to filter the data.
-    Returns filtered data.
+
+    Args:
+        data: time series of the data
+        sampling_freq_hz: sampling frequency :math:`f_s`, in Hz
+            (or other consistent units)
+        notch_freq_hz: notch frequency, in Hz
+            (or other consistent units)
+        quality_factor: notch filter quality factor, :math:`Q`
+
+    Returns:
+        filtered data
     """
     b, a = iirnotch(
         w0=normalized_frequency(notch_freq_hz, sampling_freq_hz),

@@ -21,22 +21,31 @@
     limitations under the License.
 
 ===============================================================================
+
+**Django middleware classes.**
+
 """
 
 import logging
+import os
 from re import compile
 import sys
 from typing import Optional
 
+from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.auth.views import redirect_to_login
-from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse, HttpRequest
 from django.views.debug import technical_500_response
 from django.urls import reverse
 from django.utils.cache import add_never_cache_headers
 from django.utils.deprecation import MiddlewareMixin
+
+try:
+    from django.contrib.auth.views import redirect_to_login
+except RuntimeError:
+    if not os.environ["_SPHINX_AUTODOC_IN_PROGRESS"]:
+        raise
 
 log = logging.getLogger(__name__)
 
@@ -48,6 +57,10 @@ log = logging.getLogger(__name__)
 # Best Practices for Django 1.8".
 
 class UserBasedExceptionMiddleware(MiddlewareMixin):
+    """
+    Django middleware to report debugging information upon an exception, if
+    the user is a superuser.
+    """
     # noinspection PyUnusedLocal
     @staticmethod
     def process_exception(request: HttpRequest,
@@ -152,6 +165,8 @@ class LoginRequiredMiddleware(MiddlewareMixin):
 
     Other way of doing exemptions, for an exempt view:
 
+    .. code-block:: python
+
         def someview(request, *args, **kwargs):
             # body of view
         someview.login_required = False
@@ -200,6 +215,9 @@ class LoginRequiredMiddleware(MiddlewareMixin):
 # http://stackoverflow.com/questions/2095520/fighting-client-side-caching-in-django  # noqa
 
 class DisableClientSideCachingMiddleware(MiddlewareMixin):
+    """
+    Django middleware to ask the client never to cache headers for this page.
+    """
     # noinspection PyUnusedLocal
     @staticmethod
     def process_response(request: HttpRequest,

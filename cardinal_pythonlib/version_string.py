@@ -29,5 +29,5 @@ For changelog, see changelog.rst
 
 """
 
-VERSION_STRING = '1.0.24'
+VERSION_STRING = '1.0.25'
 # Use semantic versioning: http://semver.org/

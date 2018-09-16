@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions to help with argparse.**
+
 """
 
 # noinspection PyProtectedMember
@@ -42,11 +45,11 @@ from typing import Any, List
 
 class ShowAllSubparserHelpAction(_HelpAction):
     """
-    Class to serve as the 'action' for an argparse master parser, which shows
-    help for all subparsers. As per
+    Class to serve as the ``action`` for an ``argparse`` master parser that
+    shows help for all subparsers. As per
 
-    https://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output  # noqa
-    """
+    https://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output
+    """  # noqa
 
     def __call__(self,
                  parser: ArgumentParser,
@@ -84,8 +87,9 @@ class RawDescriptionArgumentDefaultsHelpFormatter(
         RawDescriptionHelpFormatter):
     """
     Combines the features of
-        RawDescriptionHelpFormatter -- don't mangle the description
-        ArgumentDefaultsHelpFormatter -- print argument defaults
+
+    - :class:`RawDescriptionHelpFormatter` -- don't mangle the description
+    - :class:`ArgumentDefaultsHelpFormatter` -- print argument defaults
     """
     pass
 
@@ -96,10 +100,22 @@ class RawDescriptionArgumentDefaultsHelpFormatter(
 
 def str2bool(v: str) -> bool:
     """
+    ``argparse`` type that maps strings in case-insensitive fashion like this:
+    
+    .. code-block:: none
+    
+        argument strings                value
+        ------------------------------- -----
+        'yes', 'true', 't', 'y', '1'    True
+        'no', 'false', 'f', 'n', '0'    False
+     
     From
     https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
 
     Specimen usage:
+    
+    .. code-block:: python
+    
         parser.add_argument(
             "--nice", type=str2bool, nargs='?',
             const=True,  # if --nice is present with no parameter
@@ -117,6 +133,10 @@ def str2bool(v: str) -> bool:
 
 
 def positive_int(value: str) -> int:
+    """
+    ``argparse`` argument type that checks that its value is a positive
+    integer.
+    """
     try:
         ivalue = int(value)
         assert ivalue > 0
@@ -127,6 +147,10 @@ def positive_int(value: str) -> int:
 
 
 def percentage(value: str) -> float:
+    """
+    ``argparse`` argument type that checks that its value is a percentage (in
+    the sense of a float in the range [0, 100]).
+    """
     try:
         fvalue = float(value)
         assert 0 <= fvalue <= 100

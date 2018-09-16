@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**SQL grammar for MySQL.**
+
 """
 
 import logging
@@ -39,6 +42,7 @@ from pyparsing import (
     OneOrMore,
     opAssoc,
     Optional,
+    ParserElement,
     QuotedString,
     Regex,
     ZeroOrMore,
@@ -169,6 +173,10 @@ XOR = sql_keyword("XOR")
 # http://dev.mysql.com/doc/refman/5.7/en/dynindex-statement.html
 
 class SqlGrammarMySQL(SqlGrammar):
+    """
+    SQL grammar (subclass of :class:`.SqlGrammar`) implementing
+    MySQL syntax.
+    """
     # -------------------------------------------------------------------------
     # Forward declarations
     # -------------------------------------------------------------------------
@@ -558,7 +566,7 @@ YEAR
     # SELECT
     # -------------------------------------------------------------------------
     # http://dev.mysql.com/doc/refman/5.7/en/select.html
-    """
+    _ = """
     SELECT
         [ALL | DISTINCT | DISTINCTROW ]
           [HIGH_PRIORITY]
@@ -663,7 +671,7 @@ YEAR
         return False
 
     @classmethod
-    def get_grammar(cls):
+    def get_grammar(cls) -> ParserElement:
         # Grammar (here, just SELECT)
         return cls.select_statement
 

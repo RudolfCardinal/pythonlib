@@ -43,9 +43,6 @@ from typing import (Any, BinaryIO, Generator, Iterable, IO, List, TextIO,
                     Tuple, Union)
 import zipfile
 
-# noinspection PyCompatibility
-# import regex
-
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 

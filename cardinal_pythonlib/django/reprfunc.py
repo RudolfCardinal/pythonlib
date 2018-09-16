@@ -21,13 +21,18 @@
     limitations under the License.
 
 ===============================================================================
+
+**Provide a "repr()"-like function for Django model objects.**
+
 """
 
 from django.core.exceptions import ObjectDoesNotExist
 
 
 def modelrepr(instance) -> str:
-    """Default repr version of a Django model object, for debugging."""
+    """
+    Default ``repr`` version of a Django model object, for debugging.
+    """
     elements = []
     # noinspection PyProtectedMember
     for f in instance._meta.get_fields():

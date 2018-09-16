@@ -22,8 +22,8 @@
 
 ===============================================================================
 
-Drug information, with an emphasis on psychotropic drugs, including translating
-specific to generic names.
+**Drug information, with an emphasis on psychotropic drugs, including 
+translating specific to generic names.**
 
 **Examples**
 
@@ -202,11 +202,19 @@ from typing import Dict, List, Optional, Union
 WILDCARD = ".*"  # if re.DOTALL is set, this also matches newlines
 WB = WORD_BOUNDARY = r"\b"
 
+
 # =============================================================================
 # Class to capture drug information
 # =============================================================================
 
 class Drug(object):
+    """
+    Class to describe a specific drug, or a drug category.
+
+    Also embodies knowledge about brand names and common misspellings.
+
+    See the :const:`DRUGS` list for example of use.
+    """
     def __init__(
             self,
             # Names
@@ -264,7 +272,7 @@ class Drug(object):
         """
         Initialize and determine/store category knowledge.
 
-        "alternatives" can include regexes (as text).
+        ``alternatives`` can include regexes (as text).
 
         We add front/back wildcards by default; this handles all situations
         like "depot X", etc. We also add a preceding word boundary (after the
@@ -389,6 +397,10 @@ class Drug(object):
 
     def name_matches(self, name: str) -> bool:
         """
+        Detects whether the name that's passed matches our knowledge of any of
+        things that this drug might be called: generic name, brand name(s),
+        common misspellings.
+
         The parameter should be pre-stripped of edge whitespace.
         """
         return bool(self.regex.match(name))
@@ -1034,9 +1046,13 @@ def get_drug(drug_name: str,
              name_is_generic: bool = False,
              include_categories: bool = False) -> Optional[Drug]:
     """
-    Converts a drug name to a Drug class.
+    Converts a drug name to a :class:`.Drug` class.
+
     If you already have the generic name, you can get the Drug more
-    efficiently.
+    efficiently by setting ``name_is_generic=True``.
+
+    Set ``include_categories=True`` to include drug categories (such as
+    tricyclics) as well as individual drugs.
     """
     drug_name = drug_name.strip().lower()
     if name_is_generic:
@@ -1060,7 +1076,7 @@ def drug_name_to_generic(drug_name: str,
                          default: str = None,
                          include_categories: bool = False) -> str:
     """
-    Converts a drug name to a generic equivalent.
+    Converts a drug name to the name of its generic equivalent.
     """
     drug = get_drug(drug_name, include_categories=include_categories)
     if drug is not None:
@@ -1073,10 +1089,14 @@ def drug_names_to_generic(drugs: List[str],
                           default: str = None,
                           include_categories: bool = False) -> List[str]:
     """
-    Converts a list of drug names to their generics equivalents.
+    Converts a list of drug names to their generic equivalents.
 
-    From R via reticulate, when using e.g. the ``default`` parameter and
-    storing results in a data.table() character column:
+    The arguments are as for :func:`drug_name_to_generic` but this function
+    handles a list of drug names rather than a single one.
+
+    Note in passing the following conversion of blank-type representations from
+    R via ``reticulate``, when using e.g. the ``default`` parameter and storing
+    results in a ``data.table()`` character column:
 
     .. code-block:: none
 
@@ -1104,6 +1124,16 @@ def drug_names_to_generic(drugs: List[str],
 # =============================================================================
 
 def drug_matches_criteria(drug: Drug, **criteria: Dict[str, bool]) -> bool:
+    """
+    Determines whether a drug, passed as an instance of :class:`.Drug`, matches
+    the specified criteria.
+
+    Args:
+        drug: a :class:`.Drug` instance
+        criteria: ``name=value`` pairs to match against the attributes of
+            the :class:`Drug` class. For example, you can include keyword arguments
+            like ``antidepressant=True``.
+    """
     for attribute, value in criteria.items():
         if getattr(drug, attribute) != value:
             return False
@@ -1114,6 +1144,11 @@ def all_drugs_where(sort=True,
                     include_categories: bool = False,
                     **criteria: Dict[str, bool]) -> List[Drug]:
     """
+    Find all drugs matching the specified criteria (see
+    :func:`drug_matches_criteria`). If ``include_categories`` is true, then
+    drug categories (like "tricyclics") are included as well as individual
+    drugs.
+
     Pass keyword arguments such as
 
     .. code-block:: python
@@ -1139,6 +1174,10 @@ def drug_name_matches_criteria(drug_name: str,
                                name_is_generic: bool = False,
                                include_categories: bool = False,
                                **criteria: Dict[str, bool]) -> bool:
+    """
+    Establish whether a single drug, passed by name, matches the specified
+    criteria. See :func:`drug_matches_criteria`.
+    """
     drug = get_drug(drug_name, name_is_generic)
     if drug is None:
         return False
@@ -1151,6 +1190,10 @@ def drug_names_match_criteria(drug_names: List[str],
                               names_are_generic: bool = False,
                               include_categories: bool = False,
                               **criteria: Dict[str, bool]) -> List[bool]:
+    """
+    Establish whether multiple drugs, passed as a list of drug names, each
+    matches the specified criteria. See :func:`drug_matches_criteria`.
+    """
     return [
         drug_name_matches_criteria(
             dn,

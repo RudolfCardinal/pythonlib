@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Helper functions for managing disk files via Django.**
+
 """
 
 import os
@@ -74,7 +77,9 @@ def auto_delete_files_on_instance_change(
     """
     Deletes files from filesystem when object is changed.
 
-    model_class: Type[Model]  # only the type checker in Py3.5 is broken; v.s.
+    model_class: ``Type[Model]``
+
+    ... only the type checker in Py3.5 is broken; v.s.
     """
 
     if not instance.pk:

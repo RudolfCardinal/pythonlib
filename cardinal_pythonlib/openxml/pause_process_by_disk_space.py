@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Pauses and resumes a process by disk space; LINUX ONLY.**
+
 """
 
 from argparse import ArgumentParser
@@ -40,6 +43,9 @@ log = BraceStyleAdapter(logging.getLogger(__name__))
 
 
 def is_running(process_id: int) -> bool:
+    """
+    Uses the Unix ``ps`` program to see if a process is running.
+    """
     pstr = str(process_id)
     encoding = sys.getdefaultencoding()
     s = subprocess.Popen(["ps", "-p", pstr], stdout=subprocess.PIPE)
@@ -51,6 +57,10 @@ def is_running(process_id: int) -> bool:
 
 
 def main() -> None:
+    """
+    Command-line handler for the ``pause_process_by_disk_space`` tool.
+    Use the ``--help`` option for help.
+    """
     parser = ArgumentParser(
         description="Pauses and resumes a process by disk space; LINUX ONLY."
     )

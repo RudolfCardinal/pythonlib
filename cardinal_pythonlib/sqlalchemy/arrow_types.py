@@ -21,6 +21,10 @@
     limitations under the License.
 
 ===============================================================================
+
+**SQLAlchemy type to hold a Python Arrow date/time. Uses a DATETIME or similar
+type in the database.**
+
 """
 
 import datetime

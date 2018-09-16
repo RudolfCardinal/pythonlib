@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**SQL grammar for Microsoft SQL Server.**
+
 """
 
 import logging
@@ -39,6 +42,7 @@ from pyparsing import (
     OneOrMore,
     opAssoc,
     Optional,
+    ParserElement,
     QuotedString,
     Regex,
     ZeroOrMore,
@@ -138,6 +142,10 @@ VARP = sql_keyword("VARP")
 # =============================================================================
 
 class SqlGrammarMSSQLServer(SqlGrammar):
+    """
+    SQL grammar (subclass of :class:`.SqlGrammar`) implementing
+    Microsoft SQL Server syntax.
+    """
     # -------------------------------------------------------------------------
     # Forward declarations
     # -------------------------------------------------------------------------
@@ -488,7 +496,7 @@ SOUNDEX
         return False
 
     @classmethod
-    def get_grammar(cls):
+    def get_grammar(cls) -> ParserElement:
         # Grammar (here, just SELECT)
         return cls.select_statement
 

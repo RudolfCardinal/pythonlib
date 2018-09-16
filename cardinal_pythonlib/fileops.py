@@ -105,6 +105,8 @@ def preserve_cwd(func: Callable) -> Callable:
 
     Example:
 
+    .. code-block:: python
+
         @preserve_cwd
         def myfunc():
             os.chdir("/faraway")

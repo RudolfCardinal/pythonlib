@@ -21,6 +21,10 @@
     limitations under the License.
 
 ===============================================================================
+
+**Middleware to set SCRIPT_NAME environment variable etc. when behind a
+reverse proxy.**
+
 """
 
 import logging
@@ -49,11 +53,21 @@ log = BraceStyleAdapter(log)
 def ip_addresses_from_xff(value: str) -> List[str]:
     """
     Returns a list of IP addresses (as strings), given the value of an HTTP
-    X-Forwarded-For (or WSGI HTTP_X_FORWARDED_FOR) header.
+    ``X-Forwarded-For`` (or ``WSGI HTTP_X_FORWARDED_FOR``) header.
+
+    Args:
+        value:
+            the value of an HTTP ``X-Forwarded-For`` (or ``WSGI
+            HTTP_X_FORWARDED_FOR``) header
+
+    Returns:
+        a list of IP address as strings
+
+    See:
+    - https://en.wikipedia.org/wiki/X-Forwarded-For
+    - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For  # noqa
+    - NOT THIS: http://tools.ietf.org/html/rfc7239
     """
-    # https://en.wikipedia.org/wiki/X-Forwarded-For
-    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For  # noqa
-    # NOT THIS: http://tools.ietf.org/html/rfc7239
     if not value:
         return []
     return [x.strip() for x in value.split(",")]
@@ -61,6 +75,19 @@ def ip_addresses_from_xff(value: str) -> List[str]:
 
 
 def first_from_xff(value: str) -> str:
+    """
+    Returns the first IP address from an ``X-Forwarded-For`` header; see
+    :func:`ip_addresses_from_xff`.
+
+    Args:
+        value:
+            the value of an HTTP ``X-Forwarded-For`` (or ``WSGI
+            HTTP_X_FORWARDED_FOR``) header
+
+    Returns:
+        an IP address as a string, or ``''`` if none is found
+
+    """
     ip_addresses = ip_addresses_from_xff(value)
     if not ip_addresses:
         return ''
@@ -148,6 +175,9 @@ EXAMPLE_APACHE_REVERSE_PROXY_CONFIG = """
 
 
 class ReverseProxiedConfig(object):
+    """
+    Class to hold information about a reverse proxy configuration.
+    """
     def __init__(self,
                  trusted_proxy_headers: List[str] = None,
                  http_host: str = None,
@@ -160,37 +190,39 @@ class ReverseProxiedConfig(object):
         """
         Args:
             trusted_proxy_headers:
-                list of headers, from ReverseProxiedMiddleware.ALL_CANDIDATES,
-                that the middleware will treat as trusted and obey. All others
-                from this list will be stripped.
+                list of headers, from
+                :const:`ReverseProxiedMiddleware.ALL_CANDIDATES`, that the
+                middleware will treat as trusted and obey. All others from this
+                list will be stripped.
 
             http_host:
-                Value to write to the HTTP_HOST WSGI variable. If not
+                Value to write to the ``HTTP_HOST`` WSGI variable. If not
                 specified, an appropriate trusted header will be used (if there
                 is one).
 
             remote_addr:
-                ... similarly for REMOTE_ADDR
+                ... similarly for ``REMOTE_ADDR``
 
             script_name:
-                ... similarly for SCRIPT_NAME
+                ... similarly for ``SCRIPT_NAME``
 
             server_name:
-                ... similarly for SERVER_NAME
+                ... similarly for ``SERVER_NAME``
 
             server_port:
-                ... similarly for SERVER_PORT
+                ... similarly for ``SERVER_PORT``
 
             url_scheme:
-                ... similarly for URL_SCHEME (e.g. "https")
+                ... similarly for ``URL_SCHEME`` (e.g. ``"https"``)
 
             rewrite_path_info:
-                If True, then if the middleware sets SCRIPT_NAME and PATH_INFO
-                starts with SCRIPT_NAME, the SCRIPT_NAME will be stripped off
-                the front of PATH_INFO.
+                If ``True``, then if the middleware sets ``SCRIPT_NAME`` and
+                ``PATH_INFO`` starts with ``SCRIPT_NAME``, the ``SCRIPT_NAME``
+                will be stripped off the front of ``PATH_INFO``.
+
                 This is appropriate for front-end web servers that fail to
                 rewrite the incoming URL properly. (Do not use for Apache with
-                ProxyPass; ProxyPass rewrites the URLs properly for you.)
+                ``ProxyPass``; ``ProxyPass`` rewrites the URLs properly for you.)
 
                 ... as per e.g. http://flask.pocoo.org/snippets/35/
         """
@@ -209,6 +241,10 @@ class ReverseProxiedConfig(object):
         self.rewrite_path_info = rewrite_path_info
 
     def necessary(self) -> bool:
+        """
+        Is any special handling (e.g. the addition of
+        :class:`ReverseProxiedMiddleware`) necessary for thie config?
+        """
         return any([
             self.trusted_proxy_headers,
             self.http_host,
@@ -223,18 +259,20 @@ class ReverseProxiedConfig(object):
 
 class ReverseProxiedMiddleware(object):
     """
-    WSGI middleware to set the SCRIPT_NAME and PATH_INFO WSGI environment
-    variables (etc.) correctly when behind a reverse proxy.
+    WSGI middleware to set the ``SCRIPT_NAME`` and ``PATH_INFO`` WSGI
+    environment variables (etc.) correctly when behind a reverse proxy.
     
-    Note that the WSGI environment variables HTTP_* are clones of HTTP headers;
-    for exapmle, "X-Forwarded-For" becomes "HTTP_X_FORWARDED_FOR".
+    Note that the WSGI environment variables ``HTTP_*`` are clones of HTTP
+    headers; for example, ``X-Forwarded-For`` in HTTP becomes
+    ``HTTP_X_FORWARDED_FOR`` in WSGI.
 
     See also:
-        http://flask.pocoo.org/snippets/35/
-        http://blog.macuyiko.com/post/2016/fixing-flask-url_for-when-behind-mod_proxy.html
-        http://alex.eftimie.ro/2013/03/21/how-to-run-flask-application-in-a-subpath-using-apache-mod_proxy/
-        http://modwsgi.readthedocs.io/en/develop/release-notes/version-4.4.9.html
-        https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
+        
+    - http://flask.pocoo.org/snippets/35/
+    - http://blog.macuyiko.com/post/2016/fixing-flask-url_for-when-behind-mod_proxy.html
+    - http://alex.eftimie.ro/2013/03/21/how-to-run-flask-application-in-a-subpath-using-apache-mod_proxy/
+    - http://modwsgi.readthedocs.io/en/develop/release-notes/version-4.4.9.html
+    - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
     """  # noqa
 
     CANDIDATES_HTTP_HOST = [

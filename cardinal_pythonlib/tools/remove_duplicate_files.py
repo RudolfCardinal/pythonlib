@@ -22,6 +22,8 @@
 
 ===============================================================================
 
+**Command-line tool to remove duplicate files from a path.**
+
 Largely based on
 http://code.activestate.com/recipes/362459-dupinator-detect-and-delete-duplicate-files/  # noqa
 
@@ -50,6 +52,15 @@ MAIN_READ_CHUNK_SIZE = 4096
 
 def deduplicate(directories: List[str], recursive: bool,
                 dummy_run: bool) -> None:
+    """
+    De-duplicate files within one or more directories. Remove files
+    that are identical to ones already considered.
+
+    Args:
+        directories: list of directories to process
+        recursive: process subdirectories (recursively)?
+        dummy_run: say what it'll do, but don't do it
+    """
     # -------------------------------------------------------------------------
     # Catalogue files by their size
     # -------------------------------------------------------------------------
@@ -176,6 +187,9 @@ def deduplicate(directories: List[str], recursive: bool,
 
 
 def main() -> None:
+    """
+    Command-line processor. See ``--help`` for details.
+    """
     parser = ArgumentParser(
         description="Remove duplicate files"
     )

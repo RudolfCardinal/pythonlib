@@ -36,9 +36,8 @@ from cardinal_pythonlib.fileops import mkdir_p, relative_filename_within_dir
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 
 log = logging.getLogger(__name__)
-THIS_DIR = os.path.dirname(os.path.realpath(__file__))  # .../cardinal_pythonlib/cardinal_pythonlib/docs  # noqa
-PACKAGE_ROOT_DIR = os.path.abspath(os.path.join(
-    THIS_DIR, os.pardir, os.pardir))  # .../cardinal_pythonlib
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))  # .../docs  # noqa
+PACKAGE_ROOT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))  # .../
 AUTODOC_DIR = os.path.join(THIS_DIR, "source", "autodoc")
 AUTODOC_INDEX = os.path.join(AUTODOC_DIR, "_index.rst")
 

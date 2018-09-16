@@ -60,8 +60,8 @@ if any([DEBUG_DYNAMIC_DESCRIPTIONS_FORM, DEBUG_FORM_VALIDATION]):
 
 def get_head_form_html(req: "Request", forms: List[Form]) -> str:
     """
-    Returns the extra HTML that needs to be injected into the <head> section
-    for a Deform form to work properly.
+    Returns the extra HTML that needs to be injected into the ``<head>``
+    section for a Deform form to work properly.
     """
     # https://docs.pylonsproject.org/projects/deform/en/latest/widget.html#widget-requirements
     js_resources = []  # type: List[str]
@@ -92,7 +92,15 @@ def get_head_form_html(req: "Request", forms: List[Form]) -> str:
 # https://groups.google.com/forum/#!topic/pylons-discuss/Lr1d1VpMycU
 
 class DeformErrorInterface(object):
+    """
+    Class to record information about Deform errors.
+    """
     def __init__(self, msg: str, *children: "DeformErrorInterface") -> None:
+        """
+        Args:
+            msg: error message
+            children: further, child errors (e.g. from subfields with problems)
+        """
         self._msg = msg
         self.children = children
 
@@ -101,10 +109,25 @@ class DeformErrorInterface(object):
 
 
 class InformativeForm(Form):
+    """
+    A Deform form class that shows its errors.
+    """
     def validate(self,
-                 controls: Iterable[Tuple[str, str]],  # list of key/value pairs  # noqa
+                 controls: Iterable[Tuple[str, str]],
                  subcontrol: str = None) -> Any:
-        """Returns a Colander appstruct, or raises."""
+        """
+        Validates the form.
+
+        Args:
+            controls: an iterable of ``(key, value)`` tuples
+            subcontrol:
+
+        Returns:
+            a Colander ``appstruct``
+
+        Raises:
+            ValidationFailure: on failure
+        """
         try:
             return super().validate(controls, subcontrol)
         except ValidationFailure as e:
@@ -158,7 +181,13 @@ class InformativeForm(Form):
 def debug_validator(validator: ValidatorType) -> ValidatorType:
     """
     Use as a wrapper around a validator, e.g.
+
+    .. code-block:: python
+
         self.validator = debug_validator(OneOf(["some", "values"]))
+
+    If you do this, the log will show the thinking of the validator (what it's
+    trying to validate, and whether it accepted or rejected the value).
     """
     def _validate(node: SchemaNode, value: Any) -> None:
         log.debug("Validating: {!r}", value)
@@ -177,6 +206,10 @@ def debug_validator(validator: ValidatorType) -> ValidatorType:
 # =============================================================================
 
 def gen_fields(field: Field) -> Generator[Field, None, None]:
+    """
+    Starting with a Deform :class:`Field`, yield the field itself and any
+    children.
+    """
     yield field
     for c in field.children:
         for f in gen_fields(c):
@@ -185,12 +218,13 @@ def gen_fields(field: Field) -> Generator[Field, None, None]:
 
 class DynamicDescriptionsForm(InformativeForm):
     """
-    For explanation, see ValidateDangerousOperationNode().
+    For explanation, see
+    :class:`cardinal_pythonlib.colander_utils.ValidateDangerousOperationNode`.
 
-    In essence, this allows a schema to change its "description" properties
+    In essence, this allows a schema to change its ``description`` properties
     during form validation, and then to have them reflected in the form (which
-    won't happen with a standard Deform Form, since it normally copies its
-    descriptions from its schema at creation time).
+    won't happen with a standard Deform :class:`Form`, since it normally copies
+    its descriptions from its schema at creation time).
 
     The upshot is that we can store temporary values in a form and validate
     against them.
@@ -203,6 +237,13 @@ class DynamicDescriptionsForm(InformativeForm):
                  dynamic_descriptions: bool = True,
                  dynamic_titles: bool = False,
                  **kwargs) -> None:
+        """
+        Args:
+            args: other positional arguments to :class:`InformativeForm`
+            dynamic_descriptions: use dynamic descriptions?
+            dynamic_titles: use dynamic titles?
+            kwargs: other keyword arguments to :class:`InformativeForm`
+        """
         self.dynamic_descriptions = dynamic_descriptions
         self.dynamic_titles = dynamic_titles
         super().__init__(*args, **kwargs)

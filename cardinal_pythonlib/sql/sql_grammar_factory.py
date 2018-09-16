@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Factory to return an SQL grammer parser, given the name of an SQL dialect.**
+
 """
 
 from cardinal_pythonlib.sql.sql_grammar import SqlGrammar
@@ -45,6 +48,10 @@ mssql_grammar = SqlGrammarMSSQLServer()
 
 
 def make_grammar(dialect: str) -> SqlGrammar:
+    """
+    Factory to make an :class:`.SqlGrammar` from the name of an SQL dialect,
+    where the name is one of the members of :class:`.SqlaDialectName`.
+    """
     if dialect == SqlaDialectName.MYSQL:
         return mysql_grammar
     elif dialect == SqlaDialectName.MSSQL:

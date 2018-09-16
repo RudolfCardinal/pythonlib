@@ -21,10 +21,16 @@
     limitations under the License.
 
 ===============================================================================
+
+**Constants for use with Django.**
+
 """
 
 
 class ConnectionVendors(object):
+    """
+    Constants for Django database connection vendors (database types).
+    """
     MYSQL = 'mysql'  # built in; [1]
     ORACLE = 'oracle'  # built in; [1]
     POSTGRESQL = 'postgresql'  # built in; [1]

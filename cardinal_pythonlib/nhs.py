@@ -45,7 +45,9 @@ NHS_DIGIT_WEIGHTINGS = [10, 9, 8, 7, 6, 5, 4, 3, 2]
 def nhs_check_digit(ninedigits: Union[str, List[Union[str, int]]]) -> int:
     """
     Calculates an NHS number check digit.
-    ninedigits: string or list
+
+    Args:
+        ninedigits: string or list
 
     1. Multiply each of the first nine digits by the corresponding
        digit weighting (see NHS_DIGIT_WEIGHTINGS).
@@ -53,8 +55,8 @@ def nhs_check_digit(ninedigits: Union[str, List[Union[str, int]]]) -> int:
     3. Take remainder after division by 11.
     4. Subtract the remainder from 11
     5. If this is 11, use 0 instead
-    If it's 10, the number is invalid
-    If it doesn't match the actual check digit, the number is invalid
+       If it's 10, the number is invalid
+       If it doesn't match the actual check digit, the number is invalid
     """
     if len(ninedigits) != 9 or not all(str(x).isdigit() for x in ninedigits):
         raise ValueError("bad string to nhs_check_digit")
@@ -72,9 +74,10 @@ def nhs_check_digit(ninedigits: Union[str, List[Union[str, int]]]) -> int:
 def is_valid_nhs_number(n: int) -> bool:
     """
     Validates an integer as an NHS number.
+    
     Checksum details are at
-        http://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp  # noqa
-    """
+    http://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp
+    """ # noqa
     if not isinstance(n, int):
         log.debug("is_valid_nhs_number: parameter was not of integer type")
         return False
@@ -123,6 +126,9 @@ def generate_nhs_number_from_first_9_digits(first9digits: str) -> Optional[int]:
     Returns a valid NHS number, as an int, given the first 9 digits.
     The particular purpose is to make NHS numbers that *look* fake.
     Specifically:
+
+    .. code-block:: none
+
         123456789_ : no; checksum 10
         987654321_ : yes, for 9876543210
         999999999_ : yes, for 9999999999
@@ -155,13 +161,14 @@ NON_NUMERIC_REGEX = re.compile("[^0-9]")  # or "\D"
 
 
 def nhs_number_from_text_or_none(s: str) -> Optional[int]:
-    """Returns a validated NHS number (as an integer) from a string, or None.
+    """
+    Returns a validated NHS number (as an integer) from a string, or None.
     It's a 10-digit number, so note that database 32-bit INT values are
     insufficient; use BIGINT. Python will handle large integers happily.
-    NHS number rules:
-    http://www.datadictionary.nhs.uk/version2/data_dictionary/
-           data_field_notes/n/nhs_number_de.asp?shownav=0
-    """
+    
+    NHS number rules:        
+    http://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp?shownav=0
+    """  # noqa
     # None in, None out.
     funcname = "nhs_number_from_text_or_none: "
     if not s:

@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions to work with SQLAlchemy sessions/engines.**
+
 """
 
 from typing import TYPE_CHECKING
@@ -49,6 +52,9 @@ SQLITE_MEMORY_URL = "sqlite://"
 def make_mysql_url(username: str, password: str, dbname: str,
                    driver: str = "mysqldb", host: str = "localhost",
                    port: int = 3306, charset: str = "utf8") -> str:
+    """
+    Makes an SQLAlchemy URL for a MySQL database.
+    """
     return "mysql+{driver}://{u}:{p}@{host}:{port}/{db}?charset={cs}".format(
         driver=driver,
         host=host,
@@ -61,6 +67,9 @@ def make_mysql_url(username: str, password: str, dbname: str,
 
 
 def make_sqlite_url(filename: str) -> str:
+    """
+    Makes an SQLAlchemy URL for a SQLite database.
+    """
     absfile = os.path.abspath(filename)
     return "sqlite://{host}/{path}".format(host="", path=absfile)
     # ... makes it clear how it works! Ends up being sqlite:////abspath
@@ -74,7 +83,7 @@ def make_sqlite_url(filename: str) -> str:
 
 def get_engine_from_session(dbsession: Session) -> Engine:
     """
-    Gets the SQLAlchemy Engine from a SQLAlchemy Session.
+    Gets the SQLAlchemy :class:`Engine` from a SQLAlchemy :class:`Session`.
     """
     engine = dbsession.bind
     assert isinstance(engine, Engine)
@@ -83,7 +92,7 @@ def get_engine_from_session(dbsession: Session) -> Engine:
 
 def get_safe_url_from_engine(engine: Engine) -> str:
     """
-    Gets a URL from an Engine, obscuring the password.
+    Gets a URL from an :class:`Engine`, obscuring the password.
     """
     raw_url = engine.url  # type: str
     url_obj = make_url(raw_url)  # type: URL
@@ -94,11 +103,14 @@ def get_safe_url_from_engine(engine: Engine) -> str:
 
 def get_safe_url_from_session(dbsession: Session) -> str:
     """
-    Gets a URL from a Session, obscuring the password.
+    Gets a URL from a :class:`Session`, obscuring the password.
     """
     return get_safe_url_from_engine(get_engine_from_session(dbsession))
 
 
 def get_safe_url_from_url(url: str) -> str:
+    """
+    Converts an SQLAlchemy URL into a safe version that obscures the password.
+    """
     engine = create_engine(url)
     return get_safe_url_from_engine(engine)

@@ -22,6 +22,8 @@
 
 ===============================================================================
 
+**Cache the results of function calls using Django.**
+
 Based on https://github.com/rchrd2/django-cache-decorator
 but fixed for Python 3 / Django 1.10.
 
@@ -47,6 +49,12 @@ def get_call_signature(fn: FunctionType,
                        args: ArgsType,
                        kwargs: KwargsType,
                        debug_cache: bool = False) -> str:
+    """
+    Takes a function and its args/kwargs, and produces a string description
+    of the function call (the call signature) suitable for use indirectly as a
+    cache key. The string is a JSON representation. See ``make_cache_key`` for
+    a more suitable actual cache key.
+    """
     # Note that the function won't have the __self__ argument (as in
     # fn.__self__), at this point, even if it's a member function.
     try:
@@ -65,29 +73,37 @@ def get_call_signature(fn: FunctionType,
 
 def make_cache_key(call_signature: str,
                    debug_cache: bool = False) -> str:
-    # - We have a bunch of components of arbitrary type, and we need to get
-    #   a unique string out.
-    # - We shouldn't use str(), because that is often poorly specified; e.g.
-    #   is 'a.b.c' a TableId, or is it a ColumnId with no 'db' field?
-    # - We could use repr(): sometimes that gives us helpful things that
-    #   could in principle be passed to eval(), in which case repr() would
-    #   be fine, but sometimes it doesn't, and gives unhelpful things like
-    #   '<__main__.Thing object at 0x7ff3093ebda0>'.
-    # - However, if something encodes to JSON, that representation should
-    #   be reversible and thus contain the right sort of information.
-    # - Note also that bound methods will come with a "self" argument, for
-    #   which the address may be very relevant...
-    # - Let's go with repr(). Users of the cache decorator should not pass
-    #   objects whose repr() includes the memory address of the object unless
-    #   they want those objects to be treated as distinct.
-    # - Ah, no. The cache itself will pickle and unpickle things, and this
-    #   will change memory addresses of objects. So we can't store a reference
-    #   to an object using repr() and using cache.add()/pickle() and hope
-    #   they'll come out the same.
-    # - Use the JSON after all.
-    # - And do it in get_call_signature(), not here.
-    # - That means that any class we wish to decorate WITHOUT specifying a
-    #   cache key manually must support JSON.
+    """
+    Takes a function and its args/kwargs, and produces a string description
+    of the function call (the call signature) suitable for use as a cache key.
+    The string is an MD5 hash of the JSON-encoded call signature.
+    The logic behind these decisions is as follows:
+
+    - We have a bunch of components of arbitrary type, and we need to get
+      a unique string out.
+    - We shouldn't use ``str()``, because that is often poorly specified; e.g.
+      is ``'a.b.c'`` a ``TableId``, or is it a ``ColumnId`` with no ``'db'``
+      field?
+    - We could use ``repr()``: sometimes that gives us helpful things that
+      could in principle be passed to ``eval()``, in which case ``repr()`` would
+      be fine, but sometimes it doesn't, and gives unhelpful things like
+      ``'<__main__.Thing object at 0x7ff3093ebda0>'``.
+    - However, if something encodes to JSON, that representation should
+      be reversible and thus contain the right sort of information.
+    - Note also that bound methods will come with a ``self`` argument, for
+      which the address may be very relevant...
+    - Let's go with ``repr()``. Users of the cache decorator should not pass
+      objects whose ``repr()`` includes the memory address of the object unless
+      they want those objects to be treated as distinct.
+    - Ah, no. The cache itself will pickle and unpickle things, and this
+      will change memory addresses of objects. So we can't store a reference
+      to an object using ``repr()`` and using ``cache.add()``/``pickle()`` and
+      hope they'll come out the same.
+    - Use the JSON after all.
+    - And do it in ``get_call_signature()``, not here.
+    - That means that any class we wish to decorate WITHOUT specifying a
+      cache key manually must support JSON.
+    """
     key = hashlib.md5(call_signature.encode("utf-8")).hexdigest()
     if debug_cache:
         log.debug("Making cache key {} from call_signature {}".format(
@@ -101,9 +117,12 @@ def django_cache_function(timeout: int = 5 * 60,
     """
     Decorator to add caching to a function in Django.
     Uses the Django default cache.
+
     Args:
+
         timeout: timeout in seconds; use None for "never expire", as 0 means
             "do not cache".
+
         cache_key: optional cache key to use (if falsy, we'll invent one)
         debug_cache: show hits/misses?
     """

@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Command-line tool to enumerate all file extensions found within a path.**
+
 """
 
 
@@ -35,6 +38,18 @@ log = logging.getLogger(__name__)
 
 
 def list_file_extensions(path: str, reportevery: int = 1) -> List[str]:
+    """
+    Returns a sorted list of every file extension found in a directory
+    and its subdirectories.
+
+    Args:
+        path: path to scan
+        reportevery: report directory progress after every *n* steps
+
+    Returns:
+        sorted list of every file extension found
+
+    """
     extensions = set()
     count = 0
     for root, dirs, files in os.walk(path):
@@ -48,6 +63,9 @@ def list_file_extensions(path: str, reportevery: int = 1) -> List[str]:
 
 
 def main() -> None:
+    """
+    Command-line processor. See ``--help`` for details.
+    """
     main_only_quicksetup_rootlogger(level=logging.DEBUG)
     parser = argparse.ArgumentParser()
     parser.add_argument("directory", nargs="?", default=os.getcwd())

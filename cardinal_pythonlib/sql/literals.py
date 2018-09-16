@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Functions to manipulate raw SQL.
+**Functions to manipulate raw SQL.**
 
 """
 
@@ -40,6 +40,15 @@ DOUBLE_SQUOTE = "''"
 # =============================================================================
 
 def sql_string_literal(text: str) -> str:
+    """
+    Transforms text into its ANSI SQL-quoted version, e.g. (in Python ``repr()``
+    format):
+
+    .. code-block:: none
+
+        "some string"   -> "'some string'"
+        "Jack's dog"    -> "'Jack''s dog'"
+    """
     # ANSI SQL: http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
     # <character string literal>
     return SQUOTE + text.replace(SQUOTE, DOUBLE_SQUOTE) + SQUOTE
@@ -49,6 +58,10 @@ sql_quote_string = sql_string_literal  # synonym
 
 
 def sql_date_literal(dt: DateLikeType) -> str:
+    """
+    Transforms a Python object that is of duck type ``datetime.date`` into
+    an ANSI SQL literal string, like '2000-12-31'.
+    """
     # ANSI SQL: http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
     # <date string>
     return dt.strftime("'%Y-%m-%d'")
@@ -56,6 +69,12 @@ def sql_date_literal(dt: DateLikeType) -> str:
 
 def sql_datetime_literal(dt: DateTimeLikeType,
                          subsecond: bool = False) -> str:
+    """
+    Transforms a Python object that is of duck type ``datetime.datetime`` into
+    an ANSI SQL literal string, like ``'2000-12-31 23:59:59'``, or if
+    ``subsecond=True``, into the (non-ANSI) format
+    ``'2000-12-31 23:59:59.123456'`` or similar.
+    """
     # ANSI SQL: http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
     # <timestamp string>
     # ... the subsecond part is non-ANSI
@@ -64,6 +83,10 @@ def sql_datetime_literal(dt: DateTimeLikeType,
 
 
 def sql_comment(comment: str) -> str:
+    """
+    Transforms a single- or multi-line string into an ANSI SQL comment,
+    prefixed by ``--``.
+    """
     """Using -- as a comment marker is ANSI SQL."""
     if not comment:
         return ""
@@ -75,7 +98,9 @@ def sql_comment(comment: str) -> str:
 # =============================================================================
 
 def sql_dequote_string(s: str) -> str:
-    """Reverses sql_quote_string."""
+    """
+    Reverses :func:`sql_quote_string`.
+    """
     if len(s) < 2 or s[0] != SQUOTE or s[-1] != SQUOTE:
         raise ValueError("Not an SQL string literal")
     s = s[1:-1]  # strip off the surrounding quotes
@@ -88,7 +113,7 @@ def sql_dequote_string(s: str) -> str:
 
 def gen_items_from_sql_csv(s: str) -> Generator[str, None, None]:
     """
-    Splits a comma-separated list of quoted SQL values, with ' as the quote
+    Splits a comma-separated list of quoted SQL values, with ``'`` as the quote
     character. Allows escaping of the quote character by doubling it. Returns
     the quotes (and escaped quotes) as part of the result. Allows newlines etc.
     within the string passed.

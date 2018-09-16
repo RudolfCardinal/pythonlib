@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**WSGI middleware to produce tracebacks upon error.**
+
 """
 
 # =============================================================================
@@ -30,25 +33,43 @@
 # Modified to use six.StringIO
 # Latest changes: 6 Jan 2016
 
+import cgitb
 # import six
 from io import StringIO
 import sys
-import cgitb
+from typing import List
+
+
+from cardinal_pythonlib.wsgi.constants import (
+    TYPE_WSGI_APP,
+    TYPE_WSGI_APP_RESULT,
+    TYPE_WSGI_ENVIRON,
+    TYPE_WSGI_EXC_INFO,
+    TYPE_WSGI_RESPONSE_HEADERS,
+    TYPE_WSGI_START_RESPONSE,
+    TYPE_WSGI_START_RESP_RESULT,
+    TYPE_WSGI_STATUS,
+)
 
 
 class ErrorReportingMiddleware(object):
-    """WSGI middleware to produce cgitb traceback."""
-    def __init__(self, app):
+    """
+    WSGI middleware to produce ``cgitb`` traceback upon errors.
+    """
+    def __init__(self, app: TYPE_WSGI_APP) -> None:
         self.app = app
 
     @staticmethod
-    def format_exception(exc_info):
+    def format_exception(exc_info: TYPE_WSGI_EXC_INFO) -> List[bytes]:
         dummy_file = StringIO()
         hook = cgitb.Hook(file=dummy_file)
         hook(*exc_info)
         return [dummy_file.getvalue().encode('utf-8')]
 
-    def __call__(self, environ, start_response):
+    def __call__(self,
+                 environ: TYPE_WSGI_ENVIRON,
+                 start_response: TYPE_WSGI_START_RESPONSE) \
+            -> TYPE_WSGI_APP_RESULT:
         # noinspection PyBroadException,PyPep8
         try:
             return self.app(environ, start_response)

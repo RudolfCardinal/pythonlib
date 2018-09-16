@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Offers the getch() and kbhit() functions.
+**Offers the getch() and kbhit() functions.**
 
 """
 

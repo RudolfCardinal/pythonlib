@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Helper functions for Django fields.**
+
 """
 
 from typing import Iterable, Tuple
@@ -35,9 +38,12 @@ def valid_choice(strvalue: str, choices: Iterable[Tuple[str, str]]) -> bool:
     Checks that value is one of the valid option in choices, where choices
     is a list/tuple of 2-tuples (option, description).
 
-    Note that parameters sent by URLconf are always strings:
-        https://docs.djangoproject.com/en/1.8/topics/http/urls/
+    Note that parameters sent by URLconf are always strings
+    (https://docs.djangoproject.com/en/1.8/topics/http/urls/)
     but Python is happy with a string-to-integer-PK lookup, e.g.
+
+    .. code-block:: python
+
         Study.objects.get(pk=1)
         Study.objects.get(pk="1")  # also works
 

@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions for exception handling.**
+
 """
 
 import logging
@@ -37,13 +40,26 @@ log.addHandler(logging.NullHandler())
 # =============================================================================
 
 def add_info_to_exception(err: Exception, info: Dict) -> None:
-    # http://stackoverflow.com/questions/9157210/how-do-i-raise-the-same-exception-with-a-custom-message-in-python  # noqa
+    """
+    Adds an information dictionary to an exception.
+    
+    See
+    http://stackoverflow.com/questions/9157210/how-do-i-raise-the-same-exception-with-a-custom-message-in-python
+    
+    Args:
+        err: the exception to be modified
+        info: the information to add
+    """  # noqa
     if not err.args:
         err.args = ('', )
     err.args += (info, )
 
 
 def recover_info_from_exception(err: Exception) -> Dict:
+    """
+    Retrives the information added to an exception by
+    :func:`add_info_to_exception`.
+    """
     if len(err.args) < 1:
         return {}
     info = err.args[-1]
@@ -56,31 +72,40 @@ def die(exc: Exception = None, exit_code: int = 1) -> None:
     """
     It is not clear that Python guarantees to exit with a non-zero exit code
     (errorlevel in DOS/Windows) upon an unhandled exception. So this function
-    produces the usual stack trace then dies.
+    produces the usual stack trace then dies with the specified exit code.
 
-    http://stackoverflow.com/questions/9555133/e-printstacktrace-equivalent-in-python  # noqa
+    See
+    http://stackoverflow.com/questions/9555133/e-printstacktrace-equivalent-in-python.
 
     Test code:
+    
+    .. code-block:: python
 
-import logging
-import sys
-import traceback
-logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger()
-
-def fail():
-    try:
-        x = 1/0
-    except Exception as exc:
-        die(exc)
-
+        import logging
+        import sys
+        import traceback
+        logging.basicConfig(level=logging.DEBUG)
+        log = logging.getLogger()
+        
+        def fail():
+            try:
+                x = 1/0
+            except Exception as exc:
+                die(exc)
 
     Then call
+    
+    .. code-block:: python
+    
         fail()
-    ... which should exit Python; then from Linux:
+        
+    ... which should exit Python; then from Linux (for example):
+    
+    .. code-block:: bash
+    
         echo $?  # show exit code
 
-    """
+    """  # noqa
     if exc:
         lines = traceback.format_exception(
             None,  # etype: ignored

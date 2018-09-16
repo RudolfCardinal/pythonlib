@@ -26,18 +26,16 @@ Support functions involving cryptography.
 
 """
 
-import base64
 # import Crypto.Random  # pip install pycrypto
 import hashlib
 import hmac
-import os
 from typing import Any, Callable
 
 # The following requires a C compiler, so we don't have it in our standard
 # requirements. However, it is vital for this module.
 
 # noinspection PyUnresolvedReferences
-import bcrypt  # PYTHON 2/UBUNTU: sudo apt-get install python-bcrypt  // PYTHON3/UBUNTU: sudo apt-get install python3-bcrypt  # noqa
+import bcrypt  # pip install bcrypt; see https://pypi.org/project/bcrypt/
 
 
 # =============================================================================
@@ -47,26 +45,10 @@ import bcrypt  # PYTHON 2/UBUNTU: sudo apt-get install python-bcrypt  // PYTHON3
 BCRYPT_DEFAULT_LOG_ROUNDS = 12  # bcrypt default; work factor is 2^this.
 
 
-def create_base64encoded_randomness(num_bytes: int) -> str:
-    """Create num_bytes of random data.
-    Result is encoded in a string with URL-safe base64 encoding.
-    Used (for example) to generate session tokens.
-    Which generator to use? See
-        https://cryptography.io/en/latest/random-numbers/
-    """
-    # NO # randbytes = M2Crypto.m2.rand_bytes(num_bytes)
-    # NO # randbytes = Crypto.Random.get_random_bytes(num_bytes)
-    randbytes = os.urandom(num_bytes)  # YES
-    return base64.urlsafe_b64encode(randbytes).decode('ascii')
-
-# http://crackstation.net/hashing-security.htm
-# http://www.mindrot.org/projects/py-bcrypt/
-# http://codahale.com/how-to-safely-store-a-password/
-
-
 def hash_password(plaintextpw: str,
                   log_rounds: int = BCRYPT_DEFAULT_LOG_ROUNDS) -> str:
-    """Makes a hashed password (using a new salt) using bcrypt.
+    """
+    Makes a hashed password (using a new salt) using ``bcrypt``.
 
     The hashed password includes the salt at its start, so no need to store a
     separate salt.
@@ -77,9 +59,10 @@ def hash_password(plaintextpw: str,
 
 
 def is_password_valid(plaintextpw: str, storedhash: str) -> bool:
-    """Checks if a plaintext password matches a stored hash.
+    """
+    Checks if a plaintext password matches a stored hash.
 
-    Uses bcrypt. The stored hash includes its own incorporated salt.
+    Uses ``bcrypt``. The stored hash includes its own incorporated salt.
     """
     # Upon CamCOPS from MySQL 5.5.34 (Ubuntu) to 5.1.71 (CentOS 6.5), the
     # VARCHAR was retrieved as Unicode. We needed to convert that to a str.
@@ -103,8 +86,13 @@ def is_password_valid(plaintextpw: str, storedhash: str) -> bool:
 # =============================================================================
 
 class GenericHasher(object):
+    """
+    Abstract base class for a hasher.
+    """
     def hash(self, raw: Any) -> str:
-        """The public interface to a hasher."""
+        """
+        Returns a hash of its input.
+        """
         raise NotImplementedError()
 
 
@@ -118,7 +106,15 @@ class GenericHasher(object):
 # =============================================================================
 
 class GenericSaltedHasher(GenericHasher):
+    """
+    Generic representation of a hasher that stores a hash function and a salt.
+    """
     def __init__(self, hashfunc: Callable[[bytes], Any], salt: str) -> None:
+        """
+        Args:
+            hashfunc: hash function to use
+            salt: salt to use (following UTF-8 encoding)
+        """
         self.hashfunc = hashfunc
         self.salt_bytes = salt.encode('utf-8')
 
@@ -128,17 +124,27 @@ class GenericSaltedHasher(GenericHasher):
 
 
 class MD5Hasher(GenericSaltedHasher):
-    """MD5 is cryptographically FLAWED; avoid."""
+    """
+    Salted hasher based on MD5.
+
+    MD5 is cryptographically FLAWED; avoid.
+    """
     def __init__(self, salt: str) -> None:
         super().__init__(hashlib.md5, salt)
 
 
 class SHA256Hasher(GenericSaltedHasher):
+    """
+    Salted hasher based on SHA256.
+    """
     def __init__(self, salt: str) -> None:
         super().__init__(hashlib.sha256, salt)
 
 
 class SHA512Hasher(GenericSaltedHasher):
+    """
+    Salted hasher based on SHA512.
+    """
     def __init__(self, salt: str) -> None:
         super().__init__(hashlib.sha512, salt)
 
@@ -148,11 +154,24 @@ class SHA512Hasher(GenericSaltedHasher):
 # =============================================================================
 
 class GenericHmacHasher(GenericHasher):
+    """
+    Generic representation of a hasher that hashes things via an HMAC
+    (a hash-based message authentication code).
+    See https://en.wikipedia.org/wiki/HMAC
+    """
     def __init__(self, digestmod: Any, key: str) -> None:
+        """
+        Args:
+            digestmod: see :func:`hmac.HMAC.__init__`
+            key: cryptographic key to use
+        """
         self.key_bytes = key.encode('utf-8')
         self.digestmod = digestmod
 
     def hash(self, raw: Any) -> str:
+        """
+        Returns the hex digest of a HMAC-encoded version of the input.
+        """
         raw_bytes = str(raw).encode('utf-8')
         hmac_obj = hmac.new(key=self.key_bytes, msg=raw_bytes,
                             digestmod=self.digestmod)
@@ -160,16 +179,28 @@ class GenericHmacHasher(GenericHasher):
 
 
 class HmacMD5Hasher(GenericHmacHasher):
+    """
+    HMAC hasher based on MD5.
+    (Even though MD5 is insecure, HMAC-MD5 is better. See Bellare M, Canetti R,
+    Krawcyk H. Keying hash functions for message authentication. Lect. Notes
+    Comput. Sci. Adv. Cryptol. - Crypto 96 Proc. 1996; 1109: 1–15.)
+    """
     def __init__(self, key: str) -> None:
         super().__init__(hashlib.md5, key)
 
 
 class HmacSHA256Hasher(GenericHmacHasher):
+    """
+    HMAC hasher based on SHA256.
+    """
     def __init__(self, key: str) -> None:
         super().__init__(hashlib.sha256, key)
 
 
 class HmacSHA512Hasher(GenericHmacHasher):
+    """
+    HMAC hasher based on SHA512.
+    """
     def __init__(self, key: str) -> None:
         super().__init__(hashlib.sha512, key)
 
@@ -178,8 +209,7 @@ class HmacSHA512Hasher(GenericHmacHasher):
 # Testing functions/notes
 # =============================================================================
 
-if False:
-    TEST_NO_COLLISIONS = """
+_ = """
 import hashlib
 from six.moves import range
 

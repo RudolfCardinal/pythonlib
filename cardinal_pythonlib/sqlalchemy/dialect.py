@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Helper functions relating to SQLAlchemy SQL dialects.**
+
 """
 
 from typing import Union
@@ -59,6 +62,16 @@ ALL_SQLA_DIALECTS = list(set(
 # =============================================================================
 
 def get_dialect(mixed: Union[SQLCompiler, Engine, Dialect]) -> Dialect:
+    """
+    Finds the SQLAlchemy dialect in use.
+
+    Args:
+        mixed: an SQLAlchemy :class:`SQLCompiler`, :class:`Engine`, or
+            :class:`Dialect` object
+
+    Returns: the SQLAlchemy :class:`Dialect` being used
+
+    """
     if isinstance(mixed, Dialect):
         return mixed
     elif isinstance(mixed, Engine):
@@ -70,6 +83,15 @@ def get_dialect(mixed: Union[SQLCompiler, Engine, Dialect]) -> Dialect:
 
 
 def get_dialect_name(mixed: Union[SQLCompiler, Engine, Dialect]) -> str:
+    """
+    Finds the name of the SQLAlchemy dialect in use.
+
+    Args:
+        mixed: an SQLAlchemy :class:`SQLCompiler`, :class:`Engine`, or
+            :class:`Dialect` object
+
+    Returns: the SQLAlchemy dialect name being used
+    """
     dialect = get_dialect(mixed)
     # noinspection PyUnresolvedReferences
     return dialect.name
@@ -77,6 +99,17 @@ def get_dialect_name(mixed: Union[SQLCompiler, Engine, Dialect]) -> str:
 
 def get_preparer(mixed: Union[SQLCompiler, Engine,
                               Dialect]) -> IdentifierPreparer:
+    """
+    Returns the SQLAlchemy :class:`IdentifierPreparer` in use for the dialect
+    being used.
+
+    Args:
+        mixed: an SQLAlchemy :class:`SQLCompiler`, :class:`Engine`, or
+            :class:`Dialect` object
+
+    Returns: an :class:`IdentifierPreparer`
+
+    """
     dialect = get_dialect(mixed)
     # noinspection PyUnresolvedReferences
     return dialect.preparer(dialect)  # type: IdentifierPreparer
@@ -84,5 +117,18 @@ def get_preparer(mixed: Union[SQLCompiler, Engine,
 
 def quote_identifier(identifier: str,
                      mixed: Union[SQLCompiler, Engine, Dialect]) -> str:
+    """
+    Converts an SQL identifier to a quoted version, via the SQL dialect in
+    use.
+
+    Args:
+        identifier: the identifier to be quoted
+        mixed: an SQLAlchemy :class:`SQLCompiler`, :class:`Engine`, or
+            :class:`Dialect` object
+
+    Returns:
+        the quoted identifier
+
+    """
     # See also http://sqlalchemy-utils.readthedocs.io/en/latest/_modules/sqlalchemy_utils/functions/orm.html  # noqa
     return get_preparer(mixed).quote(identifier)

@@ -22,19 +22,22 @@
 
 ===============================================================================
 
-Script to check the memory usage (approximately) of a running MySQL instance.
+**Script to check the (approximate) memory usage of a running MySQL instance.**
 
-From: https://dev.mysql.com/doc/refman/5.0/en/memory-use.html
-- However, innodb_additional_mem_pool_size deprecated in 5.6.3 and removed in
-  5.7.4; http://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html
+- From: https://dev.mysql.com/doc/refman/5.0/en/memory-use.html
+
+- However, ``innodb_additional_mem_pool_size`` deprecated in 5.6.3 and removed
+  in 5.7.4; http://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html
+
 """
 
 
 import argparse
 import logging
 import subprocess
+from typing import Dict, Union
 
-import prettytable
+from prettytable import PrettyTable
 
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 
@@ -45,7 +48,23 @@ MYSQL_DEFAULT_USER = 'root'
 UNITS_MB = 'Mb'
 
 
-def get_mysql_vars(mysql, host, port, user):
+def get_mysql_vars(mysql: str,
+                   host: str,
+                   port: int,
+                   user: str) -> Dict[str, str]:
+    """
+    Asks MySQL for its variables and status.
+
+    Args:
+        mysql: ``mysql`` executable filename
+        host: host name
+        port: TCP/IP port number
+        user: username
+
+    Returns:
+        dictionary of MySQL variables/values
+
+    """
     cmdargs = [
         mysql,
         "-h", host,
@@ -66,27 +85,44 @@ def get_mysql_vars(mysql, host, port, user):
     return mysqlvars
 
 
-def val_mb(valstr):
+def val_mb(valstr: Union[int, str]) -> str:
+    """
+    Converts a value in bytes (in string format) to megabytes.
+    """
     try:
         return "{:.3f}".format(int(valstr) / (1024 * 1024))
     except (TypeError, ValueError):
         return '?'
 
 
-def val_int(valstr):
-    return str(valstr) + " " * 4
+def val_int(val: int) -> str:
+    """
+    Formats an integer value.
+    """
+    return str(val) + " " * 4
 
 
-def add_var_mb(table, vardict, varname):
+def add_var_mb(table: PrettyTable,
+               vardict: Dict[str, str],
+               varname: str) -> None:
+    """
+    Adds a row to ``table`` for ``varname``, in megabytes.
+    """
     valstr = vardict.get(varname, None)
     table.add_row([varname, val_mb(valstr), UNITS_MB])
 
 
-def add_blank_row(table):
+def add_blank_row(table: PrettyTable) -> None:
+    """
+    Adds a blank row to ``table``.
+    """
     table.add_row([''] * 3)
 
 
 def main():
+    """
+    Command-line processor. See ``--help`` for details.
+    """
     main_only_quicksetup_rootlogger(level=logging.DEBUG)
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -130,7 +166,7 @@ def main():
     mem_total_min = base_mem + mem_per_conn * max_used_conn
     mem_total_max = base_mem + mem_per_conn * max_conn
 
-    table = prettytable.PrettyTable(["Variable", "Value", "Units"])
+    table = PrettyTable(["Variable", "Value", "Units"])
     table.align["Variable"] = "l"
     table.align["Value"] = "r"
     table.align["Units"] = "l"

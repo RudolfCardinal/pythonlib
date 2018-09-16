@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions for manipulating command-line parameters.**
+
 """
 
 import re
@@ -32,16 +35,21 @@ from typing import List, Union
 
 def cmdline_split(s: str, platform: Union[int, str] = 'this') -> List[str]:
     """
-    https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
+    As per
+    https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex.
 
-    Multi-platform variant of shlex.split() for command-line splitting.
-    For use with subprocess, for argv injection etc. Using fast REGEX.
-
-    platform: 'this' = auto from current platform;
-              1 = POSIX;
-              0 = Windows/CMD
-              (other values reserved)
-    """
+    Multi-platform variant of ``shlex.split()`` for command-line splitting.
+    For use with ``subprocess``, for ``argv`` injection etc. Using fast REGEX.
+    
+    Args:
+        s:
+            string to split
+        platform:
+            - ``'this'`` = auto from current platform;
+            - ``1`` = POSIX;
+            - ``0`` = Windows/CMD
+            - (other values reserved)
+    """  # noqa
     if platform == 'this':
         platform = (sys.platform != 'win32')  # RNC: includes 64-bit Windows
     if platform == 1:  # POSIX
@@ -83,6 +91,10 @@ def cmdline_split(s: str, platform: Union[int, str] = 'this') -> List[str]:
 
 
 def cmdline_quote(args: List[str]) -> str:
+    """
+    Convert a list of command-line arguments to a suitably quoted command-line
+    string that should be copy/pastable into a comand prompt.
+    """
     # if platform == 'this':
     #     platform = (sys.platform != 'win32')  includes 64-bit Windows
     # if platform == 1:  # POSIX

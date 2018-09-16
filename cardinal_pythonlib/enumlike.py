@@ -21,6 +21,73 @@
     limitations under the License.
 
 ===============================================================================
+
+**Enum-based classes**
+
+See https://docs.python.org/3/library/enum.html.
+
+The good things about enums are:
+
+- they are immutable
+- they are "class-like", not "instance-like"
+- they can be accessed via attribute (like an object) or item (like a dict):
+- you can add a ``@unique`` decorator to ensure no two have the same value
+- IDEs know about them
+
+``AttrDict``'s disadvantages are:
+
+- more typing / DRY
+- IDEs don't know about them
+
+Plain old objects:
+
+- not immutable
+- no dictionary access -- though can use ``getattr()``
+- but otherwise simpler than enums
+
+LowerCaseAutoStringObject:
+
+- IDEs don't understand their values, so get types wrong
+
+.. code-block:: python
+
+    from enum import Enum
+
+    class Colour(Enum):
+        red = 1
+        green = 2
+        blue = 3
+
+    Colour.red  # <Colour.red: 1>
+    Colour.red.name  # 'red'
+    Colour.red.value  # 1
+    Colour['red']  # <Colour.red: 1>
+
+    Colour.red = 4  # AttributeError: Cannot reassign members.
+
+Then, for fancier things below, note that:
+
+.. code-block:: none
+
+    metaclass
+        __prepare__(mcs, name, bases)
+            ... prepares (creates) the class namespace
+            ... use if you don't want the namespace to be a plain dict()
+            ... https://docs.python.org/3/reference/datamodel.html
+            ... returns the (empty) namespace
+        __new__(mcs, name, bases, namespace)
+            ... called with the populated namespace
+            ... makes and returns the class object, cls
+
+    class
+        __new__(cls)
+            ... controls the creation of a new instance; static classmethod
+            ... makes self
+
+        __init__(self)
+            ... controls the initialization of an instance
+
+
 """
 
 import collections
@@ -40,70 +107,6 @@ log.addHandler(logging.NullHandler())
 # =============================================================================
 # Enum-based classes
 # =============================================================================
-"""
-https://docs.python.org/3/library/enum.html
-
-The good things about enums are:
-- they are immutable
-- they are "class-like", not "instance-like"
-- they can be accessed via attribute (like an object) or item (like a dict):
-- you can add a "@unique" decorator to ensure no two have the same value
-- IDEs know about them
-
-AttrDict's disadvantages are:
-- more typing / DRY
-- IDEs don't know about them
-
-Plain old objects:
-- not immutable
-- no dictionary access -- though can use getattr()
-- but otherwise simpler than enums
-
-LowerCaseAutoStringObject:
-- IDEs don't understand their values, so get types wrong
-
-
-from enum import Enum
-
-class Colour(Enum):
-    red = 1
-    green = 2
-    blue = 3
-
-Colour.red  # <Colour.red: 1>
-Colour.red.name  # 'red'
-Colour.red.value  # 1
-Colour['red']  # <Colour.red: 1>
-
-Colour.red = 4  # AttributeError: Cannot reassign members.
-
-Then, for fancier things below, note that:
-
-    metaclass
-        __prepare__(mcs, name, bases)
-            ... prepares (creates) the class namespace
-            ... use if you don't want the namespace to be a plain dict()
-            ... https://docs.python.org/3/reference/datamodel.html
-            ... returns the (empty) namespace
-        __new__(mcs, name, bases, namespace)
-            ... called with the populated namespace
-            ... makes and returns the class object, cls
-
-    class
-        __new__(cls)
-            ... controls the creation of a new instance; static classmethod
-            ... makes self
-
-        __init__(self) controls the initialization of an instance
-
-"""
-
-# -----------------------------------------------------------------------------
-# StrEnum:
-# - makes str(myenum.x) give str(myenum.x.value)
-# - adds a lookup function (from a string literal)
-# - adds ordering by value
-# -----------------------------------------------------------------------------
 
 STR_ENUM_FWD_REF = "StrEnum"
 # class name forward reference for type checker:
@@ -114,6 +117,14 @@ STR_ENUM_FWD_REF = "StrEnum"
 
 
 class StrEnum(Enum):
+    """
+    StrEnum:
+
+    - makes ``str(myenum.x)`` give ``str(myenum.x.value)``
+    - adds a lookup function (from a string literal)
+    - adds ordering by value
+
+    """
     def __str__(self) -> str:
         return str(self.value)
 
@@ -136,15 +147,13 @@ class StrEnum(Enum):
 # -----------------------------------------------------------------------------
 # AutoStrEnum
 # -----------------------------------------------------------------------------
-# http://stackoverflow.com/questions/32214614/automatically-setting-an-enum-members-value-to-its-name/32215467
-# ... and then inherit from StrEnum rather than Enum
 
 class AutoStrEnumMeta(EnumMeta):
     # noinspection PyInitNewSignature
     def __new__(mcs, cls, bases, oldclassdict):
         """
-        Scan through `oldclassdict` and convert any value that is a plain tuple
-        into a `str` of the name instead
+        Scan through ``oldclassdict`` and convert any value that is a plain
+        tuple into a ``str`` of the name instead.
         """
         newclassdict = _EnumDict()
         for k, v in oldclassdict.items():
@@ -157,31 +166,40 @@ class AutoStrEnumMeta(EnumMeta):
 class AutoStrEnum(str,
                   StrEnum,  # was Enum,
                   metaclass=AutoStrEnumMeta):
-    """base class for name=value str enums"""
+    """
+    Base class for ``name=value`` ``str`` enums.
+    
+    Example:
+        
+    .. code-block:: python
+    
+        class Animal(AutoStrEnum):
+            horse = ()
+            dog = ()
+            whale = ()
+        
+        print(Animal.horse)
+        print(Animal.horse == 'horse')
+        print(Animal.horse.name, Animal.horse.value)
 
+    See
+    http://stackoverflow.com/questions/32214614/automatically-setting-an-enum-members-value-to-its-name/32215467
+    and then inherit from :class:`StrEnum` rather than :class:`Enum`.
 
-# class Animal(AutoStrEnum):
-#     horse = ()
-#     dog = ()
-#     whale = ()
-#
-# print(Animal.horse)
-# print(Animal.horse == 'horse')
-# print(Animal.horse.name, Animal.horse.value)
+    """  # noqa
+    pass
 
 
 # -----------------------------------------------------------------------------
-# AutoStrEnum
+# LowerCaseAutoStrEnumMeta
 # -----------------------------------------------------------------------------
-# http://stackoverflow.com/questions/32214614/automatically-setting-an-enum-members-value-to-its-name/32215467
-# ... and then inherit from StrEnum rather than Enum
 
 class LowerCaseAutoStrEnumMeta(EnumMeta):
     # noinspection PyInitNewSignature
     def __new__(mcs, cls, bases, oldclassdict):
         """
-        Scan through `oldclassdict` and convert any value that is a plain tuple
-        into a `str` of the name instead
+        Scan through ``oldclassdict`` and convert any value that is a plain
+        tuple into a ``str`` of the name instead.
         """
         newclassdict = _EnumDict()
         for k, v in oldclassdict.items():
@@ -194,17 +212,24 @@ class LowerCaseAutoStrEnumMeta(EnumMeta):
 
 
 class LowerCaseAutoStrEnum(str, StrEnum, metaclass=LowerCaseAutoStrEnumMeta):
-    """base class for name=value str enums, forcing lower-case values"""
+    """
+    Base class for ``name=value`` ``str`` enums, forcing lower-case values.
 
+    Example:
 
-# class AnimalLC(LowerCaseAutoStrEnum):
-#     Horse = ()
-#     Dog = ()
-#     Whale = ()
-#
-# print(AnimalLC.Horse)
-# print(AnimalLC.Horse == 'horse')
-# print(AnimalLC.Horse.name, AnimalLC.Horse.value)
+    .. code-block:: python
+
+        class AnimalLC(LowerCaseAutoStrEnum):
+            Horse = ()
+            Dog = ()
+            Whale = ()
+
+        print(AnimalLC.Horse)
+        print(AnimalLC.Horse == 'horse')
+        print(AnimalLC.Horse.name, AnimalLC.Horse.value)
+
+    """
+    pass
 
 
 # -----------------------------------------------------------------------------
@@ -213,15 +238,19 @@ class LowerCaseAutoStrEnum(str, StrEnum, metaclass=LowerCaseAutoStrEnumMeta):
 
 class AutoNumberEnum(Enum):
     """
-    https://docs.python.org/3/library/enum.html (in which, called AutoNumber)
+    As per https://docs.python.org/3/library/enum.html (in which, called
+    AutoNumber).
+
     Usage:
+
+    .. code-block:: python
+
         class Color(AutoNumberEnum):
             red = ()
             green = ()
             blue = ()
 
-        Color.green.value == 2
-        # True
+        Color.green.value == 2  # True
     """
     def __new__(cls):
         value = len(cls.__members__) + 1  # will be numbered from 1
@@ -230,28 +259,20 @@ class AutoNumberEnum(Enum):
         return obj
 
 
-"""
-class Color(AutoNumberEnum):
-    red = ()
-    green = ()
-    blue = ()
-"""
-
-
 # -----------------------------------------------------------------------------
 # AutoNumberObject
 # -----------------------------------------------------------------------------
-# From comment by Duncan Booth at
-# http://www.acooke.org/cute/Pythonssad0.html
-# ... with trivial rename
 
 class AutoNumberObjectMetaClass(type):
     @classmethod
     def __prepare__(mcs, name, bases):  # mcs: was metaclass
         """
-        Called when AutoEnum (below) is defined, prior to __new__, with:
-        name = 'AutoEnum'
-        bases = ()
+        Called when AutoEnum (below) is defined, prior to ``__new__``, with:
+
+        .. code-block:: python
+
+            name = 'AutoEnum'
+            bases = ()
         """
         # print("__prepare__: name={}, bases={}".format(
         #     repr(name), repr(bases)))
@@ -262,18 +283,20 @@ class AutoNumberObjectMetaClass(type):
         """
         Called when AutoEnum (below) is defined, with:
 
-        name = 'AutoEnum'
-        bases = ()
-        classdict = defaultdict(<method-wrapper '__next__' of itertools.count
-                object at 0x7f7d8fc5f648>,
-            {
-                '__doc__': '... a docstring... ',
-                '__qualname__': 'AutoEnum',
-                '__name__': 0,
-                '__module__': 0
-            }
-        )
-        """
+        .. code-block:: python
+        
+            name = 'AutoEnum'
+            bases = ()
+            classdict = defaultdict(<method-wrapper '__next__' of itertools.count
+                    object at 0x7f7d8fc5f648>,
+                {
+                    '__doc__': '... a docstring... ',
+                    '__qualname__': 'AutoEnum',
+                    '__name__': 0,
+                    '__module__': 0
+                }
+            )
+        """  # noqa
         # print("__new__: name={}, bases={}, classdict={}".format(
         #     repr(name), repr(bases), repr(classdict)))
         cls = type.__new__(mcs, name, bases, dict(classdict))
@@ -282,7 +305,13 @@ class AutoNumberObjectMetaClass(type):
 
 class AutoNumberObject(metaclass=AutoNumberObjectMetaClass):
     """
+    From comment by Duncan Booth at
+    http://www.acooke.org/cute/Pythonssad0.html, with trivial rename.
+
     Usage:
+
+    .. code-block:: python
+
         class MyThing(AutoNumberObject):
             a
             b
@@ -323,14 +352,15 @@ class LowerCaseAutoStringObjectMetaClass(type):
 class LowerCaseAutoStringObject(metaclass=LowerCaseAutoStringObjectMetaClass):
     """
     Usage:
+
+    .. code-block:: python
+
         class Wacky(LowerCaseAutoStringObject):
             Thing  # or can use Thing = () to avoid IDE complaints
             OtherThing = ()
 
-        Wacky.Thing
-        # 'thing'
-        Wacky.OtherThing
-        # 'otherthing'
+        Wacky.Thing  # 'thing'
+        Wacky.OtherThing  # 'otherthing'
     """
     pass
 
@@ -360,12 +390,14 @@ class AutoStringObjectMetaClass(type):
 class AutoStringObject(metaclass=AutoStringObjectMetaClass):
     """
     Usage:
+
+    .. code-block:: python
+
         class Fish(AutoStringObject):
             Thing
             Blah
 
-        Fish.Thing
-        # 'Thing'
+        Fish.Thing  # 'Thing'
     """
     pass
 
@@ -384,7 +416,10 @@ class AutoStringObject(metaclass=AutoStringObjectMetaClass):
 # =============================================================================
 
 class AttrDict(dict):
-    # http://stackoverflow.com/questions/4984647
+    """
+    Dictionary with attribute access; see
+    http://stackoverflow.com/questions/4984647
+    """
     def __init__(self, *args, **kwargs) -> None:
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
@@ -396,8 +431,10 @@ class AttrDict(dict):
 # for attrdict itself: use the attrdict package
 
 class OrderedNamespace(object):
-    # http://stackoverflow.com/questions/455059
-    # ... modified for init
+    """
+    As per http://stackoverflow.com/questions/455059, modified for
+    ``__init__``.
+    """
     def __init__(self, *args):
         super().__setattr__('_odict', OrderedDict(*args))
 

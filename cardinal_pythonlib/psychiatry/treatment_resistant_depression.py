@@ -22,7 +22,8 @@
 
 ===============================================================================
 
-Helper functions for algorithmic definitions of treatment-resistant depression.
+**Helper functions for algorithmic definitions of treatment-resistant
+depression.**
 
 Performance notes:
 
@@ -115,6 +116,9 @@ else:
 
 
 def timedelta_days(days: int) -> timedelta64:
+    """
+    Convert a duration in days to a NumPy ``timedelta64`` object.
+    """
     int_days = int(days)
     if int_days != days:
         raise ValueError("Fractional days passed to timedelta_days: "
@@ -131,7 +135,7 @@ def timedelta_days(days: int) -> timedelta64:
 def _get_generic_two_antidep_episodes_result(
         rowdata: Tuple[Any, ...] = None) -> DataFrame:
     """
-    Create a results row.
+    Create a results row for this application.
     """
     # Valid data types... see:
     # - pandas.core.dtypes.common.pandas_dtype
@@ -155,6 +159,9 @@ def _get_generic_two_antidep_episodes_result(
 
 
 def _get_blank_two_antidep_episodes_result() -> DataFrame:
+    """
+    Returns a blank results row.
+    """
     return _get_generic_two_antidep_episodes_result()
 
 
@@ -169,7 +176,9 @@ def two_antidepressant_episodes_single_patient(
         symptom_assessment_time_days: int =
         DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS) -> Optional[DataFrame]:
     """
-    Processes a single patient for two_antidepressant_episodes() (q.v.).
+    Processes a single patient for ``two_antidepressant_episodes()`` (q.v.).
+
+    Implements the key algorithm.
     """
     log.debug("Running two_antidepressant_episodes_single_patient() for "
               "patient {!r}".format(patient_id))
@@ -338,9 +347,11 @@ def two_antidepressant_episodes(
         DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,
         n_threads: int = DEFAULT_N_THREADS) -> DataFrame:
     """
-    Takes a pandas DataFrame patient_drug_date_df (or, via reticulate, an R
-    data.frame or data.table). This should contain dated present-tense
+    Takes a *pandas* ``DataFrame``, ``patient_drug_date_df`` (or, via ``reticulate``, an R
+    ``data.frame`` or ``data.table``). This should contain dated present-tense
     references to antidepressant drugs (only).
+
+    Returns a set of result rows as a ``DataFrame``.
     """
     # Say hello
     log.info("Running two_antidepressant_episodes...")

@@ -22,38 +22,45 @@
 
 ===============================================================================
 
+**SQL grammar parser: keywords, base class, and test functions.**
+
 Two approaches:
 
-- sqlparse
-  https://sqlparse.readthedocs.io/en/latest/
-  ... LESS GOOD.
+- sqlparse (https://sqlparse.readthedocs.io/en/latest/)... LESS GOOD.
 
 - pyparsing
-  https://pyparsing.wikispaces.com/file/view/select_parser.py
-  http://pyparsing.wikispaces.com/file/view/simpleSQL.py
-  http://sacharya.com/parsing-sql-with-pyparsing/
-  http://bazaar.launchpad.net/~eleybourn/temporal-proxy/devel/view/head:/parser.py  # noqa
-  http://pyparsing.wikispaces.com/file/view/select_parser.py/158651233/select_parser.py  # noqa
+
+  - https://pyparsing.wikispaces.com/file/view/select_parser.py
+  - http://pyparsing.wikispaces.com/file/view/simpleSQL.py
+  - http://sacharya.com/parsing-sql-with-pyparsing/
+  - http://bazaar.launchpad.net/~eleybourn/temporal-proxy/devel/view/head:/parser.py
+  - http://pyparsing.wikispaces.com/file/view/select_parser.py/158651233/select_parser.py
 
   - Maximum recursion depth exceeded:
+  
     http://pyparsing.wikispaces.com/share/view/11262229
 
   - Match-first (|) versus match-longest (^):
+  
     http://pyparsing.wikispaces.com/HowToUsePyparsing
 
   - How to do arithmetic recursive parsing:
+  
     http://stackoverflow.com/questions/1345039
 
   - Somebody else's MySQL parser:
+  
     https://github.com/gburns/mysql_pyparsing/blob/master/src/sqlparser.py
 
   - ... or generic SQL:
-    http://pyparsing.wikispaces.com/file/view/select_parser.py/158651233/select_parser.py  # noqa
+  
+    http://pyparsing.wikispaces.com/file/view/select_parser.py/158651233/select_parser.py
 
 ANSI SQL syntax:
-    http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
-    ... particularly the formal specifications in chapter 5 on wards
-"""
+
+- http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
+    ... particularly the formal specifications in chapter 5 on words
+"""  # noqa
 
 import logging
 import re
@@ -609,6 +616,9 @@ def statement_and_failure_marker(text: str,
 # =============================================================================
 
 class SqlGrammar(object):
+    """
+    Base class for implementing an SQL grammar.
+    """
     # For type checker:
     bare_identifier_word = None
     column_spec = None
@@ -628,6 +638,11 @@ class SqlGrammar(object):
     @classmethod
     def quote_identifier_if_required(cls, identifier: str,
                                      debug_force_quote: bool = False) -> str:
+        """
+        Transforms a SQL identifier (such as a column name) into a version
+        that is quoted if required (or, with ``debug_force_quote=True``, is
+        quoted regardless).
+        """
         if debug_force_quote:
             return cls.quote_identifier(identifier)
         if cls.is_quoted(identifier):
@@ -638,58 +653,167 @@ class SqlGrammar(object):
 
     @classmethod
     def quote_identifier(cls, identifier: str) -> str:
+        """
+        Quotes an SQL identifier (e.g. table or column name);
+        e.g. some databases use ``[name]``, some use ```name```).
+        """
         raise NotImplementedError()
 
     @classmethod
     def is_quoted(cls, identifier: str) -> bool:
+        """
+        Determines whether an SQL identifier (e.g. table or column name) is
+        already quoted.
+        """
         raise NotImplementedError()
 
     @classmethod
     def requires_quoting(cls, identifier: str) -> bool:
+        """
+        Determines whether an SQL identifier (e.g. table or column name)
+        requires to be quoted.
+        """
         raise NotImplementedError()
 
     @classmethod
-    def get_grammar(cls):
+    def get_grammar(cls) -> ParserElement:
+        """
+        Returns the full SQL grammar parser.
+        """
         raise NotImplementedError()
 
     @classmethod
-    def get_column_spec(cls):
+    def get_column_spec(cls) -> ParserElement:
+        """
+        Returns a parser element representing an SQL column name, such as
+
+        .. code-block:: sql
+
+            somecol
+            sometable.somecol
+            somedb.sometable.somecol
+
+        """
         raise NotImplementedError()
 
     @classmethod
-    def get_result_column(cls):
+    def get_result_column(cls) -> ParserElement:
+        """
+        Returns a parser element representing an SQL result column, such as
+
+        .. code-block:: sql
+
+            somecol
+            somecol AS somealias
+            COUNT(*) AS total
+            3
+
+        """
         raise NotImplementedError()
 
     @classmethod
-    def get_join_op(cls):
+    def get_join_op(cls) -> ParserElement:
+        """
+        Returns a parser element representing an SQL JOIN operation, such as
+
+        .. code-block:: sql
+
+            JOIN
+            INNER JOIN
+            LEFT OUTER JOIN
+
+        """
         raise NotImplementedError()
 
     @classmethod
-    def get_table_spec(cls):
+    def get_table_spec(cls) -> ParserElement:
+        """
+        Returns a parser element representing an SQL table name, such as
+
+        .. code-block:: sql
+
+            sometable
+            somedb.sometable
+
+        """
         raise NotImplementedError()
 
     @classmethod
-    def get_join_constraint(cls):
+    def get_join_constraint(cls) -> ParserElement:
+        """
+        Returns a parser element representing an SQL join constraint, such as
+
+        .. code-block:: sql
+
+            ON customer.id = sale.customer_id
+
+        """
         raise NotImplementedError()
 
     @classmethod
-    def get_select_statement(cls):
+    def get_select_statement(cls) -> ParserElement:
+        """
+        Returns a parser element representing an SQL SELECT statement, such as
+
+        .. code-block:: sql
+
+            SELECT a, b FROM sometable WHERE c = 5;
+            SELECT a, COUNT(*) FROM sometable INNER JOIN othertable ON
+                sometable.c = othertable.c GROUP BY a;
+
+        """
         raise NotImplementedError()
 
     @classmethod
-    def get_expr(cls):
+    def get_expr(cls) -> ParserElement:
+        """
+        Returns a parser element representing an SQL expression, such as
+
+        .. code-block:: sql
+
+            somecol
+            17
+            NOT(LENGTH(LEFT(somecol, 5)) + 3 < othercol % 4)
+
+        """
         raise NotImplementedError()
 
     @classmethod
-    def get_where_clause(cls):
+    def get_where_clause(cls) -> ParserElement:
+        """
+        Returns a parser element representing an SQL WHERE clause (the
+        ``WHERE`` keyword followed by a WHERE expression), such as
+
+        .. code-block:: sql
+
+            WHERE a > 3
+            WHERE LENGTH(a) < c + 2
+
+        """
         raise NotImplementedError()
 
     @classmethod
-    def get_where_expr(cls):
+    def get_where_expr(cls) -> ParserElement:
+        """
+        Returns a parser element representing an SQL WHERE expression (the
+        condition without the ``WHERE`` keyword itself), such as
+
+        .. code-block:: sql
+
+            a > 3
+            LENGTH(a) < c + 2
+
+        """
         raise NotImplementedError()
 
     @classmethod
-    def test(cls, test_expr: bool = True):
+    def test(cls, test_expr: bool = True) -> None:
+        """
+        Runs self-tests.
+
+        Args:
+            test_expr: include tests of expressions (which can be slow).
+        """
         cls.test_dialect_specific_1()
         cls.test_identifiers()
         if test_expr:
@@ -699,14 +823,25 @@ class SqlGrammar(object):
 
     @classmethod
     def test_select(cls, text: str) -> None:
+        """
+        Tests the SELECT statement against the specified text, and ensure it
+        parses successfully.
+        """
         test_succeed(cls.select_statement, text)
 
     @classmethod
     def test_select_fail(cls, text: str) -> None:
+        """
+        Tests the SELECT statement against the specified text, and ensure it
+        *fails* to parse.
+        """
         test_fail(cls.select_statement, text)
 
     @classmethod
-    def test_identifiers(cls):
+    def test_identifiers(cls) -> None:
+        """
+        Tests parsing of SQL keywords.
+        """
         # ---------------------------------------------------------------------
         # Identifiers
         # ---------------------------------------------------------------------
@@ -742,7 +877,10 @@ class SqlGrammar(object):
         test_fail(cls.column_spec, "mydb . mytable . mycol")
 
     @classmethod
-    def test_expr(cls):
+    def test_expr(cls) -> None:
+        """
+        Tests parsing of basic expressions.
+        """
         # ---------------------------------------------------------------------
         # Expressions
         # ---------------------------------------------------------------------
@@ -795,7 +933,10 @@ class SqlGrammar(object):
         test_fail(cls.expr, "one two three four")
 
     @classmethod
-    def test_sql_core(cls):
+    def test_sql_core(cls) -> None:
+        """
+        Tests some core SQL features.
+        """
         log.info("Testing join_op")
         test_succeed(cls.join_op, ",")
         test_succeed(cls.join_op, "INNER JOIN")
@@ -861,15 +1002,24 @@ class SqlGrammar(object):
         test_succeed(cls.get_result_column(), "NULL AS alias")
 
     @classmethod
-    def test_dialect_specific_1(cls):
+    def test_dialect_specific_1(cls) -> None:
+        """
+        Override this to add dialect-specific tests (#1).
+        """
         pass
 
     @classmethod
-    def test_dialect_specific_2(cls):
+    def test_dialect_specific_2(cls) -> None:
+        """
+        Override this to add dialect-specific tests (#2).
+        """
         pass
 
 
 def test_base_elements() -> None:
+    """
+    Test basic SQL elements.
+    """
     # -------------------------------------------------------------------------
     # pyparsing tests
     # -------------------------------------------------------------------------
@@ -956,6 +1106,9 @@ def test_base_elements() -> None:
 # =============================================================================
 
 def main() -> None:
+    """
+    Command-line entry point to run tests.
+    """
     # blank = ''
     # p_blank = parsed_from_text(blank)
     # p_sql1 = parsed_from_text(sql1)

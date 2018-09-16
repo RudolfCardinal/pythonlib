@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions to inspect and copy SQLAlchemy ORM objects.**
+
 """
 
 import logging
@@ -60,21 +63,29 @@ log = BraceStyleAdapter(log)
 def coltype_as_typeengine(coltype: Union[VisitableType,
                                          TypeEngine]) -> TypeEngine:
     """
+    Instances of SQLAlchemy column types are subclasses of ``TypeEngine``.
+    It's possible to specify column types either as such instances, or as the
+    class type. This function ensures that such classes are converted to
+    instances.
+
     To explain: you can specify columns like
+
+    .. code-block:: python
+
         a = Column("a", Integer)
         b = Column("b", Integer())
         c = Column("c", String(length=50))
 
-    isinstance(Integer, TypeEngine)  # False
-    isinstance(Integer(), TypeEngine)  # True
-    isinstance(String(length=50), TypeEngine)  # True
+        isinstance(Integer, TypeEngine)  # False
+        isinstance(Integer(), TypeEngine)  # True
+        isinstance(String(length=50), TypeEngine)  # True
 
-    type(Integer)  # <class 'sqlalchemy.sql.visitors.VisitableType'>
-    type(Integer())  # <class 'sqlalchemy.sql.sqltypes.Integer'>
-    type(String)  # <class 'sqlalchemy.sql.visitors.VisitableType'>
-    type(String(length=50))  # <class 'sqlalchemy.sql.sqltypes.String'>
+        type(Integer)  # <class 'sqlalchemy.sql.visitors.VisitableType'>
+        type(Integer())  # <class 'sqlalchemy.sql.sqltypes.Integer'>
+        type(String)  # <class 'sqlalchemy.sql.visitors.VisitableType'>
+        type(String(length=50))  # <class 'sqlalchemy.sql.sqltypes.String'>
 
-    This function coerces things to a TypeEngine.
+    This function coerces things to a :class:`TypeEngine`.
     """
     if isinstance(coltype, TypeEngine):
         return coltype
@@ -82,15 +93,20 @@ def coltype_as_typeengine(coltype: Union[VisitableType,
 
 
 # =============================================================================
-# Mixin to:
-# - get plain dictionary-like object (with attributes so we can use x.y rather
-#   than x['y']) from an SQLAlchemy ORM object
-# - make a nice repr() default, maintaining field order
+# SqlAlchemyAttrDictMixin
 # =============================================================================
 
 class SqlAlchemyAttrDictMixin(object):
-    # See http://stackoverflow.com/questions/2537471
-    # but more: http://stackoverflow.com/questions/2441796
+    """
+    Mixin to:
+
+    - get a plain dictionary-like object (with attributes so we can use ``x.y``
+      rather than ``x['y']``) from an SQLAlchemy ORM object
+    - make a nice ``repr()`` default, maintaining field order
+
+    See http://stackoverflow.com/questions/2537471 and in particular
+    http://stackoverflow.com/questions/2441796.
+    """
 
     def get_attrdict(self) -> OrderedNamespace:
         """
@@ -135,9 +151,39 @@ def walk_orm_tree(obj,
     Starting with a SQLAlchemy ORM object, this function walks a
     relationship tree, yielding each of the objects once.
 
-    To skip attributes by name, put the attribute name(s) in skip_attrs_always.
+    To skip attributes by name, put the attribute name(s) in ``skip_attrs_always``.
     To skip by table name, pass skip_attrs_by_tablename as e.g.
+
+    .. code-block:: python
+
         {'sometable': ['attr1_to_skip', 'attr2_to_skip']}
+
+
+    Args:
+        obj: the SQLAlchemy ORM object to walk
+
+        debug: be verbose
+
+        seen: usually ``None``, but can be a set of objects marked as "already
+            seen"; if an object is in this set, it is skipped
+
+        skip_relationships_always: relationships are skipped if the
+            relationship has a name in this (optional) list
+
+        skip_relationships_by_tablename: optional dictionary mapping table
+            names (keys) to relationship attribute names (values); if the
+            "related table"/"relationship attribute" pair are in this
+            dictionary, the relationship is skipped
+
+        skip_all_relationships_for_tablenames: relationships are skipped if the
+            the related table has a name in this (optional) list
+
+        skip_all_objects_for_tablenames: if the object belongs to a table whose
+            name is in this (optional) list, the object is skipped
+
+    Yields:
+        SQLAlchemy ORM objects (including the starting object)
+
     """
     # http://docs.sqlalchemy.org/en/latest/faq/sessions.html#faq-walk-objects
     skip_relationships_always = skip_relationships_always or []  # type: List[str]  # noqa
@@ -199,9 +245,19 @@ def copy_sqla_object(obj: object,
                      debug: bool = False) -> object:
     """
     Given an SQLAlchemy object, creates a new object (FOR WHICH THE OBJECT
-    MUST SUPPORT CREATION USING __init__() WITH NO PARAMETERS), and copies
+    MUST SUPPORT CREATION USING ``__init__()`` WITH NO PARAMETERS), and copies
     across all attributes, omitting PKs (by default), FKs (by default), and
-    relationship attributes.
+    relationship attributes (always omitted).
+
+    Args:
+        obj: the object to copy
+        omit_fk: omit foreign keys (FKs)?
+        omit_pk: omit primary keys (PKs)?
+        omit_attrs: attributes (by name) not to copy
+        debug: be verbose
+        
+    Returns:
+        a new copy of the object
     """
     omit_attrs = omit_attrs or []  # type: List[str]
     cls = type(obj)
@@ -242,10 +298,52 @@ def rewrite_relationships(oldobj: object,
     A utility function only.
     Used in copying objects between SQLAlchemy sessions.
 
-    Both "oldobj" and "newobj" are SQLAlchemy instances.
-    The instance "newobj" is already a copy of "oldobj" but we wish to rewrite
-    its relationships, according to the map "objmap", which maps old to new
+    Both ``oldobj`` and ``newobj`` are SQLAlchemy instances. The instance
+    ``newobj`` is already a copy of ``oldobj`` but we wish to rewrite its
+    relationships, according to the map ``objmap``, which maps old to new
     objects.
+
+    For example:
+
+    - Suppose a source session has a Customer record and a Sale record
+      containing ``sale.customer_id``, a foreign key to Customer.
+
+    - We may have corresponding Python SQLAlchemy ORM objects
+      ``customer_1_src`` and ``sale_1_src``.
+
+    - We copy them into a destination database, where their Python ORM objects
+      are ``customer_1_dest`` and ``sale_1_dest``.
+
+    - In the process we set up an object map looking like:
+
+      .. code-block:: none
+
+        Old session     New session
+        -------------------------------
+        customer_1_src  customer_1_dest
+        sale_1_src      sale_1_dest
+
+    - Now, we wish to make ``sale_1_dest`` have a relationship to
+      ``customer_1_dest``, in the same way that ``sale_1_src`` has a
+      relationship to ``customer_1_src``. This function will modify
+      ``sale_1_dest`` accordingly, given this object map. It will observe that
+      ``sale_1_src`` (here ``oldobj``) has a relationship to
+      ``customer_1_src``; it will note that ``objmap`` maps ``customer_1_src``
+      to ``customer_1_dest``; it will create the relationship from
+      ``sale_1_dest`` (here ``newobj``) to ``customer_1_dest``.
+
+    Args:
+        oldobj: SQLAlchemy ORM object to read from
+
+        newobj: SQLAlchemy ORM object to write to
+
+        objmap: dictionary mapping "source" objects to their corresponding
+            "destination" object.
+
+        debug: be verbose
+
+        skip_table_names: if a related table's name is in this (optional) list,
+            that relationship is skipped
     """
     skip_table_names = skip_table_names or []  # type: List[str]
     insp = inspect(oldobj)  # type: InstanceState
@@ -294,7 +392,37 @@ def deepcopy_sqla_objects(
         debug_rewrite_rel: bool = False,
         objmap: Dict[object, object] = None) -> None:
     """
-    Multi-object version of deepcopy_sqla_object.
+    Makes a copy of the specified SQLAlchemy ORM objects, inserting them into a
+    new session.
+
+    This function operates in several passes:
+
+    1. Walk the ORM tree through all objects and their relationships, copying
+       every object thus found (via :func:`copy_sqla_object`, without their
+       relationships), and building a map from each source-session object to
+       its equivalent destination-session object.
+
+    2. Work through all the destination objects, rewriting their relationships
+       (via :func:`rewrite_relationships`) so they relate to each other (rather
+       than their source-session brethren).
+
+    3. Insert all the destination-session objects into the destination session.
+
+    For this to succeed, every object must take an ``__init__`` call with no
+    arguments (see :func:`copy_sqla_object`). (We can't specify the required
+    ``args``/``kwargs``, since we are copying a tree of arbitrary objects.)
+
+    Args:
+        startobjs: SQLAlchemy ORM objects to copy
+        session: destination SQLAlchemy :class:`Session` into which to insert
+            the copies
+        flush: flush the session when we've finished?
+        debug: be verbose?
+        debug_walk: be extra verbose when walking the ORM tree?
+        debug_rewrite_rel: be extra verbose when rewriting relationships?
+        objmap: starting object map from source-session to destination-session
+            objects (see :func:`rewrite_relationships` for more detail);
+            usually ``None`` to begin with.
     """
     if objmap is None:
         objmap = {}  # keys = old objects, values = new objects
@@ -349,10 +477,9 @@ def deepcopy_sqla_object(startobj: object,
                          debug_rewrite_rel: bool = False,
                          objmap: Dict[object, object] = None) -> object:
     """
-    Makes a copy of the object, inserting it into "session".
-    For this to succeed, the object must take a __init__ call with no
-    arguments. (We can't specify the required args/kwargs, since we are copying
-    a tree of arbitrary objects.)
+    Makes a copy of the object, inserting it into ``session``.
+
+    Uses :func:`deepcopy_sqla_objects` (q.v.).
 
     A problem is the creation of duplicate dependency objects if you call it
     repeatedly.
@@ -360,7 +487,21 @@ def deepcopy_sqla_object(startobj: object,
     Optionally, if you pass the objmap in (which maps old to new objects), you
     can call this function repeatedly to clone a related set of objects...
     ... no, that doesn't really work, as it doesn't visit parents before
-    children. The merge_db() function does that properly.
+    children. The :func:`cardinal_pythonlib.sqlalchemy.merge_db.merge_db`
+    function does that properly.
+
+    Args:
+        startobj: SQLAlchemy ORM object to deep-copy
+        session: see :func:`deepcopy_sqla_objects`
+        flush: see :func:`deepcopy_sqla_objects`
+        debug: see :func:`deepcopy_sqla_objects`
+        debug_walk: see :func:`deepcopy_sqla_objects`
+        debug_rewrite_rel: see :func:`deepcopy_sqla_objects`
+        objmap: see :func:`deepcopy_sqla_objects`
+
+    Returns:
+        the copied object matching ``startobj``
+
     """
     deepcopy_sqla_objects(
         startobjs=[startobj],
@@ -380,8 +521,12 @@ def deepcopy_sqla_object(startobj: object,
 
 def gen_columns(obj) -> Generator[Tuple[str, Column], None, None]:
     """
-    Yields tuples of (attr_name, Column) from an SQLAlchemy ORM object
-    instance. ALSO works with the corresponding SQLAlchemy ORM class. Examples:
+    Asks a SQLAlchemy ORM object: "what are your SQLAlchemy columns?"
+
+    Yields tuples of ``(attr_name, Column)`` from an SQLAlchemy ORM object
+    instance. Also works with the corresponding SQLAlchemy ORM class. Examples:
+
+    .. code-block:: python
 
         from sqlalchemy.ext.declarative import declarative_base
         from sqlalchemy.sql.schema import Column
@@ -418,6 +563,16 @@ def gen_columns(obj) -> Generator[Tuple[str, Column], None, None]:
 
 
 def get_pk_attrnames(obj) -> List[str]:
+    """
+    Asks an SQLAlchemy ORM object: "what are your primary key(s)?"
+
+    Args:
+        obj: SQLAlchemy ORM object
+
+    Returns:
+        list of attribute names of primary-key columns
+
+    """
     return [attrname
             for attrname, column in gen_columns(obj)
             if column.primary_key]
@@ -426,15 +581,18 @@ def get_pk_attrnames(obj) -> List[str]:
 def gen_columns_for_uninstrumented_class(cls: Type) \
         -> Generator[Tuple[str, Column], None, None]:
     """
-    Generate (attr_name, Column) tuples from an UNINSTRUMENTED class, i.e. one
-    that does not inherit from declarative_base(). Use this for mixins of that
-    kind.
+    Generate ``(attr_name, Column)`` tuples from an UNINSTRUMENTED class, i.e.
+    one that does not inherit from ``declarative_base()``. Use this for mixins
+    of that kind.
 
     SUBOPTIMAL. May produce warnings like:
-    SAWarning: Unmanaged access of declarative attribute id from non-mapped class GenericTabletRecordMixin  # noqa
+    
+    .. code-block:: none
+    
+        SAWarning: Unmanaged access of declarative attribute id from non-mapped class GenericTabletRecordMixin
 
-    Try to use gen_columns() instead.
-    """
+    Try to use :func:`gen_columns` instead.
+    """  # noqa
     for attrname in dir(cls):
         potential_column = getattr(cls, attrname)
         if isinstance(potential_column, Column):
@@ -442,6 +600,16 @@ def gen_columns_for_uninstrumented_class(cls: Type) \
 
 
 def attrname_to_colname_dict(cls) -> Dict[str, str]:
+    """
+    Asks an SQLAlchemy class how its attribute names correspond to database
+    column names.
+
+    Args:
+        cls: SQLAlchemy ORM class
+
+    Returns:
+        a dictionary mapping attribute names to database column names
+    """
     attr_col = {}  # type: Dict[str, str]
     for attrname, column in gen_columns(cls):
         attr_col[attrname] = column.name
@@ -459,8 +627,7 @@ def colname_to_attrname_dict(cls) -> Dict[str, str]:
 def gen_relationships(obj) -> Generator[Tuple[str, RelationshipProperty, Type],
                                         None, None]:
     """
-    Yields tuples of
-        (attrname, RelationshipProperty, related_class)
+    Yields tuples of ``(attrname, RelationshipProperty, related_class)``
     for all relationships of an ORM object.
     The object 'obj' can be EITHER an instance OR a class.
     """
@@ -482,7 +649,7 @@ def gen_relationships(obj) -> Generator[Tuple[str, RelationshipProperty, Type],
 
 def get_orm_columns(cls: Type) -> List[Column]:
     """
-    Gets Column objects from an SQLAlchemy ORM class.
+    Gets :class:`Column` objects from an SQLAlchemy ORM class.
     Does not provide their attribute names.
     """
     mapper = inspect(cls)  # type: Mapper
@@ -495,6 +662,10 @@ def get_orm_columns(cls: Type) -> List[Column]:
 
 
 def get_orm_column_names(cls: Type, sort: bool = False) -> List[str]:
+    """
+    Gets column names (that is, database column names) from an SQLAlchemy
+    ORM class.
+    """
     colnames = [col.name for col in get_orm_columns(cls)]
     return sorted(colnames) if sort else colnames
 
@@ -504,16 +675,31 @@ def get_orm_column_names(cls: Type, sort: bool = False) -> List[str]:
 # =============================================================================
 
 def get_table_names_from_metadata(metadata: MetaData) -> List[str]:
+    """
+    Returns all database table names found in an SQLAlchemy :class:`MetaData`
+    object.
+    """
     return [table.name for table in metadata.tables.values()]
 
 
 def get_metadata_from_orm_class_or_object(cls: Type) -> MetaData:
+    """
+    Returns the :class:`MetaData` object from an SQLAlchemy ORM class or
+    instance.
+    """
     # noinspection PyUnresolvedReferences
     table = cls.__table__  # type: Table
     return table.metadata
 
 
 def gen_orm_classes_from_base(base: Type) -> Generator[Type, None, None]:
+    """
+    From an SQLAlchemy ORM base class, yield all the subclasses (except those
+    that are abstract).
+
+    If you begin with the proper :class`Base` class, then this should give all
+    ORM classes in use.
+    """
     for cls in gen_all_subclasses(base):
         if _get_immediate_cls_attr(cls, '__abstract__', strict=True):
             # This is SQLAlchemy's own way of detecting abstract classes; see
@@ -524,8 +710,11 @@ def gen_orm_classes_from_base(base: Type) -> Generator[Type, None, None]:
 
 def get_orm_classes_by_table_name_from_base(base: Type) -> Dict[str, Type]:
     """
-    Given the SQLAlchemy ORM base class, returns a dictionary whose keys are
+    Given an SQLAlchemy ORM base class, returns a dictionary whose keys are
     table names and whose values are ORM classes.
+
+    If you begin with the proper :class`Base` class, then this should give all
+    tables and ORM classes in use.
     """
     # noinspection PyUnresolvedReferences
     return {cls.__tablename__: cls for cls in gen_orm_classes_from_base(base)}

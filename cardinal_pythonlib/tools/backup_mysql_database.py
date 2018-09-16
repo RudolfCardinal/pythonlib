@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Command-line tool to back up a MySQL database to disk, via mysqldump.**
+
 """
 
 import argparse
@@ -37,18 +40,40 @@ from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 log = logging.getLogger(__name__)
 
 
-def cmdargs(args, password: str, database: str,
+def cmdargs(mysqldump: str,
+            username: str,
+            password: str,
+            database: str,
+            verbose: bool,
+            with_drop_create_database: bool,
             hide_password: bool = False) -> List[str]:
+    """
+    Returns command arguments for a ``mysqldump`` call.
+
+    Args:
+        mysqldump: ``mysqldump`` executable filename
+        username: user name
+        password: password
+        database: database name
+        verbose: verbose output?
+        with_drop_create_database: produce commands to ``DROP`` the database
+            and recreate it?
+        hide_password: obscure the password (will break the arguments but
+            provide a safe version to show the user)?
+
+    Returns:
+        list of command-line arguments
+    """
     ca = [
-        args.mysqldump,
-        "-u", args.username,
+        mysqldump,
+        "-u", username,
         "-p{}".format("*****" if hide_password else password),
         "--max_allowed_packet={}".format(args.max_allowed_packet),
         "--hex-blob",  # preferable to raw binary in our .sql file
     ]
-    if args.verbose:
+    if verbose:
         ca.append("--verbose")
-    if args.with_drop_create_database:
+    if with_drop_create_database:
         ca.extend([
             "--add-drop-database",
             "--databases",
@@ -61,6 +86,9 @@ def cmdargs(args, password: str, database: str,
 
 
 def main() -> None:
+    """
+    Command-line processor. See ``--help`` for details.
+    """
     main_only_quicksetup_rootlogger()
     parser = argparse.ArgumentParser(
         description="Back up a specific MySQL database",
@@ -105,8 +133,24 @@ def main() -> None:
         now = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
         outfilename = "{db}_{now}{suffix}.sql".format(db=db, now=now,
                                                       suffix=suffix)
-        display_args = cmdargs(args, password, db, hide_password=True)
-        actual_args = cmdargs(args, password, db)
+        display_args = cmdargs(
+            mysqldump=args.mysqldump,
+            username=args.username,
+            password=args.password,
+            database=db,
+            verbose=args.verbose,
+            with_drop_create_database=args.with_drop_create_database,
+            hide_password=True
+        )
+        actual_args = cmdargs(
+            mysqldump=args.mysqldump,
+            username=args.username,
+            password=args.password,
+            database=db,
+            verbose=args.verbose,
+            with_drop_create_database=args.with_drop_create_database,
+            hide_password=False
+        )
         log.info("Executing: " + repr(display_args))
         log.info("Output file: " + repr(outfilename))
         try:

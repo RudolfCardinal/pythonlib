@@ -22,11 +22,17 @@
 
 ===============================================================================
 
+**Performs a grep (global-regular-expression-print) search of files in OpenXML
+format, which is to say inside ZIP files. See the command-line help for
+details.**
+
 Version history:
-    - Written 28 Sep 2017.
+
+- Written 28 Sep 2017.
 
 Notes:
-    - use the vbindiff tool to show *how* two binary files differ.
+
+- use the ``vbindiff`` tool to show *how* two binary files differ.
 
 """
 
@@ -50,6 +56,19 @@ log = BraceStyleAdapter(logging.getLogger(__name__))
 
 def report_hit_filename(zipfilename: str, contentsfilename: str,
                         show_inner_file: bool) -> None:
+    """
+    For "hits": prints either the ``.zip`` filename, or the ``.zip`` filename
+    and the inner filename.
+
+    Args:
+        zipfilename: filename of the ``.zip`` file
+        contentsfilename: filename of the inner file
+        show_inner_file: if ``True``, show both; if ``False``, show just the
+            ``.zip`` filename
+
+    Returns:
+
+    """
     if show_inner_file:
         print("{} [{}]".format(zipfilename, contentsfilename))
     else:
@@ -57,11 +76,25 @@ def report_hit_filename(zipfilename: str, contentsfilename: str,
 
 
 def report_miss_filename(zipfilename: str) -> None:
+    """
+    For "misses": prints the zip filename.
+    """
     print(zipfilename)
 
 
 def report_line(zipfilename: str, contentsfilename: str, line: str,
                 show_inner_file: bool) -> None:
+    """
+    Prints a line from a file, with the ``.zip`` filename and optionally also
+    the inner filename.
+
+    Args:
+        zipfilename: filename of the ``.zip`` file
+        contentsfilename: filename of the inner file
+        line: the line from the inner file
+        show_inner_file: if ``True``, show both filenames; if ``False``, show
+            just the ``.zip`` filename
+    """
     if show_inner_file:
         print("{} [{}]: {}".format(zipfilename, contentsfilename, line))
     else:
@@ -75,6 +108,21 @@ def parse_zip(zipfilename: str,
               files_without_match: bool,
               grep_inner_file_name: bool,
               show_inner_file: bool) -> None:
+    """
+    Implement a "grep within an OpenXML file" for a single OpenXML file, which
+    is by definition a ``.zip`` file.
+
+    Args:
+        zipfilename: name of the OpenXML (zip) file
+        regex: regular expression to match
+        invert_match: find files that do NOT match, instead of ones that do?
+        files_with_matches: show filenames of files with a match?
+        files_without_match: show filenames of files with no match?
+        grep_inner_file_name: search the names of "inner" files, rather than
+            their contents?
+        show_inner_file: show the names of the "inner" files, not just the
+            "outer" (OpenXML) file?
+    """
     assert not (files_without_match and files_with_matches)
     report_lines = (not files_without_match) and (not files_with_matches)
     report_hit_lines = report_lines and not invert_match
@@ -129,6 +177,10 @@ def parse_zip(zipfilename: str,
 
 
 def main() -> None:
+    """
+    Command-line handler for the ``grep_in_openxml`` tool.
+    Use the ``--help`` option for help.
+    """
     parser = ArgumentParser(
         formatter_class=RawDescriptionHelpFormatter,
         description="""

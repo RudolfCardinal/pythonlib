@@ -22,50 +22,56 @@
 
 ===============================================================================
 
+**Tool to recognize and rescue Microsoft Office OpenXML files, even if they
+have garbage appended to them. See the command-line help for details.**
+
 Version history:
-    - Written 28 Sep 2017.
+
+- Written 28 Sep 2017.
 
 Notes:
-    - use the vbindiff tool to show *how* two binary files differ.
 
-Output from "zip -FF bad.zip --out good.zip":
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- use the ``vbindiff`` tool to show *how* two binary files differ.
 
-Fix archive (-FF) - salvage what can
-    zip warning: Missing end (EOCDR) signature - either this archive
-                     is not readable or the end is damaged
-Is this a single-disk archive?  (y/n):
+Output from ``zip -FF bad.zip --out good.zip``
+
+.. code-block:: none
+
+    Fix archive (-FF) - salvage what can
+        zip warning: Missing end (EOCDR) signature - either this archive
+                         is not readable or the end is damaged
+    Is this a single-disk archive?  (y/n):
 
 ... and note there are some tabs in that, too.
 
-More "zip -FF" output:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+More ``zip -FF`` output:
 
-Fix archive (-FF) - salvage what can
- Found end record (EOCDR) - says expect 50828 splits
-  Found archive comment
-Scanning for entries...
+.. code-block:: none
 
-
-Could not find:
-  /home/rudolf/tmp/ziptest/00008470.z01
-
-Hit c      (change path to where this split file is)
-    s      (skip this split)
-    q      (abort archive - quit)
-    e      (end this archive - no more splits)
-    z      (look for .zip split - the last split)
- or ENTER  (try reading this split again):
+    Fix archive (-FF) - salvage what can
+     Found end record (EOCDR) - says expect 50828 splits
+      Found archive comment
+    Scanning for entries...
 
 
-More "zip -FF" output:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Could not find:
+      /home/rudolf/tmp/ziptest/00008470.z01
 
-See below:
+    Hit c      (change path to where this split file is)
+        s      (skip this split)
+        q      (abort archive - quit)
+        e      (end this archive - no more splits)
+        z      (look for .zip split - the last split)
+     or ENTER  (try reading this split again):
 
-zip: malloc.c:2394: sysmalloc: ...
 
-... this heralds a crash in "zip". We need to kill it; otherwise it just sits
+More ``zip -FF`` output:
+
+.. code-block:: none
+
+    zip: malloc.c:2394: sysmalloc: ...
+
+... this heralds a crash in ``zip``. We need to kill it; otherwise it just sits
 there doing nothing and not asking for any input. Presumably this means the
 file is badly corrupted (or not a zip at all).
 
@@ -125,7 +131,17 @@ ZIP_STDOUT_TERMINATORS = ["\n", "): "]
 
 
 class CorruptedZipReader(object):
+    """
+    Class to open a zip file, even one that is corrupted, and detect the
+    files within.
+    """
     def __init__(self, filename: str, show_zip_output: bool = False) -> None:
+        """
+        Args:
+            filename: filename of the ``.zip`` file (or corrupted ``.zip``
+                file) to open
+            show_zip_output: show the output of the external ``zip`` tool?
+        """
         self.src_filename = filename
         self.rescue_filename = ""
         self.tmp_dir = ""
@@ -183,6 +199,17 @@ class CorruptedZipReader(object):
 
     def move_to(self, destination_filename: str,
                 alter_if_clash: bool = True) -> None:
+        """
+        Move the file to which this class refers to a new location.
+        The function will not overwrite existing files (but offers the option
+        to rename files slightly to avoid a clash).
+
+        Args:
+            destination_filename: filename to move to
+            alter_if_clash: if ``True`` (the default), appends numbers to
+                the filename if the destination already exists, so that the
+                move can proceed.
+        """
         if not self.src_filename:
             return
         if alter_if_clash:
@@ -221,6 +248,11 @@ class CorruptedZipReader(object):
 
 
 class CorruptedOpenXmlReader(CorruptedZipReader):
+    """
+    Class to read a potentially corrupted OpenXML file.
+    As it is created, it sets its ``file_type`` member to the detected OpenXML
+    file type, if it can.
+    """
     def __init__(self, filename: str, show_zip_output: bool = False) -> None:
         super().__init__(filename=filename,
                          show_zip_output=show_zip_output)
@@ -264,6 +296,18 @@ def process_file(filename: str,
                  move_to: str,
                  delete_if_not_specified_file_type: bool,
                  show_zip_output: bool) -> None:
+    """
+    Deals with an OpenXML, including if it is potentially corrupted.
+
+    Args:
+        filename: filename to process
+        filetypes: list of filetypes that we care about, e.g.
+            ``['docx', 'pptx', 'xlsx']``.
+        move_to: move matching files to this directory
+        delete_if_not_specified_file_type: if ``True``, and the file is **not**
+            a type specified in ``filetypes``, then delete the file.
+        show_zip_output: show the output from the external ``zip`` tool?
+    """
     # log.critical("process_file: start")
     try:
         reader = CorruptedOpenXmlReader(filename,
@@ -294,6 +338,10 @@ def process_file(filename: str,
 
 
 def main() -> None:
+    """
+    Command-line handler for the ``find_recovered_openxml`` tool.
+    Use the ``--help`` option for help.
+    """
     parser = ArgumentParser(
         formatter_class=RawDescriptionHelpFormatter,
         description="""

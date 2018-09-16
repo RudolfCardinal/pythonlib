@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/deform_utils.py
+# cardinal_pythonlib/colander_utils.py
 
 """
 ===============================================================================
@@ -21,6 +21,11 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions for working with colander.**
+
+Colander: https://docs.pylonsproject.org/projects/colander/en/latest/
+
 """
 
 
@@ -89,6 +94,9 @@ SERIALIZED_NONE = ""  # has to be a string; avoid "None" like the plague!
 # =============================================================================
 
 class PendulumType(SchemaType):
+    """
+    Colander :class:`SchemaType` for :class:`Pendulum` date/time objects.
+    """
     def __init__(self, use_local_tz: bool = True):
         self.use_local_tz = use_local_tz
         super().__init__()  # not necessary; SchemaType has no __init__
@@ -98,6 +106,9 @@ class PendulumType(SchemaType):
                   appstruct: Union[PotentialDatetimeType,
                                    ColanderNullType]) \
             -> Union[str, ColanderNullType]:
+        """
+        Serializes Python object to string representation.
+        """
         if not appstruct:
             return colander.null
         try:
@@ -114,6 +125,9 @@ class PendulumType(SchemaType):
                     node: SchemaNode,
                     cstruct: Union[str, ColanderNullType]) \
             -> Optional[Pendulum]:
+        """
+        Deserializes string representation to Python object.
+        """
         if not cstruct:
             return colander.null
         try:
@@ -127,11 +141,14 @@ class PendulumType(SchemaType):
 
 class AllowNoneType(SchemaType):
     """
-    Serializes None to '', and deserializes '' to None; otherwise defers
-    to the parent type.
-    A type which accept serialize None to '' and deserialize '' to None.
-    When the value is not equal to None/'', it will use (de)serialization of
-    the given type. This can be used to make nodes optional.
+    Serializes ``None`` to ``''``, and deserializes ``''`` to ``None``;
+    otherwise defers to the parent type.
+
+    A type which accepts serializing ``None`` to ``''`` and deserializing
+    ``''`` to ``None``. When the value is not equal to ``None``/``''``, it will
+    use (de)serialization of the given type. This can be used to make nodes
+    optional.
+
     Example:
 
     .. code-block:: python
@@ -141,12 +158,21 @@ class AllowNoneType(SchemaType):
             default=None,
             missing=None,
         )
+
+    NOTE ALSO that Colander nodes explicitly never validate a missing value;
+    see ``colander/__init__.py``, in :func:`_SchemaNode.deserialize`. We want
+    them to do so, essentially so we can pass in ``None`` to a form but have
+    the form refuse to validate if it's still ``None`` at submission.
+
     """
     def __init__(self, type_: SchemaType) -> None:
         self.type_ = type_
 
     def serialize(self, node: SchemaNode,
                   value: Any) -> Union[str, ColanderNullType]:
+        """
+        Serializes Python object to string representation.
+        """
         if value is None:
             retval = ''
         else:
@@ -157,6 +183,9 @@ class AllowNoneType(SchemaType):
 
     def deserialize(self, node: SchemaNode,
                     value: Union[str, ColanderNullType]) -> Any:
+        """
+        Deserializes string representation to Python object.
+        """
         if value is None or value == '':
             retval = None
         else:
@@ -164,12 +193,6 @@ class AllowNoneType(SchemaType):
             retval = self.type_.deserialize(node, value)
         # log.debug("AllowNoneType.deserialize: {!r} -> {!r}", value, retval)
         return retval
-
-
-# NOTE ALSO that Colander nodes explicitly never validate a missing value; see
-# colander/__init__.py, in _SchemaNode.deserialize().
-# We want them to do so, essentially so we can pass in None to a form but
-# have the form refuse to validate if it's still None at submission.
 
 
 # =============================================================================
@@ -180,6 +203,28 @@ def get_values_and_permissible(values: Iterable[Tuple[Any, str]],
                                add_none: bool = False,
                                none_description: str = "[None]") \
         -> Tuple[List[Tuple[Any, str]], List[Any]]:
+    """
+    Used when building Colander nodes.
+
+    Args:
+        values: an iterable of tuples like ``(value, description)`` used in
+            HTML forms
+
+        add_none: add a tuple ``(None, none_description)`` at the start of
+            ``values`` in the result?
+
+        none_description: the description used for ``None`` if ``add_none``
+            is set
+
+    Returns:
+        a tuple ``(values, permissible_values)``, where
+
+        - ``values`` is what was passed in (perhaps with the addition of the
+          "None" tuple at the start)
+        - ``permissible_values`` is a list of all the ``value`` elements of
+          the original ``values``
+
+    """
     permissible_values = list(x[0] for x in values)
     # ... does not include the None value; those do not go to the validator
     if add_none:
@@ -189,7 +234,9 @@ def get_values_and_permissible(values: Iterable[Tuple[Any, str]],
 
 
 class EmailValidatorWithLengthConstraint(Email):
-    """The Colander Email validator doesn't check length. This does."""
+    """
+    The Colander ``Email`` validator doesn't check length. This does.
+    """
     def __init__(self, *args, min_length: int = 0, **kwargs) -> None:
         self._length = Length(min_length, EMAIL_ADDRESS_MAX_LEN)
         super().__init__(*args, **kwargs)
@@ -206,6 +253,10 @@ class EmailValidatorWithLengthConstraint(Email):
 # does some odd stuff with clone().
 
 class OptionalIntNode(SchemaNode):
+    """
+    Colander node accepting integers but also blank values (i.e. it's
+    optional).
+    """
     # YOU CANNOT USE ARGUMENTS THAT INFLUENCE THE STRUCTURE, because these Node
     # objects get default-copied by Deform.
     @staticmethod
@@ -218,8 +269,11 @@ class OptionalIntNode(SchemaNode):
 
 class OptionalStringNode(SchemaNode):
     """
-    Coerces None to "" when serializing; otherwise it is coerced to "None",
-    which is much more wrong.
+    Colander node accepting strings but allowing them to be blank (optional).
+
+    Coerces None to ``""`` when serializing; otherwise it is coerced to
+    ``"None"``, i.e. a string literal containing the word "None", which is much
+    more wrong.
     """
     @staticmethod
     def schema_type() -> SchemaType:
@@ -231,7 +285,7 @@ class OptionalStringNode(SchemaNode):
 
 class MandatoryStringNode(SchemaNode):
     """
-    Obligatory string node.
+    Colander string node, where the string is obligatory.
 
     CAVEAT: WHEN YOU PASS DATA INTO THE FORM, YOU MUST USE
 
@@ -249,24 +303,39 @@ class MandatoryStringNode(SchemaNode):
 
 
 class HiddenIntegerNode(OptionalIntNode):
+    """
+    Colander node containing an integer, that is hidden to the user.
+    """
     widget = HiddenWidget()
 
 
 class HiddenStringNode(OptionalStringNode):
+    """
+    Colander node containing an optional string, that is hidden to the user.
+    """
     widget = HiddenWidget()
 
 
 class DateTimeSelectorNode(SchemaNode):
+    """
+    Colander node containing a date/time.
+    """
     schema_type = DateTime
     missing = None
 
 
 class DateSelectorNode(SchemaNode):
+    """
+    Colander node containing a date.
+    """
     schema_type = Date
     missing = None
 
 
 class OptionalPendulumNode(SchemaNode):
+    """
+    Colander node containing an optional :class:`Pendulum` date/time.
+    """
     @staticmethod
     def schema_type() -> SchemaType:
         return AllowNoneType(PendulumType())
@@ -277,6 +346,9 @@ class OptionalPendulumNode(SchemaNode):
 
 
 class BooleanNode(SchemaNode):
+    """
+    Colander node representing a boolean value with a checkbox widget.
+    """
     schema_type = Boolean
     widget = CheckboxWidget()
 
@@ -291,14 +363,35 @@ class BooleanNode(SchemaNode):
 
 class ValidateDangerousOperationNode(MappingSchema):
     """
+    Colander node that can be added to forms allowing dangerous operations
+    (e.g. deletion of data). The node shows the user a code and requires the
+    user to type that code in, before it will permit the form to proceed.
+
     For this to work, the containing form *must* inherit from
-    DynamicDescriptionsForm with dynamic_descriptions=True.
+    :class:`DynamicDescriptionsForm` with ``dynamic_descriptions=True``.
+
+    Usage is simple, like this:
+
+    .. code-block:: python
+
+        class AddSpecialNoteSchema(CSRFSchema):
+            table_name = HiddenStringNode()
+            server_pk = HiddenIntegerNode()
+            note = MandatoryStringNode(widget=TextAreaWidget(rows=20, cols=80))
+            danger = ValidateDangerousOperationNode()
+
     """
     target = HiddenStringNode()
     user_entry = MandatoryStringNode(title="Validate this dangerous operation")
 
     def __init__(self, *args, length: int = 4, allowed_chars: str = None,
                  **kwargs) -> None:
+        """
+        Args:
+            length: code length required from the user
+            allowed_chars: string containing the permitted characters
+                (by default, digits)
+        """
         self.allowed_chars = allowed_chars or "0123456789"
         self.length = length
         super().__init__(*args, **kwargs)

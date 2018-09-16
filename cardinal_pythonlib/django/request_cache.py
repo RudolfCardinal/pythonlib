@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Implement a request cache for Django.**
+
 """
 
 # http://stackoverflow.com/questions/3151469/per-request-cache-in-django
@@ -34,12 +37,19 @@ _installed_middleware = False
 
 
 def get_request_cache():
+    """
+    Returns the Django request cache for the current thread.
+    Requires that ``RequestCacheMiddleware`` is loaded.
+    """
     assert _installed_middleware, 'RequestCacheMiddleware not loaded'
     return _request_cache[currentThread()]
 
 
 # LocMemCache is a threadsafe local memory cache
 class RequestCache(LocMemCache):
+    """
+    Local memory request cache for Django.
+    """
     def __init__(self):
         name = 'locmemcache@%i' % hash(currentThread())
         params = dict()
@@ -47,6 +57,9 @@ class RequestCache(LocMemCache):
 
 
 class RequestCacheMiddleware(object):
+    """
+    Django middleware to implement a request cache.
+    """
     def __init__(self):
         global _installed_middleware
         _installed_middleware = True
