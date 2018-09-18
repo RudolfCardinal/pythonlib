@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -33,6 +33,7 @@ import sys
 from typing import Any, Callable, Dict, TextIO, Type, Union
 
 import pendulum
+# noinspection PyProtectedMember
 from sqlalchemy.engine import Connectable, create_engine
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine.default import DefaultDialect  # for type hints
@@ -129,6 +130,7 @@ def quick_mapper(table: Table) -> Type[DeclarativeMeta]:
     class GenericMapper(Base):
         __table__ = table
 
+    # noinspection PyTypeChecker
     return GenericMapper
 
 
@@ -223,6 +225,7 @@ def get_literal_query(statement: Union[Query, Executable],
         raise ValueError("Attempt to call get_literal_query with an unbound "
                          "statement and no 'bind' parameter")
 
+    # noinspection PyUnresolvedReferences
     dialect = bind.dialect
     compiler = statement._compiler(dialect)
 

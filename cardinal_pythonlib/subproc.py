@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -79,6 +79,12 @@ proc_args_list = []  # type: List[List[str]]
 
 @atexit.register
 def kill_child_processes() -> None:
+    """
+    Kills children of this process that were registered in the
+    :data:`processes` variable.
+
+    Use with ``@atexit.register``.
+    """
     timeout_sec = 5
     for p in processes:
         try:
@@ -89,6 +95,11 @@ def kill_child_processes() -> None:
 
 
 def fail() -> None:
+    """
+    Call when a child process has failed, and this will print an error
+    message to ``stdout`` and execute ``sys.exit(1)`` (which will, in turn,
+    call any ``atexit`` handler to kill children of this process).
+    """
     print("\nPROCESS FAILED; EXITING ALL\n")
     sys.exit(1)  # will call the atexit handler and kill everything else
 
@@ -98,6 +109,10 @@ def fail() -> None:
 # =============================================================================
 
 def check_call_process(args: List[str]) -> None:
+    """
+    Logs the command arguments, then executes the command via
+    :func:`subprocess.check_call`.
+    """
     log.debug("{!r}", args)
     check_call(args)
 
@@ -107,6 +122,7 @@ def start_process(args: List[str],
                   stdout: Any = None,
                   stderr: Any = None) -> Popen:
     """
+    Launch a child process and record it in our :data:`processes` variable.
 
     Args:
         args: program and its arguments, as a list
@@ -119,7 +135,7 @@ def start_process(args: List[str],
             place as stdout.
 
     Returns:
-        The process object (which is also stored in processes).
+        The process object (which is also stored in :data:`processes`).
     """
     log.debug("{!r}", args)
     global processes
@@ -136,17 +152,20 @@ def start_process(args: List[str],
 def wait_for_processes(die_on_failure: bool = True,
                        timeout_sec: float = 1) -> None:
     """
-    If die_on_failure is True, then whenever a subprocess returns failure,
-    all are killed.
+    Wait for child processes (catalogued in :data:`processes`) to finish.
 
-    If timeout_sec is None, the function waits for its first process to
+    If ``die_on_failure`` is ``True``, then whenever a subprocess returns
+    failure, all are killed.
+
+    If ``timeout_sec`` is None, the function waits for its first process to
     complete, then waits for the second, etc. So a subprocess dying does not
     trigger a full quit instantly (or potentially for ages).
 
-    If timeout_sec is something else, each process is tried for that time;
+    If ``timeout_sec`` is something else, each process is tried for that time;
     if it quits within that time, well and good (successful quit -> continue
-    waiting for the others; failure -> kill everything, if die_on_failure);
+    waiting for the others; failure -> kill everything, if ``die_on_failure``);
     if it doesn't, we try the next. That is much more responsive.
+
     """
     global processes
     global proc_args_list
@@ -176,6 +195,10 @@ def wait_for_processes(die_on_failure: bool = True,
 
 
 def print_lines(process: Popen) -> None:
+    """
+    Let a subprocess :func:`communicate`, then write both its ``stdout`` and
+    its ``stderr`` to our ``stdout``.
+    """
     out, err = process.communicate()
     if out:
         for line in out.decode("utf-8").splitlines():
@@ -187,6 +210,13 @@ def print_lines(process: Popen) -> None:
 
 def run_multiple_processes(args_list: List[List[str]],
                            die_on_failure: bool = True) -> None:
+    """
+    Fire up multiple processes, and wait for them to finihs.
+
+    Args:
+        args_list: command arguments for each process
+        die_on_failure: see :func:`wait_for_processes`
+    """
     for procargs in args_list:
         start_process(procargs)
     # Wait for them all to finish
@@ -199,7 +229,8 @@ class AsynchronousFileReader(Thread):
     in a separate thread. Pushes read lines on a queue to
     be consumed in another thread.
 
-    http://stefaanlippens.net/python-asynchronous-subprocess-pipe-reading/
+    Modified from
+    http://stefaanlippens.net/python-asynchronous-subprocess-pipe-reading/.
     """
 
     def __init__(self,
@@ -209,6 +240,16 @@ class AsynchronousFileReader(Thread):
                  line_terminators: List[str] = None,
                  cmdargs: List[str] = None,
                  suppress_decoding_errors: bool = True) -> None:
+        """
+        Args:
+            fd: file-like object to read from
+            queue: queue to write to
+            encoding: encoding to use when reading from the file
+            line_terminators: valid line terminators
+            cmdargs: for display purposes only: command that produced/is
+                producing the file-like object
+            suppress_decoding_errors: trap any ``UnicodeDecodeError``?
+        """
         assert isinstance(queue, Queue)
         assert callable(fd.readline)
         super().__init__()
@@ -219,8 +260,10 @@ class AsynchronousFileReader(Thread):
         self._cmdargs = cmdargs or []  # type: List[str]
         self._suppress_decoding_errors = suppress_decoding_errors
 
-    def run(self):
-        """Read lines and put them on the queue."""
+    def run(self) -> None:
+        """
+        Read lines and put them on the queue.
+        """
         fd = self._fd
         encoding = self._encoding
         line_terminators = self._line_terminators
@@ -251,8 +294,10 @@ class AsynchronousFileReader(Thread):
                 except ValueError:
                     pass
 
-    def eof(self):
-        """Check whether there is no more content to expect."""
+    def eof(self) -> bool:
+        """
+        Check whether there is no more content to expect.
+        """
         return not self.is_alive() and self._queue.empty()
 
 
@@ -269,6 +314,78 @@ def mimic_user_input(
         stdout_encoding: str = None,
         suppress_decoding_errors: bool = True,
         sleep_time_s: float = 0.1) -> None:
+    r"""
+    Run an external command. Pretend to be a human by sending text to the
+    subcommand (responses) when the external command sends us triggers
+    (challenges).
+    
+    This is a bit nasty.
+    
+    Args:
+        args: command-line arguments
+        source_challenge_response: list of tuples of the format ``(challsrc,
+            challenge, response)``; see below
+        line_terminators: valid line terminators
+        print_stdout: 
+        print_stderr: 
+        print_stdin: 
+        stdin_encoding: 
+        stdout_encoding: 
+        suppress_decoding_errors: trap any ``UnicodeDecodeError``?
+        sleep_time_s:
+        
+    The ``(challsrc, challenge, response)`` tuples have this meaning:
+    
+    - ``challsrc``: where is the challenge coming from? Must be one of the
+      objects :data:`SOURCE_STDOUT` or :data:`SOURCE_STDERR`;
+    - ``challenge``: text of challenge
+    - ``response``: text of response (send to the subcommand's ``stdin``).
+    
+    Example (modified from :class:`CorruptedZipReader`):
+
+    .. code-block:: python
+    
+        from cardinal_pythonlib.subproc import *
+        
+        SOURCE_FILENAME = "corrupt.zip"
+        TMP_DIR = "/tmp"
+        OUTPUT_FILENAME = "rescued.zip"
+    
+        cmdargs = [
+            "zip",  # Linux zip tool
+            "-FF",  # or "--fixfix": "fix very broken things"
+            SOURCE_FILENAME,  # input file
+            "--temp-path", TMP_DIR,  # temporary storage path
+            "--out", OUTPUT_FILENAME  # output file
+        ]
+
+        # We would like to be able to say "y" automatically to
+        # "Is this a single-disk archive?  (y/n):"
+        # The source code (api.c, zip.c, zipfile.c), from
+        # ftp://ftp.info-zip.org/pub/infozip/src/ , suggests that "-q"
+        # should do this (internally "-q" sets "noisy = 0") - but in
+        # practice it doesn't work. This is a critical switch.
+        # Therefore we will do something very ugly, and send raw text via
+        # stdin.
+
+        ZIP_PROMPTS_RESPONSES = [
+            (SOURCE_STDOUT, "Is this a single-disk archive?  (y/n): ", "y\n"),
+            (SOURCE_STDOUT, " or ENTER  (try reading this split again): ", "q\n"),
+            (SOURCE_STDERR,
+             "zip: malloc.c:2394: sysmalloc: Assertion `(old_top == initial_top (av) "
+             "&& old_size == 0) || ((unsigned long) (old_size) >= MINSIZE && "
+             "prev_inuse (old_top) && ((unsigned long) old_end & (pagesize - 1)) "
+             "== 0)' failed.", TERMINATE_SUBPROCESS),
+        ]
+        ZIP_STDOUT_TERMINATORS = ["\n", "): "]
+
+        mimic_user_input(cmdargs,
+                         source_challenge_response=ZIP_PROMPTS_RESPONSES,
+                         line_terminators=ZIP_STDOUT_TERMINATORS,
+                         print_stdout=show_zip_output,
+                         print_stdin=show_zip_output)
+
+    """  # noqa
     line_terminators = line_terminators or ["\n"]  # type: List[str]
     stdin_encoding = stdin_encoding or sys.getdefaultencoding()
     stdout_encoding = stdout_encoding or sys.getdefaultencoding()
@@ -278,6 +395,7 @@ def mimic_user_input(
 
     # Launch the asynchronous readers of stdout and stderr
     stdout_queue = Queue()
+    # noinspection PyTypeChecker
     stdout_reader = AsynchronousFileReader(
         fd=p.stdout,
         queue=stdout_queue,
@@ -288,6 +406,7 @@ def mimic_user_input(
     )
     stdout_reader.start()
     stderr_queue = Queue()
+    # noinspection PyTypeChecker
     stderr_reader = AsynchronousFileReader(
         fd=p.stderr,
         queue=stderr_queue,

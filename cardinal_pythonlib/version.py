@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions to check the version of this library.**
+
 """
 
 from semantic_version import Version

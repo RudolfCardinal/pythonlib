@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Support functions for sorting.
+**Support functions for sorting.**
 
 """
 
@@ -37,10 +37,38 @@ from typing import Any, List, Union
 # http://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside  # noqa
 
 def atoi(text: str) -> Union[int, str]:
+    """
+    Converts strings to integers if they're composed of digits; otherwise
+    returns the strings unchanged. One way of sorting strings with numbers;
+    it will mean that ``"11"`` is more than ``"2"``.
+    """
     return int(text) if text.isdigit() else text
 
 
-def natural_keys(text) -> List[Union[int, str]]:
+def natural_keys(text: str) -> List[Union[int, str]]:
+    """
+    Sort key function.
+    Returns text split into string/number parts, for natural sorting; as per
+    http://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside
+    
+    Example (as per the source above):
+        
+    .. code-block:: python
+    
+        >>> from cardinal_pythonlib.sort import natural_keys
+        >>> alist=[
+        ...     "something1",
+        ...     "something12",
+        ...     "something17",
+        ...     "something2",
+        ...     "something25",
+        ...     "something29"
+        ... ]
+        >>> alist.sort(key=natural_keys)
+        >>> alist
+        ['something1', 'something2', 'something12', 'something17', 'something25', 'something29']
+        
+    """  # noqa
     return [atoi(c) for c in re.split('(\d+)', text)]
 
 
@@ -50,7 +78,9 @@ def natural_keys(text) -> List[Union[int, str]]:
 
 @total_ordering
 class MinType(object):
-    """Compares less than anything else."""
+    """
+    An object that compares less than anything else.
+    """
     def __le__(self, other: Any) -> bool:
         return True
 
@@ -64,9 +94,9 @@ MINTYPE_SINGLETON = MinType()
 # noinspection PyPep8Naming
 class attrgetter_nonesort:
     """
-    Modification of operator.attrgetter
-    Returns an object's attributes, or the mintype_singleton if the attribute
-    is None.
+    Modification of ``operator.attrgetter``.
+    Returns an object's attributes, or the ``mintype_singleton`` if the
+    attribute is ``None``.
     """
     __slots__ = ('_attrs', '_call')
 
@@ -110,7 +140,7 @@ class attrgetter_nonesort:
 # noinspection PyPep8Naming
 class methodcaller_nonesort:
     """
-    As above, but for methodcaller.
+    As per :class:`attrgetter_nonesort` (q.v.), but for ``methodcaller``.
     """
     __slots__ = ('_name', '_args', '_kwargs')
 

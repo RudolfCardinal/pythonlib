@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -22,42 +22,42 @@
 
 ===============================================================================
 
-Support functions for "tee" functionality.
+**Support functions for "tee" functionality.**
 
 DEVELOPMENT NOTES
 
 Initial failure:
 
--   We can copy the Python logging output to a file; that's part of the 
-    standard logging facility.
--   We can also redirect our own stdout/stderr to a file and/or print a copy;
-    that's pretty easy to.
--   We can manually capture subprocess stdout/stderr.
--   We can redirect our own and subprocess stdout/stderr to a genuine file by
-    duplicating the file descriptor(s):
-    https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
--   However, that file descriptor duplication method needs our file-like object
-    to behave properly like a C-level file. That precludes the simpler kinds of
-    "tee" behaviour in which a Python class pretends to be a file by 
-    implementing write(), close(), flush() methods.
+- We can copy the Python logging output to a file; that's part of the 
+  standard logging facility.
+- We can also redirect our own stdout/stderr to a file and/or print a copy;
+  that's pretty easy to.
+- We can manually capture subprocess stdout/stderr.
+- We can redirect our own and subprocess stdout/stderr to a genuine file by
+  duplicating the file descriptor(s):
+  https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
+- However, that file descriptor duplication method needs our file-like object
+  to behave properly like a C-level file. That precludes the simpler kinds of
+  "tee" behaviour in which a Python class pretends to be a file by 
+  implementing write(), close(), flush() methods.
 
 So:
 
-    -   redirect plain Python stderr/stdout
-    -   handle subprocess stuff 
+- redirect plain Python stderr/stdout
+- handle subprocess stuff 
 
 See
 
-    https://stackoverflow.com/questions/616645/how-do-i-duplicate-sys-stdout-to-a-log-file-in-python
-    https://stackoverflow.com/questions/24931/how-to-capture-python-interpreters-and-or-cmd-exes-output-from-a-python-script
-    https://www.python.org/dev/peps/pep-0343/
+- https://stackoverflow.com/questions/616645/how-do-i-duplicate-sys-stdout-to-a-log-file-in-python
+- https://stackoverflow.com/questions/24931/how-to-capture-python-interpreters-and-or-cmd-exes-output-from-a-python-script
+- https://www.python.org/dev/peps/pep-0343/
 
-    https://stackoverflow.com/questions/4675728/redirect-stdout-to-a-file-in-python
-    https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/ 
+- https://stackoverflow.com/questions/4675728/redirect-stdout-to-a-file-in-python
+- https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/ 
 
-    https://stackoverflow.com/questions/2996887/how-to-replicate-tee-behavior-in-python-when-using-subprocess
-    
-    https://stackoverflow.com/questions/4984428/python-subprocess-get-childrens-output-to-file-and-terminal/4985080#4985080
+- https://stackoverflow.com/questions/2996887/how-to-replicate-tee-behavior-in-python-when-using-subprocess
+
+- https://stackoverflow.com/questions/4984428/python-subprocess-get-childrens-output-to-file-and-terminal/4985080#4985080
 
 """  # noqa
 
@@ -82,46 +82,56 @@ log = BraceStyleAdapter(log)
 
 
 def tee(infile: IO, *files: IO) -> Thread:
-    """
-    Print `infile` to `files` in a separate thread.
+    r"""
+    Print the file-like object ``infile`` to the file-like object(s) ``files``
+    in a separate thread.
+    
+    Starts and returns that thread.
+    
     The type (text, binary) must MATCH across all files.
 
-    From
-        https://stackoverflow.com/questions/4984428/python-subprocess-get-childrens-output-to-file-and-terminal
+    From 
+    https://stackoverflow.com/questions/4984428/python-subprocess-get-childrens-output-to-file-and-terminal
 
     A note on text versus binary IO:
 
     TEXT files include:
-        files opened in text mode ("r", "rt", "w", "wt")
-        sys.stdin, sys.stdout
-        io.StringIO()
-        ... https://docs.python.org/3/glossary.html#term-text-file
+    
+    - files opened in text mode (``"r"``, ``"rt"``, ``"w"``, ``"wt"``)
+    - ``sys.stdin``, ``sys.stdout``
+    - ``io.StringIO()``; see
+      https://docs.python.org/3/glossary.html#term-text-file
 
     BINARY files include:
-        files open in binary mode ("rb", "wb", "rb+"...)
-        sys.stdin.buffer, sys.stdout.buffer
-        io.BytesIO()
-        gzip.GzipFile()
-        ... https://docs.python.org/3/glossary.html#term-binary-file
+    
+    - files opened in binary mode (``"rb"``, ``"wb"``, ``"rb+"``...)
+    - ``sys.stdin.buffer``, ``sys.stdout.buffer``
+    - ``io.BytesIO()``
+    - ``gzip.GzipFile()``; see
+      https://docs.python.org/3/glossary.html#term-binary-file
 
-$ python3  # don't get confused and use Python 2 by mistake!
-
-t = open("/tmp/text.txt", "r+t")  # text mode is default
-b = open("/tmp/bin.bin", "r+b")
-
-t.write("hello\n")  # OK
-# b.write("hello\n")  # raises TypeError
-
-# t.write(b"world\n")  # raises TypeError
-b.write(b"world\n")  # OK
-
-t.flush()
-b.flush()
-t.seek(0)
-b.seek(0)
-
-x = t.readline()  # "hello\n"
-y = b.readline()  # b"world\n"
+    .. code-block:: bash
+ 
+        $ python3  # don't get confused and use Python 2 by mistake!
+        
+    .. code-block:: python
+ 
+        t = open("/tmp/text.txt", "r+t")  # text mode is default
+        b = open("/tmp/bin.bin", "r+b")
+        
+        t.write("hello\n")  # OK
+        # b.write("hello\n")  # raises TypeError
+        
+        # t.write(b"world\n")  # raises TypeError
+        b.write(b"world\n")  # OK
+        
+        t.flush()
+        b.flush()
+        t.seek(0)
+        b.seek(0)
+        
+        x = t.readline()  # "hello\n"
+        y = b.readline()  # b"world\n"
 
     """  # noqa
 
@@ -143,15 +153,23 @@ def teed_call(cmd_args,
               encoding: str = sys.getdefaultencoding(),
               **kwargs):
     """
-    Runs a command and captures its output via tee() to one or more 
+    Runs a command and captures its output via :func:`tee` to one or more 
     destinations. The output is always captured (otherwise we would lose 
-    control of the output and ability to tee it); if no destination is 
+    control of the output and ability to ``tee`` it); if no destination is 
     specified, we add a null handler.
 
-    We insist on TextIO to match sys.stdout (etc.).
+    We insist on ``TextIO`` output files to match ``sys.stdout`` (etc.).
 
     A variation on:
-        https://stackoverflow.com/questions/4984428/python-subprocess-get-childrens-output-to-file-and-terminal
+    https://stackoverflow.com/questions/4984428/python-subprocess-get-childrens-output-to-file-and-terminal
+
+    Args:
+        cmd_args: arguments for the command to run
+        stdout_targets: file-like objects to write ``stdout`` to
+        stderr_targets: file-like objects to write ``stderr`` to 
+        encoding: encoding to apply to ``stdout`` and ``stderr``
+        kwargs: additional arguments for :class:`subprocess.Popen`
+        
     """  # noqa
     # Make a copy so we can append without damaging the original:
     stdout_targets = stdout_targets.copy() if stdout_targets else []  # type: List[TextIO]  # noqa
@@ -176,16 +194,17 @@ def teed_call(cmd_args,
 
 class TeeContextManager(object):
     """
-    Context manager to implement the function of the Unix "tee" command: that
+    Context manager to implement the function of the Unix ``tee`` command: that
     is, to save output to a file as well as display it to the console.
 
-    Note that this redirects Python's sys.stdout or sys.stderr, but doesn't
-    redirect stdout/stderr from child processes -- so use teed_call to run
-    them if you want those redirected too. See buildfunc.run() for an example.
+    Note that this redirects Python's ``sys.stdout`` or ``sys.stderr``, but
+    doesn't redirect ``stdout``/``stderr`` from child processes -- so use
+    :func:`teed_call` to run them if you want those redirected too. See
+    :func:`buildfunc.run` for an example.
 
     Also, existing logs won't be redirected (presumably because they've already
-    taken a copy of their output streams); see tee_log() for an example of one
-    way to manage this.
+    taken a copy of their output streams); see :func:`tee_log` for an example
+    of one way to manage this.
     """
 
     def __init__(self,
@@ -193,9 +212,14 @@ class TeeContextManager(object):
                  capture_stdout: bool = False,
                  capture_stderr: bool = False) -> None:
         """
-        We take a file object, not a filename, so we can apply multiple tee
-        filters going to the same file.
-        The filename is purely cosmetic.
+        Args:
+            file: file-like object to write to. We take a file object, not a
+                filename, so we can apply multiple tee filters going to the
+                same file.
+            capture_stdout: capture ``stdout``? Use this or ``capture_stderr``
+            capture_stderr: capture ``stderr``? Use this or ``capture_stdout``
+
+        We read the filename from ``file.name`` but this is purely cosmetic.
         """
         # Checks
         assert capture_stdout != capture_stderr, (
@@ -221,26 +245,36 @@ class TeeContextManager(object):
             sys.stderr = self  # now "self" must behave as a file
 
     def __enter__(self) -> None:
-        """To act as a context manager."""
+        """
+        To act as a context manager.
+        """
         pass
 
     def __exit__(self, *args) -> None:
-        """To act as a context manager."""
+        """
+        To act as a context manager.
+        """
         self.close()
 
     def write(self, message: str) -> None:
-        """To act as a file."""
+        """
+        To act as a file.
+        """
         self.underlying_stream.write(message)
         self.file.write(message)
 
     def flush(self) -> None:
-        """To act as a file."""
+        """
+        To act as a file.
+        """
         self.underlying_stream.flush()
         self.file.flush()
         os.fsync(self.file.fileno())
 
     def close(self) -> None:
-        """To act as a file."""
+        """
+        To act as a file.
+        """
         if self.underlying_stream:
             if self.using_stdout:
                 sys.stdout = self.underlying_stream
@@ -256,7 +290,14 @@ class TeeContextManager(object):
 
 @contextmanager
 def tee_log(tee_file: TextIO, loglevel: int) -> None:
-    # Add a file output stream to our logging system.
+    """
+    Context manager to add a file output stream to our logging system.
+
+    Args:
+        tee_file: file-like object to write to
+        loglevel: log level (e.g. ``logging.DEBUG``) to use for this stream
+
+    """
     handler = get_monochrome_handler(stream=tee_file)
     handler.setLevel(loglevel)
     rootlogger = logging.getLogger()

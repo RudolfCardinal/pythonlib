@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -71,6 +71,7 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import lazyload, load_only
 from sqlalchemy.orm import relationship
+# noinspection PyProtectedMember
 from sqlalchemy.orm.session import make_transient, Session, sessionmaker
 from sqlalchemy.schema import sort_tables
 from sqlalchemy.sql.schema import Column, ForeignKey, MetaData, Table

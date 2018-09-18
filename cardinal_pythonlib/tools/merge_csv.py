@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -58,7 +58,7 @@ def merge_csv(filenames: List[str],
     """
     writer = csv.writer(outfile, dialect=output_dialect)
     written_header = False
-    header_items = []  # type: List(str)
+    header_items = []  # type: List[str]
     for filename in filenames:
         log.info("Processing file " + repr(filename))
         with open(filename, 'r') as f:

@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -214,9 +214,8 @@ def run(args: List[str],
     """
     Runs an external process, announcing it.
 
-    Optionally, retrieves its ``stdout`` and/or ``stderr`` output (if not retrieved,
-    the output will be visible to the user).
-
+    Optionally, retrieves its ``stdout`` and/or ``stderr`` output (if not
+    retrieved, the output will be visible to the user).
 
     Args:
         args: list of command-line arguments (the first being the executable)

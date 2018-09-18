@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -38,6 +38,7 @@ import re
 from typing import Any, Dict, Generator, List, Optional, Type, Union
 
 from sqlalchemy.dialects import mssql, mysql
+# noinspection PyProtectedMember
 from sqlalchemy.engine import Connection, Engine, ResultProxy
 from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.engine.reflection import Inspector
@@ -962,8 +963,12 @@ def is_sqlatype_date(coltype: TypeEngine) -> bool:
     Is the SQLAlchemy column type a date type?
     """
     coltype = _coltype_to_typeengine(coltype)
-    # noinspection PyProtectedMember
-    return isinstance(coltype, sqltypes._DateAffinity)
+    # No longer valid in SQLAlchemy 1.2.11:
+    # return isinstance(coltype, sqltypes._DateAffinity)
+    return (
+        isinstance(coltype, sqltypes.DateTime) or
+        isinstance(coltype, sqltypes.Date)
+    )
 
 
 def is_sqlatype_integer(coltype: Union[TypeEngine, VisitableType]) -> bool:

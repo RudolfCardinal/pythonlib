@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -1043,13 +1043,14 @@ def main() -> None:
     """
     Command-line validation checks.
     """
-    if False:
-        print(twos_comp_to_signed(0, n_bits=32))  # 0
-        print(twos_comp_to_signed(2 ** 31 - 1, n_bits=32))  # 2147483647
-        print(twos_comp_to_signed(2 ** 31, n_bits=32))  # -2147483648 == -(2 ** 31)  # noqa
-        print(twos_comp_to_signed(2 ** 32 - 1, n_bits=32))  # -1
-        print(signed_to_twos_comp(-1, n_bits=32))  # 4294967295 = 2 ** 32 - 1
-        print(signed_to_twos_comp(-(2 ** 31), n_bits=32))  # 2147483648 = 2 ** 31 - 1  # noqa
+    _ = """
+    print(twos_comp_to_signed(0, n_bits=32))  # 0
+    print(twos_comp_to_signed(2 ** 31 - 1, n_bits=32))  # 2147483647
+    print(twos_comp_to_signed(2 ** 31, n_bits=32))  # -2147483648 == -(2 ** 31)
+    print(twos_comp_to_signed(2 ** 32 - 1, n_bits=32))  # -1
+    print(signed_to_twos_comp(-1, n_bits=32))  # 4294967295 = 2 ** 32 - 1
+    print(signed_to_twos_comp(-(2 ** 31), n_bits=32))  # 2147483648 = 2 ** 31 - 1
+    """  # noqa
     testdata = [
         "hello",
         1,

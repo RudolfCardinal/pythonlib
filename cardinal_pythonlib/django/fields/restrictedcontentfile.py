@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -82,9 +82,9 @@ class ContentTypeRestrictedFileField(models.FileField):
         if content_type not in self.content_types:
             raise forms.ValidationError(ugettext_lazy(
                 'Filetype not supported.'))
-        # noinspection PyProtectedMember
+        # noinspection PyProtectedMember,PyUnresolvedReferences
         if self.max_upload_size is not None and f._size > self.max_upload_size:
-            # noinspection PyProtectedMember
+            # noinspection PyProtectedMember,PyUnresolvedReferences
             raise forms.ValidationError(ugettext_lazy(
                 'Please keep filesize under %s. Current filesize %s')
                 % (filesizeformat(self.max_upload_size),

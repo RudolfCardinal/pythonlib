@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -269,6 +269,7 @@ class Drug(object):
             vitamin: bool = False,
             # Special flags:
             slam_antidepressant_finder: bool = False) -> None:
+        # noinspection PyUnresolvedReferences
         """
         Initialize and determine/store category knowledge.
 
@@ -278,6 +279,83 @@ class Drug(object):
         like "depot X", etc. We also add a preceding word boundary (after the
         wildcard); thus the usual transformation is ``XXX`` -> ``.*\bXXX.*``.
 
+        Args:
+            generic: generic name, or list of names
+            alternatives: can include regexes (as text)
+
+            category_not_drug: is this a drug category, not a specific drug?
+
+            add_preceding_wildcards: when making a regex (etc.), add a wildcard
+                to the start of all possibilities (generic + alternative names)
+                that don't already have one?
+            add_preceding_word_boundary: when making a regex (etc.), add word
+                boundaries to the start of all possibilities (generic +
+                alternative names) that don't already have one?
+            add_following_wildcards: when making a regex (etc.), add a wildcard
+                to the end of all possibilities (generic + alternative names)
+                that don't already have one?
+
+            psychotropic: a psychotropic drug?
+
+            antidepressant: an antidepressant?
+            conventional_antidepressant: a traditional antidepressant?
+            ssri: a selective serotonin reuptake inhibitor (SSRI)?
+            non_ssri_modern_antidepressant: a non-SSRI "modern" antidepressant?
+            tricyclic_antidepressant: a tricyclic?
+            tetracyclic_and_related_antidepressant: a tetracyclic or related?
+            monoamine_oxidase_inhibitor: a MAO-I?
+
+            antipsychotic: an antipsychotic?
+            first_generation_antipsychotic: an FGA?
+            second_generation_antipsychotic: an SGA?
+
+            stimulant: a psychostimulant?
+
+            anticholinergic: an anticholinergic?
+
+            benzodiazepine: a benzodiazepine?
+            z_drug: a "Z" drug (e.g. zopiclone, zolpidem, ...)
+            non_benzodiazepine_anxiolytic: a non-BZ anxiolytic?
+            gaba_a_functional_agonist: a GABA-A functional agonist?
+            gaba_b_functional_agonist: a GABA-B functional agonist?
+
+            mood_stabilizer: a "mood stabilizer"?
+
+            antidiabetic: treats diabetes?
+            sulfonylurea: a sulfonylurea (sulphonylurea), for diabetes?
+            biguanide: a biguanide, for diabetes?
+            glifozin: a glifozin, for diabetes?
+            glp1_agonist: a GLP-1 agonist, for diabetes?
+            dpp4_inhibitor: a DPP4 inhibitor, for diabetes?
+            meglitinide: a meglitinide, for diabetes?
+            thiazolidinedione: a thiazolidinedione, for diabetes?
+
+            cardiovascular: a cardiovascular drug?
+            beta_blocker: a beta adrenoceptor antagonist?
+            ace_inhibitor: an ACE inhibitor?
+            statin: a statin?
+
+            respiratory: a respiratory drug?
+            beta_agonist: a beta adrenoceptor agonist?
+
+            gastrointestinal: a gastrointestinal drug?
+            proton_pump_inhibitor: a PPI?
+            nonsteroidal_anti_inflammatory: an NSAID?
+
+            vitamin: a vitamin?
+
+            slam_antidepressant_finder: a drug found by the SLAM
+                antidepressant-finding code? (A bit specialized, this one!)
+
+        Attributes:
+
+            mixture (bool): is this a mixture of more than one drug?
+                Will be set if more than one generic name is given.
+            all_generics (List[str]): list of all generic names in lower case
+            generic_name: generic name (or combination name like ``a_with_b``
+                for mixtures of ``a`` and ``b``)
+            regex: compiled case-insensitive regular expression to match
+                possible names
         """
         # ---------------------------------------------------------------------
         # Name handling
@@ -1131,8 +1209,8 @@ def drug_matches_criteria(drug: Drug, **criteria: Dict[str, bool]) -> bool:
     Args:
         drug: a :class:`.Drug` instance
         criteria: ``name=value`` pairs to match against the attributes of
-            the :class:`Drug` class. For example, you can include keyword arguments
-            like ``antidepressant=True``.
+            the :class:`Drug` class. For example, you can include keyword
+            arguments like ``antidepressant=True``.
     """
     for attribute, value in criteria.items():
         if getattr(drug, attribute) != value:

@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -106,7 +106,6 @@ def dictfetchall(cursor) -> List[Dict[str, Any]]:
 
     Args:
         cursor: the cursor
-        arraysize: split fetches into chunks of this many records
 
     Returns:
         a list (one item per row) of :class:`OrderedDict` objects whose key are

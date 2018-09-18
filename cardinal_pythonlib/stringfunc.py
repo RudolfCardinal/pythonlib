@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -34,13 +34,17 @@ import unicodedata
 
 def find_nth(s: str, x: str, n: int = 0, overlap: bool = False) -> int:
     """
-    Finds the position of nth occurrence of x in s, or -1 if there isn't one.
+    Finds the position of *n*\ th occurrence of ``x`` in ``s``, or ``-1`` if
+    there isn't one.
 
-    - The n parameter is zero-based (i.e. 0 for the first, 1 for the second...).
-    - If overlap is true, allows fragments to overlap. If not, they must be
+    - The ``n`` parameter is zero-based (i.e. 0 for the first, 1 for the
+      second...).
+    - If ``overlap`` is true, allows fragments to overlap. If not, they must be
       distinct.
-    """
-    # https://stackoverflow.com/questions/1883980/find-the-nth-occurrence-of-substring-in-a-string  # noqa
+      
+    As per
+    https://stackoverflow.com/questions/1883980/find-the-nth-occurrence-of-substring-in-a-string 
+    """  # noqa
     length_of_fragment = 1 if overlap else len(x)
     i = -length_of_fragment
     for _ in range(n + 1):
@@ -81,6 +85,18 @@ def multiple_replace(text: str, rep: Dict[str, str]) -> str:
 
 def replace_in_list(stringlist: Iterable[str],
                     replacedict: Dict[str, str]) -> List[str]:
+    """
+    Returns a list produced by applying :func:`multiple_replace` to every
+    string in ``stringlist``.
+
+    Args:
+        stringlist: list of source strings
+        replacedict: dictionary mapping "original" to "replacement" strings
+
+    Returns:
+        list of final strings
+
+    """
     newlist = []
     for fromstring in stringlist:
         newlist.append(multiple_replace(fromstring, replacedict))
@@ -92,7 +108,9 @@ def replace_in_list(stringlist: Iterable[str],
 # =============================================================================
 
 def mangle_unicode_to_ascii(s: Any) -> str:
-    """Mangle unicode to ASCII, losing accents etc. in the process."""
+    """
+    Mangle unicode to ASCII, losing accents etc. in the process.
+    """
     # http://stackoverflow.com/questions/1207457
     if s is None:
         return ""
@@ -110,12 +128,23 @@ def mangle_unicode_to_ascii(s: Any) -> str:
 # =============================================================================
 
 def strnum(prefix: str, num: int, suffix: str = "") -> str:
+    """
+    Makes a string of the format ``<prefix><number><suffix>``.
+    """
     return "{}{}{}".format(prefix, num, suffix)
 
 
 def strnumlist(prefix: str, numbers: List[int], suffix: str = "") -> List[str]:
+    """
+    Makes a string of the format ``<prefix><number><suffix>`` for every number
+    in ``numbers``, and returns them as a list.
+    """
     return ["{}{}{}".format(prefix, num, suffix) for num in numbers]
 
 
 def strseq(prefix: str, first: int, last: int, suffix: str = "") -> List[str]:
+    """
+    Makes a string of the format ``<prefix><number><suffix>`` for every number
+    from ``first`` to ``last`` inclusive, and returns them as a list.
+    """
     return [strnum(prefix, n, suffix) for n in range(first, last + 1)]

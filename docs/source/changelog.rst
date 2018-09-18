@@ -133,3 +133,5 @@ First started in 2009.
 - Further documentation.
 - Duplicate hash-related functions removed from ``crypto.py``; better versions
   were in ``hash.py``.
+- Bugfix to :func:`cardinal_pythonlib.sqlalchemy.schema.is_sqlatype_date` for
+  more recent versions of SQLAlchemy (e.g. 1.2.11).

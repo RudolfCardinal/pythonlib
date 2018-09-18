@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -28,6 +28,7 @@
 
 from typing import Union
 
+# noinspection PyProtectedMember
 from sqlalchemy.engine import Engine
 from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.sql.compiler import IdentifierPreparer, SQLCompiler

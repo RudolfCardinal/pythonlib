@@ -23,11 +23,12 @@ cardinal_pythonlib
     :caption: Contents:
 
     changelog.rst
+    to_do.rst
     autodoc/_index.rst
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`

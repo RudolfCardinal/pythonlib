@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -23,9 +23,14 @@
 ===============================================================================
 """
 
+from typing import Union
+
 
 def sizeof_fmt(num: float, suffix: str = 'B') -> str:
-    # http://stackoverflow.com/questions/1094841
+    """
+    Formats a number of bytes in a human-readable binary format (e.g. ``2048``
+    becomes ``'2 KiB'``); from http://stackoverflow.com/questions/1094841.
+    """
     for unit in ('', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi'):
         if abs(num) < 1024.0:
             return "%3.1f%s%s" % (num, unit, suffix)
@@ -44,12 +49,23 @@ SYMBOLS = {
 }
 
 
-def bytes2human(n, format='%(value).1f %(symbol)s', symbols='customary'):
-    # http://code.activestate.com/recipes/578019-bytes-to-human-human-to-bytes-converter/  # noqa
+def bytes2human(n: Union[int, float],
+                format: str = '%(value).1f %(symbol)s',
+                symbols: str = 'customary') -> str:
     """
-    Convert n bytes into a human readable string based on format.
-    symbols can be either "customary", "customary_ext", "iec" or "iec_ext",
-    see: http://goo.gl/kTQMs
+    Converts a number of bytes into a human-readable format.
+    From http://code.activestate.com/recipes/578019-bytes-to-human-human-to-bytes-converter/.
+    
+    Args:
+        n: number of bytes
+        format: a format specification string
+        symbols: can be one of ``"customary"``, ``"customary_ext"``, ``"iec"``
+            or ``"iec_ext"``; see http://goo.gl/kTQMs
+
+    Returns:
+        the formatted number
+        
+    Examples:
 
       >>> bytes2human(0)
       '0.0 B'
@@ -81,7 +97,8 @@ def bytes2human(n, format='%(value).1f %(symbol)s', symbols='customary'):
       >>> # precision can be adjusted by playing with %f operator
       >>> bytes2human(10000, format="%(value).5f %(symbol)s")
       '9.76562 K'
-    """
+
+    """  # noqa
     n = int(n)
     if n < 0:
         raise ValueError("n < 0")
@@ -97,12 +114,13 @@ def bytes2human(n, format='%(value).1f %(symbol)s', symbols='customary'):
 
 
 def human2bytes(s: str) -> int:
-    # http://code.activestate.com/recipes/578019-bytes-to-human-human-to-bytes-converter/  # noqa
-    # ... modified
     """
+    Modified from
+    http://code.activestate.com/recipes/578019-bytes-to-human-human-to-bytes-converter/.
+    
     Attempts to guess the string format based on default symbols
     set and return the corresponding bytes as an integer.
-    When unable to recognize the format ValueError is raised.
+    When unable to recognize the format, :exc:`ValueError` is raised.
 
       >>> human2bytes('0 B')
       0
@@ -125,7 +143,7 @@ def human2bytes(s: str) -> int:
       Traceback (most recent call last):
           ...
       ValueError: can't interpret '12 foo'
-    """
+    """  # noqa
     if not s:
         raise ValueError("Can't interpret {!r} as integer".format(s))
     try:

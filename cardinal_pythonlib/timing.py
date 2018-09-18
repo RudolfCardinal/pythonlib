@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Timers for performance tuning.**
+
 """
 
 from collections import OrderedDict
@@ -36,8 +39,18 @@ log = BraceStyleAdapter(log)
 
 
 class MultiTimer(object):
-    """Mutually exclusive timing of a set of events."""
+    """
+    Mutually exclusive timing of a set of events.
+
+    Maintains a start count and times for a set of named timers.
+
+    See example in :class:`MultiTimerContext`.
+    """
     def __init__(self, start: bool = True) -> None:
+        """
+        Args:
+            start: start the timer immediately?
+        """
         self._timing = start
         self._overallstart = get_now_utc_pendulum()
         self._starttimes = OrderedDict()  # name: start time
@@ -46,6 +59,9 @@ class MultiTimer(object):
         self._stack = []  # list of names
 
     def reset(self) -> None:
+        """
+        Reset the timers.
+        """
         self._overallstart = get_now_utc_pendulum()
         self._starttimes.clear()
         self._totaldurations.clear()
@@ -53,11 +69,27 @@ class MultiTimer(object):
         self._stack.clear()
 
     def set_timing(self, timing: bool, reset: bool = False) -> None:
+        """
+        Manually set the ``timing`` parameter, and optionally reset the timers.
+
+        Args:
+            timing: should we be timing?
+            reset: reset the timers?
+
+        """
         self._timing = timing
         if reset:
             self.reset()
 
     def start(self, name: str, increment_count: bool = True) -> None:
+        """
+        Start a named timer.
+
+        Args:
+            name: name of the timer
+            increment_count: increment the start count for this timer
+
+        """
         if not self._timing:
             return
         now = get_now_utc_pendulum()
@@ -77,6 +109,12 @@ class MultiTimer(object):
         self._stack.append(name)
 
     def stop(self, name: str) -> None:
+        """
+        Stop a named timer.
+
+        Args:
+            name: timer to stop
+        """
         if not self._timing:
             return
         now = get_now_utc_pendulum()
@@ -100,7 +138,9 @@ class MultiTimer(object):
             self._starttimes[last] = now
 
     def report(self) -> None:
-        """Finish and report to the log."""
+        """
+        Finish and report to the log.
+        """
         while self._stack:
             self.stop(self._stack[-1])
         now = get_now_utc_pendulum()
@@ -142,7 +182,44 @@ class MultiTimer(object):
 
 
 class MultiTimerContext(object):
+    """
+    Context manager for :class:`MultiTimer`.
+
+    Example:
+
+    .. code-block:: python
+
+        import logging
+        from time import sleep
+        from cardinal_pythonlib.timing import MultiTimer, MultiTimerContext
+
+        timer = MultiTimer(start=True)
+
+        def f2():
+            with MultiTimerContext(timer, "f2"):
+                print("starting f2")
+                sleep(1)
+                print("finishing f2")
+
+        def f1():
+            with MultiTimerContext(timer, "f1"):
+                print("starting f1")
+                sleep(0.25)
+                f2()
+                f2()
+                print("finishing f1")
+
+        logging.basicConfig(level=logging.DEBUG)
+        f1()
+        timer.report()
+
+    """
     def __init__(self, multitimer: MultiTimer, name: str) -> None:
+        """
+        Args:
+            multitimer: :class:`MultiTimer` to use
+            name: name of timer to start as we enter, and stop as we exit
+        """
         self.timer = multitimer
         self.name = name
 

@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -89,7 +89,7 @@ def is_valid_nhs_number(n: int) -> bool:
 
     Checksum details are at
     http://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp
-    """ # noqa
+    """  # noqa
     if not isinstance(n, int):
         log.debug("is_valid_nhs_number: parameter was not of integer type")
         return False

@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Trivial functions to make tab-separated value (TSV) files.**
+
 """
 
 import logging
@@ -35,7 +38,7 @@ log.addHandler(logging.NullHandler())
 
 def tsv_escape(x: Any) -> str:
     """
-    Escape data for tab-separated value format.
+    Escape data for tab-separated value (TSV) format.
     """
     if x is None:
         return ""
@@ -44,10 +47,17 @@ def tsv_escape(x: Any) -> str:
 
 
 def make_tsv_row(values: List[Any]) -> str:
+    """
+    From a list of values, make a TSV line.
+    """
     return "\t".join([tsv_escape(x) for x in values]) + "\n"
 
 
 def dictlist_to_tsv(dictlist: List[Dict[str, Any]]) -> str:
+    """
+    From a consistent list of dictionaries mapping fieldnames to values,
+    make a TSV file.
+    """
     if not dictlist:
         return ""
     fieldnames = dictlist[0].keys()
@@ -58,8 +68,25 @@ def dictlist_to_tsv(dictlist: List[Dict[str, Any]]) -> str:
 
 
 def tsv_pairs_to_dict(line: str, key_lower: bool = True) -> Dict[str, str]:
-    """
+    r"""
     Converts a TSV line into sequential key/value pairs as a dictionary.
+
+    For example,
+
+    .. code-block:: none
+
+        field1\tvalue1\tfield2\tvalue2
+
+    becomes
+
+    .. code-block:: none
+
+        {"field1": "value1", "field2": "value2"}
+
+    Args:
+        line: the line
+        key_lower: should the keys be forced to lower case?
+
     """
     items = line.split("\t")
     d = {}  # type: Dict[str, str]

@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Short functions to test the type/value of an object.**
+
 """
 
 from typing import Any, Iterable
@@ -31,6 +34,9 @@ from typing import Any, Iterable
 # =============================================================================
 
 def is_integer(s: Any) -> bool:
+    """
+    Is the parameter an integer?
+    """
     try:
         int(s)
         return True
@@ -39,6 +45,10 @@ def is_integer(s: Any) -> bool:
 
 
 def raise_if_attr_blank(obj: Any, attrs: Iterable[str]) -> None:
+    """
+    Raise an :exc:`Exception` if any of the attributes of ``obj`` named in
+    ``attrs`` is ``None`` or is ``''``.
+    """
     for a in attrs:
         value = getattr(obj, a)
         if value is None or value is "":
@@ -50,7 +60,9 @@ def raise_if_attr_blank(obj: Any, attrs: Iterable[str]) -> None:
 # =============================================================================
 
 def is_false(x: Any) -> bool:
-    """Positively false? Evaluates: not x and x is not None."""
+    """
+    Positively false? Evaluates: ``not x and x is not None``.
+    """
     # beware: "0 is False" evaluates to False -- AVOID "is False"!
     # ... but "0 == False" evaluates to True
     # http://stackoverflow.com/questions/3647692/

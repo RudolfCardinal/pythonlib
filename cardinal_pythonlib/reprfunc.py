@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions to assist making repr() methods for Python objects.**
+
 """
 
 import pprint
@@ -36,6 +39,18 @@ from typing import Any, Iterable, List, Tuple
 
 def repr_result(obj: Any, elements: List[str],
                 with_addr: bool = False) -> str:
+    """
+    Internal function to make a :func:`repr`-style representation of an object.
+
+    Args:
+        obj: object to display
+        elements: list of object ``attribute=value`` strings
+        with_addr: include the memory address of ``obj``
+
+    Returns:
+        string: :func:`repr`-style representation
+
+    """
     if with_addr:
         return "<{qualname}({elements}) at {addr}>".format(
             qualname=obj.__class__.__qualname__,
@@ -50,8 +65,16 @@ def repr_result(obj: Any, elements: List[str],
 def auto_repr(obj: Any, with_addr: bool = False,
               sort_attrs: bool = True) -> str:
     """
-    Convenience function for repr().
-    Works its way through the object's __dict__ and reports accordingly.
+    Convenience function for :func:`__repr__`.
+    Works its way through the object's ``__dict__`` and reports accordingly.
+
+    Args:
+        obj: object to display
+        with_addr: include the memory address of ``obj``
+        sort_attrs: sort the attributes into alphabetical order?
+
+    Returns:
+        string: :func:`repr`-style representation
     """
     if sort_attrs:
         keys = sorted(obj.__dict__.keys())
@@ -64,9 +87,19 @@ def auto_repr(obj: Any, with_addr: bool = False,
 def simple_repr(obj: Any, attrnames: List[str],
                 with_addr: bool = False) -> str:
     """
-    Convenience function for repr().
-    Works its way through a list of attribute names, and creates a repr()
-    assuming that parameters to the constructor have the same names.
+    Convenience function for :func:`__repr__`.
+    Works its way through a list of attribute names, and creates a ``repr()``
+    representation assuming that parameters to the constructor have the same
+    names.
+
+    Args:
+        obj: object to display
+        attrnames: names of attributes to include
+        with_addr: include the memory address of ``obj``
+
+    Returns:
+        string: :func:`repr`-style representation
+
     """
     elements = ["{}={}".format(name, repr(getattr(obj, name)))
                 for name in attrnames]
@@ -76,8 +109,18 @@ def simple_repr(obj: Any, attrnames: List[str],
 def mapped_repr(obj: Any, attributes: List[Tuple[str, str]],
                 with_addr: bool = False) -> str:
     """
-    Convenience function for repr().
-    Takes a list of tuples: (attr_name, init_param_name).
+    Convenience function for :func:`__repr__`.
+    Takes attribute names and corresponding initialization parameter names
+    (parameters to :func:`__init__`).
+
+    Args:
+        obj: object to display
+        attributes: list of tuples, each ``(attr_name, init_param_name)``.
+        with_addr: include the memory address of ``obj``
+
+    Returns:
+        string: :func:`repr`-style representation
+
     """
     elements = ["{}={}".format(init_param_name, repr(getattr(obj, attr_name)))
                 for attr_name, init_param_name in attributes]
@@ -87,9 +130,18 @@ def mapped_repr(obj: Any, attributes: List[Tuple[str, str]],
 def mapped_repr_stripping_underscores(obj: Any, attrnames: List[str],
                                       with_addr: bool = False) -> str:
     """
-    Convenience function for repr().
+    Convenience function for :func:`__repr__`.
     Here, you pass a list of internal attributes, and it assumes that the
-    __init__() parameter names have the leading underscore dropped.
+    :func:`__init__` parameter names have the leading underscore dropped.
+
+    Args:
+        obj: object to display
+        attrnames: list of attribute names
+        with_addr: include the memory address of ``obj``
+
+    Returns:
+        string: :func:`repr`-style representation
+
     """
     attributes = []
     for attr_name in attrnames:
@@ -103,11 +155,20 @@ def mapped_repr_stripping_underscores(obj: Any, attrnames: List[str],
 
 def ordered_repr(obj: object, attrlist: Iterable[str]) -> str:
     """
-    Shortcut to make repr() functions ordered.
-    Define your repr like this:
+    Shortcut to make :func:`repr` functions ordered.
+    Define your :func:`__repr__` like this:
+
+    .. code-block:: python
 
         def __repr__(self):
             return ordered_repr(self, ["field1", "field2", "field3"])
+
+    Args:
+        obj: object to display
+        attrlist: iterable of attribute names
+
+    Returns:
+        string: :func:`repr`-style representation
     """
     return "<{classname}({kvp})>".format(
         classname=type(obj).__name__,
@@ -117,4 +178,14 @@ def ordered_repr(obj: object, attrlist: Iterable[str]) -> str:
 
 
 def auto_str(obj: Any) -> str:
+    """
+    Make a pretty :func:`str()` representation using :func:`pprint.pformat`.
+
+    Args:
+        obj: object to display
+
+    Returns:
+        string: :func:`str`-style representation
+
+    """
     return pprint.pformat(obj.__dict__)

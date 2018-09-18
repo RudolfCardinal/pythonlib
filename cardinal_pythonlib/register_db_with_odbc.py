@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -22,32 +22,42 @@
 
 ===============================================================================
 
-Creates/registers an Access database via ODBC.
+**Creates/registers an Access database via ODBC.**
 
 See
-    http://support.microsoft.com/kb/126606/EN-US
-        CREATE_DBV2=<path name> <sort order>
-            (to create version 2 Jet engine mdb file, Access 2, 16bit)
-        CREATE_DBV3=<path name> <sort order>
-            (to create version 3 Jet engine mdb file, Access 95, Access 97)
-        CREATE_DBV4=<path name> <sort order>
-            (to create version 4 Jet engine mdb file, Access 2000)
-    http://code.activestate.com/recipes/414879-create-an-odbc-data-source/
-    view-source:http://www.experts-exchange.com/Programming/Languages/Pascal/
-                       Delphi/Q_22020226.html
-        ... this instead suggests CREATE_DBV3 for Access 95,
-            CREATE_DBV4 for Access 97, and CREATE_DB for Access 2000
-        ... but that's probably wrong
-    http://vieka.com/esqldoc/esqlref/htm/odbcsqlconfigdatasource.htm
-    http://code.google.com/p/opendbviewer/source/browse/trunk/src/
-           dbconnector/win32adodb.py?spec=svn45&r=45
-    http://msdn.microsoft.com/en-us/library/aa140021(v=office.10).aspx
-        ... indicates that programmatic creation of queries/views (via ADO)
-            leads to "invisible" queries
-    http://msaccessmemento.hubpages.com/hub/Stored_Procedure_in_MS_Access
-        ... additionally, stored procedures have no user interface
 
-"""
+- http://support.microsoft.com/kb/126606/EN-US
+
+  .. code-block:: none
+  
+    CREATE_DBV2=<path name> <sort order>
+        (to create version 2 Jet engine mdb file, Access 2, 16bit)
+    CREATE_DBV3=<path name> <sort order>
+        (to create version 3 Jet engine mdb file, Access 95, Access 97)
+    CREATE_DBV4=<path name> <sort order>
+        (to create version 4 Jet engine mdb file, Access 2000)
+        
+- http://code.activestate.com/recipes/414879-create-an-odbc-data-source/
+
+- view-source:http://www.experts-exchange.com/Programming/Languages/Pascal/Delphi/Q_22020226.html
+
+  - this instead suggests CREATE_DBV3 for Access 95, CREATE_DBV4 for Access 97,
+    and CREATE_DB for Access 2000, but that's probably wrong
+
+- http://vieka.com/esqldoc/esqlref/htm/odbcsqlconfigdatasource.htm
+
+- http://code.google.com/p/opendbviewer/source/browse/trunk/src/dbconnector/win32adodb.py?spec=svn45&r=45
+
+- http://msdn.microsoft.com/en-us/library/aa140021(v=office.10).aspx
+
+  - ... indicates that programmatic creation of queries/views (via ADO)
+    leads to "invisible" queries
+    
+- http://msaccessmemento.hubpages.com/hub/Stored_Procedure_in_MS_Access
+
+  - ... additionally, stored procedures have no user interface
+
+"""  # noqa
 
 from __future__ import division, print_function, absolute_import
 import ctypes
@@ -67,13 +77,16 @@ nul = chr(0)
 
 
 def create_sys_dsn(driver: str, **kw) -> bool:
-    """Create a  system DSN
-    Parameters:
-        driver - ODBC driver name
-        kw - Driver attributes
+    """
+    (Windows only.)
+    Create a system ODBC data source name (DSN).
+
+    Args:
+        driver: ODBC driver name
+        kw: Driver attributes
+
     Returns:
-        False [from 0] - DSN not created
-        True [from 1] - DSN created
+        bool: was the DSN created?
     """
     attributes = []  # type: List[str]
     for attr in kw.keys():
@@ -86,13 +99,16 @@ def create_sys_dsn(driver: str, **kw) -> bool:
 
 
 def create_user_dsn(driver: str, **kw) -> bool:
-    """Create a user DSN
-    Parameters:
-        driver - ODBC driver name
-        kw - Driver attributes
+    """
+    (Windows only.)
+    Create a user ODBC data source name (DSN).
+
+    Args:
+        driver: ODBC driver name
+        kw: Driver attributes
+
     Returns:
-        False [from 0] - DSN not created
-        True [from 1] - DSN created
+        bool: was the DSN created?
     """
     attributes = []  # type: List[str]
     for attr in kw.keys():
@@ -104,6 +120,19 @@ def create_user_dsn(driver: str, **kw) -> bool:
 
 
 def register_access_db(fullfilename: str, dsn: str, description: str) -> bool:
+    """
+    (Windows only.)
+    Registers a Microsoft Access database with ODBC.
+
+    Args:
+        fullfilename: filename of the existing database
+        dsn: ODBC data source name to create
+        description: description of the database
+
+    Returns:
+        bool: was the DSN created?
+
+    """
     directory = os.path.dirname(fullfilename)
     return create_sys_dsn(
         access_driver,
@@ -118,6 +147,18 @@ def register_access_db(fullfilename: str, dsn: str, description: str) -> bool:
 def create_and_register_access97_db(filename: str,
                                     dsn: str,
                                     description: str) -> bool:
+    """
+    (Windows only.)
+    Creates a Microsoft Access 97 database and registers it with ODBC.
+
+    Args:
+        filename: filename of the database to create
+        dsn: ODBC data source name to create
+        description: description of the database
+
+    Returns:
+        bool: was the DSN created?
+    """
     fullfilename = os.path.abspath(filename)
     create_string = fullfilename + " General"
     # ... filename, space, sort order ("General" for English)
@@ -128,6 +169,18 @@ def create_and_register_access97_db(filename: str,
 def create_and_register_access2000_db(filename: str,
                                       dsn: str,
                                       description: str) -> bool:
+    """
+    (Windows only.)
+    Creates a Microsoft Access 2000 database and registers it with ODBC.
+
+    Args:
+        filename: filename of the database to create
+        dsn: ODBC data source name to create
+        description: description of the database
+
+    Returns:
+        bool: was the DSN created?
+    """
     fullfilename = os.path.abspath(filename)
     create_string = fullfilename + " General"
     # ... filename, space, sort order ("General" for English)
@@ -138,6 +191,18 @@ def create_and_register_access2000_db(filename: str,
 def create_and_register_access_db(filename: str,
                                   dsn: str,
                                   description: str) -> bool:
+    """
+    (Windows only.)
+    Creates a Microsoft Access database and registers it with ODBC.
+
+    Args:
+        filename: filename of the database to create
+        dsn: ODBC data source name to create
+        description: description of the database
+
+    Returns:
+        bool: was the DSN created?
+    """
     fullfilename = os.path.abspath(filename)
     create_string = fullfilename + " General"
     # ... filename, space, sort order ("General" for English)

@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -46,6 +46,7 @@ def cmdargs(mysqldump: str,
             database: str,
             verbose: bool,
             with_drop_create_database: bool,
+            max_allowed_packet: str,
             hide_password: bool = False) -> List[str]:
     """
     Returns command arguments for a ``mysqldump`` call.
@@ -58,6 +59,7 @@ def cmdargs(mysqldump: str,
         verbose: verbose output?
         with_drop_create_database: produce commands to ``DROP`` the database
             and recreate it?
+        max_allowed_packet: passed to ``mysqldump``
         hide_password: obscure the password (will break the arguments but
             provide a safe version to show the user)?
 
@@ -68,7 +70,7 @@ def cmdargs(mysqldump: str,
         mysqldump,
         "-u", username,
         "-p{}".format("*****" if hide_password else password),
-        "--max_allowed_packet={}".format(args.max_allowed_packet),
+        "--max_allowed_packet={}".format(max_allowed_packet),
         "--hex-blob",  # preferable to raw binary in our .sql file
     ]
     if verbose:
@@ -136,19 +138,21 @@ def main() -> None:
         display_args = cmdargs(
             mysqldump=args.mysqldump,
             username=args.username,
-            password=args.password,
+            password=password,
             database=db,
             verbose=args.verbose,
             with_drop_create_database=args.with_drop_create_database,
+            max_allowed_packet=args.max_allowed_packet,
             hide_password=True
         )
         actual_args = cmdargs(
             mysqldump=args.mysqldump,
             username=args.username,
-            password=args.password,
+            password=password,
             database=db,
             verbose=args.verbose,
             with_drop_create_database=args.with_drop_create_database,
+            max_allowed_packet=args.max_allowed_packet,
             hide_password=False
         )
         log.info("Executing: " + repr(display_args))

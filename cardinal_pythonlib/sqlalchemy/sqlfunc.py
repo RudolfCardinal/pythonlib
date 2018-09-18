@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -30,6 +30,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from sqlalchemy.ext.compiler import compiles
+# noinspection PyProtectedMember
 from sqlalchemy.sql.expression import FunctionElement
 from sqlalchemy.sql.sqltypes import Numeric
 

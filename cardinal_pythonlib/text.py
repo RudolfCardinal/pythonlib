@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -22,14 +22,12 @@
 
 ===============================================================================
 
-Simple text-processing functions.
+**Simple text-processing functions.**
 
 """
 
 import logging
 from typing import List, Union
-
-from cardinal_pythonlib.stringfunc import split_string
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -42,9 +40,10 @@ log.addHandler(logging.NullHandler())
 def escape_newlines(s: str) -> str:
     """
     Escapes CR, LF, and backslashes.
-    Tablet counterpart is unescape_newlines() in conversion.js.
 
-    s.encode("string_escape") and s.encode("unicode_escape") are
+    Its counterpart is :func:`unescape_newlines`.
+
+    ``s.encode("string_escape")`` and ``s.encode("unicode_escape")`` are
     alternatives, but they mess around with quotes, too (specifically,
     backslash-escaping single quotes).
     """
@@ -58,7 +57,7 @@ def escape_newlines(s: str) -> str:
 
 def unescape_newlines(s: str) -> str:
     """
-    Reverses escape_newlines.
+    Reverses :func:`escape_newlines`.
     """
     # See also http://stackoverflow.com/questions/4020539
     if not s:
@@ -85,8 +84,9 @@ def unescape_newlines(s: str) -> str:
 
 def escape_tabs_newlines(s: str) -> str:
     """
-    Escapes CR, LF, tab, and backslashes. (Here just for testing; mirrors the
-    equivalent function in the Java code.)
+    Escapes CR, LF, tab, and backslashes.
+
+    Its counterpart is :func:`unescape_tabs_newlines`.
     """
     if not s:
         return s
@@ -99,9 +99,10 @@ def escape_tabs_newlines(s: str) -> str:
 
 def unescape_tabs_newlines(s: str) -> str:
     """
-    Reverses escape_tabs_newlines.
+    Reverses :func:`escape_tabs_newlines`.
+
+    See also http://stackoverflow.com/questions/4020539.
     """
-    # See also http://stackoverflow.com/questions/4020539
     if not s:
         return s
     d = ""  # the destination string
@@ -131,6 +132,17 @@ def unescape_tabs_newlines(s: str) -> str:
 # =============================================================================
 
 def _unicode_def_src_to_str(srclist: List[Union[str, int]]) -> str:
+    """
+    Used to create :data:`UNICODE_CATEGORY_STRINGS`.
+
+    Args:
+        srclist: list of integers or hex range strings like ``"0061-007A"``
+
+    Returns:
+        a string with all characters described by ``srclist``: either the
+        character corresponding to the integer Unicode character number, or
+        all characters corresponding to the inclusive range described
+    """
     charlist = []  # type: List[str]
     for src in srclist:
         if isinstance(src, int):

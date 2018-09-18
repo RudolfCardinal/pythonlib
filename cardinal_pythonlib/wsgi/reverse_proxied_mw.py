@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -222,7 +222,8 @@ class ReverseProxiedConfig(object):
 
                 This is appropriate for front-end web servers that fail to
                 rewrite the incoming URL properly. (Do not use for Apache with
-                ``ProxyPass``; ``ProxyPass`` rewrites the URLs properly for you.)
+                ``ProxyPass``; ``ProxyPass`` rewrites the URLs properly for
+                you.)
 
                 ... as per e.g. http://flask.pocoo.org/snippets/35/
         """

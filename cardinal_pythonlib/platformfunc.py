@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -31,7 +31,7 @@ import logging
 from pprint import pformat
 import subprocess
 import sys
-from typing import Any, Dict, Generator, Iterator, List, Union
+from typing import Any, Dict, Generator, Iterator, List, Tuple, Union
 
 from cardinal_pythonlib.fileops import require_executable
 
@@ -251,8 +251,13 @@ def windows_get_environment_from_batch_command(
             yield line.decode(encoding)
 
     # define a way to handle each KEY=VALUE line
-    def handle_line(line: str) -> List[str]:  # RNC: as function
-        return line.rstrip().split('=', 1)
+    def handle_line(line: str) -> Tuple[str, str]:  # RNC: as function
+        # noinspection PyTypeChecker
+        parts = line.rstrip().split('=', 1)
+        # split("=", 1) means "split at '=' and do at most 1 split"
+        if len(parts) < 2:
+            return parts[0], ""
+        return parts[0], parts[1]
 
     lines = gen_lines()  # RNC
     # consume whatever output occurs until the tag is reached

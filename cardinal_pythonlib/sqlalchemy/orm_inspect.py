@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -132,6 +132,7 @@ class SqlAlchemyAttrDictMixin(object):
         Builds a new instance of the ORM object from values in an attrdict.
         """
         dictionary = attrdict.__dict__
+        # noinspection PyArgumentList
         return cls(**dictionary)
 
 
@@ -151,8 +152,9 @@ def walk_orm_tree(obj,
     Starting with a SQLAlchemy ORM object, this function walks a
     relationship tree, yielding each of the objects once.
 
-    To skip attributes by name, put the attribute name(s) in ``skip_attrs_always``.
-    To skip by table name, pass skip_attrs_by_tablename as e.g.
+    To skip attributes by name, put the attribute name(s) in
+    ``skip_attrs_always``. To skip by table name, pass
+    ``skip_attrs_by_tablename`` as e.g.
 
     .. code-block:: python
 
@@ -636,6 +638,7 @@ def gen_relationships(obj) -> Generator[Tuple[str, RelationshipProperty, Type],
     # sqlalchemy.utils._collections.ImmutableProperties, which is basically
     # a sort of AttrDict.
     for attrname, rel_prop in insp.mapper.relationships.items():  # type: Tuple[str, RelationshipProperty]  # noqa
+        # noinspection PyUnresolvedReferences
         related_class = rel_prop.mapper.class_
         # log.critical("gen_relationships: attrname={!r}, "
         #              "rel_prop={!r}, related_class={!r}, rel_prop.info={!r}",

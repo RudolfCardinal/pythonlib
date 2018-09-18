@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -43,6 +43,9 @@ if TYPE_CHECKING:
 # =============================================================================
 
 def is_sqlserver(engine: "Engine") -> bool:
+    """
+    Is the SQLAlchemy :class:`Engine` a Microsoft  SQL Server database?
+    """
     dialect_name = get_dialect_name(engine)
     return dialect_name == SqlaDialectName.SQLSERVER
 
@@ -51,7 +54,9 @@ def get_sqlserver_product_version(engine: "Engine") -> Tuple[int]:
     """
     Gets SQL Server version information.
 
-    Attempted to use dialect.server_version_info:
+    Attempted to use ``dialect.server_version_info``:
+
+    .. code-block:: python
 
         from sqlalchemy import create_engine
 
@@ -60,21 +65,25 @@ def get_sqlserver_product_version(engine: "Engine") -> Tuple[int]:
         dialect = engine.dialect
         vi = dialect.server_version_info
 
-    Unfortunately, vi == () for an SQL Server 2014 instance via mssql+pyodbc.
-    It's also None for a mysql+pymysql connection.
-    So this seems server_version_info is a badly supported feature.
+    Unfortunately, ``vi == ()`` for an SQL Server 2014 instance via
+    ``mssql+pyodbc``. It's also ``None`` for a ``mysql+pymysql`` connection. So
+    this seems ``server_version_info`` is a badly supported feature.
 
-    So the only other way is to ask the database directly.
-    The problem is that this requires an Engine or similar. (The initial hope
-    was to be able to use this from within SQL compilation hooks, to vary the
-    SQL based on the engine version. Still, this isn't so bad.)
+    So the only other way is to ask the database directly. The problem is that
+    this requires an :class:`Engine` or similar. (The initial hope was to be
+    able to use this from within SQL compilation hooks, to vary the SQL based
+    on the engine version. Still, this isn't so bad.)
 
     We could use either
-            SELECT @@version;  -- returns a human-readable string
-            SELECT SERVERPROPERTY('ProductVersion');  -- better
-    The pyodbc interface will fall over with "ODBC SQL type -150 is not yet
-    supported" with that last call, though, meaning that a VARIANT is coming
-    back, so we CAST as below.
+
+    .. code-block:: sql
+
+        SELECT @@version;  -- returns a human-readable string
+        SELECT SERVERPROPERTY('ProductVersion');  -- better
+
+    The ``pyodbc`` interface will fall over with ``ODBC SQL type -150 is not
+    yet supported`` with that last call, though, meaning that a ``VARIANT`` is
+    coming back, so we ``CAST`` as per the source below.
     """
     assert is_sqlserver(engine), (
         "Only call get_sqlserver_product_version() for Microsoft SQL Server "
@@ -98,6 +107,10 @@ SQLSERVER_MAJOR_VERSION_2017 = 14
 
 
 def is_sqlserver_2008_or_later(engine: "Engine") -> bool:
+    """
+    Is the SQLAlchemy :class:`Engine` an instance of Microsoft SQL Server,
+    version 2008 or later?
+    """
     if not is_sqlserver(engine):
         return False
     version_tuple = get_sqlserver_product_version(engine)

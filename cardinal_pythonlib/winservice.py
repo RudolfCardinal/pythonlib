@@ -4,7 +4,7 @@
 r"""
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -22,9 +22,11 @@ r"""
 
 ===============================================================================
 
-For an example, see crate_anon/tools/winservice.py
+**Functions to manage Windows services.**
 
-**Details**
+For an example, see ``crate_anon/tools/winservice.py``
+
+*Details*
 
 - http://stackoverflow.com/questions/32404
 - http://www.chrisumbel.com/article/windows_services_in_python
@@ -32,12 +34,12 @@ For an example, see crate_anon/tools/winservice.py
 - http://docs.activestate.com/activepython/2.4/pywin32/PyWin32.HTML
 
   - http://docs.activestate.com/activepython/2.4/pywin32/modules.html
-  - source: ...venv.../Lib/site-packages/win32/lib/win32serviceutil.py
+  - source: ``...venv.../Lib/site-packages/win32/lib/win32serviceutil.py``
 
 - http://docs.activestate.com/activepython/3.3/pywin32/servicemanager.html
 - http://timgolden.me.uk/pywin32-docs/contents.html
 
-**Synopsis**
+*Synopsis, applied to a service named CRATE*
 
 - INSTALL: run this script with "install" argument, as administrator
 - RUN: use Windows service manager, or NET START CRATE
@@ -133,7 +135,7 @@ For an example, see crate_anon/tools/winservice.py
     registry about the INSTALLED service to establish the name of the program
     that it runs. It assumes PythonService.exe.
 
-**Script parameters**
+*Script parameters*
 
 If you run this script with no parameters, you'll see this:
 
@@ -158,7 +160,7 @@ If you run this script with no parameters, you'll see this:
         - CreateEvent: https://msdn.microsoft.com/en-us/library/windows/desktop/ms682396(v=vs.85).aspx
         - WaitForSingleObject: https://msdn.microsoft.com/en-us/library/windows/desktop/ms687032(v=vs.85).aspx
 
-**Problems killing things**
+*Problems killing things*
 
 We had this:
 
@@ -238,7 +240,7 @@ Current method tries a variety of things under Windows:
 ... which are progressively less graceful in terms of child processes getting
 to clean up. Still, it works (usually at one of the two TASKKILL stages).
 
-**"The specified service is marked for deletion"**
+*"The specified service is marked for deletion"*
 
 - http://stackoverflow.com/questions/20561990
 
@@ -301,11 +303,21 @@ WINDOWS = platform.system() == 'Windows'
 # =============================================================================
 
 class ProcessDetails(object):
+    """
+    Description of a process.
+    """
     def __init__(self,
                  name: str,
                  procargs: List[str],
                  logfile_out: str = '',
                  logfile_err: str = '') -> None:
+        """
+        Args:
+            name: cosmetic name of the process
+            procargs: command-line arguments
+            logfile_out: filename to write ``stdout`` to
+            logfile_err: filename to write ``stderr`` to
+        """
         self.name = name
         self.procargs = procargs
         self.logfile_out = logfile_out
@@ -313,6 +325,9 @@ class ProcessDetails(object):
 
 
 class ProcessManager(object):
+    """
+    Object that manages a single process.
+    """
     KILL_LEVEL_CTRL_C_OR_SOFT_KILL = 0
     KILL_LEVEL_CTRL_BREAK = 1
     KILL_LEVEL_TASKKILL = 2
@@ -332,6 +347,18 @@ class ProcessManager(object):
                  nprocs: int,
                  kill_timeout_sec: float = 5,
                  debugging: bool = False):
+        """
+        Args:
+            details: description of the process as a :class:`ProcessDetails`
+                object
+            procnum: for cosmetic purposes only: the process sequence number of
+                this process
+            nprocs: for cosmetic purposes only: the total number of processes
+                (including others not managed by this instance)
+            kill_timeout_sec: how long (in seconds) will we wait for the
+                process to end peacefully, before we try to kill it?
+            debugging: be verbose?
+        """
         self.details = details
         self.procnum = procnum
         self.nprocs = nprocs
@@ -344,6 +371,9 @@ class ProcessManager(object):
 
     @property
     def fullname(self) -> str:
+        """
+        Description of the process.
+        """
         fullname = "Process {}/{} ({})".format(self.procnum, self.nprocs,
                                                self.details.name)
         if self.running:
@@ -355,12 +385,18 @@ class ProcessManager(object):
     # -------------------------------------------------------------------------
 
     def debug(self, msg: str) -> None:
+        """
+        If we are being verbose, write a debug message to the Python disk log.
+        """
         if self.debugging:
             s = "{}: {}".format(self.fullname, msg)
             log.debug(s)
 
     def info(self, msg: str) -> None:
-        # Log messages go to the Windows APPLICATION log.
+        """
+        Write an info message to the Windows Application log
+        (± to the Python disk log).
+        """
         # noinspection PyUnresolvedReferences
         s = "{}: {}".format(self.fullname, msg)
         servicemanager.LogInfoMsg(s)
@@ -368,6 +404,10 @@ class ProcessManager(object):
             log.info(s)
 
     def warning(self, msg: str) -> None:
+        """
+        Write a warning message to the Windows Application log
+        (± to the Python disk log).
+        """
         # Log messages go to the Windows APPLICATION log.
         # noinspection PyUnresolvedReferences
         s = "{}: {}".format(self.fullname, msg)
@@ -376,7 +416,10 @@ class ProcessManager(object):
             log.warning(s)
 
     def error(self, msg: str) -> None:
-        # Log messages go to the Windows APPLICATION log.
+        """
+        Write an error message to the Windows Application log
+        (± to the Python disk log).
+        """
         # noinspection PyUnresolvedReferences
         s = "{}: {}".format(self.fullname, msg)
         servicemanager.LogErrorMsg(s)
@@ -384,6 +427,9 @@ class ProcessManager(object):
             log.warning(s)
 
     def open_logs(self) -> None:
+        """
+        Open Python disk logs.
+        """
         if self.details.logfile_out:
             self.stdout = open(self.details.logfile_out, 'a')
         else:
@@ -397,6 +443,9 @@ class ProcessManager(object):
             self.stderr = None
 
     def close_logs(self) -> None:
+        """
+        Close Python disk logs.
+        """
         if self.stdout is not None:
             self.stdout.close()
             self.stdout = None
@@ -410,7 +459,7 @@ class ProcessManager(object):
 
     def start(self) -> None:
         """
-        Starts a subprocess.
+        Starts a subprocess. Optionally routes its output to our disk logs.
         """
         if self.running:
             return
@@ -429,7 +478,12 @@ class ProcessManager(object):
     def stop(self) -> None:
         """
         Stops a subprocess.
+
         Asks nicely. Waits. Asks less nicely. Repeat until subprocess is dead.
+
+        .. todo::
+            cardinal_pythonlib.winservice.ProcessManager._kill: make
+            it reliable under Windows
         """
         if not self.running:
             return
@@ -450,7 +504,9 @@ class ProcessManager(object):
         self.running = False
 
     def _terminate(self, level: int) -> bool:
-        """Returns: succeeded in *attempting* a kill?"""
+        """
+        Returns: succeeded in *attempting* a kill?
+        """
         if not self.running:
             return True
 
@@ -511,6 +567,17 @@ class ProcessManager(object):
             raise ValueError("Bad kill level requested")
 
     def _taskkill(self, force: bool = False) -> int:
+        """
+        Executes a Windows ``TASKKILL /pid PROCESS_ID /t`` command
+        (``/t`` for "tree kill" = "kill all children").
+
+        Args:
+            force: also add ``/f`` (forcefully)
+
+        Returns:
+            return code from ``TASKKILL``
+
+        """
         args = [
             "taskkill",  # built in to Windows XP and higher
             "/pid", str(self.process.pid),
@@ -543,7 +610,12 @@ class ProcessManager(object):
         return retcode
 
     def _kill(self) -> None:
-        """Hard kill."""
+        """
+        Hard kill.
+
+        PROBLEM: may leave orphans under Windows.
+
+        """
         msg = "Using a hard kill; will assume it worked"
         if WINDOWS:
             msg += "; may leave orphans"
@@ -552,8 +624,20 @@ class ProcessManager(object):
         # ... but will leave orphans under Windows
 
     def wait(self, timeout_s: float = None) -> int:
-        """Will raise subprocess.TimeoutExpired if the process continues to
-        run."""
+        """
+        Wait for up to ``timeout_s`` for the child process to finish.
+
+        Args:
+            timeout_s: maximum time to wait or ``None`` to wait forever
+
+        Returns:
+            process return code; or ``0`` if it wasn't running, or ``1`` if
+            it managed to exit without a return code
+
+        Raises:
+            subprocess.TimeoutExpired: if the process continues to run
+
+        """
         if not self.running:
             return 0
         retcode = self.process.wait(timeout=timeout_s)
@@ -580,31 +664,40 @@ class ProcessManager(object):
 
 class WindowsService(ServiceFramework):
     """
+    Class representing a Windows service.
+
     Derived classes must set the following class properties:
 
-    # you can NET START/STOP the service by the following name
-    _svc_name_ = "CRATE"
+    .. code-block:: python
 
-    # this text shows up as the service name in the Service
-    # Control Manager (SCM)
-    _svc_display_name_ = "CRATE web service"
+        # you can NET START/STOP the service by the following name
+        _svc_name_ = "CRATE"
 
-    # this text shows up as the description in the SCM
-    _svc_description_ = "Runs Django/Celery processes for CRATE web site"
+        # this text shows up as the service name in the Service
+        # Control Manager (SCM)
+        _svc_display_name_ = "CRATE web service"
 
-    # how to launch?
-    _exe_name_ = sys.executable  # python.exe in the virtualenv
-    _exe_args_ = '"{}"'.format(os.path.realpath(__file__))  # this script
+        # this text shows up as the description in the SCM
+        _svc_description_ = "Runs Django/Celery processes for CRATE web site"
+
+        # how to launch?
+        _exe_name_ = sys.executable  # python.exe in the virtualenv
+        _exe_args_ = '"{}"'.format(os.path.realpath(__file__))  # this script
 
     """
 
     def __init__(self, args: List[Any] = None) -> None:
         super().__init__(args)
         failmsg = "Derived class improperly configured"
+        # noinspection PyUnresolvedReferences
         assert self._svc_name_, failmsg
+        # noinspection PyUnresolvedReferences
         assert self._svc_display_name_, failmsg
+        # noinspection PyUnresolvedReferences
         assert self._svc_description_, failmsg
+        # noinspection PyUnresolvedReferences
         assert self._exe_name_, failmsg
+        # noinspection PyUnresolvedReferences
         assert self._exe_args_, failmsg
         # create an event to listen for stop requests on
         self.h_stop_event = win32event.CreateEvent(None, 0, 0, None)
@@ -616,18 +709,27 @@ class WindowsService(ServiceFramework):
     # -------------------------------------------------------------------------
 
     def debug(self, msg: str) -> None:
+        """
+        If we are being verbose, write a debug message to the Python log.
+        """
         if self.debugging:
             log.debug(msg)
 
     def info(self, msg: str) -> None:
-        # Log messages go to the Windows APPLICATION log.
+        """
+        Write an info message to the Windows Application log
+        (± to the Python disk log).
+        """
         # noinspection PyUnresolvedReferences
         servicemanager.LogInfoMsg(str(msg))
         if self.debugging:
             log.info(msg)
 
     def error(self, msg: str) -> None:
-        # Log messages go to the Windows APPLICATION log.
+        """
+        Write an error message to the Windows Application log
+        (± to the Python disk log).
+        """
         # noinspection PyUnresolvedReferences
         servicemanager.LogErrorMsg(str(msg))
         if self.debugging:
@@ -637,10 +739,13 @@ class WindowsService(ServiceFramework):
     # Windows service calls
     # -------------------------------------------------------------------------
 
-    # called when we're being shut down
     # noinspection PyPep8Naming
     def SvcStop(self) -> None:
+        """
+        Called when the service is being shut down.
+        """
         # tell the SCM we're shutting down
+        # noinspection PyUnresolvedReferences
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         # fire the stop event
         win32event.SetEvent(self.h_stop_event)
@@ -648,11 +753,15 @@ class WindowsService(ServiceFramework):
     # called when service is started
     # noinspection PyPep8Naming
     def SvcDoRun(self) -> None:
+        """
+        Called when the service is started.
+        """
         # No need to self.ReportServiceStatus(win32service.SERVICE_RUNNING);
         # that is done by the framework (see win32serviceutil.py).
         # Similarly, no need to report a SERVICE_STOP_PENDING on exit.
         # noinspection PyUnresolvedReferences
         self.debug("Sending PYS_SERVICE_STARTED message")
+        # noinspection PyUnresolvedReferences
         servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
                               servicemanager.PYS_SERVICE_STARTED,
                               (self._svc_name_, ''))
@@ -660,9 +769,11 @@ class WindowsService(ServiceFramework):
         # self.test_service()  # test service
         self.main()  # real service
 
+        # noinspection PyUnresolvedReferences
         servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
                               servicemanager.PYS_SERVICE_STOPPED,
                               (self._svc_name_, ''))
+        # noinspection PyUnresolvedReferences
         self.ReportServiceStatus(win32service.SERVICE_STOPPED)
 
     # -------------------------------------------------------------------------
@@ -671,7 +782,16 @@ class WindowsService(ServiceFramework):
 
     def test_service(self,
                      filename: str = TEST_FILENAME,
-                     period_ms: int = TEST_PERIOD_MS):
+                     period_ms: int = TEST_PERIOD_MS) -> None:
+        """
+        A test service.
+
+        Writes to a file occasionally, so you can see it's running.
+
+        Args:
+            filename: file to write data to periodically
+            period_ms: period, in milliseconds
+        """
         # A test service. This works! (As long as you can write to the file.)
         def write(msg):
             f.write('{}: {}\n'.format(arrow.now(), msg))
@@ -693,6 +813,9 @@ class WindowsService(ServiceFramework):
         self.info("Test service FINISHED.")
 
     def run_debug(self) -> None:
+        """
+        Enable verbose mode and call :func:`main`.
+        """
         self.debugging = True
         self.main()
 
@@ -701,6 +824,9 @@ class WindowsService(ServiceFramework):
     # -------------------------------------------------------------------------
 
     def main(self) -> None:
+        """
+        Main entry point. Runs :func:`service`.
+        """
         # Actual main service code.
         try:
             self.service()
@@ -709,6 +835,9 @@ class WindowsService(ServiceFramework):
                 e=e, t=traceback.format_exc()))
 
     def service(self) -> None:
+        """
+        Service function. Must be overridden by derived classes.
+        """
         raise NotImplementedError()
 
     def run_processes(self,
@@ -721,25 +850,19 @@ class WindowsService(ServiceFramework):
 
         Args:
 
-            procdetails: list of dictionaries:
+            procdetails: list of :class:`ProcessDetails` objects (q.v.)
+            subproc_run_timeout_sec: time (in seconds) to wait for each process
+                when polling child processes to see how they're getting on
+                (default ``1``)
+            stop_event_timeout_ms: time to wait (in ms) while checking the
+                Windows stop event for this service (default ``1000``)
+            kill_timeout_sec: how long (in seconds) will we wait for the
+                subprocesses to end peacefully, before we try to kill them?
 
-                .. code-block:: none
-
-                    {
-                        'name': name (str),
-                        'procargs': list of command arguments, passed to Popen,
-                        'logfile_out': log file name for stdout,
-                        'logfile_err': log file name for stderr,
-                    }
-
-            subproc_run_timeout_sec:
-            stop_event_timeout_ms:
-            kill_timeout_sec:
-
-        Returns:
-            None
+        .. todo::
+            cardinal_pythonlib.winservice.WindowsService: NOT YET IMPLEMENTED:
+            Windows service autorestart
         """
-        # NOT YET IMPLEMENTED: Windows service autorestart
 
         # https://stackoverflow.com/questions/16333054
         def cleanup():
@@ -810,7 +933,22 @@ class WindowsService(ServiceFramework):
 # =============================================================================
 
 def generic_service_main(cls: Type[WindowsService], name: str) -> None:
-    # https://mail.python.org/pipermail/python-win32/2008-April/007299.html
+    """
+    Call this from your command-line entry point to manage a service.
+
+    - Via inherited functions, enables you to ``install``, ``update``,
+      ``remove``, ``start``, ``stop``, and ``restart`` the service.
+    - Via our additional code, allows you to run the service function directly
+      from the command line in debug mode, using the ``debug`` command.
+    - Run with an invalid command like ``help`` to see help (!).
+
+    See
+    https://mail.python.org/pipermail/python-win32/2008-April/007299.html
+
+    Args:
+        cls: class deriving from :class:`WindowsService`
+        name: name of this service
+    """
     argc = len(sys.argv)
     if argc == 1:
         try:

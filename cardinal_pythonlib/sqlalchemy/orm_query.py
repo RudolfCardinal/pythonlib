@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -188,7 +188,8 @@ class CountStarSpecializedQuery(Query):
         """
         Optimizes ``COUNT(*)`` queries.
 
-        See https://stackoverflow.com/questions/12941416/how-to-count-rows-with-select-count-with-sqlalchemy
+        See
+        https://stackoverflow.com/questions/12941416/how-to-count-rows-with-select-count-with-sqlalchemy
 
         Example use:
 
@@ -198,7 +199,7 @@ class CountStarSpecializedQuery(Query):
                 .filter(cls.username == username)
             return q.count_star()
 
-        """
+        """  # noqa
         super().__init__(*args, **kwargs)
 
     def count_star(self) -> int:

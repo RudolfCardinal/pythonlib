@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -22,25 +22,29 @@
 
 ===============================================================================
 
-Library functions to launch jobs under the Slurm workload manager,
-https://slurm.schedmd.com/
+**Library functions to launch jobs under the Slurm workload manager.**
+
+See https://slurm.schedmd.com/.
 
 RNC: SLURM job launcher.
-- You can't use environment variables in #SBATCH syntax.
-- sbatch stops looking at the first non-comment line that is not an
-  #SBATCH line (and the rest goes to the job's shell).
+
+- You can't use environment variables in ``#SBATCH`` syntax.
+- ``sbatch`` stops looking at the first non-comment line that is not an
+  ``#SBATCH`` line (and the rest goes to the job's shell).
 - We want to be able to use variable substitution in places, and no
   substitution in others (for later substitution).
 - The HPHI has Python 3.4.2 (as of 2018-02-17) so no Python 3.5 stuff without
-  installing a newer Python and venv (but let's do that).
+  installing a newer Python and ``venv`` (but let's do that).
 
 To find out what you have available in terms of partitions, clusters, etc.:
 
-$ sinfo                             # summarizes partitions, nodes
-                                    # NB: default partition has "*" appended
-$ scontrol show node <NODENAME>     # details of one node
-$ sacctmgr show qos                 # show Quality of Service options
-$ squeue -u <USERNAME> --sort=+i    # show my running jobs
+.. code-block:: bash
+
+    $ sinfo                            # summarizes partitions, nodes
+                                       # NB: default partition has "*" appended
+    $ scontrol show node <NODENAME>    # details of one node
+    $ sacctmgr show qos                # show Quality of Service options
+    $ squeue -u <USERNAME> --sort=+i   # show my running jobs
 
 """
 
@@ -75,6 +79,21 @@ def launch_slurm(jobname: str,
                  encoding: str = "ascii") -> None:
     """
     Launch a job into the SLURM environment.
+
+    Args:
+        jobname: name of the job
+        cmd: command to be executed
+        memory_mb: maximum memory requirement per process (Mb)
+        project: project name
+        qos: quality-of-service name
+        email: user's e-mail address
+        duration: maximum duration per job
+        tasks_per_node: tasks per (cluster) node
+        cpus_per_task: CPUs per task
+        partition: cluster partition name
+        modules: SLURM modules to load
+        directory: directory to change to
+        encoding: encoding to apply to launch script as sent to ``sbatch``
     """
     if partition:
         partition_cmd = "#SBATCH -p {}".format(partition)
@@ -208,8 +227,8 @@ def launch_cambridge_hphi(
         directory: str = os.getcwd(),
         encoding: str = "ascii") -> None:
     """
-    Specialization of launch_slurm with defaults for the University of
-    Cambridge WBIC HPHI.
+    Specialization of :func:`launch_slurm` (q.v.) with defaults for the
+    University of Cambridge WBIC HPHI.
     """
     if modules is None:
         modules = ["default-wbic"]

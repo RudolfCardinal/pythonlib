@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -347,9 +347,9 @@ def two_antidepressant_episodes(
         DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,
         n_threads: int = DEFAULT_N_THREADS) -> DataFrame:
     """
-    Takes a *pandas* ``DataFrame``, ``patient_drug_date_df`` (or, via ``reticulate``, an R
-    ``data.frame`` or ``data.table``). This should contain dated present-tense
-    references to antidepressant drugs (only).
+    Takes a *pandas* ``DataFrame``, ``patient_drug_date_df`` (or, via
+    ``reticulate``, an R ``data.frame`` or ``data.table``). This should contain
+    dated present-tense references to antidepressant drugs (only).
 
     Returns a set of result rows as a ``DataFrame``.
     """
@@ -551,7 +551,7 @@ def test_two_antidepressant_episodes(
     flush_stdout_stderr()
 
 
-if __name__ == "__main__":
+def main() -> None:
     main_only_quicksetup_rootlogger(level=logging.DEBUG, with_thread_id=True)
 
     if PROFILE:
@@ -570,3 +570,7 @@ if __name__ == "__main__":
 
     else:
         test_two_antidepressant_episodes()
+
+
+if __name__ == "__main__":
+    main()

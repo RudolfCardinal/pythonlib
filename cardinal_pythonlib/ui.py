@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Support functions for user interaction.
+**Support functions for user interaction.**
 
 """
 
@@ -35,12 +35,16 @@ try:
     import tkinter
     from tkinter import filedialog
 except ImportError:
+    tkinter = None  # make type checker happy
+    filedialog = None  # make type checker happy
     if not os.environ["_SPHINX_AUTODOC_IN_PROGRESS"]:
         raise
 
 
 def ask_user(prompt: str, default: str = None) -> Optional[str]:
-    """Prompts the user, with a default. Returns str or unicode."""
+    """
+    Prompts the user, with a default. Returns user input from ``stdin``.
+    """
     if default is None:
         prompt += ": "
     else:
@@ -50,14 +54,19 @@ def ask_user(prompt: str, default: str = None) -> Optional[str]:
 
 
 def ask_user_password(prompt: str) -> str:
-    """Read a password from the console."""
+    """
+    Read a password from the console.
+    """
     return getpass.getpass(prompt + ": ")
 
 
 def get_save_as_filename(defaultfilename: str,
                          defaultextension: str,
                          title: str = "Save As") -> str:
-    """Provides a GUI "Save As" dialogue and returns the filename."""
+    """
+    Provides a GUI "Save As" dialogue (via ``tkinter``) and returns the
+    filename.
+    """
     root = tkinter.Tk()  # create and get Tk topmost window
     # (don't do this too early; the command prompt loses focus)
     root.withdraw()  # won't need this; this gets rid of a blank Tk window
@@ -75,7 +84,9 @@ def get_save_as_filename(defaultfilename: str,
 def get_open_filename(defaultfilename: str,
                       defaultextension: str,
                       title: str = "Open") -> str:
-    """Provides a GUI "Open" dialogue and returns the filename."""
+    """
+    Provides a GUI "Open" dialogue (via ``tkinter``) and returns the filename.
+    """
     root = tkinter.Tk()  # create and get Tk topmost window
     # (don't do this too early; the command prompt loses focus)
     root.withdraw()  # won't need this; this gets rid of a blank Tk window

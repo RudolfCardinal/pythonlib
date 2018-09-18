@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -45,10 +45,7 @@ from cardinal_pythonlib.wsgi.constants import (
     TYPE_WSGI_APP_RESULT,
     TYPE_WSGI_ENVIRON,
     TYPE_WSGI_EXC_INFO,
-    TYPE_WSGI_RESPONSE_HEADERS,
     TYPE_WSGI_START_RESPONSE,
-    TYPE_WSGI_START_RESP_RESULT,
-    TYPE_WSGI_STATUS,
 )
 
 

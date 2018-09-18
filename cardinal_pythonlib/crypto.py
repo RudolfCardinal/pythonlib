@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -25,11 +25,6 @@
 **Support functions involving cryptography.**
 
 """
-
-# import Crypto.Random  # pip install pycrypto
-import hashlib
-import hmac
-from typing import Any, Callable
 
 # The following requires a C compiler, so we don't have it in our standard
 # requirements. However, it is vital for this module.

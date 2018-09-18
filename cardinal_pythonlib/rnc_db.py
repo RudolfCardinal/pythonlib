@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -22,18 +22,31 @@
 
 ===============================================================================
 
-Support functions to interface Python to SQL-based databases conveniently.
+**DEPRECATED support functions to interface Python to SQL-based databases
+conveniently.**
 
-ESSENTIALLY DEFUNCT - use SQLAlchemy instead; it's much better.
+DEFUNCT -- use SQLAlchemy instead; it's much better.
+
+Not documented properly as it's deprecated.
 
 Regarding fieldspecs and fieldspec lists:
 
 An individual fieldspec is a dictionary, e.g.
-        { "name": "q1", "sqltype": "INTEGER" }
+
+.. code-block:: python
+
+    { "name": "q1", "sqltype": "INTEGER" }
+
 or
-        dict(name="q1", sqltype="INTEGER")
+
+.. code-block:: python
+
+    dict(name="q1", sqltype="INTEGER")
 
 Possible keys are:
+
+.. code-block:: none
+
     name: field name
     sqltype: SQL type
     notnull (optional): True for NOT NULL
@@ -46,6 +59,9 @@ Possible keys are:
     index_nchar (optional): specify if the field needs an index key length
 
 General note about Python None/NULL handling:
+
+.. code-block:: python
+
     # Fine:
     cursor.execute("SELECT * FROM mytable WHERE myfield=?", 1)
     # NOT fine; will return no rows:
@@ -54,6 +70,8 @@ General note about Python None/NULL handling:
     cursor.execute("SELECT * FROM mytable WHERE myfield IS NULL")
 
 JDBC types:
+
+.. code-block:: none
 
     # http://webcache.googleusercontent.com/search?q=cache:WoMF0RGkqwgJ:www.tagwith.com/question_439319_jpype-and-jaydebeapi-returns-jpype-jclass-java-lang-long  # noqa
 
@@ -76,7 +94,9 @@ JDBC types:
     dbapi2.py file that contains most of the JayDeBeApi code and add the line
 
         'BIGINT': _java_to_py('longValue'),
+
     to the _DEFAULT_CONVERTERS dict.
+
 """
 
 # =============================================================================
@@ -246,6 +266,9 @@ FIELDSPECLIST_TYPE = List[FIELDSPEC_TYPE]
 # =============================================================================
 
 class Flavour(object):
+    """
+    Describes a database "flavour" (dialect).
+    """
     @classmethod
     def flavour(cls) -> str:
         return ""
@@ -394,6 +417,7 @@ class Access(Flavour):
     def get_all_table_details(cls, db: DATABASE_SUPPORTER_FWD_REF) \
             -> List[List[Any]]:
         # returns some not-very-helpful stuff too!
+        # noinspection PyTypeChecker
         return db.fetchall("""
             SELECT *
             FROM MSysObjects
@@ -489,6 +513,7 @@ class MySQL(Flavour):
     @classmethod
     def get_all_table_details(cls, db: DATABASE_SUPPORTER_FWD_REF) \
             -> List[List[Any]]:
+        # noinspection PyTypeChecker
         return db.fetchall("SELECT * FROM information_schema.tables "
                            "WHERE table_schema=?", db.schema)
         # not restricted to current database, unless we do that manually
@@ -497,6 +522,7 @@ class MySQL(Flavour):
     def describe_table(cls,
                        db: DATABASE_SUPPORTER_FWD_REF,
                        table: str) -> List[List[Any]]:
+        # noinspection PyTypeChecker
         return db.fetchall(
             "SELECT * FROM information_schema.columns "
             "WHERE table_schema=? AND table_name=?", db.schema, table)
@@ -760,6 +786,7 @@ class SQLServer(Flavour):
     @classmethod
     def get_all_table_details(cls, db: DATABASE_SUPPORTER_FWD_REF) \
             -> List[List[Any]]:
+        # noinspection PyTypeChecker
         return db.fetchall("SELECT * FROM information_schema.tables")
         # restricted to current database (in full:
         #   databasename.information_schema.tables)
@@ -769,6 +796,7 @@ class SQLServer(Flavour):
     def describe_table(cls,
                        db: DATABASE_SUPPORTER_FWD_REF,
                        table: str) -> List[List[Any]]:
+        # noinspection PyTypeChecker
         return db.fetchall(
             "SELECT * FROM information_schema.columns "
             "WHERE table_name=?", table)
@@ -1027,14 +1055,19 @@ def create_object_from_list(cls: Type,
                             valuelist: Sequence[Any],
                             *args, **kwargs) -> T:
     """
-    Create an object by instantiating cls(*args, **kwargs) and assigning the
-    values in valuelist to the fields in fieldlist.
-    If construct_with_pk is True, initialize with
-        cls(valuelist[0], *args, **kwargs)
-    and assign the values in valuelist[1:] to fieldlist[1:].
+    Create an object by instantiating ``cls(*args, **kwargs)`` and assigning the
+    values in ``valuelist`` to the fields in ``fieldlist``.
 
-    Note: in Python 3 could define as
+    If ``construct_with_pk`` is ``True``, initialize with
+    ``cls(valuelist[0], *args, **kwargs)``
+    and assign the values in ``valuelist[1:]`` to ``fieldlist[1:]``.
+
+    Note: in Python 3, we could define as
+
+    .. code-block:: none
+
         ...(... valuelist, *args, construct_with_pk=False, **kwargs):
+
     but not in Python 2, and this is meant to be back-compatible.
     """
     construct_with_pk = kwargs.pop('construct_with_pk', False)
@@ -1143,7 +1176,7 @@ SQLTYPES_NUMERIC = (
 )
 
 
-def split_long_sqltype(datatype_long: str) -> Tuple[str, Optional[str]]:
+def split_long_sqltype(datatype_long: str) -> Tuple[str, Optional[int]]:
     datatype_short = datatype_long.split("(")[0].strip()
     find_open = datatype_long.find("(")
     find_close = datatype_long.find(")")
@@ -1217,7 +1250,7 @@ def does_sqltype_merit_fulltext_index(datatype_long: str,
 # rs: resultset
 # col: column
 
-def _convert_java_binary(rs, col: int) -> bytes:
+def _convert_java_binary(rs, col: int) -> Optional[bytes]:
     # https://github.com/originell/jpype/issues/71
     # http://stackoverflow.com/questions/5088671
     # https://github.com/baztian/jaydebeapi/blob/master/jaydebeapi/__init__.py
@@ -1258,7 +1291,7 @@ def _convert_java_binary(rs, col: int) -> bytes:
         # ---------------------------------------------------------------------
         j_hexstr = rs.getString(col)
         if rs.wasNull():
-            return
+            return None
         v = binascii.unhexlify(j_hexstr)
     finally:
         time2 = time.time()
@@ -1269,14 +1302,14 @@ def _convert_java_binary(rs, col: int) -> bytes:
         return v
 
 
-def _convert_java_bigstring(rs, col: int) -> str:
+def _convert_java_bigstring(rs, col: int) -> Optional[str]:
     v = str(rs.getCharacterStream(col))
     if rs.wasNull():
         return None
     return v
 
 
-def _convert_java_bigint(rs, col: int) -> int:
+def _convert_java_bigint(rs, col: int) -> Optional[int]:
     # http://stackoverflow.com/questions/26899595
     # https://github.com/baztian/jaydebeapi/issues/6
     # https://github.com/baztian/jaydebeapi/blob/master/jaydebeapi/__init__.py
@@ -1284,15 +1317,15 @@ def _convert_java_bigint(rs, col: int) -> int:
     # http://docs.oracle.com/javase/7/docs/api/java/sql/ResultSet.html
     java_val = rs.getObject(col)
     if java_val is None:
-        return
+        return None
     v = getattr(java_val, 'toString')()  # Java call: java_val.toString()
     return int(v)
 
 
-def _convert_java_datetime(rs, col: int) -> datetime.datetime:
+def _convert_java_datetime(rs, col: int) -> Optional[datetime.datetime]:
     java_val = rs.getTimestamp(col)
     if not java_val:
-        return
+        return None
     d = datetime.datetime.strptime(str(java_val)[:19], "%Y-%m-%d %H:%M:%S")
     d = d.replace(microsecond=int(str(java_val.getNanos())[:6]))
     # jaydebeapi 0.2.0 does this:
@@ -2092,7 +2125,7 @@ class DatabaseSupporter:
 
     def insert_record_by_dict(self,
                               table: str,
-                              valuedict: Dict[str, Any]) -> int:
+                              valuedict: Dict[str, Any]) -> Optional[int]:
         """Inserts a record into database, table "table", using a dictionary
         containing field/value mappings. Returns the new PK (or None)."""
         if not valuedict:
@@ -2332,7 +2365,7 @@ class DatabaseSupporter:
         row = self.fetchone(sql, value)
         return True if row[0] >= 1 else False
 
-    def delete_by_field(self, table: str, field: str, value: Any) -> None:
+    def delete_by_field(self, table: str, field: str, value: Any) -> int:
         """Deletes all records where "field" is "value"."""
         sql = ("DELETE FROM " + self.delimit(table) +
                " WHERE " + self.delimit(field) + "=?")
@@ -2558,7 +2591,7 @@ class DatabaseSupporter:
                      field: str,
                      nchars: int = None,
                      indexname: str = None,
-                     unique: bool = False) -> int:
+                     unique: bool = False) -> Optional[int]:
         """Creates an index (default name _idx_FIELDNAME), unless it exists
         already."""
         limit = ""
@@ -2567,7 +2600,7 @@ class DatabaseSupporter:
         if indexname is None:
             indexname = "_idx_{}".format(field)
         if self.index_exists(table, indexname):
-            return
+            return None
         uniquestr = "UNIQUE" if unique else ""
         sql = (
             "CREATE {unique} INDEX {indexname} "
@@ -2583,7 +2616,7 @@ class DatabaseSupporter:
 
     def create_index_from_fieldspec(self,
                                     table: str,
-                                    fieldspec: Sequence[str],
+                                    fieldspec: FIELDSPEC_TYPE,
                                     indexname: str = None) -> None:
         """Calls create_index based on a fieldspec, if the fieldspec has
         indexed = True."""
@@ -2598,7 +2631,7 @@ class DatabaseSupporter:
     def create_fulltext_index(self,
                               table: str,
                               field: str,
-                              indexname: str = None) -> int:
+                              indexname: str = None) -> Optional[int]:
         """Creates a FULLTEXT index (default name _idxft_FIELDNAME), unless it
         exists already. See:
 
@@ -2608,7 +2641,7 @@ class DatabaseSupporter:
         if indexname is None:
             indexname = "_idxft_{}".format(field)
         if self.index_exists(table, indexname):
-            return
+            return None
         sql = "CREATE FULLTEXT INDEX {} ON {} ({})".format(indexname, table,
                                                            field)
         return self.db_exec(sql)
@@ -2708,12 +2741,12 @@ class DatabaseSupporter:
                    tablename: str,
                    fieldspeclist: FIELDSPECLIST_TYPE,
                    dynamic: bool = False,
-                   compressed: bool = False) -> int:
+                   compressed: bool = False) -> Optional[int]:
         """Makes a table, if it doesn't already exist."""
         if self.table_exists(tablename):
             log.info("Skipping creation of table " + tablename +
                      " (already exists)")
-            return
+            return None
         if not self.is_mysql():
             dynamic = False
             compressed = False
@@ -2732,12 +2765,12 @@ class DatabaseSupporter:
         log.info("Creating table " + tablename)
         return self.db_exec_literal(sql)
 
-    def rename_table(self, from_table: str, to_table: str) -> int:
+    def rename_table(self, from_table: str, to_table: str) -> Optional[int]:
         """Renames a table. MySQL-specific."""
         if not self.table_exists(from_table):
             log.info("Skipping renaming of table " + from_table +
                      " (doesn't exist)")
-            return
+            return None
         if self.table_exists(to_table):
             raise RuntimeError("Can't rename table {} to {}: destination "
                                "already exists!".format(from_table, to_table))
@@ -2761,10 +2794,10 @@ class DatabaseSupporter:
     def modify_column_if_table_exists(self,
                                       tablename: str,
                                       fieldname: str,
-                                      newdef: str) -> int:
+                                      newdef: str) -> Optional[int]:
         """Alters a column's definition without renaming it."""
         if not self.table_exists(tablename):
-            return
+            return None
         sql = "ALTER TABLE {t} MODIFY COLUMN {field} {newdef}".format(
             t=tablename,
             field=fieldname,
@@ -2777,12 +2810,12 @@ class DatabaseSupporter:
                                       tablename: str,
                                       oldfieldname: str,
                                       newfieldname: str,
-                                      newdef: str) -> int:
+                                      newdef: str) -> Optional[int]:
         """Renames a column and alters its definition."""
         if not self.table_exists(tablename):
-            return
+            return None
         if not self.column_exists(tablename, oldfieldname):
-            return
+            return None
         sql = "ALTER TABLE {t} CHANGE COLUMN {old} {new} {newdef}".format(
             t=tablename,
             old=oldfieldname,
@@ -2798,11 +2831,12 @@ class DatabaseSupporter:
                                drop_superfluous_columns: bool = False,
                                dynamic: bool = False,
                                compressed: bool = False) -> None:
-        """Make table, if it doesn't exist.
-        Add fields that aren't there.
-        Warn about superfluous fields, but don't delete them, unless
-            drop_superfluous_columns == True.
-        Make indexes, if requested.
+        """
+        - Make table, if it doesn't exist.
+        - Add fields that aren't there.
+        - Warn about superfluous fields, but don't delete them, unless
+          ``drop_superfluous_columns == True``.
+        - Make indexes, if requested.
         """
 
         # 1. Make table, if it doesn't exist
