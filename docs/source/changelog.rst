@@ -131,3 +131,5 @@ First started in 2009.
 
 - Dependencies put back, except dependency on ``regex`` removed.
 - Further documentation.
+- Duplicate hash-related functions removed from ``crypto.py``; better versions
+  were in ``hash.py``.

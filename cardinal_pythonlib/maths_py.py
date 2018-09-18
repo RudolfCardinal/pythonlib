@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Miscellaneous mathematical functions in pure Python.
+**Miscellaneous mathematical functions in pure Python.**
 
 """
 
@@ -40,7 +40,14 @@ log.addHandler(logging.NullHandler())
 
 def mean(values: Sequence[Union[int, float, None]]) -> Optional[float]:
     """
-    Returns the mean of a list of numbers, or None.
+    Returns the mean of a list of numbers.
+
+    Args:
+        values: values to mean, ignoring any values that are ``None``
+
+    Returns:
+        the mean, or ``None`` if :math:`n = 0`
+
     """
     total = 0.0  # starting with "0.0" causes automatic conversion to float
     n = 0
@@ -55,14 +62,28 @@ def mean(values: Sequence[Union[int, float, None]]) -> Optional[float]:
 # logit
 # =============================================================================
 
-def safe_logit(x: Union[float, int]) -> Optional[float]:
-    if x > 1 or x < 0:
+def safe_logit(p: Union[float, int]) -> Optional[float]:
+    r"""
+    Returns the logit (log odds) of its input probability
+
+    .. math::
+
+        \alpha = logit(p) = log(x / (1 - x))
+
+    Args:
+        p: :math:`p`
+
+    Returns:
+        :math:`\alpha`, or ``None`` if ``x`` is not in the range [0, 1].
+
+    """
+    if p > 1 or p < 0:
         return None  # can't take log of negative number
-    if x == 1:
+    if p == 1:
         return float("inf")
-    if x == 0:
+    if p == 0:
         return float("-inf")
-    return math.log(x / (1 - x))
+    return math.log(p / (1 - p))
 
 
 # =============================================================================
@@ -75,13 +96,16 @@ def normal_round_float(x: float, dp: int = 0) -> float:
 
     Conventional rounding to integer via the "round half away from zero"
     method, e.g.
-            1.1 -> 1
-            1.5 -> 2
-            1.6 -> 2
-            2.0 -> 2
 
-            -1.6 -> -2
-            etc.
+    .. code-block:: none
+
+        1.1 -> 1
+        1.5 -> 2
+        1.6 -> 2
+        2.0 -> 2
+
+        -1.6 -> -2
+        etc.
 
     ... or the equivalent for a certain number of decimal places.
 
@@ -103,7 +127,7 @@ def normal_round_float(x: float, dp: int = 0) -> float:
 
 def normal_round_int(x: float) -> int:
     """
-    Version of normal_round_float() but guaranteed to return an int.
+    Version of :func:`normal_round_float` but guaranteed to return an `int`.
     """
     if not math.isfinite(x):
         raise ValueError("Input to normal_round_int() is not finite")

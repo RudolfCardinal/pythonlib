@@ -22,13 +22,15 @@
 
 ===============================================================================
 
+**Hash functions**
+
 In general, consider these hash functions:
 
-- ``hash64()``, using MurmurHash3 to provide a 64-bit integer: for fast
+- :func:`hash64`, using MurmurHash3 to provide a 64-bit integer: for fast
   INSECURE COMPARISON operations.
-- a ``Hmac*`` class for SECURE cryptographic hashes.
+- an ``Hmac*`` class for SECURE cryptographic hashes.
 
-Regarding None/NULL values:
+Regarding None/NULL values (in CRATE):
 
 - For difference detection, it may be helpful to be able to compare a standard
   hash, in which case ``somehash(None) == somehash("None") ==
@@ -82,28 +84,51 @@ TIMING_HASH = "hash"
 # =============================================================================
 
 class GenericHasher(object):
+    """
+    Abstract base class for a hasher.
+    """
     def hash(self, raw: Any) -> str:
-        """The public interface to a hasher."""
+        """
+        Returns a hash of its input.
+        """
         raise NotImplementedError()
 
     def output_length(self) -> int:
+        """
+        Returns the length of the hashes produced by this hasher.
+        """
         return len(self.hash("dummytext"))
 
     def sqla_column_type(self) -> TypeEngine:
+        """
+        Returns a SQLAlchemy :class:`Column` type instance, specifically
+        ``String(length=self.output_length())``.
+        """
         return String(length=self.output_length())
 
 
 # =============================================================================
 # Simple salted hashers.
-# Note that these are vulnerable to attack: if an attacker knows a
-# (message, digest) pair, it may be able to calculate another.
-# See https://benlog.com/2008/06/19/dont-hash-secrets/ and
-# http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.134.8430
-# +++ You should use HMAC instead if the thing you are hashing is secret. +++
 # =============================================================================
 
 class GenericSaltedHasher(GenericHasher):
+    """
+    Generic representation of a simple salted hasher that stores a hash
+    function and a salt.
+
+    Note that these are vulnerable to attack: if an attacker knows a
+    ``(message, digest)`` pair, it may be able to calculate another.
+    See https://benlog.com/2008/06/19/dont-hash-secrets/ and
+    http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.134.8430
+
+    **You should use HMAC instead if the thing you are hashing is secret.**
+    """
     def __init__(self, hashfunc: Callable[[bytes], Any], salt: str) -> None:
+        """
+        Args:
+            hashfunc: hash function to use
+            salt: salt to use (following UTF-8 encoding)
+        """
         self.hashfunc = hashfunc
         self.salt_bytes = salt.encode('utf-8')
 
@@ -114,17 +139,27 @@ class GenericSaltedHasher(GenericHasher):
 
 
 class MD5Hasher(GenericSaltedHasher):
-    """MD5 is cryptographically FLAWED; avoid."""
+    """
+    Salted hasher based on MD5.
+
+    MD5 is cryptographically FLAWED; avoid using it or this class.
+    """
     def __init__(self, salt: str) -> None:
         super().__init__(hashlib.md5, salt)
 
 
 class SHA256Hasher(GenericSaltedHasher):
+    """
+    Salted hasher based on SHA256.
+    """
     def __init__(self, salt: str) -> None:
         super().__init__(hashlib.sha256, salt)
 
 
 class SHA512Hasher(GenericSaltedHasher):
+    """
+    Salted hasher based on SHA512.
+    """
     def __init__(self, salt: str) -> None:
         super().__init__(hashlib.sha512, salt)
 
@@ -134,11 +169,26 @@ class SHA512Hasher(GenericSaltedHasher):
 # =============================================================================
 
 class GenericHmacHasher(GenericHasher):
+    """
+    Generic representation of a hasher that hashes things via an HMAC
+    (a hash-based message authentication code).
+    See https://en.wikipedia.org/wiki/HMAC
+
+    HMAC hashers are the thing to use if what you are hashing is secret.
+    """
     def __init__(self, digestmod: Any, key: str) -> None:
+        """
+        Args:
+            digestmod: see :func:`hmac.HMAC.__init__`
+            key: cryptographic key to use
+        """
         self.key_bytes = str(key).encode('utf-8')
         self.digestmod = digestmod
 
     def hash(self, raw: Any) -> str:
+        """
+        Returns the hex digest of a HMAC-encoded version of the input.
+        """
         with MultiTimerContext(timer, TIMING_HASH):
             raw_bytes = str(raw).encode('utf-8')
             hmac_obj = hmac.new(key=self.key_bytes, msg=raw_bytes,
@@ -147,16 +197,28 @@ class GenericHmacHasher(GenericHasher):
 
 
 class HmacMD5Hasher(GenericHmacHasher):
+    """
+    HMAC hasher based on MD5.
+    (Even though MD5 is insecure, HMAC-MD5 is better. See Bellare M, Canetti R,
+    Krawcyk H. Keying hash functions for message authentication. Lect. Notes
+    Comput. Sci. Adv. Cryptol. - Crypto 96 Proc. 1996; 1109: 1–15.)
+    """
     def __init__(self, key: str) -> None:
         super().__init__(hashlib.md5, key)
 
 
 class HmacSHA256Hasher(GenericHmacHasher):
+    """
+    HMAC hasher based on SHA256.
+    """
     def __init__(self, key: str) -> None:
         super().__init__(hashlib.sha256, key)
 
 
 class HmacSHA512Hasher(GenericHmacHasher):
+    """
+    HMAC hasher based on SHA512.
+    """
     def __init__(self, key: str) -> None:
         super().__init__(hashlib.sha512, key)
 
@@ -197,23 +259,85 @@ def get_longest_supported_hasher_output_length() -> int:
 
 
 # =============================================================================
+# Testing functions/notes relating to hashing
+# =============================================================================
+
+_ = """
+import hashlib
+from six.moves import range
+
+class MD5Hasher(object):
+    def __init__(self, salt):
+        self.salt = salt
+    def hash(self, raw):
+        raw = str(raw)
+        return hashlib.md5(self.salt + raw).hexdigest()
+
+MAX_PID_STR = "9" * 10  # e.g. NHS numbers are 10-digit
+MAX_PID_NUM = int(MAX_PID_STR)
+# sets are MUCH, MUCH faster than lists for "have-I-seen-it" tests
+hasher = MD5Hasher("dummysalt")
+used_hashes = set()
+for i in range(MAX_PID_NUM):
+    if i % 1000000 == 0:
+        print("... " + str(i))
+    x = hasher.hash(i)
+    if x in used_hashes:
+        raise Exception("Collision! i={}".format(i))
+    used_hashes.add(x)
+
+# This gets increasingly slow but is certainly fine up to
+#     282,000,000
+# and we want to test
+#   9,999,999,999
+# Anyway, other people have done the work:
+#   http://crypto.stackexchange.com/questions/15873
+# ... and the value is expected to be at least 2^64, whereas an NHS number
+# is less than 2^34 -- from math.log(9999999, 2).
+
+"""
+
+
+# =============================================================================
 # Support functions
 # =============================================================================
 
 def to_bytes(data: Any) -> bytearray:
+    """
+    Convert anything to a ``bytearray``.
+    
+    See
+    
+    - http://stackoverflow.com/questions/7585435/best-way-to-convert-string-to-bytes-in-python-3
+    - http://stackoverflow.com/questions/10459067/how-to-convert-my-bytearrayb-x9e-x18k-x9a-to-something-like-this-x9e-x1
+    """  # noqa
     if isinstance(data, int):
         return bytearray([data])
     return bytearray(data, encoding='latin-1')
-    # http://stackoverflow.com/questions/7585435/best-way-to-convert-string-to-bytes-in-python-3  # noqa
-    # http://stackoverflow.com/questions/10459067/how-to-convert-my-bytearrayb-x9e-x18k-x9a-to-something-like-this-x9e-x1  # noqa
 
 
 def to_str(data: Any) -> str:
+    """
+    Convert anything to a ``str``.
+    """
     return str(data)
 
 
 def twos_comp_to_signed(val: int, n_bits: int) -> int:
-    # http://stackoverflow.com/questions/1604464/twos-complement-in-python
+    """
+    Convert a "two's complement" representation (as an integer) to its signed
+    version.
+
+    Args:
+        val: positive integer representing a number in two's complement format
+        n_bits: number of bits (which must reflect a whole number of bytes)
+
+    Returns:
+        signed integer
+
+    See http://stackoverflow.com/questions/1604464/twos-complement-in-python
+
+    """
     assert n_bits % 8 == 0, "Must specify a whole number of bytes"
     n_bytes = n_bits // 8
     b = val.to_bytes(n_bytes, byteorder=sys.byteorder, signed=False)
@@ -221,6 +345,17 @@ def twos_comp_to_signed(val: int, n_bits: int) -> int:
 
 
 def signed_to_twos_comp(val: int, n_bits: int) -> int:
+    """
+    Convert a signed integer to its "two's complement" representation.
+
+    Args:
+        val: signed integer
+        n_bits: number of bits (which must reflect a whole number of bytes)
+
+    Returns:
+        unsigned integer: two's complement version
+
+    """
     assert n_bits % 8 == 0, "Must specify a whole number of bytes"
     n_bytes = n_bits // 8
     b = val.to_bytes(n_bytes, byteorder=sys.byteorder, signed=True)
@@ -228,6 +363,17 @@ def signed_to_twos_comp(val: int, n_bits: int) -> int:
 
 
 def bytes_to_long(bytesdata: bytes) -> int:
+    """
+    Converts an 8-byte sequence to a long integer.
+
+    Args:
+        bytesdata: 8 consecutive bytes, as a ``bytes`` object, in
+            little-endian format (least significant byte [LSB] first)
+
+    Returns:
+        integer
+
+    """
     assert len(bytesdata) == 8
     return sum((b << (k * 8) for k, b in enumerate(bytesdata)))
 
@@ -241,7 +387,18 @@ def bytes_to_long(bytesdata: bytes) -> int:
 # -----------------------------------------------------------------------------
 
 def murmur3_x86_32(data: Union[bytes, bytearray], seed: int = 0) -> int:
-    # http://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash  # noqa
+    """
+    Pure 32-bit Python implementation of MurmurHash3; see
+    http://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash.
+     
+    Args:
+        data: data to hash 
+        seed: seed
+
+    Returns:
+        integer hash
+
+    """  # noqa
     c1 = 0xcc9e2d51
     c2 = 0x1b873593
 
@@ -293,8 +450,18 @@ def murmur3_x86_32(data: Union[bytes, bytearray], seed: int = 0) -> int:
 
 # noinspection PyPep8
 def murmur3_64(data: Union[bytes, bytearray], seed: int = 19820125) -> int:
-    # http://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash  # noqa
-    # ... plus RNC bugfixes
+    """
+    Pure 64-bit Python implementation of MurmurHash3; see
+    http://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash
+    (plus RNC bugfixes).
+     
+    Args:
+        data: data to hash 
+        seed: seed
+
+    Returns:
+        integer hash
+    """  # noqa
     m = 0xc6a4a7935bd1e995
     r = 47
 
@@ -350,7 +517,17 @@ def murmur3_64(data: Union[bytes, bytearray], seed: int = 19820125) -> int:
 # -----------------------------------------------------------------------------
 
 def pymmh3_hash128_x64(key: Union[bytes, bytearray], seed: int) -> int:
-    """Implements 128bit murmur3 hash for x64."""
+    """
+    Implements 128-bit murmur3 hash for x64, as per ``pymmh3``, with some
+    bugfixes.
+
+    Args:
+        key: data to hash
+        seed: seed
+
+    Returns:
+        integer hash
+    """
 
     def fmix(k):
         k ^= k >> 33
@@ -479,7 +656,17 @@ def pymmh3_hash128_x64(key: Union[bytes, bytearray], seed: int) -> int:
 
 
 def pymmh3_hash128_x86(key: Union[bytes, bytearray], seed: int) -> int:
-    """Implements 128bit murmur3 hash for x86."""
+    """
+    Implements 128-bit murmur3 hash for x86, as per ``pymmh3``, with some
+    bugfixes.
+
+    Args:
+        key: data to hash
+        seed: seed
+
+    Returns:
+        integer hash
+    """
 
     def fmix(h):
         h ^= h >> 16
@@ -662,7 +849,18 @@ def pymmh3_hash128_x86(key: Union[bytes, bytearray], seed: int) -> int:
 def pymmh3_hash128(key: Union[bytes, bytearray],
                    seed: int = 0,
                    x64arch: bool = True) -> int:
-    """Implements 128bit murmur3 hash."""
+    """
+    Implements 128bit murmur3 hash, as per ``pymmh3``.
+
+    Args:
+        key: data to hash
+        seed: seed
+        x64arch: is a 64-bit architecture available?
+
+    Returns:
+        integer hash
+
+    """
     if x64arch:
         return pymmh3_hash128_x64(key, seed)
     else:
@@ -672,7 +870,18 @@ def pymmh3_hash128(key: Union[bytes, bytearray],
 def pymmh3_hash64(key: Union[bytes, bytearray],
                   seed: int = 0,
                   x64arch: bool = True) -> Tuple[int, int]:
-    """Implements 64bit murmur3 hash. Returns a tuple."""
+    """
+    Implements 64bit murmur3 hash, as per ``pymmh3``. Returns a tuple.
+
+    Args:
+        key: data to hash
+        seed: seed
+        x64arch: is a 64-bit architecture available?
+
+    Returns:
+        tuple: tuple of integers, ``(signed_val1, signed_val2)``
+
+    """
 
     hash_128 = pymmh3_hash128(key, seed, x64arch)
 
@@ -695,7 +904,19 @@ def pymmh3_hash64(key: Union[bytes, bytearray],
 # Checks
 # =============================================================================
 
-def compare_python_to_reference_murmur3_32(data: Any, seed=0) -> None:
+def compare_python_to_reference_murmur3_32(data: Any, seed: int = 0) -> None:
+    """
+    Checks the pure Python implementation of 32-bit murmur3 against the
+    ``mmh3`` C-based module.
+
+    Args:
+        data: data to hash
+        seed: seed
+
+    Raises:
+        AssertionError: if the two calculations don't match
+
+    """
     assert mmh3, "Need mmh3 module"
     c_data = to_str(data)
     c_signed = mmh3.hash(c_data, seed=seed)  # 32 bit
@@ -718,7 +939,19 @@ def compare_python_to_reference_murmur3_32(data: Any, seed=0) -> None:
                 py_signed=py_signed))
 
 
-def compare_python_to_reference_murmur3_64(data: Any, seed=0) -> None:
+def compare_python_to_reference_murmur3_64(data: Any, seed: int = 0) -> None:
+    """
+    Checks the pure Python implementation of 64-bit murmur3 against the
+    ``mmh3`` C-based module.
+
+    Args:
+        data: data to hash
+        seed: seed
+
+    Raises:
+        AssertionError: if the two calculations don't match
+
+    """
     assert mmh3, "Need mmh3 module"
     c_data = to_str(data)
     c_signed_low, c_signed_high = mmh3.hash64(c_data, seed=seed,
@@ -748,7 +981,16 @@ def compare_python_to_reference_murmur3_64(data: Any, seed=0) -> None:
 # =============================================================================
 
 def hash32(data: Any, seed=0) -> int:
-    """Returns a signed 32-bit integer."""
+    """
+    Non-cryptographic, deterministic, fast hash.
+
+    Args:
+        data: data to hash
+        seed: seed
+
+    Returns:
+        signed 32-bit integer
+    """
     with MultiTimerContext(timer, TIMING_HASH):
         c_data = to_str(data)
         if mmh3:
@@ -759,7 +1001,16 @@ def hash32(data: Any, seed=0) -> int:
 
 
 def hash64(data: Any, seed: int = 0) -> int:
-    """Returns a signed 64-bit integer."""
+    """
+    Non-cryptographic, deterministic, fast hash.
+
+    Args:
+        data: data to hash
+        seed: seed
+
+    Returns:
+        signed 64-bit integer
+    """
     # -------------------------------------------------------------------------
     # MurmurHash3
     # -------------------------------------------------------------------------
@@ -788,7 +1039,10 @@ def hash64(data: Any, seed: int = 0) -> int:
 # Testing
 # =============================================================================
 
-def main():
+def main() -> None:
+    """
+    Command-line validation checks.
+    """
     if False:
         print(twos_comp_to_signed(0, n_bits=32))  # 0
         print(twos_comp_to_signed(2 ** 31 - 1, n_bits=32))  # 2147483647

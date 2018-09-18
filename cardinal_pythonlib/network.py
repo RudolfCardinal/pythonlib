@@ -22,18 +22,21 @@
 
 ===============================================================================
 
-Network support functions.
+**Network support functions.**
 
 NOTES:
-- ping requires root to create ICMP sockets in Linux
-- the /bin/ping command doesn't need root (because it has the setuid bit set)
-- For Linux, it's best to use the system ping.
+
+- ``ping`` requires root authority to create ICMP sockets in Linux
+- the ``/bin/ping`` command doesn't need prior root authority (because it has
+  the setuid bit set)
+- For Linux, it's therefore best to use the system ``ping``.
 
 http://stackoverflow.com/questions/2953462/pinging-servers-in-python
 http://stackoverflow.com/questions/316866/ping-a-site-in-python
 
 - Note that if you want a sub-second timeout, things get trickier.
-  One option is fping.
+  One option is ``fping``.
+
 """
 
 import logging
@@ -54,6 +57,17 @@ log.addHandler(logging.NullHandler())
 # =============================================================================
 
 def ping(hostname: str, timeout_s: int = 5) -> bool:
+    """
+    Pings a host, using OS tools.
+
+    Args:
+        hostname: host name or IP address
+        timeout_s: timeout in seconds
+
+    Returns:
+        was the ping successful?
+
+    """
     if sys.platform == "win32":
         timeout_ms = timeout_s * 1000
         args = [
@@ -86,6 +100,11 @@ def download(url: str, filename: str,
              skip_cert_verify: bool = True) -> None:
     """
     Downloads a URL to a file.
+
+    Args:
+        url: URL to download from
+        filename: file to save to
+        skip_cert_verify: skip SSL certificate check?
     """
     log.info("Downloading from {} to {}".format(url, filename))
 
@@ -116,6 +135,20 @@ def gen_binary_files_from_urls(
         urls: Iterable[str],
         on_disk: bool = False,
         show_info: bool = True) -> Generator[BinaryIO, None, None]:
+    """
+    Generate binary files from a series of URLs (one per URL).
+
+    Args:
+        urls: iterable of URLs
+        on_disk: if ``True``, yields files that are on disk (permitting
+            random access); if ``False``, yields in-memory files (which will
+            not permit random access)
+        show_info: show progress to the log?
+
+    Yields:
+        files, each of type :class:`BinaryIO`
+
+    """
     for url in urls:
         if on_disk:
             # Necessary for e.g. zip processing (random access)

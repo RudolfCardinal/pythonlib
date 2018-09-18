@@ -22,7 +22,10 @@
 
 ===============================================================================
 
-**Offers the getch() and kbhit() functions.**
+**Offers the getch() and kbhit() functions, and other terminal-related stuff.**
+
+In this module, :func:`getch` and :func:`kbhit` are mapped to their OS-specific
+versions.
 
 """
 
@@ -47,15 +50,19 @@ except ImportError:
 # http://home.wlu.edu/~levys/software/kbhit.py
 # ... modified a little
 
-def _getch_windows():
-    """Gets a single character from standard input.  Does not echo to the
-    screen."""
+def _getch_windows() -> str:
+    """
+    Under Windows, wets a single character from standard input. Does not echo
+    to the screen.
+    """
     return msvcrt.getch().decode('utf-8')
 
 
-def _getch_unix():
-    """Gets a single character from standard input.  Does not echo to the
-    screen. Note that the terminal will have been pre-configured, below."""
+def _getch_unix() -> str:
+    """
+    Under UNIX, gets a single character from standard input. Does not echo to
+    the screen. Note that the terminal will have been pre-configured, below.
+    """
     return sys.stdin.read(1)
 
 
@@ -65,11 +72,17 @@ def _getch_unix():
 # http://code.activestate.com/recipes/572182-how-to-implement-kbhit-on-linux/
 # http://stackoverflow.com/questions/2408560/python-nonblocking-console-input
 
-def _kbhit_windows():
+def _kbhit_windows() -> bool:
+    """
+    Under Windows: is a keystroke available?
+    """
     return msvcrt.kbhit()
 
 
-def _kbhit_unix():
+def _kbhit_unix() -> bool:
+    """
+    Under UNIX: is a keystroke available?
+    """
     dr, dw, de = select.select([sys.stdin], [], [], 0)
     return dr != []
 
@@ -78,13 +91,18 @@ def _kbhit_unix():
 # Configure terminal (UNIX)
 # =============================================================================
 
-def set_normal_term():
-    # switch to normal terminal
+def set_normal_term() -> None:
+    """
+    Under UNIX: switch to a normal terminal. (Compare :func:`set_curses_term`.)
+    """
     termios.tcsetattr(_fd, termios.TCSAFLUSH, _old_term)
 
 
-def set_curses_term():
-    # switch to unbuffered terminal
+def set_curses_term() -> None:
+    """
+    Under UNIX: switch to an unbuffered, curses-style terminal. (Compare
+    :func:`set_normal_term`.)
+    """
     termios.tcsetattr(_fd, termios.TCSAFLUSH, _new_term)
 
 

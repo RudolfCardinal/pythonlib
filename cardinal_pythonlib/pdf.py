@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Support functions to serve PDFs from CGI scripts.
+**Support functions to generate (and serve) PDFs.**
 
 """
 
@@ -37,6 +37,7 @@ import tempfile
 from typing import Any, Dict, Iterable, Union
 
 from cardinal_pythonlib.logs import BraceStyleAdapter
+# noinspection PyProtectedMember
 from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
 from semantic_version import Version
 
@@ -94,6 +95,9 @@ if not any([xhtml2pdf, weasyprint, pdfkit]):
 
 
 class Processors:
+    """
+    Class to enumerate possible PDF processors.
+    """
     XHTML2PDF = "xhtml2pdf"
     WEASYPRINT = "weasyprint"
     PDFKIT = "pdfkit"
@@ -114,6 +118,10 @@ else:
 # =============================================================================
 
 class PdfPlan(object):
+    """
+    Class to describe a PDF on disk or the information required to create the
+    PDF from HTML.
+    """
     def __init__(self,
                  # HTML mode
                  is_html: bool = False,
@@ -125,7 +133,21 @@ class PdfPlan(object):
                  # Filename mode
                  is_filename: bool = False,
                  filename: str = None):
+        """
+        Args:
+            is_html: use HTML mode?
+            html: for HTML mode, the main HTML
+            header_html: for HTML mode, an optional page header (in HTML)
+            footer_html: for HTML mode, an optional page footer (in HTML)
+            wkhtmltopdf_filename: filename of the ``wkhtmltopdf`` executable
+            wkhtmltopdf_options: options for ``wkhtmltopdf``
+            is_filename: use file mode?
+            filename: for file mode, the filename of the existing PDF on disk
+
+        Use either ``is_html`` or ``is_filename``, not both.
+        """
         assert is_html != is_filename, "Specify is_html XOR is_filename"
+
         self.is_html = is_html
         # is_html options:
         self.html = html
@@ -141,6 +163,14 @@ class PdfPlan(object):
     def add_to_writer(self,
                       writer: PdfFileWriter,
                       start_recto: bool = True) -> None:
+        """
+        Add the PDF described by this class to a PDF writer.
+
+        Args:
+            writer: a :class:`PyPDF2.PdfFileWriter`
+            start_recto: start a new right-hand page?
+
+        """
         if self.is_html:
             pdf = get_pdf_from_html(
                 html=self.html,
@@ -163,6 +193,16 @@ class PdfPlan(object):
 # =============================================================================
 
 def assert_processor_available(processor: str) -> None:
+    """
+    Assert that a specific PDF processor is available.
+
+    Args:
+        processor: a PDF processor type from :class:`Processors`
+
+    Raises:
+        AssertionError: if bad ``processor``
+        RuntimeError: if requested processor is unavailable
+    """
     if processor not in [Processors.XHTML2PDF,
                          Processors.WEASYPRINT,
                          Processors.PDFKIT]:
@@ -177,6 +217,13 @@ def assert_processor_available(processor: str) -> None:
 
 
 def get_default_fix_pdfkit_encoding_bug() -> bool:
+    """
+    Should we be trying to fix a ``pdfkit`` encoding bug, by default?
+
+    Returns:
+        should we? Yes if we have the specific buggy version of ``pdfkit``.
+
+    """
     # Auto-determine.
     if pdfkit is None:
         return False
@@ -184,27 +231,74 @@ def get_default_fix_pdfkit_encoding_bug() -> bool:
         return bool(Version(pdfkit.__version__) == Version("0.5.0"))
 
 
-def get_pdf_from_html(html: str,
-                      header_html: str = None,
-                      footer_html: str = None,
-                      wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
-                      wkhtmltopdf_options: Dict[str, Any] = None,
-                      file_encoding: str = "utf-8",
-                      debug_options: bool = False,
-                      debug_content: bool = False,
-                      debug_wkhtmltopdf_args: bool = True,
-                      fix_pdfkit_encoding_bug: bool = None,
-                      processor: str = _DEFAULT_PROCESSOR) -> bytes:
+def make_pdf_from_html(
+        # Mandatory parameters:
+        on_disk: bool,
+        html: str,
+        # Disk options:
+        output_path: str = None,
+        # Shared options:
+        header_html: str = None,
+        footer_html: str = None,
+        wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
+        wkhtmltopdf_options: Dict[str, Any] = None,
+        file_encoding: str = "utf-8",
+        debug_options: bool = False,
+        debug_content: bool = False,
+        debug_wkhtmltopdf_args: bool = True,
+        fix_pdfkit_encoding_bug: bool = None,
+        processor: str = _DEFAULT_PROCESSOR) -> Union[bytes, bool]:
     """
-    Takes HTML and returns a PDF.
+    Takes HTML and either returns a PDF in memory or makes one on disk.
 
-    For preference, uses wkhtmltopdf (with pdfkit)
-        - faster than xhtml2pdf
-        - tables not buggy like Weasyprint
-        - however, doesn't support CSS Paged Media, so we have the
-          header_html and footer_html options to allow you to pass appropriate
-          HTML content to serve as the header/footer (rather than passing it
-          within the main HTML).
+    For preference, uses ``wkhtmltopdf`` (with ``pdfkit``):
+
+    - faster than ``xhtml2pdf``
+    - tables not buggy like ``Weasyprint``
+    - however, doesn't support CSS Paged Media, so we have the
+      ``header_html`` and ``footer_html`` options to allow you to pass
+      appropriate HTML content to serve as the header/footer (rather than
+      passing it within the main HTML).
+
+    Args:
+        on_disk: make file on disk (rather than returning it in memory)?
+
+        html: main HTML
+
+        output_path: if ``on_disk``, the output filename
+
+        header_html: optional page header, as HTML
+
+        footer_html: optional page footer, as HTML
+
+        wkhtmltopdf_filename: filename of the ``wkhtmltopdf`` executable
+
+        wkhtmltopdf_options: options for ``wkhtmltopdf``
+
+        file_encoding: encoding to use when writing the header/footer to disk
+
+        debug_options: log ``wkhtmltopdf`` config/options passed to ``pdfkit``?
+
+        debug_content: log the main/header/footer HTML?
+
+        debug_wkhtmltopdf_args: log the final command-line arguments to
+            that will be used by ``pdfkit`` when it calls ``wkhtmltopdf``?
+
+        fix_pdfkit_encoding_bug: attempt to work around bug in e.g.
+            ``pdfkit==0.5.0`` by encoding ``wkhtmltopdf_filename`` to UTF-8
+            before passing it to ``pdfkit``? If you pass ``None`` here, then
+            a default value is used, from
+            :func:`get_default_fix_pdfkit_encoding_bug`.
+
+        processor: a PDF processor type from :class:`Processors`
+
+    Returns:
+        the PDF binary as a ``bytes`` object
+
+    Raises:
+        AssertionError: if bad ``processor``
+        RuntimeError: if requested processor is unavailable
+
     """
     wkhtmltopdf_options = wkhtmltopdf_options or {}  # type: Dict[str, Any]
     assert_processor_available(processor)
@@ -218,19 +312,30 @@ def get_pdf_from_html(html: str,
         fix_pdfkit_encoding_bug = get_default_fix_pdfkit_encoding_bug()
 
     if processor == Processors.XHTML2PDF:
-        memfile = io.BytesIO()
-        # noinspection PyUnresolvedReferences
-        xhtml2pdf.document.pisaDocument(html, memfile)
-        # ... returns a document, but we don't use it, so we don't store it to
-        # stop pychecker complaining
-        # http://xhtml2pdf.appspot.com/static/pisa-en.html
-        memfile.seek(0)
-        return memfile.read()
-        # http://stackoverflow.com/questions/3310584
+
+        if on_disk:
+            with open(output_path, mode='wb') as outfile:
+                # noinspection PyUnresolvedReferences
+                xhtml2pdf.document.pisaDocument(html, outfile)
+            return True
+        else:
+            memfile = io.BytesIO()
+            # noinspection PyUnresolvedReferences
+            xhtml2pdf.document.pisaDocument(html, memfile)
+            # ... returns a document, but we don't use it, so we don't store it
+            # to stop pychecker complaining
+            # http://xhtml2pdf.appspot.com/static/pisa-en.html
+            memfile.seek(0)
+            return memfile.read()
+            # http://stackoverflow.com/questions/3310584
 
     elif processor == Processors.WEASYPRINT:
-        # http://ampad.de/blog/generating-pdfs-django/
-        return weasyprint.HTML(string=html).write_pdf()
+
+        if on_disk:
+            return weasyprint.HTML(string=html).write_pdf(output_path)
+        else:
+            # http://ampad.de/blog/generating-pdfs-django/
+            return weasyprint.HTML(string=html).write_pdf()
 
     elif processor == Processors.PDFKIT:
 
@@ -272,18 +377,26 @@ def get_pdf_from_html(html: str,
                           pformat(wkhtmltopdf_options))
             kit = pdfkit.pdfkit.PDFKit(html, 'string', configuration=config,
                                        options=wkhtmltopdf_options)
+
+            if on_disk:
+                path = output_path
+            else:
+                path = None
+                # With "path=None", the to_pdf() function directly returns
+                # stdout from a subprocess.Popen().communicate() call (see
+                # pdfkit.py). Since universal_newlines is not set, stdout will
+                # be bytes in Python 3.
+
             if debug_wkhtmltopdf_args:
                 log.debug("Probable current user: {!r}".format(
                     getpass.getuser()
                 ))
                 log.debug("wkhtmltopdf arguments will be: {!r}".format(
-                    kit.command(path=None)
+                    kit.command(path=path)
                 ))
-            return kit.to_pdf(path=None)
-            # With "path=None", the to_pdf() function directly returns stdout
-            # from a subprocess.Popen().communicate() call (see pdfkit.py).
-            # Since universal_newlines is not set, stdout will be bytes in
-            # Python 3.
+
+            return kit.to_pdf(path=path)
+
         finally:
             if h_filename:
                 os.remove(h_filename)
@@ -292,6 +405,42 @@ def get_pdf_from_html(html: str,
 
     else:
         raise AssertionError("Unknown PDF engine")
+
+
+def get_pdf_from_html(html: str,
+                      header_html: str = None,
+                      footer_html: str = None,
+                      wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
+                      wkhtmltopdf_options: Dict[str, Any] = None,
+                      file_encoding: str = "utf-8",
+                      debug_options: bool = False,
+                      debug_content: bool = False,
+                      debug_wkhtmltopdf_args: bool = True,
+                      fix_pdfkit_encoding_bug: bool = None,
+                      processor: str = _DEFAULT_PROCESSOR) -> bytes:
+    """
+    Takes HTML and returns a PDF.
+
+    See the arguments to :func:`make_pdf_from_html` (except ``on_disk``).
+
+    Returns:
+        the PDF binary as a ``bytes`` object
+    """
+    result = make_pdf_from_html(
+        on_disk=False,
+        html=html,
+        header_html=header_html,
+        footer_html=footer_html,
+        wkhtmltopdf_filename=wkhtmltopdf_filename,
+        wkhtmltopdf_options=wkhtmltopdf_options,
+        file_encoding=file_encoding,
+        debug_options=debug_options,
+        debug_content=debug_content,
+        debug_wkhtmltopdf_args=debug_wkhtmltopdf_args,
+        fix_pdfkit_encoding_bug=fix_pdfkit_encoding_bug,
+        processor=processor,
+    )  # type: bytes
+    return result
 
 
 def pdf_from_html(html: str,
@@ -305,7 +454,7 @@ def pdf_from_html(html: str,
                   fix_pdfkit_encoding_bug: bool = True,
                   processor: str = _DEFAULT_PROCESSOR) -> bytes:
     """
-    Older function name for get_pdf_from_html.
+    Older function name for :func:`get_pdf_from_html` (q.v.).
     """
     return get_pdf_from_html(html=html,
                              header_html=header_html,
@@ -329,76 +478,33 @@ def make_pdf_on_disk_from_html(
         file_encoding: str = "utf-8",
         debug_options: bool = False,
         debug_content: bool = False,
+        debug_wkhtmltopdf_args: bool = True,
         fix_pdfkit_encoding_bug: bool = None,
         processor: str = _DEFAULT_PROCESSOR) -> bool:
     """
-    Takes HTML and writes a PDF to the file specified by output_path.
+    Takes HTML and writes a PDF to the file specified by ``output_path``.
+
+    See the arguments to :func:`make_pdf_from_html` (except ``on_disk``).
+
+    Returns:
+        success?
     """
-    wkhtmltopdf_options = wkhtmltopdf_options or {}  # type: Dict[str, Any]
-
-    if debug_content:
-        log.debug("html: {}", html)
-        log.debug("header_html: {}", header_html)
-        log.debug("footer_html: {}", footer_html)
-
-    if fix_pdfkit_encoding_bug is None:
-        fix_pdfkit_encoding_bug = get_default_fix_pdfkit_encoding_bug()
-
-    if processor == Processors.XHTML2PDF:
-        with open(output_path, mode='wb') as outfile:
-            # noinspection PyUnresolvedReferences
-            xhtml2pdf.document.pisaDocument(html, outfile)
-        return True
-
-    elif processor == Processors.WEASYPRINT:
-        return weasyprint.HTML(string=html).write_pdf(output_path)
-
-    elif processor == Processors.PDFKIT:
-
-        # Config:
-        if not wkhtmltopdf_filename:
-            config = None
-        else:
-            if fix_pdfkit_encoding_bug:  # needs to be True for pdfkit==0.5.0
-                config = pdfkit.configuration(
-                    wkhtmltopdf=wkhtmltopdf_filename.encode('utf-8'))
-                # the bug is that pdfkit.pdfkit.PDFKit.__init__ will attempt to
-                # decode the string in its configuration object;
-                # https://github.com/JazzCore/python-pdfkit/issues/32
-            else:
-                config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_filename)
-
-        # Temporary files that a subprocess can read:
-        #   http://stackoverflow.com/questions/15169101
-        # wkhtmltopdf requires its HTML files to have ".html" extensions:
-        #   http://stackoverflow.com/questions/5776125
-        h_filename = None
-        f_filename = None
-        try:
-            if header_html:
-                h_fd, h_filename = tempfile.mkstemp(suffix='.html')
-                os.write(h_fd, header_html.encode(file_encoding))
-                os.close(h_fd)
-                wkhtmltopdf_options["header-html"] = h_filename
-            if footer_html:
-                f_fd, f_filename = tempfile.mkstemp(suffix='.html')
-                os.write(f_fd, footer_html.encode(file_encoding))
-                os.close(f_fd)
-                wkhtmltopdf_options["footer-html"] = f_filename
-            if debug_options:
-                log.debug("wkhtmltopdf config: {!r}", config)
-                log.debug("wkhtmltopdf_options: {!r}", wkhtmltopdf_options)
-            kit = pdfkit.pdfkit.PDFKit(html, 'string', configuration=config,
-                                       options=wkhtmltopdf_options)
-            return kit.to_pdf(path=output_path)
-        finally:
-            if h_filename:
-                os.remove(h_filename)
-            if f_filename:
-                os.remove(f_filename)
-
-    else:
-        raise AssertionError("Unknown PDF engine")
+    result = make_pdf_from_html(
+        on_disk=True,
+        output_path=output_path,
+        html=html,
+        header_html=header_html,
+        footer_html=footer_html,
+        wkhtmltopdf_filename=wkhtmltopdf_filename,
+        wkhtmltopdf_options=wkhtmltopdf_options,
+        file_encoding=file_encoding,
+        debug_options=debug_options,
+        debug_content=debug_content,
+        debug_wkhtmltopdf_args=debug_wkhtmltopdf_args,
+        fix_pdfkit_encoding_bug=fix_pdfkit_encoding_bug,
+        processor=processor,
+    )  # type: bool
+    return result
 
 
 def pdf_from_writer(writer: Union[PdfFileWriter, PdfFileMerger]) -> bytes:
@@ -413,13 +519,18 @@ def pdf_from_writer(writer: Union[PdfFileWriter, PdfFileMerger]) -> bytes:
 
 def serve_pdf_to_stdout(pdf: bytes) -> None:
     """
-    Serves a PDF to stdout (for web servers).
+    Serves a PDF to ``stdout`` (for web servers).
 
-    Writes a "Content-Type: application/pdf" header and then the PDF to stdout.
+    Writes a ``Content-Type: application/pdf`` header and then the PDF to
+    ``stdout``.
+
+    See:
+
+    - http://stackoverflow.com/questions/312230/proper-mime-type-for-pdf-files
+    - http://www.askapache.com/htaccess/pdf-cookies-headers-rewrites.html
+    - http://stackoverflow.com/questions/2374427
+
     """
-    # http://stackoverflow.com/questions/312230/proper-mime-type-for-pdf-files
-    # http://www.askapache.com/htaccess/pdf-cookies-headers-rewrites.html
-    # http://stackoverflow.com/questions/2374427
     # print("Content-type: text/plain\n")  # for debugging
     print("Content-Type: application/pdf\n")
     sys.stdout.write(pdf)
@@ -427,7 +538,7 @@ def serve_pdf_to_stdout(pdf: bytes) -> None:
 
 def make_pdf_writer() -> PdfFileWriter:
     """
-    Creates a PyPDF2 writer.
+    Creates and returns a PyPDF2 writer.
     """
     return PdfFileWriter()
 
@@ -437,6 +548,11 @@ def append_memory_pdf_to_writer(input_pdf: bytes,
                                 start_recto: bool = True) -> None:
     """
     Appends a PDF (as bytes in memory) to a PyPDF2 writer.
+
+    Args:
+        input_pdf: the PDF, as ``bytes``
+        writer: the writer
+        start_recto: start a new right-hand page?
     """
     if not input_pdf:
         return
@@ -487,6 +603,14 @@ def get_concatenated_pdf_from_disk(filenames: Iterable[str],
                                    start_recto: bool = True) -> bytes:
     """
     Concatenates PDFs from disk and returns them as an in-memory binary PDF.
+
+    Args:
+        filenames: iterable of filenames of PDFs to concatenate
+        start_recto: start a new right-hand page for each new PDF?
+
+    Returns:
+        concatenated PDF, as ``bytes``
+
     """
     # http://stackoverflow.com/questions/17104926/pypdf-merging-multiple-pdf-files-into-one-pdf  # noqa
     # https://en.wikipedia.org/wiki/Recto_and_verso
@@ -512,6 +636,14 @@ def get_concatenated_pdf_in_memory(
         start_recto: bool = True) -> bytes:
     """
     Concatenates PDFs and returns them as an in-memory binary PDF.
+
+    Args:
+        pdf_plans: iterable of :class:`PdfPlan` objects
+        start_recto: start a new right-hand page for each new PDF?
+
+    Returns:
+        concatenated PDF, as ``bytes``
+
     """
     writer = PdfFileWriter()
     for pdfplan in pdf_plans:

@@ -22,15 +22,21 @@
 
 ===============================================================================
 
-Support for plotting.
+**Support for plotting via matplotlib.pyplot.**
 """
 
 import io
 # noinspection PyUnresolvedReferences
 from types import ModuleType
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 from cardinal_pythonlib import rnc_web
+
+if TYPE_CHECKING:
+    try:
+        from matplotlib.figure import Figure
+    except ImportError:
+        Figure = None
 
 
 # =============================================================================
@@ -42,10 +48,12 @@ from cardinal_pythonlib import rnc_web
 # You could make a PDF and append it, though that would (without further
 # effort) lack the patient headers.
 
-def png_img_html_from_pyplot_figure(fig,  # matplotlib.figure.Figure
+def png_img_html_from_pyplot_figure(fig: "Figure",
                                     dpi: int = 100,
                                     extra_html_class: str = None) -> str:
-    """Converts a pyplot figure to an HTML IMG tag with encapsulated PNG."""
+    """
+    Converts a ``pyplot`` figure to an HTML IMG tag with encapsulated PNG.
+    """
     if fig is None:
         return ""
     # Make a file-like object
@@ -61,8 +69,10 @@ def png_img_html_from_pyplot_figure(fig,  # matplotlib.figure.Figure
     return rnc_web.get_png_img_html(pngblob, extra_html_class)
 
 
-def svg_html_from_pyplot_figure(fig) -> str:
-    """Converts a pyplot figure to an SVG tag."""
+def svg_html_from_pyplot_figure(fig: "Figure") -> str:
+    """
+    Converts a ``pyplot`` figure to an SVG tag.
+    """
     if fig is None:
         return ""
     memfile = io.BytesIO()  # StringIO doesn't like mixing str/unicode
@@ -78,9 +88,10 @@ def svg_html_from_pyplot_figure(fig) -> str:
 def set_matplotlib_fontsize(matplotlib: ModuleType,
                             fontsize: Union[int, float] = 12) -> None:
     """
-    Sets the current font size within the matplotlib library.
-    WARNING: not an appropriate method for multithreaded environments, as it
-    writes (indirectly) to matplotlib global objects. See CamCOPS for
+    Sets the current font size within the ``matplotlib`` library.
+
+    **WARNING:** not an appropriate method for multithreaded environments, as
+    it writes (indirectly) to ``matplotlib`` global objects. See CamCOPS for
     alternative methods.
     """
     font = {

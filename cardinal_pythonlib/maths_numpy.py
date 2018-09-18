@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Miscellaneous mathematical functions that use Numpy (which can be slow to
+**Miscellaneous mathematical functions that use Numpy** (which can be slow to
 load).
 
 """
@@ -47,13 +47,33 @@ log.addHandler(logging.NullHandler())
 
 def softmax(x: np.ndarray,
             b: float = 1.0) -> np.ndarray:
-    # x: vector (numpy.array) of values
-    # b: exploration parameter, or inverse temperature [Daw2009], or 1/t where:
-    # t: temperature (towards infinity: all actions equally likely;
-    #       towards zero: probability of action with highest value tends to 1)
-    # DO NOT USE TEMPERATURE DIRECTLY: optimizers may take it to zero,
-    #       giving an infinity.
-    # return value: vector of probabilities
+    r"""
+    Standard softmax function:
+
+    .. math::
+
+        P_i = \frac {e ^ {\beta \cdot x_i}} { \sum_{i}{\beta \cdot x_i} }
+
+    Args:
+        x: vector (``numpy.array``) of values
+        b: exploration parameter :math:`\beta`, or inverse temperature
+            [Daw2009], or :math:`1/t`; see below
+
+    Returns:
+        vector of probabilities corresponding to the input values
+
+    where:
+
+    - :math:`t` is temperature (towards infinity: all actions equally likely;
+      towards zero: probability of action with highest value tends to 1)
+    - Temperature is not used directly as optimizers may take it to zero,
+      giving an infinity; use inverse temperature instead.
+    - [Daw2009] Daw ND, "Trial-by-trial data analysis using computational
+      methods", 2009/2011; in "Decision Making, Affect, and Learning: Attention
+      and Performance XXIII"; Delgado MR, Phelps EA, Robbins TW (eds),
+      Oxford University Press.
+
+    """
     constant = np.mean(x)
     products = x * b - constant
     # ... softmax is invariant to addition of a constant: Daw article and
@@ -82,7 +102,23 @@ def softmax(x: np.ndarray,
 def logistic(x: Union[float, np.ndarray],
              k: float,
              theta: float) -> Optional[float]:
-    """Standard logistic function."""
+    r"""
+    Standard logistic function.
+
+    .. math::
+
+        y = \frac {1} {1 + e^{-k (x - \theta)}}
+
+    Args:
+        x: :math:`x`
+        k: :math:`k`
+        theta: :math:`\theta`
+
+    Returns:
+        :math:`y`
+
+    """
+    # https://www.sharelatex.com/learn/List_of_Greek_letters_and_math_symbols
     if x is None or k is None or theta is None:
         return None
     # noinspection PyUnresolvedReferences
@@ -92,7 +128,22 @@ def logistic(x: Union[float, np.ndarray],
 def inv_logistic(y: Union[float, np.ndarray],
                  k: float,
                  theta: float) -> Optional[float]:
-    """Inverse standard logistic function."""
+    r"""
+    Inverse standard logistic function:
+
+    .. math::
+
+        x = ( log( \frac {1} {y} - 1) / -k ) + \theta
+
+    Args:
+        y: :math:`y`
+        k: :math:`k`
+        theta: :math:`\theta`
+
+    Returns:
+        :math:`x`
+
+    """
     if y is None or k is None or theta is None:
         return None
     # noinspection PyUnresolvedReferences

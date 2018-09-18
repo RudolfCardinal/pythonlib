@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Formatting simple Python objects.**
+
 """
 
 from typing import Any
@@ -32,7 +35,10 @@ from typing import Any
 
 def trunc_if_integer(n: Any) -> Any:
     """
-    Converts 1.0 to 1, etc.
+    Truncates floats that are integers to their integer representation.
+    That is, converts ``1.0`` to ``1``, etc.
+    Otherwise, returns the starting value.
+    Will raise an exception if the input cannot be converted to ``int``.
     """
     if n == int(n):
         return int(n)

@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Support functions regarding NHS numbers, etc.
+**Support functions regarding NHS numbers, etc.**
 
 """
 
@@ -49,14 +49,20 @@ def nhs_check_digit(ninedigits: Union[str, List[Union[str, int]]]) -> int:
     Args:
         ninedigits: string or list
 
+    Returns:
+        check digit
+
+    Method:
+
     1. Multiply each of the first nine digits by the corresponding
-       digit weighting (see NHS_DIGIT_WEIGHTINGS).
+       digit weighting (see :const:`NHS_DIGIT_WEIGHTINGS`).
     2. Sum the results.
     3. Take remainder after division by 11.
     4. Subtract the remainder from 11
     5. If this is 11, use 0 instead
        If it's 10, the number is invalid
        If it doesn't match the actual check digit, the number is invalid
+
     """
     if len(ninedigits) != 9 or not all(str(x).isdigit() for x in ninedigits):
         raise ValueError("bad string to nhs_check_digit")
@@ -75,6 +81,12 @@ def is_valid_nhs_number(n: int) -> bool:
     """
     Validates an integer as an NHS number.
     
+    Args:
+        n: NHS number
+
+    Returns:
+        valid?
+
     Checksum details are at
     http://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp
     """ # noqa
@@ -102,7 +114,9 @@ def is_valid_nhs_number(n: int) -> bool:
 
 
 def generate_random_nhs_number() -> int:
-    """Returns a random valid NHS number, as an int."""
+    """
+    Returns a random valid NHS number, as an ``int``.
+    """
     check_digit = 10  # NHS numbers with this check digit are all invalid
     while check_digit == 10:
         digits = [random.randint(1, 9)]  # don't start with a zero
@@ -123,15 +137,17 @@ def test_nhs_rng(n: int = 100) -> None:
 
 def generate_nhs_number_from_first_9_digits(first9digits: str) -> Optional[int]:
     """
-    Returns a valid NHS number, as an int, given the first 9 digits.
-    The particular purpose is to make NHS numbers that *look* fake.
-    Specifically:
+    Returns a valid NHS number, as an ``int``, given the first 9 digits.
+    The particular purpose is to make NHS numbers that *look* fake (rather
+    than truly random NHS numbers which might accidentally be real).
+
+    For example:
 
     .. code-block:: none
 
         123456789_ : no; checksum 10
-        987654321_ : yes, for 9876543210
-        999999999_ : yes, for 9999999999
+        987654321_ : yes, valid if completed to 9876543210
+        999999999_ : yes, valid if completed to 9999999999
     """
     if len(first9digits) != 9:
         log.warning("Not 9 digits")
@@ -162,7 +178,9 @@ NON_NUMERIC_REGEX = re.compile("[^0-9]")  # or "\D"
 
 def nhs_number_from_text_or_none(s: str) -> Optional[int]:
     """
-    Returns a validated NHS number (as an integer) from a string, or None.
+    Returns a validated NHS number (as an integer) from a string, or ``None``
+    if it is not valid.
+    
     It's a 10-digit number, so note that database 32-bit INT values are
     insufficient; use BIGINT. Python will handle large integers happily.
     

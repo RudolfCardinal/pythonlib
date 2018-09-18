@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Support functions to do with metaclasses.
+**Support functions to do with metaclasses. IGNORE; NOT WORKING PROPERLY.**
 
 """
 
@@ -31,27 +31,29 @@ from typing import Any, Dict, Tuple, Type
 
 class CooperativeMeta(type):
     """
-    The idea is to use this as the metaclass for a class Derived that inherits
-    from bases BaseOne, BaseTwo, ..., whose metaclasses are not of the same
-    type.
+    The idea is to use this as the metaclass for a class ``Derived`` that
+    inherits from bases ``BaseOne``, ``BaseTwo``, ..., whose metaclasses are
+    not of the same type.
 
     This should avoid the error:
+    
+    .. code-block:: none
 
         TypeError: metaclass conflict: the metaclass of a derived class must
         be a (non-strict) subclass of the metaclasses of all its bases
 
     Code from:
-    https://stackoverflow.com/questions/6557407/triple-inheritance-causes-metaclass-conflict-sometimes  # noqa
+    https://stackoverflow.com/questions/6557407/triple-inheritance-causes-metaclass-conflict-sometimes.
 
     See also:
-    http://code.activestate.com/recipes/204197-solving-the-metaclass-conflict/
+    http://code.activestate.com/recipes/204197-solving-the-metaclass-conflict/.
 
     HOWEVER, it's not actually working. Does Python 3 have stricter checking
     than Python 2?
 
     See also
-    https://blog.ionelmc.ro/2015/02/09/understanding-python-metaclasses/
-    """
+    https://blog.ionelmc.ro/2015/02/09/understanding-python-metaclasses/.
+    """  # noqa
     def __new__(mcs: Type,
                 name: str,
                 bases: Tuple[Type, ...],
@@ -82,7 +84,7 @@ class CooperativeMeta(type):
 
 class DebuggingCooperativeMeta(type):
     """
-    CooperativeMeta, but with print() output.
+    ``CooperativeMeta``, but with :func:`print` output.
     Still not working.
     """
     def __new__(mcs: Type,

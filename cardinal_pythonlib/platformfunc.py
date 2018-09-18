@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Support for platform-specific problems.
+**Support for platform-specific problems.**
 """
 
 from collections import OrderedDict
@@ -31,7 +31,7 @@ import logging
 from pprint import pformat
 import subprocess
 import sys
-from typing import Any, Dict, Generator, List, Union
+from typing import Any, Dict, Generator, Iterator, List, Union
 
 from cardinal_pythonlib.fileops import require_executable
 
@@ -83,6 +83,9 @@ def fix_windows_utf8_output() -> None:
 
 
 def test_windows_utf8_output() -> None:
+    """
+    Print a short string with unusual Unicode characters.
+    """
     print(u"This is an Е乂αmp١ȅ testing Unicode support using Arabic, Latin, "
           u"Cyrillic, Greek, Hebrew and CJK code points.\n")
 
@@ -100,6 +103,16 @@ DPKG_QUERY = "dpkg-query"
 
 
 def are_debian_packages_installed(packages: List[str]) -> Dict[str, bool]:
+    """
+    Check which of a list of Debian packages are installed, via ``dpkg-query``.
+
+    Args:
+        packages: list of Debian package names
+
+    Returns:
+        dict: mapping from package name to boolean ("present?")
+
+    """
     assert len(packages) >= 1
     require_executable(DPKG_QUERY)
     args = [
@@ -135,10 +148,12 @@ def are_debian_packages_installed(packages: List[str]) -> Dict[str, bool]:
 def require_debian_packages(packages: List[str]) -> None:
     """
     Ensure specific packages are installed under Debian.
-    Args:
-        packages:
 
-    Returns:
+    Args:
+        packages: list of packages
+
+    Raises:
+        ValueError: if any are missing
 
     """
     present = are_debian_packages_installed(packages)
@@ -158,6 +173,9 @@ def require_debian_packages(packages: List[str]) -> None:
 # =============================================================================
 
 def validate_pair(ob: Any) -> bool:
+    """
+    Does the object have length 2?
+    """
     try:
         if len(ob) != 2:
             log.warning("Unexpected result: {!r}".format(ob))
@@ -167,7 +185,13 @@ def validate_pair(ob: Any) -> bool:
     return True
 
 
-def consume(iterator) -> None:
+def consume(iterator: Iterator[Any]) -> None:
+    """
+    Consume all remaining values of an iterator.
+
+    A reminder: iterable versus iterator:
+    https://anandology.com/python-practice-book/iterators.html.
+    """
     try:
         while True:
             next(iterator)
@@ -179,22 +203,33 @@ def windows_get_environment_from_batch_command(
         env_cmd: Union[str, List[str]],
         initial_env: Dict[str, str] = None) -> Dict[str, str]:
     """
-    Take a command (either a single command or list of arguments)
-    and return the environment created after running that command.
-    Note that the command must be a batch file or .cmd file, or the
-    changes to the environment will not be captured.
+    Take a command (either a single command or list of arguments) and return
+    the environment created after running that command. Note that the command
+    must be a batch (``.bat``) file or ``.cmd`` file, or the changes to the
+    environment will not be captured.
 
-    If initial_env is supplied, it is used as the initial environment passed
-    to the child process. (Otherwise, this process's os.environ() will be
-    used by default.)
+    If ``initial_env`` is supplied, it is used as the initial environment
+    passed to the child process. (Otherwise, this process's ``os.environ()``
+    will be used by default.)
 
-    From https://stackoverflow.com/questions/1214496/how-to-get-environment-from-a-subprocess-in-python  # noqa
-    ... with decoding bug fixed for Python 3
+    From https://stackoverflow.com/questions/1214496/how-to-get-environment-from-a-subprocess-in-python,
+    with decoding bug fixed for Python 3.
 
-    PURPOSE: under Windows, VCVARSALL.BAT sets up a lot of environment
+    PURPOSE: under Windows, ``VCVARSALL.BAT`` sets up a lot of environment
     variables to compile for a specific target architecture. We want to be able
     to read them, not to replicate its work.
-    """
+    
+    METHOD: create a composite command that executes the specified command, 
+    then echoes an unusual string tag, then prints the environment via ``SET``;
+    capture the output, work out what came from ``SET``.
+
+    Args:
+        env_cmd: command, or list of command arguments
+        initial_env: optional dictionary containing initial environment
+
+    Returns:
+        dict: environment created after running the command
+    """  # noqa
     if not isinstance(env_cmd, (list, tuple)):
         env_cmd = [env_cmd]
     # construct the command that will alter the environment
@@ -254,8 +289,9 @@ def windows_get_environment_from_batch_command(
 def contains_unquoted_target(x: str,
                              quote: str = '"', target: str = '&') -> bool:
     """
-    Checks if 'target' exists in 'x' outside quotes (as defined by 'quote').
-    Principal use: contains_unquoted_ampersand_dangerous_to_windows()
+    Checks if ``target`` exists in ``x`` outside quotes (as defined by
+    ``quote``). Principal use: from
+    :func:`contains_unquoted_ampersand_dangerous_to_windows`.
     """
     in_quote = False
     for c in x:

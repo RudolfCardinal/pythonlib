@@ -107,6 +107,19 @@ def get_monochrome_handler(
         with_process_id: bool = False,
         with_thread_id: bool = False,
         stream: TextIO = None) -> logging.StreamHandler:
+    """
+    Gets a monochrome log handler using a standard format.
+
+    Args:
+        extranames: additional names to append to the logger's name
+        with_process_id: include the process ID in the logger's name?
+        with_thread_id: include the thread ID in the logger's name?
+        stream: ``TextIO`` stream to send log output to
+
+    Returns:
+        the :class:`logging.StreamHandler`
+
+    """
     fmt = "%(asctime)s.%(msecs)03d"
     if with_process_id or with_thread_id:
         procinfo = []  # type: List[str]
@@ -128,6 +141,19 @@ def get_colour_handler(extranames: List[str] = None,
                        with_process_id: bool = False,
                        with_thread_id: bool = False,
                        stream: TextIO = None) -> logging.StreamHandler:
+    """
+    Gets a colour log handler using a standard format.
+
+    Args:
+        extranames: additional names to append to the logger's name
+        with_process_id: include the process ID in the logger's name?
+        with_thread_id: include the thread ID in the logger's name?
+        stream: ``TextIO`` stream to send log output to
+
+    Returns:
+        the :class:`logging.StreamHandler`
+
+    """
     fmt = "%(white)s%(asctime)s.%(msecs)03d"  # this is dim white = grey
     if with_process_id or with_thread_id:
         procinfo = []  # type: List[str]
@@ -161,6 +187,14 @@ def configure_logger_for_colour(logger: logging.Logger,
 
     Should ONLY be called from the ``if __name__ == 'main'`` script;
     see https://docs.python.org/3.4/howto/logging.html#library-config.
+
+    Args:
+        logger: logger to modify
+        level: log level to set
+        remove_existing: remove existing handlers from logger first?
+        extranames: additional names to append to the logger's name
+        with_process_id: include the process ID in the logger's name?
+        with_thread_id: include the thread ID in the logger's name?
     """
     if remove_existing:
         logger.handlers = []  # http://stackoverflow.com/questions/7484454
@@ -180,6 +214,11 @@ def main_only_quicksetup_rootlogger(level: int = logging.DEBUG,
 
     Should ONLY be called from the ``if __name__ == 'main'`` script;
     see https://docs.python.org/3.4/howto/logging.html#library-config.
+
+    Args:
+        level: log level to set
+        with_process_id: include the process ID in the logger's name?
+        with_thread_id: include the thread ID in the logger's name?
     """
     # Nasty. Only call from "if __name__ == '__main__'" clauses!
     rootlogger = logging.getLogger()
@@ -194,7 +233,12 @@ def main_only_quicksetup_rootlogger(level: int = logging.DEBUG,
 # =============================================================================
 
 def remove_all_logger_handlers(logger: logging.Logger) -> None:
-    """Remove all handlers from a logger."""
+    """
+    Remove all handlers from a logger.
+
+    Args:
+        logger: logger to modify
+    """
     while logger.handlers:
         h = logger.handlers[0]
         logger.removeHandler(h)
@@ -203,9 +247,18 @@ def remove_all_logger_handlers(logger: logging.Logger) -> None:
 def reset_logformat(logger: logging.Logger,
                     fmt: str,
                     datefmt: str = '%Y-%m-%d %H:%M:%S') -> None:
-    """Create a new formatter and apply it to the logger."""
-    # logging.basicConfig() won't reset the formatter if another module
-    # has called it, so always set the formatter like this.
+    """
+    Create a new formatter and apply it to the logger.
+
+    :func:`logging.basicConfig` won't reset the formatter if another module
+    has called it, so always set the formatter like this.
+
+    Args:
+        logger: logger to modify
+        fmt: passed to the ``fmt=`` argument of :class:`logging.Formatter`
+        datefmt: passed to the ``datefmt=`` argument of
+            :class:`logging.Formatter`
+    """
     handler = logging.StreamHandler()
     formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
     handler.setFormatter(formatter)
@@ -217,8 +270,15 @@ def reset_logformat(logger: logging.Logger,
 def reset_logformat_timestamped(logger: logging.Logger,
                                 extraname: str = "",
                                 level: int = logging.INFO) -> None:
-    """Apply a simple time-stamped log format to an existing logger, and set
-    its loglevel to either DEBUG or INFO."""
+    """
+    Apply a simple time-stamped log format to an existing logger, and set
+    its loglevel to either ``logging.DEBUG`` or ``logging.INFO``.
+
+    Args:
+        logger: logger to modify
+        extraname: additional name to append to the logger's name
+        level: log level to set
+    """
     namebit = extraname + ":" if extraname else ""
     fmt = ("%(asctime)s.%(msecs)03d:%(levelname)s:%(name)s:" + namebit +
            "%(message)s")
@@ -240,6 +300,10 @@ def configure_all_loggers_for_colour(remove_existing: bool = True) -> None:
     see https://docs.python.org/3.4/howto/logging.html#library-config.
 
     Generally MORE SENSIBLE just to apply a handler to the root logger.
+
+    Args:
+        remove_existing: remove existing handlers from logger first?
+
     """
     handler = get_colour_handler()
     apply_handler_to_all_logs(handler, remove_existing=remove_existing)
@@ -254,6 +318,10 @@ def apply_handler_to_root_log(handler: logging.Handler,
     see https://docs.python.org/3.4/howto/logging.html#library-config.
 
     Generally MORE SENSIBLE just to apply a handler to the root logger.
+
+    Args:
+        handler: the handler to apply
+        remove_existing: remove existing handlers from logger first?
     """
     rootlog = logging.getLogger()
     if remove_existing:
@@ -270,6 +338,10 @@ def apply_handler_to_all_logs(handler: logging.Handler,
     see https://docs.python.org/3.4/howto/logging.html#library-config.
 
     Generally MORE SENSIBLE just to apply a handler to the root logger.
+
+    Args:
+        handler: the handler to apply
+        remove_existing: remove existing handlers from logger first?
     """
     # noinspection PyUnresolvedReferences
     for name, obj in logging.Logger.manager.loggerDict.items():
@@ -302,6 +374,12 @@ def copy_all_logs_to_file(filename: str,
 
     Should ONLY be called from the ``if __name__ == 'main'`` script;
     see https://docs.python.org/3.4/howto/logging.html#library-config.
+
+    Args:
+        filename: file to send log output to
+        fmt: passed to the ``fmt=`` argument of :class:`logging.Formatter`
+        datefmt: passed to the ``datefmt=`` argument of
+            :class:`logging.Formatter`
     """
     fh = logging.FileHandler(filename)
     # default file mode is 'a' for append
@@ -312,8 +390,10 @@ def copy_all_logs_to_file(filename: str,
 
 # noinspection PyProtectedMember
 def get_formatter_report(f: logging.Formatter) -> Optional[Dict[str, str]]:
-    """Returns information on a log formatter, as a dictionary.
-    For debugging."""
+    """
+    Returns information on a log formatter, as a dictionary.
+    For debugging.
+    """
     if f is None:
         return None
     return {
@@ -324,7 +404,10 @@ def get_formatter_report(f: logging.Formatter) -> Optional[Dict[str, str]]:
 
 
 def get_handler_report(h: logging.Handler) -> Dict[str, Any]:
-    """Returns information on a log handler, as a dictionary. For debugging."""
+    """
+    Returns information on a log handler, as a dictionary.
+    For debugging.
+    """
     return {
         'get_name()': h.get_name(),
         'level': h.level,
@@ -335,7 +418,9 @@ def get_handler_report(h: logging.Handler) -> Dict[str, Any]:
 
 def get_log_report(log: Union[logging.Logger,
                               logging.PlaceHolder]) -> Dict[str, Any]:
-    """Returns information on a log, as a dictionary. For debugging."""
+    """
+    Returns information on a log, as a dictionary. For debugging.
+    """
     if isinstance(log, logging.Logger):
         # suppress invalid error for Logger.manager:
         # noinspection PyUnresolvedReferences
@@ -358,7 +443,7 @@ def get_log_report(log: Union[logging.Logger,
 
 def print_report_on_all_logs() -> None:
     """
-    Use print() to report information on all logs.
+    Use :func:`print` to report information on all logs.
     """
     d = {}
     # noinspection PyUnresolvedReferences
@@ -371,6 +456,13 @@ def print_report_on_all_logs() -> None:
 
 def set_level_for_logger_and_its_handlers(log: logging.Logger,
                                           level: int) -> None:
+    """
+    Set a log level for a log and all its handlers.
+
+    Args:
+        log: log to modify
+        level: log level to set
+    """
     log.setLevel(level)
     for h in log.handlers:  # type: logging.Handler
         h.setLevel(level)
@@ -381,6 +473,9 @@ def set_level_for_logger_and_its_handlers(log: logging.Logger,
 # =============================================================================
 
 class HtmlColorFormatter(logging.Formatter):
+    """
+    Class to format Python logs in coloured HTML.
+    """
     log_colors = {
         logging.DEBUG: '#008B8B',  # dark cyan
         logging.INFO: '#00FF00',  # green
@@ -398,7 +493,13 @@ class HtmlColorFormatter(logging.Formatter):
 
     def __init__(self, append_br: bool = False,
                  replace_nl_with_br: bool = True) -> None:
-        # https://hg.python.org/cpython/file/3.5/Lib/logging/__init__.py
+        r"""
+        Args:
+            append_br: append ``<br>`` to each line?
+            replace_nl_with_br: replace ``\n`` with ``<br>`` in messages?
+
+        See https://hg.python.org/cpython/file/3.5/Lib/logging/__init__.py
+        """
         super().__init__(
             fmt='%(message)s',
             datefmt='%Y-%m-%d %H:%M:%S',
@@ -408,8 +509,11 @@ class HtmlColorFormatter(logging.Formatter):
         self.replace_nl_with_br = replace_nl_with_br
 
     def format(self, record: logging.LogRecord) -> str:
-        # record is a LogRecord
-        # https://docs.python.org/3.4/library/logging.html#logging.LogRecord
+        """
+        Internal function to format the :class:`LogRecord` as HTML.
+
+        See https://docs.python.org/3.4/library/logging.html#logging.LogRecord
+        """
 
         # message = super().format(record)
         super().format(record)
@@ -441,11 +545,14 @@ class HtmlColorFormatter(logging.Formatter):
 
 
 # =============================================================================
-# HTML handler (using HtmlColorFormatter) that sends output to a function,
-# e.g. for display in a Qt window
+# HtmlColorHandler
 # =============================================================================
 
 class HtmlColorHandler(logging.StreamHandler):
+    """
+    HTML handler (using :class:`HtmlColorFormatter`) that sends output to a
+    function, e.g. for display in a Qt window
+    """
     def __init__(self, logfunction: Callable[[str], None],
                  level: int = logging.INFO) -> None:
         super().__init__()
@@ -454,6 +561,9 @@ class HtmlColorHandler(logging.StreamHandler):
         self.setLevel(level)
 
     def emit(self, record: logging.LogRecord) -> None:
+        """
+        Internal function to process a :class:`LogRecord`.
+        """
         # noinspection PyBroadException
         try:
             html = self.format(record)
@@ -475,6 +585,11 @@ class HtmlColorHandler(logging.StreamHandler):
 # - https://www.simonmweber.com/2014/11/24/python-logging-traps.html
 
 class BraceMessage(object):
+    """
+    Class to represent a message that includes a message including braces
+    (``{}``) and a set of ``args``/``kwargs``. When converted to a ``str``,
+    the message is realized via ``msg.format(*args, **kwargs)``.
+    """
     def __init__(self,
                  fmt: str,
                  args: Tuple[Any, ...],
@@ -499,7 +614,7 @@ class BraceStyleAdapter(logging.LoggerAdapter):
                  pass_special_logger_args: bool = True,
                  strip_special_logger_args_from_fmt: bool = False) -> None:
         """
-        Wraps a logger so we can use {}-style string formatting.
+        Wraps a logger so we can use ``{}``-style string formatting.
 
         Args:
             logger:
@@ -513,7 +628,22 @@ class BraceStyleAdapter(logging.LoggerAdapter):
                 If we're passing special arguments to the logger, should we
                 remove them from the argments passed to the string formatter?
                 There is no obvious cost to saying no.
-        """
+                
+        Specimen use:
+        
+        .. code-block:: python
+        
+            import logging
+            from cardinal_pythonlib.logs import BraceStyleAdapter, main_only_quicksetup_rootlogger 
+            
+            log = BraceStyleAdapter(logging.getLogger(__name__))
+            
+            main_only_quicksetup_rootlogger(level=logging.DEBUG)
+            
+            log.info("Hello {}, {title} {surname}!", "world", title="Mr", surname="Smith") 
+            # 2018-09-17 16:13:50.404 __main__:INFO: Hello world, Mr Smith!
+        
+        """  # noqa
         super().__init__(logger=logger, extra=None)
         self.pass_special_logger_args = pass_special_logger_args
         self.strip_special_logger_args_from_fmt = strip_special_logger_args_from_fmt  # noqa
@@ -569,6 +699,9 @@ class BraceStyleAdapter(logging.LoggerAdapter):
 # =============================================================================
 
 if __name__ == '__main__':
+    """
+    Command-line validation checks.
+    """
     main_only_quicksetup_rootlogger(logging.INFO)
     _log = BraceStyleAdapter(logging.getLogger(__name__))
     _log.info("1. Hello!")

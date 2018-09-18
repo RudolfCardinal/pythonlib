@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions to work with Python modules.**
+
 """
 
 import importlib
@@ -42,7 +45,7 @@ def import_submodules(package: Union[str, ModuleType],
                       base_package_for_relative_import: str = None,
                       recursive: bool = True) -> Dict[str, ModuleType]:
     """
-    Import all submodules of a module, recursively, including subpackages
+    Import all submodules of a module, recursively, including subpackages.
 
     Args:
         package: package (name or actual module)
@@ -50,6 +53,7 @@ def import_submodules(package: Union[str, ModuleType],
         recursive: import submodules too?
 
     Returns:
+        dict: mapping from full module name to module
 
     """
     # http://stackoverflow.com/questions/3365740/how-to-import-all-submodules
@@ -71,5 +75,3 @@ def import_submodules(package: Union[str, ModuleType],
 #   task_modules = [os.path.basename(f)[:-3] for f in task_modules]
 #   for tm in task_modules:
 #       __import__(tm, locals(), globals())
-
-

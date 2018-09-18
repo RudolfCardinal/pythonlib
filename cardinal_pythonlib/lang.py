@@ -22,6 +22,8 @@
 
 ===============================================================================
 
-Support functions to do with the core language.
+**Support functions to do with the core language.**
+
+Not much here...
 
 """

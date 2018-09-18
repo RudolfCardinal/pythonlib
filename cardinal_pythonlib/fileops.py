@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-File operations.
+**File operations.**
 
 """
 
@@ -46,12 +46,17 @@ log.addHandler(logging.NullHandler())
 
 def which_with_envpath(executable: str, env: Dict[str, str]) -> str:
     """
-    Performs a "which" command using the PATH from the specified environment.
+    Performs a :func:`shutil.which` command using the PATH from the specified
+    environment.
 
-    Reason: when you use run([executable, ...], env) and therefore
-    subprocess.run([executable, ...], env=env), the PATH that's searched for
-    "executable" is the parent's, not the new child's -- so you have to find
-    the executable manually.
+    Reason: when you use ``run([executable, ...], env)`` and therefore
+    ``subprocess.run([executable, ...], env=env)``, the PATH that's searched
+    for ``executable`` is the parent's, not the new child's -- so you have to
+    find the executable manually.
+
+    Args:
+        executable: executable to find
+        env: environment to fetch the PATH variable from
     """
     oldpath = os.environ.get("PATH", "")
     os.environ["PATH"] = env.get("PATH")
@@ -61,6 +66,10 @@ def which_with_envpath(executable: str, env: Dict[str, str]) -> str:
 
 
 def require_executable(executable: str) -> None:
+    """
+    If ``executable`` is not found by :func:`shutil.which`, raise
+    :exc:`FileNotFoundError`.
+    """
     if shutil.which(executable):
         return
     errmsg = "Missing command (must be on the PATH): " + executable
@@ -75,6 +84,9 @@ def require_executable(executable: str) -> None:
 def mkdir_p(path: str) -> None:
     """
     Makes a directory, and any intermediate (parent) directories if required.
+
+    This is the UNIX ``mkdir -p DIRECTORY`` command; of course, we use
+    :func:`os.makedirs` instead, for portability.
     """
     log.debug("mkdir -p " + path)
     os.makedirs(path, exist_ok=True)
@@ -88,7 +100,11 @@ def mkdir_p(path: str) -> None:
 def pushd(directory: str) -> None:
     """
     Context manager: changes directory and preserves the original on exit.
+
     Example:
+
+    .. code-block:: python
+
         with pushd(new_directory):
             # do things
     """
@@ -139,9 +155,19 @@ def root_path() -> str:
 def copyglob(src: str, dest: str, allow_nothing: bool = False,
              allow_nonfiles: bool = False) -> None:
     """
-    Copies files whose filenames match the glob "src" into the directory
+    Copies files whose filenames match the glob src" into the directory
     "dest". Raises an error if no files are copied, unless allow_nothing is
     True.
+
+    Args:
+        src: source glob (e.g. ``/somewhere/*.txt``)
+        dest: destination directory
+        allow_nothing: don't raise an exception if no files are found
+        allow_nonfiles: copy things that are not files too (as judged by
+            :func:`os.path.isfile`).
+
+    Raises:
+        ValueError: if no files are found and ``allow_nothing`` is not set
     """
     something = False
     for filename in glob.glob(src):
@@ -156,7 +182,7 @@ def copyglob(src: str, dest: str, allow_nothing: bool = False,
 def moveglob(src: str, dest: str, allow_nothing: bool = False,
              allow_nonfiles: bool = False) -> None:
     """
-    As for copyglob, but moves instead.
+    As for :func:`copyglob`, but moves instead.
     """
     something = False
     for filename in glob.glob(src):
@@ -170,16 +196,24 @@ def moveglob(src: str, dest: str, allow_nothing: bool = False,
 
 def copy_tree_root(src_dir: str, dest_parent: str) -> None:
     """
-    Copies a directory "src_dir" into the directory "dest_parent".
-    That is:
+    Copies a directory ``src_dir`` into the directory ``dest_parent``.
+    That is, with a file structure like:
+
+    .. code-block:: none
 
         /source/thing/a.txt
         /source/thing/b.txt
         /source/thing/somedir/c.txt
 
+    the command
+
+    .. code-block:: python
+
         copy_tree_root("/source/thing", "/dest")
 
     ends up creating
+
+    .. code-block:: none
 
         /dest/thing/a.txt
         /dest/thing/b.txt
@@ -193,12 +227,24 @@ def copy_tree_root(src_dir: str, dest_parent: str) -> None:
 def copy_tree_contents(srcdir: str, destdir: str,
                        destroy: bool = False) -> None:
     """
-    Recursive copy. Unlike copy_tree_root, copy_tree_contents works this way:
-    with the file structure above,
+    Recursive copy. Unlike :func:`copy_tree_root`, :func:`copy_tree_contents`
+    works as follows. With the file structure:
+
+    .. code-block:: none
+
+        /source/thing/a.txt
+        /source/thing/b.txt
+        /source/thing/somedir/c.txt
+
+    the command
+
+    .. code-block:: python
 
         copy_tree_contents("/source/thing", "/dest")
 
     ends up creating:
+
+    .. code-block:: none
 
         /dest/a.txt
         /dest/b.txt
@@ -223,7 +269,8 @@ def copy_tree_contents(srcdir: str, destdir: str,
 
 def rmglob(pattern: str) -> None:
     """
-    Removes all files whose filename matches the glob "pattern".
+    Deletes all files whose filename matches the glob ``pattern`` (via
+    :func:`glob.glob`).
     """
     for f in glob.glob(pattern):
         os.remove(f)
@@ -231,7 +278,8 @@ def rmglob(pattern: str) -> None:
 
 def purge(path: str, pattern: str) -> None:
     """
-    Deletes all files in "path" matching "pattern".
+    Deletes all files in ``path`` matching ``pattern`` (via
+    :func:`fnmatch.fnmatch`).
     """
     for f in find(pattern, path):
         log.info("Deleting {}".format(f))
@@ -240,8 +288,8 @@ def purge(path: str, pattern: str) -> None:
 
 def delete_files_within_dir(directory: str, filenames: List[str]) -> None:
     """
-    Delete files within "directory" whose filename *exactly* matches one of
-    "filenames".
+    Delete files within ``directory`` whose filename *exactly* matches one of
+    ``filenames``.
     """
     for dirpath, dirnames, fnames in os.walk(directory):
         for f in fnames:
@@ -262,7 +310,6 @@ EXC_INFO_TYPE = Tuple[
 def shutil_rmtree_onerror(func: Callable[[str], None],
                           path: str,
                           exc_info: EXC_INFO_TYPE) -> None:
-    # https://stackoverflow.com/questions/2656322/shutil-rmtree-fails-on-windows-with-access-is-denied  # noqa
     """
     Error handler for ``shutil.rmtree``.
 
@@ -271,8 +318,11 @@ def shutil_rmtree_onerror(func: Callable[[str], None],
 
     If the error is for another reason it re-raises the error.
 
-    Usage : ``shutil.rmtree(path, onerror=onerror)``
-    """
+    Usage: ``shutil.rmtree(path, onerror=shutil_rmtree_onerror)``
+    
+    See
+    https://stackoverflow.com/questions/2656322/shutil-rmtree-fails-on-windows-with-access-is-denied
+    """  # noqa
     if not os.access(path, os.W_OK):
         # Is the error an access error ?
         os.chmod(path, stat.S_IWUSR)
@@ -296,9 +346,15 @@ def rmtree(directory: str) -> None:
 
 def chown_r(path: str, user: str, group: str) -> None:
     """
-    Performs a recursive chown.
+    Performs a recursive ``chown``.
+
+    Args:
+        path: path to walk down
+        user: user name or ID
+        group: group name or ID
+
+    As per http://stackoverflow.com/questions/2853723
     """
-    # http://stackoverflow.com/questions/2853723
     for root, dirs, files in os.walk(path):
         for x in dirs:
             shutil.chown(os.path.join(root, x), user, group)
@@ -307,8 +363,13 @@ def chown_r(path: str, user: str, group: str) -> None:
 
 
 def chmod_r(root: str, permission: int) -> None:
-    # Untested
-    # Permission: e.g. stat.S_IWUSR
+    """
+    Recursive ``chmod``.
+
+    Args:
+        root: directory to walk down
+        permission: e.g. ``e.g. stat.S_IWUSR``
+    """
     os.chmod(root, permission)
     for dirpath, dirnames, filenames in os.walk(root):
         for d in dirnames:
@@ -323,7 +384,8 @@ def chmod_r(root: str, permission: int) -> None:
 
 def find(pattern: str, path: str) -> List[str]:
     """
-    Finds files in "path" whose filenames match "pattern".
+    Finds files in ``path`` whose filenames match ``pattern`` (via
+    :func:`fnmatch.fnmatch`).
     """
     result = []
     for root, dirs, files in os.walk(path):
@@ -335,7 +397,8 @@ def find(pattern: str, path: str) -> List[str]:
 
 def find_first(pattern: str, path: str) -> str:
     """
-    Finds first file in "path" whose filename matches "pattern", or raises.
+    Finds first file in ``path`` whose filename matches ``pattern`` (via
+    :func:`fnmatch.fnmatch`), or raises :exc:`IndexError`.
     """
     try:
         return find(pattern, path)[0]
@@ -346,6 +409,19 @@ def find_first(pattern: str, path: str) -> str:
 
 def gen_filenames(starting_filenames: List[str],
                   recursive: bool) -> Generator[str, None, None]:
+    """
+    From a starting list of files and/or directories, generates filenames of
+    all files in the list, and (if ``recursive`` is set) all files within
+    directories in the list.
+
+    Args:
+        starting_filenames: files and/or directories
+        recursive: walk down any directories in the starting list, recursively?
+
+    Yields:
+        each filename
+
+    """
     for base_filename in starting_filenames:
         if os.path.isfile(base_filename):
             yield os.path.abspath(base_filename)
@@ -362,8 +438,15 @@ def gen_filenames(starting_filenames: List[str],
 def exists_locked(filepath: str) -> Tuple[bool, bool]:
     """
     Checks if a file is locked by opening it in append mode.
-    If no exception thrown, then the file is not locked.
-    # https://www.calazan.com/how-to-check-if-a-file-is-locked-in-python/
+    (If no exception is thrown in that situation, then the file is not locked.)
+
+    Args:
+        filepath: file to check
+
+    Returns:
+        tuple: ``(exists, locked)``
+
+    See https://www.calazan.com/how-to-check-if-a-file-is-locked-in-python/.
     """
     exists = False
     locked = None

@@ -22,7 +22,8 @@
 
 ===============================================================================
 
-Support functions for process/external command management.
+**Support functions for process/external command management.**
+
 """
 
 import logging
@@ -44,6 +45,17 @@ log = BraceStyleAdapter(log)
 # =============================================================================
 
 def get_external_command_output(command: str) -> bytes:
+    """
+    Takes a command-line command, executes it, and returns its ``stdout``
+    output.
+
+    Args:
+        command: command string
+
+    Returns:
+        output from the command as ``bytes``
+
+    """
     args = shlex.split(command)
     ret = subprocess.check_output(args)  # this needs Python 2.7 or higher
     return ret
@@ -51,6 +63,17 @@ def get_external_command_output(command: str) -> bytes:
 
 def get_pipe_series_output(commands: Sequence[str],
                            stdinput: BinaryIO = None) -> bytes:
+    """
+    Get the output from a piped series of commands.
+
+    Args:
+        commands: sequence of command strings
+        stdinput: optional ``stdin`` data to feed into the start of the pipe
+
+    Returns:
+        ``stdout`` from the end of the pipe
+
+    """
     # Python arrays indexes are zero-based, i.e. an array is indexed from
     # 0 to len(array)-1.
     # The range/xrange commands, by default, start at 0 and go to one less
@@ -88,6 +111,14 @@ def get_pipe_series_output(commands: Sequence[str],
 def launch_external_file(filename: str, raise_if_fails: bool = False) -> None:
     """
     Launches a file using the operating system's standard launcher.
+
+    Args:
+        filename: file to launch
+        raise_if_fails: raise any exceptions from
+            ``subprocess.call(["xdg-open", filename])`` (Linux)
+            or ``os.startfile(filename)`` (otherwise)? If not, exceptions
+            are suppressed.
+
     """
     log.info("Launching external file: {!r}", filename)
     try:

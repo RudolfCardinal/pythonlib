@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Random number generation.**
+
 """
 
 import base64
@@ -29,11 +32,14 @@ import os
 
 def create_base64encoded_randomness(num_bytes: int) -> str:
     """
-    Create num_bytes of random data.
-    Result is encoded in a string with URL-safe base64 encoding.
+    Create and return ``num_bytes`` of random data.
+
+    The result is encoded in a string with URL-safe ``base64`` encoding.
+
     Used (for example) to generate session tokens.
+
     Which generator to use? See
-        https://cryptography.io/en/latest/random-numbers/
+    https://cryptography.io/en/latest/random-numbers/.
 
     Do NOT use these methods:
 

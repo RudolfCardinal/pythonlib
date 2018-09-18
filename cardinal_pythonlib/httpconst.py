@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Constants for use with HTTP.**
+
 """
 
 
@@ -28,6 +31,8 @@ class MimeType(object):
     """
     Some MIME type constants.
     See also the Python standard library 'mimetypes'; e.g.
+
+    .. code-block:: python
 
         import mimetypes
         mimetypes.types_map['.pdf']  # 'application/pdf'

@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-Regular expression support functions
+**Regular expression support functions.**
 
 """
 
@@ -35,8 +35,18 @@ from typing import Match, Optional, Pattern
 # Based on http://stackoverflow.com/questions/597476/how-to-concisely-cascade-through-multiple-regex-statements-in-python  # noqa
 
 class CompiledRegexMemory(object):
+    """
+    Class to store last match of compiled regex.
+    
+    Once you have called :func:`match` or :func:`search`, the attribute
+    :attr:`last_match` contains the last match, and ``group(n)`` returns the
+    *n*\ th group of that last match.
+    
+    Based on
+    http://stackoverflow.com/questions/597476/how-to-concisely-cascade-through-multiple-regex-statements-in-python.
+    """  # noqa
     def __init__(self) -> None:
-        self.last_match = None
+        self.last_match = None  # type: Match
 
     def match(self, compiled_regex: Pattern, text: str) -> Match:
         self.last_match = compiled_regex.match(text)
@@ -50,4 +60,3 @@ class CompiledRegexMemory(object):
         if not self.last_match:
             return None
         return self.last_match.group(n)
-

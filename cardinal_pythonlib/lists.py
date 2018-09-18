@@ -21,6 +21,9 @@
     limitations under the License.
 
 ===============================================================================
+
+**Functions for dealing with lists.**
+
 """
 
 from collections import Counter
@@ -33,6 +36,9 @@ from typing import Any, Callable, Iterable, List, Tuple
 # =============================================================================
 
 def contains_duplicates(values: Iterable[Any]) -> bool:
+    """
+    Does the iterable contain any duplicate values?
+    """
     for v in Counter(values).values():
         if v > 1:
             return True
@@ -42,13 +48,27 @@ def contains_duplicates(values: Iterable[Any]) -> bool:
 def index_list_for_sort_order(x: List[Any], key: Callable[[Any], Any] = None,
                               reverse: bool = False) -> List[int]:
     """
-    Returns a list of indexes of x, IF x WERE TO BE SORTED.
+    Returns a list of indexes of ``x``, IF ``x`` WERE TO BE SORTED.
 
-z = ["a", "c", "b"]
-index_list_for_sort_order(z)  # [0, 2, 1]
-index_list_for_sort_order(z, reverse=True)  # [1, 2, 0]
-q = [("a", 9), ("b", 8), ("c", 7)]
-index_list_for_sort_order(q, key=itemgetter(1))
+    Args:
+        x: data
+        key: function to be applied to the data to generate a sort key; this
+            function is passed as the ``key=`` parameter to :func:`sorted`;
+            the default is ``itemgetter(1)``
+        reverse: reverse the sort order?
+
+    Returns:
+        list of integer index values
+
+    Example:
+
+    .. code-block:: python
+
+        z = ["a", "c", "b"]
+        index_list_for_sort_order(z)  # [0, 2, 1]
+        index_list_for_sort_order(z, reverse=True)  # [1, 2, 0]
+        q = [("a", 9), ("b", 8), ("c", 7)]
+        index_list_for_sort_order(q, key=itemgetter(1))
 
     """
     def key_with_user_func(idx_val: Tuple[int, Any]):
@@ -65,28 +85,83 @@ index_list_for_sort_order(q, key=itemgetter(1))
 
 
 def sort_list_by_index_list(x: List[Any], indexes: List[int]) -> None:
-    """Re-orders x by the list of indexes of x, in place."""
+    """
+    Re-orders ``x`` by the list of ``indexes`` of ``x``, in place.
+
+    Example:
+
+    .. code-block:: python
+
+        from cardinal_pythonlib.lists import sort_list_by_index_list
+
+        z = ["a", "b", "c", "d", "e"]
+        sort_list_by_index_list(z, [4, 0, 1, 2, 3])
+        z  # ["e", "a", "b", "c", "d"]
+    """
     x[:] = [x[i] for i in indexes]
 
 
 def flatten_list(x: List[Any]) -> List[Any]:
+    """
+    Converts a list of lists into a flat list.
+    
+    Args:
+        x: list of lists 
+
+    Returns:
+        flat list
+        
+    As per
+    http://stackoverflow.com/questions/952914/making-a-flat-list-out-of-list-of-lists-in-python
+
+    """  # noqa
     return [item for sublist in x for item in sublist]
-    # http://stackoverflow.com/questions/952914/making-a-flat-list-out-of-list-of-lists-in-python  # noqa
 
 
 def unique_list(seq: Iterable[Any]) -> List[Any]:
-    # http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-whilst-preserving-order  # noqa
+    """
+    Returns a list of all the unique elements in the input list.
+
+    Args:
+        seq: input list
+
+    Returns:
+        list of unique elements
+
+    As per
+    http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-whilst-preserving-order
+
+    """  # noqa
     seen = set()
     seen_add = seen.add
     return [x for x in seq if not (x in seen or seen_add(x))]
 
 
 def chunks(l: List[Any], n: int) -> Iterable[List[Any]]:
-    """ Yield successive n-sized chunks from l.
+    """
+    Yield successive ``n``-sized chunks from ``l``.
+
+    Args:
+        l: input list
+        n: chunk size
+
+    Yields:
+        successive chunks of size ``n``
+
     """
     for i in range(0, len(l), n):
         yield l[i:i + n]
 
 
 def count_bool(blist: Iterable[Any]) -> int:
+    """
+    Counts the number of "truthy" members of the input list.
+
+    Args:
+        blist: list of booleans or other truthy/falsy things
+
+    Returns:
+        number of truthy items
+
+    """
     return sum([1 if x else 0 for x in blist])
