@@ -135,3 +135,9 @@ First started in 2009.
   were in ``hash.py``.
 - Bugfix to :func:`cardinal_pythonlib.sqlalchemy.schema.is_sqlatype_date` for
   more recent versions of SQLAlchemy (e.g. 1.2.11).
+
+**1.0.26, 2018-09-21**
+
+- Bugfix to
+  :func:`cardinal_pythonlib.sqlalchemy.orm_inspect.deepcopy_sqla_object`;
+  crash if ``objmap`` was ``None``.

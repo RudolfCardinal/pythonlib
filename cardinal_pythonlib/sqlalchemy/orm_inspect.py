@@ -505,6 +505,8 @@ def deepcopy_sqla_object(startobj: object,
         the copied object matching ``startobj``
 
     """
+    if objmap is None:
+        objmap = {}  # keys = old objects, values = new objects
     deepcopy_sqla_objects(
         startobjs=[startobj],
         session=session,
