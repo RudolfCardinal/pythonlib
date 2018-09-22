@@ -14,10 +14,9 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 import os
-import sys
-# sys.path.insert(0, os.path.abspath('.'))
 
 import django
+from django.conf import settings
 
 from cardinal_pythonlib.version_string import VERSION_STRING
 
@@ -25,6 +24,7 @@ from cardinal_pythonlib.version_string import VERSION_STRING
 # -- Project information -----------------------------------------------------
 
 project = 'cardinal_pythonlib'
+# noinspection PyShadowingBuiltins
 copyright = '2009-2018, Rudolf Cardinal'
 author = 'Rudolf Cardinal'
 
@@ -45,6 +45,7 @@ release = VERSION_STRING
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'sphinx.ext.imgmath',
     'sphinx.ext.viewcode',
@@ -84,7 +85,8 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'classic'
+# html_theme = 'classic'
+html_theme = 'sphinx_rtd_theme'  # pip install sphinx_rtd_theme
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -185,8 +187,6 @@ autoclass_content = 'both'
 # https://stackoverflow.com/questions/36228537/django-settings-module-not-defined-when-building-sphinx-documentation
 
 # But in practice:
-import django
-from django.conf import settings
 settings.configure()
 django.setup()
 

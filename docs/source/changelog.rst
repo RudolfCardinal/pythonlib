@@ -141,3 +141,9 @@ First started in 2009.
 - Bugfix to
   :func:`cardinal_pythonlib.sqlalchemy.orm_inspect.deepcopy_sqla_object`;
   crash if ``objmap`` was ``None``.
+
+**1.0.26, 2018-09-22**
+
+- Make everything except pure-Python dependencies optional.
+- Work out what those are with
+  :func:`cardinal_pythonlib.modules.is_c_extension`.
