@@ -29,7 +29,7 @@ import sys
 from cardinal_pythonlib.version_string import VERSION_STRING
 
 THIS_DIR = path.abspath(path.dirname(__file__))
-README_FILE = path.join(THIS_DIR, 'README.txt')  # read
+README_FILE = path.join(THIS_DIR, 'README.rst')  # read
 REQUIREMENTS_FILE = path.join(THIS_DIR, 'requirements.txt')  # written
 
 # -----------------------------------------------------------------------------
@@ -96,25 +96,27 @@ tzlocal
 # they are not requirements, but we note them here:
 # =============================================================================
 
-# jaydebeapi
 # mmh3
-# mysql-python  # "import MySQLdb"
-# mysqlclient  # "import MySQLdb"
 # pdfkit
 # pdfminer
-# pymysql
-# pyodbc
 # pypiwin32
-# pypyodbc
 # pyth
 # python-docx   # "import docx"
 # weasyprint
 # xhtml2pdf
 
+# DATABASE DRIVERS:
+# mysql-python  # "import MySQLdb"
+# mysqlclient  # "import MySQLdb"
+# pymysql
+# pyodbc
+
 
 # =============================================================================
 # NO LONGER REQUIRED
 # =============================================================================
+# jaydebeapi  -- in deprecated rnc_db module only
+# pypyodbc  -- in deprecated rnc_db module only
 # pytz
 """
 

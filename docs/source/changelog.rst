@@ -50,16 +50,20 @@ First started in 2009.
   duplication. Some modules renamed.
 
 **1.0.1, 2017-08-14**
+
 - PyPI/``setup.py`` bugfix (not all subpackages were uploaded).
 
 **1.0.2, 2017-08-20 onwards**
+
 - Metaclass functions added.
 - Extensions to SQLAlchemy utility functions.
 
 **1.0.3, 2017-10-18**
+
 - Several small changes for CamCOPS.
 
 **... to 1.0.8, 2017-11-29**
+
 - Similarly.
 
 **1.0.9 to 1.0.10, 2018-01-05 + 2018-02-19**
@@ -147,3 +151,4 @@ First started in 2009.
 - Make everything except pure-Python dependencies optional.
 - Work out what those are with
   :func:`cardinal_pythonlib.modules.is_c_extension`.
+- public docs at https://cardinalpythonlib.readthedocs.io/
