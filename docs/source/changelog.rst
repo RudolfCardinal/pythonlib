@@ -152,3 +152,8 @@ First started in 2009.
 - Work out what those are with
   :func:`cardinal_pythonlib.modules.is_c_extension`.
 - public docs at https://cardinalpythonlib.readthedocs.io/
+
+**1.0.27, 2018-09-23**
+
+- ``sphinxtools.py`` to help with building documentation
+- added ``pygments`` dependency

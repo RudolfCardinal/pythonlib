@@ -73,6 +73,7 @@ openpyxl
 pandas
 pendulum>=2.0.0
 prettytable
+pygments
 pyparsing
 PyPDF2
 pyramid

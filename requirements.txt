@@ -29,6 +29,7 @@ openpyxl
 pandas
 pendulum>=2.0.0
 prettytable
+pygments
 pyparsing
 PyPDF2
 pyramid
@@ -52,23 +53,25 @@ tzlocal
 # they are not requirements, but we note them here:
 # =============================================================================
 
-# jaydebeapi
 # mmh3
-# mysql-python  # "import MySQLdb"
-# mysqlclient  # "import MySQLdb"
 # pdfkit
 # pdfminer
-# pymysql
-# pyodbc
 # pypiwin32
-# pypyodbc
 # pyth
 # python-docx   # "import docx"
 # weasyprint
 # xhtml2pdf
 
+# DATABASE DRIVERS:
+# mysql-python  # "import MySQLdb"
+# mysqlclient  # "import MySQLdb"
+# pymysql
+# pyodbc
+
 
 # =============================================================================
 # NO LONGER REQUIRED
 # =============================================================================
+# jaydebeapi  -- in deprecated rnc_db module only
+# pypyodbc  -- in deprecated rnc_db module only
 # pytz

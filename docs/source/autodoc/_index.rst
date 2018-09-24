@@ -134,6 +134,7 @@ Automatic documentation of source code
     signalfunc.rst
     sizeformatter.rst
     slurm.rst
+    sphinxtools.rst
     sort.rst
     stringfunc.rst
     subproc.rst
