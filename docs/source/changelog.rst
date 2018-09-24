@@ -153,7 +153,7 @@ First started in 2009.
   :func:`cardinal_pythonlib.modules.is_c_extension`.
 - public docs at https://cardinalpythonlib.readthedocs.io/
 
-**1.0.27, 2018-09-23**
+**1.0.27 to 1.0.28, 2018-09-23 to 2018-09-24**
 
 - ``sphinxtools.py`` to help with building documentation
 - added ``pygments`` dependency

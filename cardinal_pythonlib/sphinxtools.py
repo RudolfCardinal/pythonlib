@@ -143,7 +143,7 @@ class FileToAutodocument(object):
     .. code-block:: python
 
         import logging
-        from cardinal_pythonlib.logs import *    
+        from cardinal_pythonlib.logs import *
         from cardinal_pythonlib.sphinxtools import *
         main_only_quicksetup_rootlogger(level=logging.DEBUG)
         
@@ -174,6 +174,7 @@ class FileToAutodocument(object):
                  project_root_dir: str,
                  target_rst_filename: str,
                  method: AutodocMethod = AutodocMethod.BEST,
+                 python_package_root_dir: str = None,
                  source_rst_title_style_python: bool = True) -> None:
         """
         Args:
@@ -186,6 +187,8 @@ class FileToAutodocument(object):
                 ask Sphinx's ``autodoc`` to read docstrings and build us a
                 pretty page, or just include the contents with syntax
                 highlighting?
+            python_package_root_dir: if your Python modules live in a directory
+                other than ``project_root_dir``, specify it here
             source_rst_title_style_python: if ``True`` and the file is a Python
                 file and ``method == AutodocMethod.AUTOMODULE``, the heading
                 used will be in the style of a Python module, ``x.y.z``.
@@ -196,6 +199,10 @@ class FileToAutodocument(object):
         self.target_rst_filename = abspath(expanduser(target_rst_filename))
         self.method = method
         self.source_rst_title_style_python = source_rst_title_style_python
+        self.python_package_root_dir = (
+            abspath(expanduser(python_package_root_dir))
+            if python_package_root_dir else self.project_root_dir
+        )
         assert isfile(self.source_filename), (
             "Not a file: source_filename={!r}".format(self.source_filename))
         assert isdir(self.project_root_dir), (
@@ -207,6 +214,13 @@ class FileToAutodocument(object):
         ), (
             "Source file {!r} is not within project directory {!r}".format(
                 self.source_filename, self.project_root_dir)
+        )
+        assert relative_filename_within_dir(
+            filename=self.python_package_root_dir,
+            directory=self.project_root_dir
+        ), (
+            "Python root {!r} is not within project directory {!r}".format(
+                self.python_package_root_dir, self.project_root_dir)
         )
         assert isinstance(method, AutodocMethod)
 
@@ -231,9 +245,18 @@ class FileToAutodocument(object):
     def source_filename_rel_project_root(self) -> str:
         """
         Returns the name of the source filename, relative to the project root.
-        Used to calculate the name of Python modules.
+        Used to calculate file titles.
         """
         return relpath(self.source_filename, start=self.project_root_dir)
+
+    @property
+    def source_filename_rel_python_root(self) -> str:
+        """
+        Returns the name of the source filename, relative to the Python package
+        root. Used to calculate the name of Python modules.
+        """
+        return relpath(self.source_filename,
+                       start=self.python_package_root_dir)
 
     @property
     def rst_dir(self) -> str:
@@ -274,7 +297,7 @@ class FileToAutodocument(object):
         """
         if not self.is_python:
             return ""
-        filepath = self.source_filename_rel_project_root
+        filepath = self.source_filename_rel_python_root
         dirs_and_base = splitext(filepath)[0]
         dir_and_file_parts = dirs_and_base.split(sep)
         return ".".join(dir_and_file_parts)
@@ -462,6 +485,7 @@ class AutodocIndex(object):
                  project_root_dir: str,
                  autodoc_rst_root_dir: str,
                  highest_code_dir: str,
+                 python_package_root_dir: str = None,
                  source_filenames_or_globs: Union[str, Iterable[str]] = None,
                  index_heading_underline_char: str = "-",
                  source_rst_heading_underline_char: str = "~",
@@ -488,6 +512,8 @@ class AutodocIndex(object):
                 ``autodoc_rst_root_dir`` is to ``.RST`` files what the
                 directory structure is of the source files, relative to
                 ``highest_code_dir``.
+            python_package_root_dir: if your Python modules live in a directory
+                other than ``project_root_dir``, specify it here
             source_filenames_or_globs: optional string, or list of strings,
                 each describing a file or glob-style file specification; these
                 are the source filenames to create automatic RST` for. If you
@@ -525,6 +551,10 @@ class AutodocIndex(object):
         self.project_root_dir = abspath(expanduser(project_root_dir))
         self.autodoc_rst_root_dir = abspath(expanduser(autodoc_rst_root_dir))
         self.highest_code_dir = abspath(expanduser(highest_code_dir))
+        self.python_package_root_dir = (
+            abspath(expanduser(python_package_root_dir))
+            if python_package_root_dir else self.project_root_dir
+        )
         self.index_heading_underline_char = index_heading_underline_char
         self.source_rst_heading_underline_char = source_rst_heading_underline_char  # noqa
         self.recursive = recursive
@@ -610,6 +640,7 @@ class AutodocIndex(object):
             self.files_to_index.append(FileToAutodocument(
                 source_filename=source_filename,
                 project_root_dir=self.project_root_dir,
+                python_package_root_dir=self.python_package_root_dir,
                 target_rst_filename=self.specific_file_rst_filename(
                     source_filename
                 ),
