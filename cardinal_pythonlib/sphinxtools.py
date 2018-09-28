@@ -38,7 +38,7 @@ from os.path import (
     abspath, basename, dirname, exists, expanduser, isdir, isfile, join,
     relpath, sep, splitext
 )
-from typing import Iterable, List, Union
+from typing import Dict, Iterable, List, Union
 
 from cardinal_pythonlib.fileops import mkdir_p, relative_filename_within_dir
 from cardinal_pythonlib.reprfunc import auto_repr
@@ -175,7 +175,8 @@ class FileToAutodocument(object):
                  target_rst_filename: str,
                  method: AutodocMethod = AutodocMethod.BEST,
                  python_package_root_dir: str = None,
-                 source_rst_title_style_python: bool = True) -> None:
+                 source_rst_title_style_python: bool = True,
+                 pygments_language_override: Dict[str, str] = None) -> None:
         """
         Args:
             source_filename: source file (e.g. Python, C++, XML file) to
@@ -193,6 +194,10 @@ class FileToAutodocument(object):
                 file and ``method == AutodocMethod.AUTOMODULE``, the heading
                 used will be in the style of a Python module, ``x.y.z``.
                 Otherwise, it will be a path (``x/y/z``).
+            pygments_language_override: if specified, a dictionary mapping
+                file extensions to Pygments languages (for example: a ``.pro``
+                file will be autodetected as Prolog, but you might want to
+                map that to ``none`` for Qt project files).
         """
         self.source_filename = abspath(expanduser(source_filename))
         self.project_root_dir = abspath(expanduser(project_root_dir))
@@ -203,6 +208,7 @@ class FileToAutodocument(object):
             abspath(expanduser(python_package_root_dir))
             if python_package_root_dir else self.project_root_dir
         )
+        self.pygments_language_override = pygments_language_override or {}  # type: Dict[str, str]  # noqa
         assert isfile(self.source_filename), (
             "Not a file: source_filename={!r}".format(self.source_filename))
         assert isdir(self.project_root_dir), (
@@ -308,6 +314,9 @@ class FileToAutodocument(object):
         Returns the code type annotation for Pygments; e.g. ``python`` for
         Python, ``cpp`` for C++, etc.
         """
+        extension = splitext(self.source_filename)[1]
+        if extension in self.pygments_language_override:
+            return self.pygments_language_override[extension]
         try:
             lexer = get_lexer_for_filename(self.source_filename)  # type: Lexer
             return lexer.name
@@ -496,7 +505,8 @@ class AutodocIndex(object):
                  method: AutodocMethod = AutodocMethod.BEST,
                  rst_prefix: str = "",
                  rst_suffix: str = "",
-                 source_rst_title_style_python: bool = True) -> None:
+                 source_rst_title_style_python: bool = True,
+                 pygments_language_override: Dict[str, str] = None) -> None:
         """
         Args:
             index_filename: filename of the index ``.RST`` (ReStructured Text)
@@ -539,6 +549,11 @@ class AutodocIndex(object):
                 titles in the style of Python modules, ``x.y.z``, rather than
                 path style (``x/y/z``); path style will be used for non-Python
                 files in any case.
+            pygments_language_override: if specified, a dictionary mapping
+                file extensions to Pygments languages (for example: a ``.pro``
+                file will be autodetected as Prolog, but you might want to
+                map that to ``none`` for Qt project files).
+
         """
         assert index_filename
         assert project_root_dir
@@ -564,6 +579,7 @@ class AutodocIndex(object):
         self.rst_prefix = rst_prefix
         self.rst_suffix = rst_suffix
         self.source_rst_title_style_python = source_rst_title_style_python
+        self.pygments_language_override = pygments_language_override or {}  # type: Dict[str, str]  # noqa
 
         assert isdir(self.project_root_dir), (
             "Not a directory: project_root_dir={!r}".format(
@@ -600,11 +616,13 @@ class AutodocIndex(object):
     def __repr__(self) -> str:
         return auto_repr(self)
 
-    def add_source_files(self,
-                         source_filenames_or_globs: Union[str, List[str]],
-                         method: AutodocMethod = None,
-                         recursive: bool = None,
-                         source_rst_title_style_python: bool = None) -> None:
+    def add_source_files(
+            self,
+            source_filenames_or_globs: Union[str, List[str]],
+            method: AutodocMethod = None,
+            recursive: bool = None,
+            source_rst_title_style_python: bool = None,
+            pygments_language_override: Dict[str, str] = None) -> None:
         """
         Adds source files to the index.
 
@@ -617,6 +635,8 @@ class AutodocIndex(object):
                 the default, uses the version from the constructor.)
             source_rst_title_style_python: optional to override
                 ``self.source_rst_title_style_python``
+            pygments_language_override: optional to override
+                ``self.pygments_language_override``
         """
         if not source_filenames_or_globs:
             return
@@ -628,6 +648,8 @@ class AutodocIndex(object):
             recursive = self.recursive
         if source_rst_title_style_python is None:
             source_rst_title_style_python = self.source_rst_title_style_python
+        if pygments_language_override is None:
+            pygments_language_override = self.pygments_language_override
 
         # Get a sorted list of filenames
         final_filenames = self.get_sorted_source_files(
@@ -646,6 +668,7 @@ class AutodocIndex(object):
                 ),
                 method=method,
                 source_rst_title_style_python=source_rst_title_style_python,
+                pygments_language_override=pygments_language_override,
             ))
 
     def get_sorted_source_files(
