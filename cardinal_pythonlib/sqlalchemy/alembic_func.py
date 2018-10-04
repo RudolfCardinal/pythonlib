@@ -154,6 +154,7 @@ def upgrade_database(
         alembic_base_dir: str = None,
         starting_revision: str = None,
         destination_revision: str = "head",
+        operation_name: str = "upgrade",
         version_table: str = DEFAULT_ALEMBIC_VERSION_TABLE,
         as_sql: bool = False) -> None:
     """
@@ -177,6 +178,10 @@ def upgrade_database(
             revision to aim for (typically ``"head"`` to migrate to the latest
             structure)
 
+        operation_name:
+            a string, either upgrade or downgrade, stating the operation to be performed,
+            used solely for informational logging
+
         version_table: table name for Alembic versions
 
         as_sql:
@@ -196,7 +201,8 @@ def upgrade_database(
     def upgrade(rev, context):
         return script._upgrade_revs(destination_revision, rev)
 
-    log.info("Upgrading database to revision '{}' using Alembic",
+    log.info("Upgrading {} to revision '{}' using Alembic",
+             operation_name,
              destination_revision)
 
     with EnvironmentContext(config,
@@ -209,7 +215,7 @@ def upgrade_database(
                             version_table=version_table):
         script.run_env()
 
-    log.info("Database upgrade completed")
+    log.info("Database {} completed".format(operation_name))
 
 
 @preserve_cwd
