@@ -54,7 +54,9 @@ UTF8 = "utf8"
 # =============================================================================
 
 @contextmanager
-def smart_open(filename: str, mode: str = 'Ur') -> IO:
+def smart_open(filename: str, mode: str = 'Ur', buffering: int = -1,
+               encoding: str = None, errors: str = None, newline: str = None,
+               closefd: bool = True) -> IO:
     """
     Context manager (for use with ``with``) that opens a filename and provides
     a :class:`IO` object. If the filename is ``'-'``, however, then
@@ -68,7 +70,9 @@ def smart_open(filename: str, mode: str = 'Ur') -> IO:
         else:
             fh = sys.stdout
     else:
-        fh = open(filename, mode)
+        fh = open(filename, mode=mode,
+                  buffering=buffering, encoding=encoding, errors=errors,
+                  newline=newline, closefd=closefd)
     try:
         yield fh
     finally:

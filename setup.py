@@ -224,7 +224,7 @@ setup(
             'remove_duplicate_files=cardinal_pythonlib.tools.remove_duplicate_files:main',  # noqa
 
             # other
-            'rnc_email=cardinal_pythonlib.rnc_email:main',
+            'rnc_email=cardinal_pythonlib.email.sendmail:main',
             'rnc_extract_text=cardinal_pythonlib.rnc_extract_text:main',
         ],
     },
