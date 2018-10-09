@@ -1,5 +1,5 @@
 
-..  cardinal_pythonlib/docs/source/autodoc/emailfunc.rst
+..  cardinal_pythonlib/docs/source/autodoc/email/sendmail.rst
 
 ..  Copyright © 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
     .
@@ -16,8 +16,8 @@
     limitations under the License.
 
 
-cardinal_pythonlib.emailfunc
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cardinal_pythonlib.email.sendmail
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: cardinal_pythonlib.emailfunc
+.. automodule:: cardinal_pythonlib.email.sendmail
     :members:

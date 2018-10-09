@@ -157,3 +157,8 @@ First started in 2009.
 
 - ``sphinxtools.py`` to help with building documentation
 - added ``pygments`` dependency
+
+**1.0.30, 2018-10-10**
+
+- ``email/mailboxpurge.py``
+- ``emailfunc.py`` renamed to - ``email/sendmail.py``

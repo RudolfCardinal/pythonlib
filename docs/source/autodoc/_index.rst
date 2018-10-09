@@ -41,6 +41,8 @@ Automatic documentation of source code
     django/fields/jsonclassfield.rst
     django/fields/restrictedcontentfile.rst
     django/tools/generate_new_django_secret_key.rst
+    email/mailboxpurge.rst
+    email/sendmail.rst
     json/serialize.rst
     openxml/find_bad_openxml.rst
     openxml/find_recovered_openxml.rst
@@ -100,7 +102,6 @@ Automatic documentation of source code
     dicts.rst
     dogpile_cache.rst
     dsp.rst
-    emailfunc.rst
     enumlike.rst
     excel.rst
     exceptions.rst

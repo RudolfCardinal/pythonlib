@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# cardinal_pythonlib/email/mailboxpurge.py
 
 """
 Remove all binary attachments from email messages
