@@ -162,3 +162,7 @@ First started in 2009.
 
 - ``email/mailboxpurge.py``
 - ``emailfunc.py`` renamed to - ``email/sendmail.py``
+
+**1.0.31, 2018-10-15**
+
+- ``source_reformatting.py``

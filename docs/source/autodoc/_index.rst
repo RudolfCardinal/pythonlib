@@ -139,6 +139,7 @@ Automatic documentation of source code
     sort.rst
     stringfunc.rst
     subproc.rst
+    source_reformatting.rst
     tee.rst
     text.rst
     timing.rst

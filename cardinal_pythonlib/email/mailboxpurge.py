@@ -39,49 +39,17 @@ Then rewritten a fair bit, Rudolf Cardinal, 9 Oct 2018
 """
 
 import argparse
-from email import message_from_string
 from email.message import Message
 import logging
 import mailbox
 import os
 import time
-from typing import Generator, IO
 
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 from cardinal_pythonlib.sizeformatter import bytes2human
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
-
-
-def messages_list(infile: IO) -> Generator[Message, None, None]:
-    """
-    Extract a list of messages from a mailbox.
-
-    This parses a mbox mailbox, and generates messages, as
-    email.message.Message objects. Unlike the mailbox module, this allows
-    reading from standard input.
-    """
-    lines = []
-
-    while True:
-        try:
-            line = infile.readline()
-            log.debug("read line: {!r}".format(line))
-        except UnicodeDecodeError as exc:
-            log.error("Skipping message with encoding failure: "
-                      "{!r}".format(exc))
-            raise
-
-        if line[:5] == 'From ' or line == '':
-            if lines:
-                yield message_from_string(''.join(lines))
-                lines = []
-
-        if line == '':
-            return
-        else:
-            lines.append(line)
 
 
 def gut_message(message: Message) -> Message:
