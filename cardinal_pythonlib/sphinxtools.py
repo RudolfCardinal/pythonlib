@@ -701,13 +701,44 @@ class AutodocIndex(object):
         final_filenames.sort()
         return final_filenames
 
+    @staticmethod
+    def filename_matches_glob(filename: str, globtext: str) -> bool:
+        """
+        The ``glob.glob`` function doesn't do exclusion very well. We don't
+        want to have to specify root directories for exclusion patterns. We
+        don't want to have to trawl a massive set of files to find exclusion
+        files. So let's implement a glob match.
+
+        Args:
+            filename: filename
+            globtext: glob
+
+        Returns:
+            does the filename match the glob?
+
+        See also:
+
+        - https://stackoverflow.com/questions/20638040/glob-exclude-pattern
+
+        """
+        # Quick check on basename-only matching
+        if fnmatch(filename, globtext):
+            log.debug("{!r} matches {!r}".format(filename, globtext))
+            return True
+        bname = basename(filename)
+        if fnmatch(bname, globtext):
+            log.debug("{!r} matches {!r}".format(bname, globtext))
+            return True
+        # Directory matching: is actually accomplished by the code above!
+        # Otherwise:
+        return False
+
     def should_exclude(self, filename) -> bool:
         """
         Should we exclude this file from consideration?
         """
-        bname = basename(filename)
         for skip_glob in self.skip_globs:
-            if fnmatch(bname, skip_glob) or fnmatch(filename, skip_glob):
+            if self.filename_matches_glob(filename, skip_glob):
                 return True
         return False
 

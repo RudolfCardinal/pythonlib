@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/typing_helpers.py
 
 """
 ===============================================================================
@@ -22,14 +22,35 @@
 
 ===============================================================================
 
-**Current version number of this library.**
-
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
+**Unusual types for type hints.**
 
 """
 
-VERSION_STRING = '1.0.32'
-# Use semantic versioning: http://semver.org/
+from abc import abstractmethod
+import csv
+from typing import List
+
+
+# =============================================================================
+# csv.writer
+# =============================================================================
+
+class CSVWriterType(object):
+    """
+    Type hint for the result of ``csv.writer()``
+
+    See https://stackoverflow.com/questions/51264355/how-to-type-annotate-object-returned-by-csv-writer
+    """  # noqa
+
+    @abstractmethod
+    def writerow(self, row: List[str]) -> None:
+        pass
+
+    @abstractmethod
+    def writerows(self, rows: List[List[str]]) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def dialect(self) -> csv.Dialect:
+        pass

@@ -40,8 +40,6 @@ from django.utils.translation import ugettext_lazy
 # =============================================================================
 # ContentTypeRestrictedFileField
 # =============================================================================
-# https://djangosnippets.org/snippets/2206/
-# https://docs.djangoproject.com/en/1.8/ref/files/uploads/
 
 class ContentTypeRestrictedFileField(models.FileField):
     """
@@ -62,6 +60,12 @@ class ContentTypeRestrictedFileField(models.FileField):
         100MB - 104857600
         250MB - 214958080
         500MB - 429916160
+
+    See:
+
+    - https://djangosnippets.org/snippets/2206/
+    - https://docs.djangoproject.com/en/1.8/ref/files/uploads/
+    - https://stackoverflow.com/questions/2472422/django-file-upload-size-limit
     """
     def __init__(self, *args, **kwargs) -> None:
         self.content_types = kwargs.pop("content_types", None)
@@ -82,12 +86,19 @@ class ContentTypeRestrictedFileField(models.FileField):
         if content_type not in self.content_types:
             raise forms.ValidationError(ugettext_lazy(
                 'Filetype not supported.'))
-        # noinspection PyProtectedMember,PyUnresolvedReferences
-        if self.max_upload_size is not None and f._size > self.max_upload_size:
+        if hasattr(f, "size"):  # e.g. Django 2.1.2
+            uploaded_file_size = f.size
+        elif hasattr(f, "_size"):  # e.g. Django 1.8 ?
             # noinspection PyProtectedMember,PyUnresolvedReferences
+            uploaded_file_size = f._size
+        else:
+            raise AssertionError("Don't know how to get file size from "
+                                 "{!r}".format(f))
+        if (self.max_upload_size is not None and
+                uploaded_file_size > self.max_upload_size):
             raise forms.ValidationError(ugettext_lazy(
                 'Please keep filesize under %s. Current filesize %s')
                 % (filesizeformat(self.max_upload_size),
-                   filesizeformat(f._size)))
+                   filesizeformat(uploaded_file_size)))
         return data
 

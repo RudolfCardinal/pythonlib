@@ -145,6 +145,7 @@ Automatic documentation of source code
     timing.rst
     tsv.rst
     typetests.rst
+    typing_helpers.rst
     ui.rst
     version.rst
     version_string.rst

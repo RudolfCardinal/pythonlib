@@ -163,6 +163,13 @@ First started in 2009.
 - ``email/mailboxpurge.py``
 - ``emailfunc.py`` renamed to - ``email/sendmail.py``
 
-**1.0.31, 2018-10-15**
+**1.0.32, 2018-10-16**
 
-- ``source_reformatting.py``
+- ``typing_helpers.py``
+
+- updated
+  :class:`cardinal_pythonlib.django.fields.restrictedcontentfile.ContentTypeRestrictedFileField`
+  to cope with Django 2.1.
+
+- improvements to :class`cardinal_pythonlib.sphinxtools.AutodocIndex` in
+  relation to filename glob processing for ``skip_globs``
