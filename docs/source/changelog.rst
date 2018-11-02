@@ -138,7 +138,9 @@ First started in 2009.
 - Duplicate hash-related functions removed from ``crypto.py``; better versions
   were in ``hash.py``.
 - Bugfix to :func:`cardinal_pythonlib.sqlalchemy.schema.is_sqlatype_date` for
-  more recent versions of SQLAlchemy (e.g. 1.2.11).
+  more recent versions of SQLAlchemy (e.g. 1.2.11). Error was:
+  ``AttributeError: module 'sqlalchemy.sql.sqltypes' has no attribute
+  '_DateAffinity'``.
 
 **1.0.26, 2018-09-21**
 
@@ -173,3 +175,11 @@ First started in 2009.
 
 - improvements to :class`cardinal_pythonlib.sphinxtools.AutodocIndex` in
   relation to filename glob processing for ``skip_globs``
+
+**1.0.33, 2018-11-02**
+
+- bugfix to
+  :func:`cardinal_pythonlib.sqlalchemy.schema.convert_sqla_type_for_dialect`;
+  this is meant to autoconvert ``TIMESTAMP`` fields in SQL Server, but it was
+  checking against :class:`sqlalchemy.sql.sqltypes.TIMESTAMP` and should have
+  been checking against :class:`sqlalchemy.dialects.mssql.base.TIMESTAMP`.
