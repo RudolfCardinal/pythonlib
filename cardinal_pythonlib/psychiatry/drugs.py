@@ -602,8 +602,8 @@ class Drug(object):
     @property
     def sql_like_fragments(self) -> List[str]:
         """
-        Returns all the string literals to which a database column should be compare
-        using the SQL ``LIKE`` operator, to match this drug.
+        Returns all the string literals to which a database column should be
+        compared using the SQL ``LIKE`` operator, to match this drug.
 
         This isn't as accurate as the regex, but ``LIKE`` can do less.
 
