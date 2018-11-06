@@ -28,7 +28,7 @@
 
 from abc import abstractmethod
 import csv
-from typing import Any, List, Optional, Sequence, Type, Union
+from typing import Any, Iterator, List, Optional, Sequence, Tuple, Type, Union
 
 
 # =============================================================================
@@ -56,6 +56,66 @@ class CSVWriterType(object):
         pass
 
 
+# =============================================================================
+# Pep249DatabaseConnectionType
+# =============================================================================
+
+class Pep249DatabaseConnectionType(object):
+    """
+    Type hint for a database connection compliant with PEP 249. See
+    https://www.python.org/dev/peps/pep-0249/.
+    
+    Not supported:
+    
+    - https://www.python.org/dev/peps/pep-0249/#optional-error-handling-extensions
+    - https://www.python.org/dev/peps/pep-0249/#optional-two-phase-commit-extensions
+    """  # noqa
+
+    @abstractmethod
+    def close(self) -> None:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#connection-objects
+        """
+        pass
+
+    @abstractmethod
+    def commit(self) -> None:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#connection-objects
+        """
+        pass
+
+    @abstractmethod
+    def rollback(self) -> None:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#connection-objects
+        """
+        pass
+
+    @abstractmethod
+    def cursor(self) -> "Pep249DatabaseCursorType":
+        """
+        See https://www.python.org/dev/peps/pep-0249/#connection-objects
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def messages(self) -> List[Tuple[Type, Any]]:
+        """
+        See
+        https://www.python.org/dev/peps/pep-0249/#optional-db-api-extensions
+        """
+        pass
+
+
+# =============================================================================
+# Pep249DatabaseConnectionType
+# =============================================================================
+
+_DATABASE_ROW_TYPE = Sequence[Any]
+
+
 class Pep249DatabaseCursorType(object):
     """
     Type hint for a database cursor compliant with PEP 249. See
@@ -80,31 +140,49 @@ class Pep249DatabaseCursorType(object):
         c.execute("SELECT * FROM stocks")
         print(repr(c.description))
 
+        help(c)
+
     See also:
 
     - http://initd.org/psycopg/docs/cursor.html
 
     """
 
+    @abstractmethod
+    def __init__(self, *args, **kwargs) -> None:
+        pass
+
+    @abstractmethod
+    def __iter__(self) -> Iterator[_DATABASE_ROW_TYPE]:
+        """
+        See
+        https://www.python.org/dev/peps/pep-0249/#optional-db-api-extensions
+        """
+        pass
+
+    @abstractmethod
+    def __new__(cls, *args, **kwargs) -> "Pep249DatabaseCursorType":
+        pass
+
+    @abstractmethod
+    def __next__(self) -> None:
+        pass
+
     @property
     @abstractmethod
     def description(self) \
-            -> Optional[Sequence[Sequence[str,
-                                          Optional[Type],  # not sure
-                                          Optional[int], Optional[int],
-                                          Optional[int], Optional[int],
-                                          Optional[bool]]]]:
+            -> Optional[Sequence[Sequence[Any]]]:
         """
         A sequence of column_description objects, where each column_description
         describes one result column and has the following items:
 
-        - name
-        - type_code
-        - display_size
-        - internal_size
-        - precision
-        - scale
-        - null_ok
+        - name: ``str``
+        - type_code: ``Optional[Type]``? Not sure.
+        - display_size: ``Optional[int]``
+        - internal_size: ``Optional[int]``
+        - precision: ``Optional[int]``
+        - scale: ``Optional[int]``
+        - null_ok: ``Optional[bool]``
 
         The attribute is ``None`` for operations that don't return rows, and
         for un-executed cursors.
@@ -115,57 +193,148 @@ class Pep249DatabaseCursorType(object):
     @property
     @abstractmethod
     def rowcount(self) -> int:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
         pass
 
     @abstractmethod
     def callproc(self, procname: str, *args, **kwargs) -> None:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
         pass
 
     @abstractmethod
     def close(self) -> None:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
         pass
 
     @abstractmethod
     def execute(self, operation: str, *args, **kwargs) -> None:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
         pass
 
     @abstractmethod
     def executemany(self, operation: str, *args, **kwargs) -> None:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
         pass
 
     @abstractmethod
     def fetchone(self, operation: str,
-                 parameters: Sequence[Any]) -> Optional[Sequence[Any]]:
+                 parameters: Sequence[Any]) -> Optional[_DATABASE_ROW_TYPE]:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
         pass
 
     @abstractmethod
-    def fetchmany(self, size: int = None) -> Sequence[Sequence[Any]]:
+    def fetchmany(self, size: int = None) -> Sequence[_DATABASE_ROW_TYPE]:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
         pass
 
     @abstractmethod
-    def fetchall(self) -> Sequence[Sequence[Any]]:
+    def fetchall(self) -> Sequence[_DATABASE_ROW_TYPE]:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
         pass
 
     @abstractmethod
     def nextset(self) -> Optional[bool]:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
         pass
 
     @property
     @abstractmethod
     def arraysize(self) -> int:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
         # read/write attribute; see below
         pass
 
     @arraysize.setter
     @abstractmethod
     def arraysize(self, val: int) -> None:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
         # https://stackoverflow.com/questions/35344209/python-abstract-property-setter-with-concrete-getter
         pass
 
     @abstractmethod
     def setinputsizes(self, sizes: Sequence[Union[Type, int]]) -> None:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
         pass
 
     @abstractmethod
     def setoutputsize(self, size: int, column: Optional[int]) -> None:
+        """
+        See https://www.python.org/dev/peps/pep-0249/#cursor-objects
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def connection(self) -> Pep249DatabaseConnectionType:
+        """
+        See
+        https://www.python.org/dev/peps/pep-0249/#optional-db-api-extensions
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def lastrowid(self) -> Optional[int]:
+        """
+        See
+        https://www.python.org/dev/peps/pep-0249/#optional-db-api-extensions
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def rownumber(self) -> Optional[int]:
+        """
+        See
+        https://www.python.org/dev/peps/pep-0249/#optional-db-api-extensions
+        """
+        pass
+
+    @abstractmethod
+    def scroll(self, value: int, mode: str = 'relative') -> None:
+        """
+        See
+        https://www.python.org/dev/peps/pep-0249/#optional-db-api-extensions
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def messages(self) -> List[Tuple[Type, Any]]:
+        """
+        See
+        https://www.python.org/dev/peps/pep-0249/#optional-db-api-extensions
+        """
+        pass
+
+    @abstractmethod
+    def next(self) -> _DATABASE_ROW_TYPE:
+        """
+        See
+        https://www.python.org/dev/peps/pep-0249/#optional-db-api-extensions
+        """
         pass
