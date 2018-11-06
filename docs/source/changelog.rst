@@ -189,3 +189,7 @@ First started in 2009.
 - Bugfix to ``cardinal_pythonlib.psychiatry.drugs``; amitriptyline was being
   listed as an FGA.
 - New code in that module to calculate SQL ``LIKE`` clauses; see docstring.
+
+**1.0.35, 2018-11-06**
+
+- Type hint :class:`cardinal_pythonlib.typing_helpers.Pep249DatabaseCursorType`
