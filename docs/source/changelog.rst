@@ -183,3 +183,9 @@ First started in 2009.
   this is meant to autoconvert ``TIMESTAMP`` fields in SQL Server, but it was
   checking against :class:`sqlalchemy.sql.sqltypes.TIMESTAMP` and should have
   been checking against :class:`sqlalchemy.dialects.mssql.base.TIMESTAMP`.
+
+**1.0.34, 2018-11-06**
+
+- Bugfix to ``cardinal_pythonlib.psychiatry.drugs``; amitriptyline was being
+  listed as an FGA.
+- New code in that module to calculate SQL ``LIKE`` clauses; see docstring.

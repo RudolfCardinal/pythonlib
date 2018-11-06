@@ -189,10 +189,33 @@ Test within R:
             slam_antidepressant_finder=TRUE,
             include_categories=TRUE)]
 
+**Use for SQL finding**
+
+.. code-block:: python
+
+    from typing import List
+    from cardinal_pythonlib.psychiatry.drugs import *
+    
+    colname = "somecol"
+    
+    antidepressants = all_drugs_where(conventional_antidepressant=True)  # type: List[Drug]
+    antidep_sql_parts = [drug.sql_column_like_drug(colname) for drug in antidepressants]
+    antidep_sql = " OR ".join(antidep_sql_parts)
+    
+    antipsychotics = all_drugs_where(antipsychotic=True)  # type: List[Drug]
+    antipsy_sql_parts = [drug.sql_column_like_drug(colname) for drug in antipsychotics]
+    antipsy_sql = " OR ".join(antipsy_sql_parts)
+    
+    alldrugs = all_drugs_where()
+    alldrug_sql_parts = [drug.sql_column_like_drug(colname) for drug in alldrugs]
+    alldrug_sql = " OR ".join(alldrug_sql_parts)
+
 """  # noqa
 
 import re
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Pattern, Union
+
+from cardinal_pythonlib.sql.literals import sql_string_literal
 
 
 # =============================================================================
@@ -357,6 +380,10 @@ class Drug(object):
             regex: compiled case-insensitive regular expression to match
                 possible names
         """
+        self.add_preceding_word_boundary = add_preceding_word_boundary
+        self.add_preceding_wildcards = add_preceding_wildcards
+        self.add_following_wildcards = add_following_wildcards
+
         # ---------------------------------------------------------------------
         # Name handling
         # ---------------------------------------------------------------------
@@ -372,17 +399,9 @@ class Drug(object):
         else:
             raise ValueError("Bad generic_name: {!r}".format(generic))
         self.alternatives = alternatives or []  # type: List[str]
-        possibilities = []  # type: List[str]
-        for p in list(set(self.all_generics + self.alternatives)):
-            if add_preceding_word_boundary and not p.startswith(WB):
-                p = WB + p
-            if add_preceding_wildcards and not p.startswith(WILDCARD):
-                p = WILDCARD + p
-            if add_following_wildcards and not p.endswith(WILDCARD):
-                p = p + WILDCARD
-            possibilities.append(p)
-        regex_text = "|".join("(?:" + x + ")" for x in possibilities)
-        self.regex = re.compile(regex_text, re.IGNORECASE | re.DOTALL)
+        self._regex_text = None  # type: str
+        self._regex = None  # type: Pattern
+        self._sql_like_fragments = None  # type: List[str]
 
         # ---------------------------------------------------------------------
         # Things we know about psychotropics
@@ -473,6 +492,129 @@ class Drug(object):
 
         self.slam_antidepressant_finder = slam_antidepressant_finder
 
+    @property
+    def regex_text(self) -> str:
+        """
+        Return regex text (yet to be compiled) for this drug.
+        """
+        if self._regex_text is None:
+            possibilities = []  # type: List[str]
+            for p in list(set(self.all_generics + self.alternatives)):
+                if self.add_preceding_word_boundary and not p.startswith(WB):
+                    p = WB + p
+                if self.add_preceding_wildcards and not p.startswith(WILDCARD):
+                    p = WILDCARD + p
+                if self.add_following_wildcards and not p.endswith(WILDCARD):
+                    p = p + WILDCARD
+                possibilities.append(p)
+            self._regex_text = "|".join("(?:" + x + ")" for x in possibilities)
+        return self._regex_text
+
+    @property
+    def regex(self) -> Pattern:
+        """
+        Returns a compiled regex for this drug.
+        """
+        if self._regex is None:
+            self._regex = re.compile(self._regex_text,
+                                     re.IGNORECASE | re.DOTALL)
+        return self._regex
+
+    @staticmethod
+    def regex_to_sql_like(regex_text: str,
+                          single_wildcard: str = "_",
+                          zero_or_more_wildcard: str = "%") -> List[str]:
+        """
+        Converts regular expression text to a reasonably close fragment
+        for the SQL ``LIKE`` operator.
+
+        NOT PERFECT, but works for current built-in regular expressions.
+
+        Args:
+            regex_text: regular expression text to work with
+            single_wildcard: SQL single wildcard, typically an underscore
+            zero_or_more_wildcard: SQL "zero/one/many" wildcard, probably always
+                a percent symbol
+
+        Returns:
+            string for an SQL string literal
+
+        Raises:
+            :exc:`ValueError` for some regex text that it doesn't understand
+            properly
+        """
+        def append_to_all(new_content: str) -> None:
+            nonlocal results
+            results = [r + new_content for r in results]
+
+        def split_and_append(new_options: List[str]) -> None:
+            nonlocal results
+            newresults = []  # type: List[str]
+            for option in new_options:
+                newresults.extend([r + option for r in results])
+            results = newresults
+
+        def deduplicate_wildcards(text: str) -> str:
+            while zero_or_more_wildcard + zero_or_more_wildcard in text:
+                text = text.replace(
+                    zero_or_more_wildcard + zero_or_more_wildcard,
+                    zero_or_more_wildcard)
+            return text
+
+        # Basic processing
+        working = regex_text  # strings are immutable
+        results = [zero_or_more_wildcard]  # start with a wildcard
+
+        while working:
+            if working.startswith(".*"):
+                # e.g. ".*ozapi"
+                append_to_all(zero_or_more_wildcard)
+                working = working[2:]
+            elif working.startswith("["):
+                # e.g. "[io]peridol"
+                close_bracket = working.index("]")  # may raise
+                bracketed = working[1:close_bracket]
+                option_groups = bracketed.split("|")
+                options = [c for group in option_groups for c in group]
+                split_and_append(options)
+                working = working[close_bracket + 1:]
+            elif len(working) > 1 and working[1] == "?":
+                # e.g. "r?azole"
+                split_and_append(["", working[0]])
+                # ... regex "optional character"
+                # ... SQL: some results with a single wildcard, some without
+                working = working[2:]
+            elif working.startswith("."):
+                # single character wildcard
+                append_to_all(single_wildcard)
+                working = working[1:]
+            else:
+                append_to_all(working[0])
+                working = working[1:]
+        append_to_all(zero_or_more_wildcard)  # end with a wildcard
+
+        # Remove any duplicate (consecutive) % wildcards:
+        results = [deduplicate_wildcards(r) for r in results]
+
+        # Done
+        return results
+
+    @property
+    def sql_like_fragments(self) -> List[str]:
+        """
+        Returns all the string literals to which a database column should be compare
+        using the SQL ``LIKE`` operator, to match this drug.
+
+        This isn't as accurate as the regex, but ``LIKE`` can do less.
+
+        ``LIKE`` uses the wildcards ``?`` and ``%``.
+        """
+        if self._sql_like_fragments is None:
+            self._sql_like_fragments = []
+            for p in list(set(self.all_generics + self.alternatives)):
+                self._sql_like_fragments.extend(self.regex_to_sql_like(p))
+        return self._sql_like_fragments
+
     def name_matches(self, name: str) -> bool:
         """
         Detects whether the name that's passed matches our knowledge of any of
@@ -482,6 +624,32 @@ class Drug(object):
         The parameter should be pre-stripped of edge whitespace.
         """
         return bool(self.regex.match(name))
+
+    def sql_column_like_drug(self, column_name: str) -> str:
+        """
+        Returns SQL like
+
+        .. code-block:: sql
+
+            (column_name LIKE '%drugname1%' OR
+             column_name LIKE '%drugname2%')
+
+        for the drug names that this Drug object knows about.
+
+        Args:
+            column_name: column name, pre-escaped if necessary
+
+        Returns:
+            SQL fragment as above
+
+        """
+        clauses = [
+            "{col} LIKE {fragment}".format(
+                col=column_name,
+                fragment=sql_string_literal(f))
+            for f in self.sql_like_fragments
+        ]
+        return "({})".format(" OR ".join(clauses))
 
 
 # Source data.
@@ -567,7 +735,6 @@ DRUGS = [
     Drug(
         ["amitriptyline", "perphenazine"],
         ["Triptafen"],  # special
-        first_generation_antipsychotic=True,
         tricyclic_antidepressant=True,
         slam_antidepressant_finder=True
     ),
