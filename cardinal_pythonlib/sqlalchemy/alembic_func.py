@@ -154,12 +154,10 @@ def upgrade_database(
         alembic_base_dir: str = None,
         starting_revision: str = None,
         destination_revision: str = "head",
-        operation_name: str = "upgrade",
         version_table: str = DEFAULT_ALEMBIC_VERSION_TABLE,
         as_sql: bool = False) -> None:
     """
     Use Alembic to upgrade our database.
-    "revision" is the destination revision.
 
     See http://alembic.readthedocs.org/en/latest/api/runtime.html
     but also, in particular, ``site-packages/alembic/command.py``
@@ -177,10 +175,6 @@ def upgrade_database(
         destination_revision:
             revision to aim for (typically ``"head"`` to migrate to the latest
             structure)
-
-        operation_name:
-            a string, either upgrade or downgrade, stating the operation to be performed,
-            used solely for informational logging
 
         version_table: table name for Alembic versions
 
@@ -201,9 +195,8 @@ def upgrade_database(
     def upgrade(rev, context):
         return script._upgrade_revs(destination_revision, rev)
 
-    log.info("Upgrading {} to revision '{}' using Alembic",
-             operation_name,
-             destination_revision)
+    log.info("Upgrading database to revision {!r} using Alembic".format(
+        destination_revision))
 
     with EnvironmentContext(config,
                             script,
@@ -215,7 +208,70 @@ def upgrade_database(
                             version_table=version_table):
         script.run_env()
 
-    log.info("Database {} completed".format(operation_name))
+    log.info("Database upgrade completed")
+
+
+@preserve_cwd
+def downgrade_database(
+        alembic_config_filename: str,
+        destination_revision: str,
+        alembic_base_dir: str = None,
+        starting_revision: str = None,
+        version_table: str = DEFAULT_ALEMBIC_VERSION_TABLE,
+        as_sql: bool = False) -> None:
+    """
+    Use Alembic to downgrade our database. USE WITH EXTREME CAUTION.
+    "revision" is the destination revision.
+
+    See http://alembic.readthedocs.org/en/latest/api/runtime.html
+    but also, in particular, ``site-packages/alembic/command.py``
+
+    Arguments:
+        alembic_config_filename:
+            config filename
+
+        alembic_base_dir:
+            directory to start in, so relative paths in the config file work
+
+        starting_revision:
+            revision to start at (typically ``None`` to ask the database)
+
+        destination_revision:
+            revision to aim for
+
+        version_table: table name for Alembic versions
+
+        as_sql:
+            run in "offline" mode: print the migration SQL, rather than
+            modifying the database. See
+            http://alembic.zzzcomputing.com/en/latest/offline.html
+
+    """
+
+    if alembic_base_dir is None:
+        alembic_base_dir = os.path.dirname(alembic_config_filename)
+    os.chdir(alembic_base_dir)  # so the directory in the config file works
+    config = Config(alembic_config_filename)
+    script = ScriptDirectory.from_config(config)
+
+    # noinspection PyUnusedLocal,PyProtectedMember
+    def downgrade(rev, context):
+        return script._downgrade_revs(destination_revision, rev)
+
+    log.info("Downgrading database to revision {!r} using Alembic".format(
+        destination_revision))
+
+    with EnvironmentContext(config,
+                            script,
+                            fn=downgrade,
+                            as_sql=as_sql,
+                            starting_rev=starting_revision,
+                            destination_rev=destination_revision,
+                            tag=None,
+                            version_table=version_table):
+        script.run_env()
+
+    log.info("Database downgrade completed")
 
 
 @preserve_cwd

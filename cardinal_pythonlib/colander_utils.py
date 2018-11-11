@@ -332,13 +332,31 @@ class DateSelectorNode(SchemaNode):
     missing = None
 
 
-class OptionalPendulumNode(SchemaNode):
+class OptionalPendulumNodeLocalTZ(SchemaNode):
     """
-    Colander node containing an optional :class:`Pendulum` date/time.
+    Colander node containing an optional :class:`Pendulum` date/time, in which
+    the date/time is assumed to be in the local timezone.
     """
     @staticmethod
     def schema_type() -> SchemaType:
-        return AllowNoneType(PendulumType())
+        return AllowNoneType(PendulumType(use_local_tz=True))
+
+    default = None
+    missing = None
+    widget = DateTimeInputWidget()
+
+
+OptionalPendulumNode = OptionalPendulumNodeLocalTZ  # synonym for back-compatibility  # noqa
+
+
+class OptionalPendulumNodeUTC(SchemaNode):
+    """
+    Colander node containing an optional :class:`Pendulum` date/time, in which
+    the date/time is assumed to be UTC.
+    """
+    @staticmethod
+    def schema_type() -> SchemaType:
+        return AllowNoneType(PendulumType(use_local_tz=False))
 
     default = None
     missing = None

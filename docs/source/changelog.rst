@@ -190,6 +190,20 @@ First started in 2009.
   listed as an FGA.
 - New code in that module to calculate SQL ``LIKE`` clauses; see docstring.
 
-**1.0.35, 2018-11-06**
+**1.0.35 to 1.0.36, 2018-11-06**
 
 - Type hint :class:`cardinal_pythonlib.typing_helpers.Pep249DatabaseCursorType`
+
+**1.0.37, 2018-11-10**
+
+- Clarified :class:`cardinal_pythonlib.colander_utils.OptionalPendulumNode` as
+  to timezone, and added the synonym
+  :class:`cardinal_pythonlib.colander_utils.OptionalPendulumNodeLocalTZ` and
+  the UTC version
+  :class:`cardinal_pythonlib.colander_utils.OptionalPendulumNodeUTC`.
+
+- In :func:`cardinal_pythonlib.sqlalchemy.alembic_func.upgrade_database`,
+  which allowed upgrades only (not downgrades), pointless decorative parameter
+  ``operation_name`` removed.
+
+- Added :func:`cardinal_pythonlib.sqlalchemy.alembic_func.downgrade_database`.
