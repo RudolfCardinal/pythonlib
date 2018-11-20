@@ -33,15 +33,18 @@ from collections import OrderedDict
 # log = logging.getLogger(__name__)
 from typing import Any, Dict, Generator, List, Optional
 
+from cardinal_pythonlib.typing_helpers import Pep249DatabaseCursorType as Cursor  # noqa
 
-def get_fieldnames_from_cursor(cursor) -> List[str]:
+
+def get_fieldnames_from_cursor(cursor: Cursor) -> List[str]:
     """
     Get a list of fieldnames from an executed cursor.
     """
     return [i[0] for i in cursor.description]
 
 
-def genrows(cursor, arraysize: int = 1000) -> Generator[List[Any], None, None]:
+def genrows(cursor: Cursor, arraysize: int = 1000) \
+        -> Generator[List[Any], None, None]:
     """
     Generate all rows from a cursor.
 
@@ -61,7 +64,8 @@ def genrows(cursor, arraysize: int = 1000) -> Generator[List[Any], None, None]:
             yield result
 
 
-def genfirstvalues(cursor, arraysize: int = 1000) -> Generator[Any, None, None]:
+def genfirstvalues(cursor: Cursor, arraysize: int = 1000) \
+        -> Generator[Any, None, None]:
     """
     Generate the first value in each row.
 
@@ -75,13 +79,15 @@ def genfirstvalues(cursor, arraysize: int = 1000) -> Generator[Any, None, None]:
     return (row[0] for row in genrows(cursor, arraysize))
 
 
-def fetchallfirstvalues(cursor) -> List[Any]:
-    """Return a list of the first value in each row."""
+def fetchallfirstvalues(cursor: Cursor) -> List[Any]:
+    """
+    Return a list of the first value in each row.
+    """
     return [row[0] for row in cursor.fetchall()]
 
 
-def gendicts(cursor, arraysize: int = 1000) -> Generator[Dict[str, Any],
-                                                         None, None]:
+def gendicts(cursor: Cursor, arraysize: int = 1000) \
+        -> Generator[Dict[str, Any], None, None]:
     """
     Generate all rows from a cursor as :class:`OrderedDict` objects.
 
@@ -100,7 +106,7 @@ def gendicts(cursor, arraysize: int = 1000) -> Generator[Dict[str, Any],
     )
 
 
-def dictfetchall(cursor) -> List[Dict[str, Any]]:
+def dictfetchall(cursor: Cursor) -> List[Dict[str, Any]]:
     """
     Return all rows from a cursor as a list of :class:`OrderedDict` objects.
 
@@ -118,7 +124,7 @@ def dictfetchall(cursor) -> List[Dict[str, Any]]:
     ]
 
 
-def dictfetchone(cursor) -> Optional[Dict[str, Any]]:
+def dictfetchone(cursor: Cursor) -> Optional[Dict[str, Any]]:
     """
     Return the next row from a cursor as an :class:`OrderedDict`, or ``None``.
     """

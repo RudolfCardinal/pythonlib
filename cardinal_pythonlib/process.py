@@ -94,7 +94,7 @@ def get_pipe_series_output(commands: Sequence[str],
             processes.append(
                 subprocess.Popen(
                     shlex.split(commands[i]),
-                    stdin=processes[i-1].stdout,
+                    stdin=processes[i - 1].stdout,
                     stdout=subprocess.PIPE
                 )
             )

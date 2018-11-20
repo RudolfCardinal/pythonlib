@@ -228,6 +228,6 @@ def fetch_all_first_values(session: Session,
     """
     rows = session.execute(select_statement)  # type: ResultProxy
     try:
-        return [x for (x,) in rows]
+        return [row[0] for row in rows]
     except ValueError as e:
         raise MultipleResultsFound(str(e))

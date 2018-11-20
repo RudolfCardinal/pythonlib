@@ -227,8 +227,7 @@ class Pep249DatabaseCursorType(object):
         pass
 
     @abstractmethod
-    def fetchone(self, operation: str,
-                 parameters: Sequence[Any]) -> Optional[_DATABASE_ROW_TYPE]:
+    def fetchone(self) -> Optional[_DATABASE_ROW_TYPE]:
         """
         See https://www.python.org/dev/peps/pep-0249/#cursor-objects
         """

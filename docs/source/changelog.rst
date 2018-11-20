@@ -207,3 +207,6 @@ First started in 2009.
   ``operation_name`` removed.
 
 - Added :func:`cardinal_pythonlib.sqlalchemy.alembic_func.downgrade_database`.
+
+- Made :func:`cardinal_pythonlib.sqlalchemy.core_query.fetch_all_first_values`
+  a bit more generic.
