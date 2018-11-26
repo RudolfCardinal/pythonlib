@@ -37,7 +37,7 @@ try:
 except ImportError:
     tkinter = None  # make type checker happy
     filedialog = None  # make type checker happy
-    if not os.environ["_SPHINX_AUTODOC_IN_PROGRESS"]:
+    if not os.environ.get("_SPHINX_AUTODOC_IN_PROGRESS", None):
         raise
 
 

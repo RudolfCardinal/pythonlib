@@ -210,3 +210,7 @@ First started in 2009.
 
 - Made :func:`cardinal_pythonlib.sqlalchemy.core_query.fetch_all_first_values`
   a bit more generic.
+
+**1.0.38, 2018-11-26**
+
+- Bugfix to "missing tkinter" detection code in ``ui.py``.
