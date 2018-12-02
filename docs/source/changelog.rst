@@ -214,3 +214,11 @@ First started in 2009.
 **1.0.38, 2018-11-26**
 
 - Bugfix to "missing tkinter" detection code in ``ui.py``.
+
+**1.0.39, 2018-12-02**
+
+- Changed the time options to the date/time widgets in
+  :class:`cardinal_pythonlib.colander_utils.OptionalPendulumNodeLocalTZ` and
+  :class:`cardinal_pythonlib.colander_utils.OptionalPendulumNodeUTC`. The
+  previous problem was that a 12-hour format (e.g. "11:30 PM") was being used,
+  and this re-interpreted incoming (Python) 24-hour values as morning times.

@@ -332,6 +332,20 @@ class DateSelectorNode(SchemaNode):
     missing = None
 
 
+DEFAULT_WIDGET_DATE_OPTIONS_FOR_PENDULUM = dict(
+    # http://amsul.ca/pickadate.js/date/#formatting-rules
+    format='yyyy-mm-dd',
+    selectMonths=True,
+    selectYears=True,
+)
+DEFAULT_WIDGET_TIME_OPTIONS_FOR_PENDULUM = dict(
+    # See http://amsul.ca/pickadate.js/time/#formatting-rules
+    # format='h:i A',  # the default, e.g. "11:30 PM"
+    format='HH:i',  # e.g. "23:30"
+    interval=30,
+)
+
+
 class OptionalPendulumNodeLocalTZ(SchemaNode):
     """
     Colander node containing an optional :class:`Pendulum` date/time, in which
@@ -343,7 +357,10 @@ class OptionalPendulumNodeLocalTZ(SchemaNode):
 
     default = None
     missing = None
-    widget = DateTimeInputWidget()
+    widget = DateTimeInputWidget(
+        date_options=DEFAULT_WIDGET_DATE_OPTIONS_FOR_PENDULUM,
+        time_options=DEFAULT_WIDGET_TIME_OPTIONS_FOR_PENDULUM,
+    )
 
 
 OptionalPendulumNode = OptionalPendulumNodeLocalTZ  # synonym for back-compatibility  # noqa
@@ -360,7 +377,10 @@ class OptionalPendulumNodeUTC(SchemaNode):
 
     default = None
     missing = None
-    widget = DateTimeInputWidget()
+    widget = DateTimeInputWidget(
+        date_options=DEFAULT_WIDGET_DATE_OPTIONS_FOR_PENDULUM,
+        time_options=DEFAULT_WIDGET_TIME_OPTIONS_FOR_PENDULUM,
+    )
 
 
 class BooleanNode(SchemaNode):
