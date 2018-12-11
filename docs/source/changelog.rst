@@ -222,3 +222,9 @@ First started in 2009.
   :class:`cardinal_pythonlib.colander_utils.OptionalPendulumNodeUTC`. The
   previous problem was that a 12-hour format (e.g. "11:30 PM") was being used,
   and this re-interpreted incoming (Python) 24-hour values as morning times.
+
+**1.0.40, 2018-12-11**
+
+- Bugfix to :meth:`cardinal_pythonlib.psychiatry.drugs.Drug.regex`; was using
+  ``self._regex_text`` but should have been ``self.regex_text``.
+  Also fixed example (was mis-importing).

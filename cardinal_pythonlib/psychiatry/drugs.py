@@ -31,8 +31,8 @@ Test within Python:
 
 .. code-block:: python
 
-    from cardinal_pythonlib.drugnames import drug_name_to_generic
-
+    from cardinal_pythonlib.psychiatry.drugs import *
+    
     drug_name_to_generic("UNKNOWN")
     drug_name_to_generic("UNKNOWN", unknown_to_default=True)
     drug_names_to_generic([
@@ -212,10 +212,13 @@ Test within R:
 
 """  # noqa
 
+# import logging
 import re
 from typing import Dict, List, Optional, Pattern, Union
 
 from cardinal_pythonlib.sql.literals import sql_string_literal
+
+# log = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -516,7 +519,7 @@ class Drug(object):
         Returns a compiled regex for this drug.
         """
         if self._regex is None:
-            self._regex = re.compile(self._regex_text,
+                self._regex = re.compile(self.regex_text,
                                      re.IGNORECASE | re.DOTALL)
         return self._regex
 
