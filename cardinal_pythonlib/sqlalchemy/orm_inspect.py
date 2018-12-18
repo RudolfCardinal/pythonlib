@@ -26,7 +26,6 @@
 
 """
 
-import logging
 from typing import (Dict, Generator, List, Set, Tuple, Type, TYPE_CHECKING,
                     Union)
 
@@ -45,15 +44,13 @@ from sqlalchemy.util import OrderedProperties
 from cardinal_pythonlib.classes import gen_all_subclasses
 from cardinal_pythonlib.enumlike import OrderedNamespace
 from cardinal_pythonlib.dicts import reversedict
-from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 if TYPE_CHECKING:
     from sqlalchemy.orm.state import InstanceState
     from sqlalchemy.sql.schema import Table
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================

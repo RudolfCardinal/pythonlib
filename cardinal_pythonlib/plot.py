@@ -107,9 +107,11 @@ def set_matplotlib_fontsize(matplotlib: ModuleType,
         # lighter [relative], 100, 200, 300, ..., 900
         'size': fontsize  # in pt (default 12)
     }
+    # noinspection PyUnresolvedReferences
     matplotlib.rc('font', **font)
     legend = {
         # http://stackoverflow.com/questions/7125009
         'fontsize': fontsize
     }
+    # noinspection PyUnresolvedReferences
     matplotlib.rc('legend', **legend)

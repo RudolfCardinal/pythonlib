@@ -69,10 +69,13 @@ from numpy import array, NaN, timedelta64
 from pandas import DataFrame
 from pendulum import DateTime as Pendulum
 
-from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+from cardinal_pythonlib.logs import (
+    BraceStyleAdapter,
+    main_only_quicksetup_rootlogger,
+)
 from cardinal_pythonlib.psychiatry.rfunc import flush_stdout_stderr
 
-log = logging.getLogger(__name__)
+log = BraceStyleAdapter(logging.getLogger(__name__))
 
 DTYPE_STRING = "<U255"
 # ... getting this right is surprisingly tricky!
@@ -202,7 +205,7 @@ def two_antidepressant_episodes_single_patient(
     # ... seems slower if "inplace=True" is used.
     tp = tp.sort_values(by=[date_colname, drug_colname], ascending=True)
 
-    # log.critical("{!r}".format(tp))
+    # log.critical("{!r}", tp)
 
     nrows_all = len(tp)  # https://stackoverflow.com/questions/15943769/
     if nrows_all < 4:  # need A, A, B, B; so minimum #rows is 4
@@ -360,7 +363,7 @@ def two_antidepressant_episodes(
     # Work through each patient
     patient_ids = sorted(list(set(patient_drug_date_df[patient_colname])))
     n_patients = len(patient_ids)
-    log.info("Found {} patients".format(n_patients))
+    log.info("Found {} patients", n_patients)
     flush_stdout_stderr()
 
     def _get_patient_result(_patient_id: str) -> Optional[DataFrame]:
@@ -378,7 +381,7 @@ def two_antidepressant_episodes(
     combined_result = _get_blank_two_antidep_episodes_result()
     if n_threads > 1:
         # Farm off the work to lots of threads:
-        log.info("Parallel processing method; {} threads".format(n_threads))
+        log.info("Parallel processing method; {} threads", n_threads)
         with ThreadPoolExecutor(max_workers=n_threads) as executor:
             list_of_results_frames = executor.map(_get_patient_result,
                                                   patient_ids)
@@ -392,8 +395,7 @@ def two_antidepressant_episodes(
     else:
         log.info("Single-thread method")
         for ptnum, patient_id in enumerate(patient_ids, start=1):
-            log.debug("Processing patient {} out of {}".format(
-                ptnum, n_patients))
+            log.debug("Processing patient {} out of {}", ptnum, n_patients)
             patient_result = _get_patient_result(patient_id)
             if patient_result is not None:
                 combined_result = combined_result.append(patient_result)
@@ -406,8 +408,8 @@ def two_antidepressant_episodes(
 
     end = Pendulum.now()
     duration = end - start
-    log.info("Took {} seconds for {} patients".format(
-        duration.total_seconds(), n_patients))
+    log.info("Took {} seconds for {} patients",
+             duration.total_seconds(), n_patients)
     flush_stdout_stderr()
     return combined_result
 

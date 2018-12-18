@@ -28,10 +28,14 @@ import logging
 import os
 
 from cardinal_pythonlib.fileops import relative_filename_within_dir
-from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+from cardinal_pythonlib.logs import (
+    BraceStyleAdapter,
+    main_only_quicksetup_rootlogger,
+)
 from cardinal_pythonlib.sphinxtools import FileToAutodocument
 
-log = logging.getLogger(__name__)
+log = BraceStyleAdapter(logging.getLogger(__name__))
+
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))  # .../docs
 PACKAGE_ROOT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))  # .../
 AUTODOC_DIR = os.path.join(THIS_DIR, "source", "autodoc")
@@ -58,7 +62,7 @@ def make_autodoc(filename: str, make: bool, skip_init: bool = True) -> None:
     # Skip "__init__.py" unless we were specifically asked not to:
     basename = os.path.basename(filename)
     if basename == "__init__.py" and skip_init:
-        log.info("Skipping {!r}".format(filename))
+        log.info("Skipping {!r}", filename)
         return
 
     rel_filename = relative_filename_within_dir(
@@ -70,7 +74,7 @@ def make_autodoc(filename: str, make: bool, skip_init: bool = True) -> None:
     rst_abs_filename = os.path.join(AUTODOC_DIR, rst_rel_filename)
 
     index_addition = "    " + rst_rel_filename
-    log.debug("Index addition: {!r}".format(index_addition))
+    log.debug("Index addition: {!r}", index_addition)
 
     # Represent our files:
     f = FileToAutodocument(
@@ -78,7 +82,7 @@ def make_autodoc(filename: str, make: bool, skip_init: bool = True) -> None:
         project_root_dir=PACKAGE_ROOT_DIR,
         target_rst_filename=rst_abs_filename,
     )
-    log.info("Autodocumenting with {!r}".format(f))
+    log.info("Autodocumenting with {!r}", f)
 
     if make:
         f.write_rst(
@@ -86,7 +90,7 @@ def make_autodoc(filename: str, make: bool, skip_init: bool = True) -> None:
             heading_underline_char="~",
             overwrite=False
         )
-        log.info("Appending to index file {!r}".format(AUTODOC_INDEX))
+        log.info("Appending to index file {!r}", AUTODOC_INDEX)
         with open(AUTODOC_INDEX, "a") as indexfile:
             indexfile.write(index_addition + "\n")
         log.info("... written to index successfully")

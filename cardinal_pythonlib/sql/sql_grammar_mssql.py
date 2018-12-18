@@ -26,7 +26,6 @@
 
 """
 
-import logging
 import re
 
 from pyparsing import (
@@ -49,7 +48,10 @@ from pyparsing import (
     Word,
 )
 
-from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+from cardinal_pythonlib.logs import (
+    get_brace_style_log_with_null_handler,
+    main_only_quicksetup_rootlogger,
+)
 from cardinal_pythonlib.sql.sql_grammar import (
     ALL,
     AND,
@@ -111,8 +113,7 @@ from cardinal_pythonlib.sql.sql_grammar import (
     WITH,
 )
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # Not in SQL Server (though in MySQL):

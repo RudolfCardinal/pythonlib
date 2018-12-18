@@ -26,7 +26,6 @@
 
 """
 
-import logging
 import os
 import subprocess
 from typing import Tuple
@@ -40,11 +39,9 @@ from alembic.script import ScriptDirectory
 from sqlalchemy.engine import create_engine
 
 from cardinal_pythonlib.fileops import preserve_cwd
-from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -195,8 +192,8 @@ def upgrade_database(
     def upgrade(rev, context):
         return script._upgrade_revs(destination_revision, rev)
 
-    log.info("Upgrading database to revision {!r} using Alembic".format(
-        destination_revision))
+    log.info("Upgrading database to revision {!r} using Alembic",
+             destination_revision)
 
     with EnvironmentContext(config,
                             script,
@@ -258,8 +255,8 @@ def downgrade_database(
     def downgrade(rev, context):
         return script._downgrade_revs(destination_revision, rev)
 
-    log.info("Downgrading database to revision {!r} using Alembic".format(
-        destination_revision))
+    log.info("Downgrading database to revision {!r} using Alembic",
+             destination_revision)
 
     with EnvironmentContext(config,
                             script,

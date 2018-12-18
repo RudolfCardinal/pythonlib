@@ -41,13 +41,15 @@ from django.urls import reverse
 from django.utils.cache import add_never_cache_headers
 from django.utils.deprecation import MiddlewareMixin
 
+from cardinal_pythonlib.logs import BraceStyleAdapter
+
 try:
     from django.contrib.auth.views import redirect_to_login
 except RuntimeError:
     if not os.environ["_SPHINX_AUTODOC_IN_PROGRESS"]:
         raise
 
-log = logging.getLogger(__name__)
+log = BraceStyleAdapter(logging.getLogger(__name__))
 
 
 # =============================================================================

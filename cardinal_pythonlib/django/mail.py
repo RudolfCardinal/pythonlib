@@ -26,15 +26,15 @@
 
 """
 
-import logging
 import smtplib
 import ssl
 
 from django.core.mail.backends.smtp import EmailBackend
 from django.core.mail.utils import DNS_NAME
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 class SmtpEmailBackendTls1(EmailBackend):

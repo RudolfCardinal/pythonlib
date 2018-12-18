@@ -40,8 +40,10 @@ import smtplib
 import sys
 from typing import List, Sequence, Tuple, Union
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
+
 
 # =============================================================================
 # Constants
@@ -115,7 +117,7 @@ def make_email(from_addr: str,
 
     """
     def _csv_list_to_list(x: str) -> List[str]:
-        return [e.strip() for e in x.split()]
+        return [item.strip() for item in x.split()]
 
     # -------------------------------------------------------------------------
     # Arguments
@@ -186,8 +188,7 @@ def make_email(from_addr: str,
             # Attach things by filename
             # -----------------------------------------------------------------
             if verbose:
-                log.debug("attachment_filenames: {}".format(
-                    attachment_filenames))
+                log.debug("attachment_filenames: {}", attachment_filenames)
             # noinspection PyTypeChecker
             for f in attachment_filenames:
                 part = email.mime.base.MIMEBase("application", "octet-stream")
@@ -203,8 +204,8 @@ def make_email(from_addr: str,
             # Binary attachments, which have a notional filename
             # -----------------------------------------------------------------
             if verbose:
-                log.debug("attachment_binary_filenames: {}".format(
-                    attachment_binary_filenames))
+                log.debug("attachment_binary_filenames: {}",
+                          attachment_binary_filenames)
             for i in range(len(attachment_binaries)):
                 blob = attachment_binaries[i]
                 filename = attachment_binary_filenames[i]

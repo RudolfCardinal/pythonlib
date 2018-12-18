@@ -233,3 +233,6 @@ First started in 2009.
 
 - Improvements to :func:`cardinal_pythonlib.email.sendmail.send_email`.
 - Config file parsers report the section for missing/improper parameters.
+- More consistent use of brace-style deferred-processing logs internally, and
+  :func:`cardinal_pythonlib.logs.get_brace_style_log_with_null_handler`.
+- Clean pass through PyCharm 2018.3 code inspector.

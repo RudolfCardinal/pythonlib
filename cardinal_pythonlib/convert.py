@@ -28,12 +28,12 @@
 
 import base64
 import binascii
-import logging
 import re
 from typing import Any, Iterable, Optional
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================

@@ -39,7 +39,6 @@ http://stackoverflow.com/questions/316866/ping-a-site-in-python
 
 """
 
-import logging
 import os
 import ssl
 import subprocess
@@ -48,8 +47,9 @@ import tempfile
 from typing import BinaryIO, Generator, Iterable
 import urllib.request
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -106,7 +106,7 @@ def download(url: str, filename: str,
         filename: file to save to
         skip_cert_verify: skip SSL certificate check?
     """
-    log.info("Downloading from {} to {}".format(url, filename))
+    log.info("Downloading from {} to {}", url, filename)
 
     # urllib.request.urlretrieve(url, filename)
     # ... sometimes fails (e.g. downloading
@@ -159,8 +159,8 @@ def gen_binary_files_from_urls(
                     yield f
         else:
             if show_info:
-                log.info("Reading from URL: {}".format(url))
+                log.info("Reading from URL: {}", url)
             with urllib.request.urlopen(url) as f:
                 yield f
         if show_info:
-            log.info("... finished reading from URL: {}".format(url))
+            log.info("... finished reading from URL: {}", url)

@@ -27,7 +27,6 @@
 """
 
 import io
-import logging
 import os
 import platform
 import subprocess
@@ -35,11 +34,11 @@ import sys
 from typing import Any, Callable, Dict, List, TextIO, Tuple
 
 from cardinal_pythonlib.fileops import mkdir_p, require_executable
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.network import download
 from cardinal_pythonlib.tee import teed_call
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -61,7 +60,7 @@ def download_if_not_exists(url: str, filename: str,
     Downloads a URL to a file, unless the file already exists.
     """
     if os.path.isfile(filename):
-        log.info("No need to download, already have: {}".format(filename))
+        log.info("No need to download, already have: {}", filename)
         return
     if mkdir:
         directory, basename = os.path.split(os.path.abspath(filename))
@@ -101,8 +100,8 @@ def git_clone(prettyname: str, url: str, directory: str,
         log.info("Not re-cloning {} Git repository: using existing source "
                  "in {}".format(prettyname, directory))
         return False
-    log.info("Fetching {} source from {} into {}".format(
-        prettyname, url, directory))
+    log.info("Fetching {} source from {} into {}",
+             prettyname, url, directory)
     require_executable(GIT)
     gitargs = [GIT, "clone"] + clone_options
     if branch:
@@ -110,8 +109,8 @@ def git_clone(prettyname: str, url: str, directory: str,
     gitargs += [url, directory]
     run_func(gitargs)
     if commit:
-        log.info("Resetting {} local Git repository to commit {}".format(
-            prettyname, commit))
+        log.info("Resetting {} local Git repository to commit {}",
+                 prettyname, commit)
         run_func([GIT,
                   "-C", directory,
                   "reset", "--hard", commit])
@@ -122,8 +121,7 @@ def git_clone(prettyname: str, url: str, directory: str,
 
 # def fix_git_repo_for_windows(directory: str):
 #     # https://github.com/openssl/openssl/issues/174
-#     log.info("Fixing repository {!r} for Windows line endings".format(
-#         directory))
+#     log.info("Fixing repository {!r} for Windows line endings", directory)
 #     with pushd(directory):
 #         run([GIT, "config", "--local", "core.autocrlf", "false"])
 #         run([GIT, "config", "--local", "core.eol", "lf"])
@@ -153,10 +151,10 @@ def untar_to_directory(tarfile: str, directory: str,
         run_func: function to use to call an external command
     """
     if skip_if_dir_exists and os.path.isdir(directory):
-        log.info("Skipping extraction of {} as directory {} exists".format(
-            tarfile, directory))
+        log.info("Skipping extraction of {} as directory {} exists",
+                 tarfile, directory)
         return
-    log.info("Extracting {} -> {}".format(tarfile, directory))
+    log.info("Extracting {} -> {}", tarfile, directory)
     require_executable(TAR)
     mkdir_p(directory)
     args = [TAR, "-x"]  # -x: extract
@@ -246,7 +244,7 @@ def run(args: List[str],
         string will take its place in this tuple.
     """
     cwd = os.getcwd()
-    # log.debug("External command Python form: {}".format(args))
+    # log.debug("External command Python form: {}", args)
     copy_paste_cmd = subprocess.list2cmdline(args)
     csep = "=" * 79
     esep = "-" * 79
@@ -295,8 +293,8 @@ def run(args: List[str],
                                                     cmd=args,
                                                     output=stdout,
                                                     stderr=stderr)
-        log.debug("\n{csep}\nFINISHED SUCCESSFULLY: {cmd}\n{csep}".format(
-            cmd=copy_paste_cmd, csep=csep))
+        log.debug("\n{csep}\nFINISHED SUCCESSFULLY: {cmd}\n{csep}",
+                  cmd=copy_paste_cmd, csep=csep)
         return stdout, stderr
     except FileNotFoundError:
         require_executable(args[0])  # which is missing, so we'll see some help

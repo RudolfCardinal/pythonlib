@@ -27,12 +27,12 @@
 """
 
 import re
-import logging
 import random
 from typing import List, Optional, Union
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================

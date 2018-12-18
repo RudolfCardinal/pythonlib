@@ -29,15 +29,15 @@
 from contextlib import contextmanager
 import fnmatch
 import glob
-import logging
 import os
 import shutil
 import stat
 from types import TracebackType
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -251,7 +251,7 @@ def copy_tree_contents(srcdir: str, destdir: str,
         /dest/somedir/c.txt
 
     """
-    log.info("Copying directory {} -> {}".format(srcdir, destdir))
+    log.info("Copying directory {} -> {}", srcdir, destdir)
     if os.path.exists(destdir):
         if not destroy:
             raise ValueError("Destination exists!")
@@ -282,7 +282,7 @@ def purge(path: str, pattern: str) -> None:
     :func:`fnmatch.fnmatch`).
     """
     for f in find(pattern, path):
-        log.info("Deleting {}".format(f))
+        log.info("Deleting {}", f)
         os.remove(f)
 
 
@@ -295,7 +295,7 @@ def delete_files_within_dir(directory: str, filenames: List[str]) -> None:
         for f in fnames:
             if f in filenames:
                 fullpath = os.path.join(dirpath, f)
-                log.debug("Deleting {!r}".format(fullpath))
+                log.debug("Deleting {!r}", fullpath)
                 os.remove(fullpath)
 
 
@@ -336,7 +336,7 @@ def rmtree(directory: str) -> None:
     """
     Deletes a directory tree.
     """
-    log.debug("Deleting directory {}".format(directory))
+    log.debug("Deleting directory {!r}", directory)
     shutil.rmtree(directory, onerror=shutil_rmtree_onerror)
 
 
@@ -403,7 +403,7 @@ def find_first(pattern: str, path: str) -> str:
     try:
         return find(pattern, path)[0]
     except IndexError:
-        log.critical('''Couldn't find "{}" in "{}"'''.format(pattern, path))
+        log.critical('''Couldn't find "{}" in "{}"''', pattern, path)
         raise
 
 

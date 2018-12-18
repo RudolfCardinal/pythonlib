@@ -27,7 +27,6 @@
 """
 
 from typing import TYPE_CHECKING
-import logging
 import os
 
 from sqlalchemy.engine import create_engine
@@ -35,11 +34,12 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.orm.session import Session
 
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
 if TYPE_CHECKING:
     from sqlalchemy.engine.url import URL
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================

@@ -23,11 +23,10 @@
 ===============================================================================
 """
 
-import logging
 from typing import (Any, Callable, Dict, Generator, Iterable, List, Tuple,
                     TYPE_CHECKING)
 
-from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from colander import Invalid, SchemaNode
 from deform.exception import ValidationFailure
 from deform.field import Field
@@ -37,9 +36,7 @@ from deform.widget import HiddenWidget
 if TYPE_CHECKING:
     from pyramid.request import Request
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 ValidatorType = Callable[[SchemaNode, Any], None]  # called as v(node, value)
 

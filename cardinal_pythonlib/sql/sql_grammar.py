@@ -62,7 +62,6 @@ ANSI SQL syntax:
     ... particularly the formal specifications in chapter 5 on words
 """  # noqa
 
-import logging
 import re
 from typing import List, Union
 
@@ -82,10 +81,12 @@ from pyparsing import (
 )
 import sqlparse
 
-from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+from cardinal_pythonlib.logs import (
+    get_brace_style_log_with_null_handler,
+    main_only_quicksetup_rootlogger,
+)
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -472,13 +473,13 @@ def test_succeed(parser: ParserElement,
         target = text
     try:
         p = parser.parseString(text, parseAll=True)
-        log.debug("Success: {} -> {}".format(text, text_from_parsed(p)))
+        log.debug("Success: {} -> {}", text, text_from_parsed(p))
         if show_raw:
-            log.debug("... raw: {}".format(p))
+            log.debug("... raw: {}", p)
         if verbose:
-            log.debug("... dump:\n{}".format(p.dump()))
+            log.debug("... dump:\n{}", p.dump())
     except ParseException as exception:
-        log.debug("ParseException on: {}\n... parser: {}".format(text, parser))
+        log.debug("ParseException on: {}\n... parser: {}", text, parser)
         print(statement_and_failure_marker(text, exception))
         raise
     if not skip_target:
@@ -503,7 +504,7 @@ def test_succeed(parser: ParserElement,
 
 def test_fail(parser: ParserElement, text: str, verbose: bool = True) -> None:
     if verbose:
-        log.critical("Testing to fail: " + text)
+        log.critical("Testing to fail: {}", text)
     try:
         p = parser.parseString(text, parseAll=True)
         raise ValueError(
@@ -516,7 +517,7 @@ def test_fail(parser: ParserElement, text: str, verbose: bool = True) -> None:
                 p=p,
                 parser=parser))
     except ParseException:
-        log.debug("Correctly failed: {}".format(text))
+        log.debug("Correctly failed: {}", text)
 
 
 def test(parser: ParserElement, text: str) -> None:

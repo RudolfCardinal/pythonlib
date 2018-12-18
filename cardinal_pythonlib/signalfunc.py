@@ -26,12 +26,12 @@
 
 """
 
-import logging
 import platform
 import signal
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -43,8 +43,7 @@ def ctrl_c_trapper(signum: int, stackframe) -> None:
     """
     Logs that ``CTRL-C`` has been pressed but does nothing else.
     """
-    log.critical("Ignoring CTRL+C (signal {}); use the GUI to quit".format(
-        signum))
+    log.critical("Ignoring CTRL+C (signal {}); use the GUI to quit", signum)
 
 
 # noinspection PyUnusedLocal
@@ -52,8 +51,8 @@ def ctrl_break_trapper(signum: int, stackframe) -> None:
     """
     Logs that ``CTRL-BREAK`` has been pressed but does nothing else.
     """
-    log.critical("Ignoring CTRL+BREAK (signal {}); use the GUI to quit".format(
-        signum))
+    log.critical("Ignoring CTRL+BREAK (signal {}); use the GUI to quit",
+                 signum)
 
 
 # noinspection PyUnusedLocal
@@ -61,8 +60,7 @@ def sigterm_trapper(signum: int, stackframe) -> None:
     """
     Logs that ``SIGTERM`` has been received but does nothing else.
     """
-    log.critical("Ignoring SIGTERM (signal {}); use the GUI to quit".format(
-        signum))
+    log.critical("Ignoring SIGTERM (signal {}); use the GUI to quit", signum)
 
 
 def trap_ctrl_c_ctrl_break() -> None:

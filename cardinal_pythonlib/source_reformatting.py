@@ -35,8 +35,9 @@ from sys import stdout
 from typing import List, TextIO
 
 from cardinal_pythonlib.fileops import relative_filename_within_dir
+from cardinal_pythonlib.logs import BraceStyleAdapter
 
-log = logging.getLogger(__name__)
+log = BraceStyleAdapter(logging.getLogger(__name__))
 
 TRANSITION = "==============================================================================="  # noqa
 CORRECT_SHEBANG = "#!/usr/bin/env python"
@@ -164,6 +165,7 @@ class PythonProcessor(object):
                         in_docstring = True
                         # self._critical("adding our new docstring")
                         # Write our new docstring's start
+                        tdq = ""  # stops linter moaning
                         if dl.startswith(TRIPLE_DOUBLEQUOTE):
                             tdq = TRIPLE_DOUBLEQUOTE
                         elif dl.startswith(RAW_TRIPLE_DOUBLEQUOTE):
@@ -238,7 +240,7 @@ class PythonProcessor(object):
         """
         Writes a debugging report on a line.
         """
-        log.critical("{}Line {}: {!r}".format(extramsg, linenum, line))
+        log.critical("{}Line {}: {!r}", extramsg, linenum, line)
 
     def _logmsg(self, msg: str) -> str:
         """
@@ -331,8 +333,7 @@ def reformat_python_docstrings(top_dirs: List[str],
                 fullname = join(dirpath, filename)
                 extension = splitext(filename)[1]
                 if extension != PYTHON_EXTENSION:
-                    # log.debug("Skipping non-Python file: {}".format(
-                    #     fullname))
+                    # log.debug("Skipping non-Python file: {}", fullname)
                     continue
 
                 filenum += 1
@@ -340,7 +341,7 @@ def reformat_python_docstrings(top_dirs: List[str],
                 if process_only_filenum and filenum != process_only_filenum:
                     continue
 
-                log.info("Processing file {}: {}".format(filenum, fullname))
+                log.info("Processing file {}: {}", filenum, fullname)
                 proc = PythonProcessor(
                     full_path=fullname,
                     top_dir=top_dir,

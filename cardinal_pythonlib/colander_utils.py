@@ -28,8 +28,6 @@ Colander: https://docs.pylonsproject.org/projects/colander/en/latest/
 
 """
 
-
-import logging
 import random
 from typing import (Any, Callable, Dict, Iterable, List, Optional,
                     Tuple, TYPE_CHECKING, Union)
@@ -38,7 +36,7 @@ from cardinal_pythonlib.datetimefunc import (
     coerce_to_pendulum,
     PotentialDatetimeType,
 )
-from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 import colander
 from colander import (
     Boolean,
@@ -65,9 +63,7 @@ if TYPE_CHECKING:
     # noinspection PyProtectedMember
     from colander import _SchemaNode
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 ColanderNullType = type(colander.null)
 ValidatorType = Callable[[SchemaNode, Any], None]  # called as v(node, value)

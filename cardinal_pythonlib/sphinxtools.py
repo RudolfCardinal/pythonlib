@@ -41,12 +41,13 @@ from os.path import (
 from typing import Dict, Iterable, List, Union
 
 from cardinal_pythonlib.fileops import mkdir_p, relative_filename_within_dir
+from cardinal_pythonlib.logs import BraceStyleAdapter
 from cardinal_pythonlib.reprfunc import auto_repr
 from pygments.lexer import Lexer
 from pygments.lexers import get_lexer_for_filename
 from pygments.util import ClassNotFound
 
-log = logging.getLogger(__name__)
+log = BraceStyleAdapter(logging.getLogger(__name__))
 
 
 # =============================================================================
@@ -122,7 +123,7 @@ def write_if_allowed(filename: str,
         mkdir_p(directory)
 
     # Write the file
-    log.info("Writing to {!r}".format(filename))
+    log.info("Writing to {!r}", filename)
     if mock:
         log.warning("Skipping writes as in mock mode")
     else:
@@ -321,8 +322,8 @@ class FileToAutodocument(object):
             lexer = get_lexer_for_filename(self.source_filename)  # type: Lexer
             return lexer.name
         except ClassNotFound:
-            log.warning("Don't know Pygments code type for extension "
-                        "{!r}".format(self.source_extension))
+            log.warning("Don't know Pygments code type for extension {!r}",
+                        self.source_extension)
             return CODE_TYPE_NONE
 
     def rst_content(self,
@@ -691,11 +692,11 @@ class AutodocIndex(object):
         final_filenames = []  # type: List[str]
         for sfg in source_filenames_or_globs:
             sfg_expanded = expanduser(sfg)
-            log.debug("Looking for: {!r}".format(sfg_expanded))
+            log.debug("Looking for: {!r}", sfg_expanded)
             for filename in glob.glob(sfg_expanded, recursive=recursive):
-                log.debug("Trying: {!r}".format(filename))
+                log.debug("Trying: {!r}", filename)
                 if self.should_exclude(filename):
-                    log.info("Skipping file {!r}".format(filename))
+                    log.info("Skipping file {!r}", filename)
                     continue
                 final_filenames.append(filename)
         final_filenames.sort()
@@ -723,11 +724,11 @@ class AutodocIndex(object):
         """
         # Quick check on basename-only matching
         if fnmatch(filename, globtext):
-            log.debug("{!r} matches {!r}".format(filename, globtext))
+            log.debug("{!r} matches {!r}", filename, globtext)
             return True
         bname = basename(filename)
         if fnmatch(bname, globtext):
-            log.debug("{!r} matches {!r}".format(bname, globtext))
+            log.debug("{!r} matches {!r}", bname, globtext)
             return True
         # Directory matching: is actually accomplished by the code above!
         # Otherwise:
@@ -784,7 +785,7 @@ class AutodocIndex(object):
         result = join(self.autodoc_rst_root_dir,
                       dirname(highest_code_to_target),
                       bname + EXT_RST)
-        log.debug("Source {!r} -> RST {!r}".format(source_filename, result))
+        log.debug("Source {!r} -> RST {!r}", source_filename, result)
         return result
 
     def write_index_and_rst_files(self, overwrite: bool = False,

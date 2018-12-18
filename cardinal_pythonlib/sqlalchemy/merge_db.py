@@ -61,7 +61,6 @@ So the best type hints we have are:
 
 """
 
-import logging
 import sys
 from typing import Any, Callable, Dict, List, Tuple, Type
 import unittest
@@ -78,7 +77,10 @@ from sqlalchemy.sql.schema import Column, ForeignKey, MetaData, Table
 from sqlalchemy.sql.sqltypes import Integer, Text
 
 from cardinal_pythonlib.dicts import map_keys_to_values
-from cardinal_pythonlib.logs import BraceStyleAdapter, main_only_quicksetup_rootlogger  # noqa
+from cardinal_pythonlib.logs import (
+    get_brace_style_log_with_null_handler,
+    main_only_quicksetup_rootlogger,
+)
 from cardinal_pythonlib.sqlalchemy.dump import dump_database_as_insert_sql
 from cardinal_pythonlib.sqlalchemy.orm_inspect import (
     rewrite_relationships,
@@ -99,9 +101,7 @@ from cardinal_pythonlib.sqlalchemy.session import (
 )
 from cardinal_pythonlib.sqlalchemy.table_identity import TableIdentity
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -940,8 +940,8 @@ class MergeTestMixin(object):
         self.dst_engine = create_engine(SQLITE_MEMORY_URL, echo=echo)  # type: Engine  # noqa
         self.src_session = sessionmaker(bind=self.src_engine)()  # type: Session  # noqa
         self.dst_session = sessionmaker(bind=self.dst_engine)()  # type: Session  # noqa
-        # log.critical("SRC SESSION: {}".format(self.src_session))
-        # log.critical("DST SESSION: {}".format(self.dst_session))
+        # log.critical("SRC SESSION: {}", self.src_session)
+        # log.critical("DST SESSION: {}", self.dst_session)
 
         self.Base = declarative_base()
 

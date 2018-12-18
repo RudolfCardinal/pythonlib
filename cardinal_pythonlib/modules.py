@@ -29,7 +29,6 @@
 import importlib
 from importlib.machinery import ExtensionFileLoader, EXTENSION_SUFFIXES
 import inspect
-import logging
 import os
 import os.path
 import pkgutil
@@ -37,8 +36,9 @@ import pkgutil
 from types import ModuleType
 from typing import Dict, List, Union
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -67,7 +67,7 @@ def import_submodules(package: Union[str, ModuleType],
     results = {}
     for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
         full_name = package.__name__ + '.' + name
-        log.debug("importing: {}".format(full_name))
+        log.debug("importing: {}", full_name)
         results[full_name] = importlib.import_module(full_name)
         if recursive and is_pkg:
             results.update(import_submodules(full_name))
@@ -223,7 +223,7 @@ def contains_c_extension(module: ModuleType,
 
     # Check the thing we were asked about
     is_c_ext = is_c_extension(module)
-    log.info("Is module {!r} a C extension? {}".format(module, is_c_ext))
+    log.info("Is module {!r} a C extension? {}", module, is_c_ext)
     if is_c_ext:
         return True
     if is_builtin_module(module):
@@ -240,6 +240,7 @@ def contains_c_extension(module: ModuleType,
     # try e.g. for django.
     for candidate_name in dir(module):
         candidate = getattr(module, candidate_name)
+        # noinspection PyBroadException
         try:
             if not inspect.ismodule(candidate):
                 # not a module
@@ -247,8 +248,7 @@ def contains_c_extension(module: ModuleType,
         except Exception:
             # e.g. a Django module that won't import until we configure its
             # settings
-            log.error("Failed to test ismodule() status of {!r}".format(
-                candidate))
+            log.error("Failed to test ismodule() status of {!r}", candidate)
             continue
         if is_builtin_module(candidate):
             # built-in, therefore we stop searching it
@@ -258,7 +258,7 @@ def contains_c_extension(module: ModuleType,
         if not include_external_imports:
             if os.path.commonpath([top_path, candidate_fname]) != top_path:
                 log.debug("Skipping, not within the top-level module's "
-                          "directory: {!r}".format(candidate))
+                          "directory: {!r}", candidate)
                 continue
         # Recurse:
         if contains_c_extension(
@@ -270,20 +270,21 @@ def contains_c_extension(module: ModuleType,
 
     if import_all_submodules:
         if not is_module_a_package(module):
-            log.debug("Top-level module is not a package: {!r}".format(module))
+            log.debug("Top-level module is not a package: {!r}", module)
             return False
 
         # Otherwise, for things like Django, we need to recurse in a different
         # way to scan everything.
         # See https://stackoverflow.com/questions/3365740/how-to-import-all-submodules.  # noqa
-        log.debug("Walking path: {!r}".format(top_path))
+        log.debug("Walking path: {!r}", top_path)
+        # noinspection PyBroadException
         try:
             for loader, module_name, is_pkg in pkgutil.walk_packages([top_path]):  # noqa
                 if not is_pkg:
-                    log.debug("Skipping, not a package: {!r}".format(
-                        module_name))
+                    log.debug("Skipping, not a package: {!r}", module_name)
                     continue
-                log.debug("Manually importing: {!r}".format(module_name))
+                log.debug("Manually importing: {!r}", module_name)
+                # noinspection PyBroadException
                 try:
                     candidate = loader.find_module(module_name)\
                         .load_module(module_name)  # noqa
@@ -291,8 +292,7 @@ def contains_c_extension(module: ModuleType,
                     # e.g. Alembic "autogenerate" gives: "ValueError: attempted
                     # relative import beyond top-level package"; or Django
                     # "django.core.exceptions.ImproperlyConfigured"
-                    log.error("Package failed to import: {!r}".format(
-                        module_name))
+                    log.error("Package failed to import: {!r}", module_name)
                     continue
                 if contains_c_extension(
                         module=candidate,

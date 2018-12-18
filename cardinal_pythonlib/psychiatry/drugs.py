@@ -212,13 +212,10 @@ Test within R:
 
 """  # noqa
 
-# import logging
 import re
 from typing import Dict, List, Optional, Pattern, Union
 
 from cardinal_pythonlib.sql.literals import sql_string_literal
-
-# log = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -520,7 +517,7 @@ class Drug(object):
         """
         if self._regex is None:
                 self._regex = re.compile(self.regex_text,
-                                     re.IGNORECASE | re.DOTALL)
+                                         re.IGNORECASE | re.DOTALL)
         return self._regex
 
     @staticmethod

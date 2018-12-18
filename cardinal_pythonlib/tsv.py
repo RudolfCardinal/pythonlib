@@ -26,14 +26,13 @@
 
 """
 
-import logging
 from typing import Any, Dict, List
 
 from cardinal_pythonlib.lists import chunks
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.text import unescape_tabs_newlines
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 def tsv_escape(x: Any) -> str:
@@ -92,7 +91,7 @@ def tsv_pairs_to_dict(line: str, key_lower: bool = True) -> Dict[str, str]:
     d = {}  # type: Dict[str, str]
     for chunk in chunks(items, 2):
         if len(chunk) < 2:
-            log.warning("Bad chunk, not of length 2: {}".format(repr(chunk)))
+            log.warning("Bad chunk, not of length 2: {!r}", chunk)
             continue
         key = chunk[0]
         value = unescape_tabs_newlines(chunk[1])

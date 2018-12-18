@@ -35,9 +35,12 @@ import subprocess
 import sys
 from typing import List
 
-from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+from cardinal_pythonlib.logs import (
+    BraceStyleAdapter,
+    main_only_quicksetup_rootlogger,
+)
 
-log = logging.getLogger(__name__)
+log = BraceStyleAdapter(logging.getLogger(__name__))
 
 
 def cmdargs(mysqldump: str,

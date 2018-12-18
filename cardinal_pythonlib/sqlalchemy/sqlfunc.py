@@ -26,7 +26,6 @@
 
 """
 
-import logging
 from typing import TYPE_CHECKING
 
 from sqlalchemy.ext.compiler import compiles
@@ -35,15 +34,13 @@ from sqlalchemy.sql.expression import FunctionElement
 from sqlalchemy.sql.sqltypes import Numeric
 
 from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
-from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 if TYPE_CHECKING:
     from sqlalchemy.sql.elements import ClauseElement, ClauseList
     from sqlalchemy.sql.compiler import SQLCompiler
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================

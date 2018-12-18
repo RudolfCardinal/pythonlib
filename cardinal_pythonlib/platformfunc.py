@@ -27,16 +27,15 @@
 
 from collections import OrderedDict
 import itertools
-import logging
 from pprint import pformat
 import subprocess
 import sys
 from typing import Any, Dict, Generator, Iterator, List, Tuple, Union
 
 from cardinal_pythonlib.fileops import require_executable
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -141,7 +140,7 @@ def are_debian_packages_installed(packages: List[str]) -> Dict[str, bool]:
             assert len(words) >= 2
             package = words[-1]
             present[package] = False
-    log.debug("Debian package presence: {}".format(present))
+    log.debug("Debian package presence: {}", present)
     return present
 
 
@@ -178,7 +177,7 @@ def validate_pair(ob: Any) -> bool:
     """
     try:
         if len(ob) != 2:
-            log.warning("Unexpected result: {!r}".format(ob))
+            log.warning("Unexpected result: {!r}", ob)
             raise ValueError()
     except ValueError:
         return False
@@ -240,8 +239,8 @@ def windows_get_environment_from_batch_command(
     cmd = 'cmd.exe /s /c "{env_cmd} && echo "{tag}" && set"'.format(
         env_cmd=env_cmd, tag=tag)
     # launch the process
-    log.info("Fetching environment using command: {}".format(env_cmd))
-    log.debug("Full command: {}".format(cmd))
+    log.info("Fetching environment using command: {}", env_cmd)
+    log.debug("Full command: {}", cmd)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=initial_env)
     # parse the output sent to stdout
     encoding = sys.getdefaultencoding()

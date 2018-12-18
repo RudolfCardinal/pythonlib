@@ -73,6 +73,7 @@ See also:
 import argparse
 from io import StringIO  # Python 3
 import io
+import logging
 import os
 import re
 import shutil
@@ -80,7 +81,6 @@ import subprocess
 import sys
 import textwrap
 from typing import BinaryIO, Dict, Iterator, List, Optional, Union
-
 from xml.etree import ElementTree as ElementTree
 # ... cElementTree used to be the fast implementation; now ElementTree is fast
 # and cElementTree is deprecated; see
@@ -91,6 +91,8 @@ import bs4
 import prettytable
 from semantic_version import Version
 # import texttable  # ... can't deal with Unicode properly
+
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 try:
     import chardet
@@ -153,9 +155,7 @@ try:
 except ImportError:
     pyth = None
 
-import logging
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 # =============================================================================
 # Constants
@@ -375,7 +375,7 @@ def get_cmd_output(*args, encoding: str = SYS_ENCODING) -> str:
     """
     Returns text output of a command.
     """
-    log.debug("get_cmd_output(): args = {}".format(repr(args)))
+    log.debug("get_cmd_output(): args = {!r}", args)
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
     stdout, stderr = p.communicate()
     return stdout.decode(encoding, errors='ignore')
@@ -537,7 +537,7 @@ def docx_text_from_xml_node(node: ElementTree.Element,
 
     """
     text = ''
-    # log.debug("Level {}, tag {}".format(level, node.tag))
+    # log.debug("Level {}, tag {}", level, node.tag)
     if node.tag == DOCX_TEXT:
         text += node.text or ''
     elif node.tag == DOCX_TAB:
@@ -1250,8 +1250,7 @@ def document_to_text(filename: str = None,
     # Choose method
     info = ext_map.get(extension)
     if info is None:
-        log.warning("Unknown filetype: {}; using generic tool".format(
-            extension))
+        log.warning("Unknown filetype: {}; using generic tool", extension)
         info = ext_map[None]
     func = info[CONVERTER]
     return func(filename, blob, config)

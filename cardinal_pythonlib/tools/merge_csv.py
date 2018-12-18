@@ -34,9 +34,12 @@ import logging
 import sys
 from typing import List, TextIO
 
-from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+from cardinal_pythonlib.logs import (
+    BraceStyleAdapter,
+    main_only_quicksetup_rootlogger,
+)
 
-log = logging.getLogger(__name__)
+log = BraceStyleAdapter(logging.getLogger(__name__))
 
 
 def merge_csv(filenames: List[str],
@@ -67,7 +70,7 @@ def merge_csv(filenames: List[str],
                 if not written_header:
                     header_items = next(reader)
                     if debug:
-                        log.debug("Header row: {}".format(repr(header_items)))
+                        log.debug("Header row: {!r}", header_items)
                     writer.writerow(header_items)
                     written_header = True
                 else:
@@ -87,7 +90,7 @@ def merge_csv(filenames: List[str],
                     log.debug("No headers in use")
             for row in reader:
                 if debug:
-                    log.debug("Data row: {}".format(repr(row)))
+                    log.debug("Data row: {!r}", row)
                 writer.writerow(row)
 
 

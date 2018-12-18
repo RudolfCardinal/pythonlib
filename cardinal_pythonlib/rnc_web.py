@@ -34,10 +34,8 @@ import configparser
 import dateutil.parser
 import dateutil.tz
 import datetime
-import logging
 import os
 import re
-# import six
 import sys
 from typing import (Any, Callable, Dict, Iterable, List, Optional,
                     Tuple, Union)
@@ -47,9 +45,9 @@ from cardinal_pythonlib.wsgi.constants import (
     TYPE_WSGI_START_RESPONSE,
     TYPE_WSGI_RESPONSE_HEADERS,
 )
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 WSGI_TUPLE_TYPE = Tuple[str, TYPE_WSGI_RESPONSE_HEADERS, bytes]
 # ... contenttype, extraheaders, output
@@ -275,7 +273,7 @@ def get_cgi_parameter_filename_and_file(form: cgi.FieldStorage, key: str) \
     uploaded.
     """
     if not (key in form):
-        log.warning('get_cgi_parameter_file: form has no key {}'.format(key))
+        log.warning('get_cgi_parameter_file: form has no key {}', key)
         return None, None
     fileitem = form[key]  # a nested FieldStorage instance; see
     # http://docs.python.org/2/library/cgi.html#using-the-cgi-module
@@ -286,7 +284,7 @@ def get_cgi_parameter_filename_and_file(form: cgi.FieldStorage, key: str) \
         return None, None
     if not isinstance(fileitem, cgi.FieldStorage):
         log.warning('get_cgi_parameter_file: no FieldStorage instance with '
-                    'key {} found'.format(key))
+                    'key {} found', key)
         return None, None
     if fileitem.filename and fileitem.file:  # can check "file" or "filename"
         return fileitem.filename, fileitem.file.read()
@@ -440,7 +438,7 @@ def pdf_result(pdf_binary: bytes,
     contenttype = 'application/pdf'
     if filename:
         contenttype += '; filename="{}"'.format(filename)
-    # log.debug("type(pdf_binary): {}".format(type(pdf_binary)))
+    # log.debug("type(pdf_binary): {}", type(pdf_binary))
     return contenttype, extraheaders, pdf_binary
 
 

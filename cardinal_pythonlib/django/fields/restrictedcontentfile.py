@@ -76,12 +76,12 @@ class ContentTypeRestrictedFileField(models.FileField):
 
     def clean(self, *args, **kwargs) -> Any:
         data = super().clean(*args, **kwargs)
-        # log.debug("data: {}".format(repr(data)))
+        # log.debug("data: {!r}", data)
         f = data.file
         if not isinstance(f, UploadedFile):  # RNC
             # no new file uploaded; there won't be a content-type to check
             return data
-        # log.debug("f: {}".format(repr(f)))
+        # log.debug("f: {!r}", f)
         content_type = f.content_type
         if content_type not in self.content_types:
             raise forms.ValidationError(ugettext_lazy(

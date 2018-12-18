@@ -95,13 +95,12 @@ from collections import OrderedDict
 # noinspection PyProtectedMember
 from enum import EnumMeta, Enum, _EnumDict
 import itertools
-import logging
 from typing import Any, Optional
 
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.reprfunc import ordered_repr
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================

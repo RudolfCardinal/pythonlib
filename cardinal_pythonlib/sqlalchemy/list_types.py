@@ -28,17 +28,14 @@
 
 import csv
 from io import StringIO
-import logging
 from typing import List, Optional
 
-from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.sql.sqltypes import Text, UnicodeText
 from sqlalchemy.sql.type_api import TypeDecorator
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================

@@ -28,12 +28,8 @@
 
 
 import io
-import logging
 
 from openpyxl import Workbook
-
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
 
 
 def excel_to_bytes(wb: Workbook) -> bytes:

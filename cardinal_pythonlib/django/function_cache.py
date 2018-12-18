@@ -30,15 +30,14 @@ but fixed for Python 3 / Django 1.10.
 """
 
 import hashlib
-import logging
 from typing import Any, Callable, Dict, Tuple
 
 from django.core.cache import cache  # default cache
 
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.json.serialize import json_encode
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 FunctionType = Callable[..., Any]
 ArgsType = Tuple[Any, ...]
@@ -67,7 +66,7 @@ def get_call_signature(fn: FunctionType,
             "django_cache_fn.py).\n")
         raise
     if debug_cache:
-        log.debug("Making call signature {}".format(repr(call_sig)))
+        log.debug("Making call signature {!r}", call_sig)
     return call_sig
 
 
@@ -106,8 +105,8 @@ def make_cache_key(call_signature: str,
     """
     key = hashlib.md5(call_signature.encode("utf-8")).hexdigest()
     if debug_cache:
-        log.debug("Making cache key {} from call_signature {}".format(
-            key, repr(call_signature)))
+        log.debug("Making cache key {} from call_signature {!r}",
+                  key, call_signature)
     return key
 
 

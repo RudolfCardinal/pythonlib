@@ -89,15 +89,17 @@ from typing import Any, Callable, Dict, List, Optional
 from dogpile.cache import make_region
 # from dogpile.util import compat  # repr used as the default instead of compat.to_str  # noqa
 
+from cardinal_pythonlib.logs import (
+    get_brace_style_log_with_null_handler,
+    main_only_quicksetup_rootlogger,
+)
+
 TESTING_VERBOSE = True
 TESTING_USE_PRETTY_LOGS = True  # False to make this standalone
-if TESTING_USE_PRETTY_LOGS:
-    from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 
 DEBUG_INTERNALS = False
 
-log = logging.getLogger(__name__)  # don't use BraceStyleAdapter; {} used
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -202,7 +204,7 @@ def fkg_allowing_type_hints(
             args = [hex(id(args[0]))] + list(args[1:])
         key = namespace + "|" + " ".join(map(to_str, args))
         if DEBUG_INTERNALS:
-            log.debug("fkg_allowing_type_hints.generate_key() -> " + repr(key))
+            log.debug("fkg_allowing_type_hints.generate_key() -> {!r}", key)
         return key
 
     return generate_key
@@ -238,8 +240,9 @@ def multikey_fkg_allowing_type_hints(
             args = [hex(id(args[0]))] + list(args[1:])
         keys = [namespace + "|" + key for key in map(to_str, args)]
         if DEBUG_INTERNALS:
-            log.debug("multikey_fkg_allowing_type_hints.generate_keys() -> " +
-                      repr(keys))
+            log.debug(
+                "multikey_fkg_allowing_type_hints.generate_keys() -> {!r}",
+                keys)
         return keys
 
     return generate_keys
@@ -283,13 +286,13 @@ def kw_fkg_allowing_type_hints(
         log.debug(
             "At start of kw_fkg_allowing_type_hints: namespace={namespace},"
             "parameters=[{parameters}], argnames={argnames}, "
-            "has_self={has_self}, fn={fn}".format(
-                namespace=namespace,
-                parameters=", ".join(repr_parameter(p) for p in parameters),
-                argnames=repr(argnames),
-                has_self=has_self,
-                fn=repr(fn),
-            ))
+            "has_self={has_self}, fn={fn}",
+            namespace=namespace,
+            parameters=", ".join(repr_parameter(p) for p in parameters),
+            argnames=repr(argnames),
+            has_self=has_self,
+            fn=repr(fn),
+        )
 
     def generate_key(*args: Any, **kwargs: Any) -> str:
         as_kwargs = {}  # type: Dict[str, Any]
@@ -328,8 +331,7 @@ def kw_fkg_allowing_type_hints(
                            for key in sorted(as_kwargs.keys())]
         key = namespace + '|' + " ".join(argument_values)
         if DEBUG_INTERNALS:
-            log.debug("kw_fkg_allowing_type_hints.generate_key() -> " +
-                      repr(key))
+            log.debug("kw_fkg_allowing_type_hints.generate_key() -> {!r}", key)
         return key
 
     return generate_key
@@ -366,7 +368,7 @@ def unit_test_cache() -> None:
 
     def test(result: str, should_call_fn: bool, reset: bool = True) -> None:
         nonlocal fn_was_called
-        log.info(result)
+        log.info("{}", result)
         assert fn_was_called == should_call_fn, (
             "fn_was_called={}, should_call_fn={}".format(
                 fn_was_called, should_call_fn))
@@ -374,7 +376,7 @@ def unit_test_cache() -> None:
             fn_was_called = False
 
     def fn_called(text: str) -> None:
-        log.info(text)
+        log.info("{}", text)
         nonlocal fn_was_called
         fn_was_called = True
 
@@ -554,7 +556,7 @@ def unit_test_cache() -> None:
 
     log.warning("Trying with keyword arguments and wrong key generator")
     try:
-        log.info(twoparam_with_default_wrong_dec(a="Celia", b="Yorick"))
+        log.info("{}", twoparam_with_default_wrong_dec(a="Celia", b="Yorick"))
         raise AssertionError("Inappropriate success with keyword arguments!")
     except ValueError:
         log.info("Correct rejection of keyword arguments")

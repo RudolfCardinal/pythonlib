@@ -36,8 +36,9 @@ import traceback
 from types import FrameType
 from typing import Any, Callable, List, Optional
 
-log = logging.getLogger(__name__)  # don't use BraceStyleAdapter; {} used
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -281,4 +282,4 @@ def debug_object(obj, log_level: int = logging.DEBUG) -> None:
         attribute = getattr(obj, attrname)
         msgs.append("- {an!r}: {at!r}, of type {t!r}".format(
             an=attrname, at=attribute, t=type(attribute)))
-    log.log(log_level, "\n".join(msgs))
+    log.log(log_level, "{}", "\n".join(msgs))

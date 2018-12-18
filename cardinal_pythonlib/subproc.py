@@ -24,7 +24,6 @@
 """
 
 import atexit
-import logging
 from multiprocessing.dummy import Pool  # thread pool
 from queue import Queue
 from subprocess import (
@@ -38,11 +37,9 @@ from threading import Thread
 from time import sleep
 from typing import Any, BinaryIO, List, Tuple, Union
 
-from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================

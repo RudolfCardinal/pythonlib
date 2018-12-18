@@ -28,7 +28,6 @@
 
 import datetime
 import decimal
-import logging
 import sys
 from typing import Any, Callable, Dict, TextIO, Type, Union
 
@@ -47,13 +46,13 @@ from sqlalchemy.sql.schema import MetaData, Table
 from sqlalchemy.sql.sqltypes import DateTime, NullType, String
 
 from cardinal_pythonlib.file_io import writeline_nl, writelines_nl
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sql.literals import sql_comment
 from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
 from cardinal_pythonlib.sqlalchemy.orm_inspect import walk_orm_tree
 from cardinal_pythonlib.sqlalchemy.schema import get_table_names
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 SEP1 = sql_comment("=" * 76)
 SEP2 = sql_comment("-" * 76)
@@ -145,7 +144,7 @@ class StringLiteral(String):
         super_processor = super().literal_processor(dialect)
 
         def process(value: Any) -> str:
-            log.debug("process: {}".format(repr(value)))
+            log.debug("process: {!r}", value)
             if isinstance(value, int):
                 return str(value)
             if not isinstance(value, str):
@@ -213,8 +212,8 @@ def get_literal_query(statement: Union[Query, Executable],
         a string literal version of the query.
 
     """  # noqa
-    # log.debug("statement: {}".format(repr(statement)))
-    # log.debug("statement.bind: {}".format(repr(statement.bind)))
+    # log.debug("statement: {!r}", statement)
+    # log.debug("statement.bind: {!r}", statement.bind)
     if isinstance(statement, Query):
         if bind is None:
             bind = statement.session.get_bind(statement._mapper_zero_or_none())
@@ -305,7 +304,7 @@ def dump_table_as_insert_sql(engine: Engine,
     # http://docs.sqlalchemy.org/en/latest/faq/sqlexpressions.html
     # http://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/  # noqa
     # https://github.com/plq/scripts/blob/master/pg_dump.py
-    log.info("dump_data_as_insert_sql: table_name={}".format(table_name))
+    log.info("dump_data_as_insert_sql: table_name={}", table_name)
     writelines_nl(fileobj, [
         SEP1,
         sql_comment("Data for table: {}".format(table_name)),
@@ -332,25 +331,25 @@ def dump_table_as_insert_sql(engine: Engine,
     # NewRecord = quick_mapper(table)
     # columns = table.columns.keys()
     log.debug("... fetching records")
-    # log.debug("meta: {}".format(meta))  # obscures password
-    # log.debug("table: {}".format(table))
-    # log.debug("table.columns: {}".format(repr(table.columns)))
-    # log.debug("multirow: {}".format(multirow))
+    # log.debug("meta: {}", meta)  # obscures password
+    # log.debug("table: {}", table)
+    # log.debug("table.columns: {!r}", table.columns)
+    # log.debug("multirow: {}", multirow)
     query = select(table.columns)
     if wheredict:
         for k, v in wheredict.items():
             col = table.columns.get(k)
             query = query.where(col == v)
-    # log.debug("query: {}".format(query))
+    # log.debug("query: {}", query)
     cursor = engine.execute(query)
     if multirow:
         row_dict_list = []
         for r in cursor:
             row_dict_list.append(dict(r))
-        # log.debug("row_dict_list: {}".format(row_dict_list))
+        # log.debug("row_dict_list: {}", row_dict_list)
         if row_dict_list:
             statement = table.insert().values(row_dict_list)
-            # log.debug("statement: {}".format(repr(statement)))
+            # log.debug("statement: {!r}", statement)
             # insert_str = literal_query(statement)
             insert_str = get_literal_query(statement, bind=engine)
             # NOT WORKING FOR MULTIROW INSERTS. ONLY SUBSTITUTES FIRST ROW.
@@ -365,8 +364,8 @@ def dump_table_as_insert_sql(engine: Engine,
             statement = table.insert(values=row_dict)
             # insert_str = literal_query(statement)
             insert_str = get_literal_query(statement, bind=engine)
-            # log.debug("row_dict: {}".format(row_dict))
-            # log.debug("insert_str: {}".format(insert_str))
+            # log.debug("row_dict: {}", row_dict)
+            # log.debug("insert_str: {}", insert_str)
             writeline_nl(fileobj, insert_str)
         if not found_one:
             writeline_nl(fileobj, sql_comment("No data!"))
@@ -424,24 +423,24 @@ def dump_orm_object_as_insert_sql(engine: Engine,
     # from the database itself.
     meta = MetaData(bind=engine)
     table_name = insp.mapper.mapped_table.name
-    # log.debug("table_name: {}".format(table_name))
+    # log.debug("table_name: {}", table_name)
     table = Table(table_name, meta, autoload=True)
-    # log.debug("table: {}".format(table))
+    # log.debug("table: {}", table)
 
     # NewRecord = quick_mapper(table)
     # columns = table.columns.keys()
     query = select(table.columns)
-    # log.debug("query: {}".format(query))
+    # log.debug("query: {}", query)
     for orm_pkcol in insp.mapper.primary_key:
         core_pkcol = table.columns.get(orm_pkcol.name)
         pkval = getattr(obj, orm_pkcol.name)
         query = query.where(core_pkcol == pkval)
-    # log.debug("query: {}".format(query))
+    # log.debug("query: {}", query)
     cursor = engine.execute(query)
     row = cursor.fetchone()  # should only be one...
     row_dict = dict(row)
-    # log.debug("obj: {}".format(obj))
-    # log.debug("row_dict: {}".format(row_dict))
+    # log.debug("obj: {}", obj)
+    # log.debug("row_dict: {}", row_dict)
     statement = table.insert(values=row_dict)
     # insert_str = literal_query(statement)
     insert_str = get_literal_query(statement, bind=engine)

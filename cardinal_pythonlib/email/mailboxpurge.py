@@ -45,11 +45,13 @@ import mailbox
 import os
 import time
 
-from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+from cardinal_pythonlib.logs import (
+    get_brace_style_log_with_null_handler,
+    main_only_quicksetup_rootlogger,
+)
 from cardinal_pythonlib.sizeformatter import bytes2human
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 def gut_message(message: Message) -> Message:
@@ -121,12 +123,11 @@ def main() -> None:
         errmsg = "Output file exists: {}".format(args.output)
         log.critical(errmsg)
         raise ValueError(errmsg)
-    log.info("Opening input file: {filename} ({size})".format(
-        filename=args.input,
-        size=bytes2human(os.path.getsize(args.input))
-    ))
+    log.info("Opening input file: {filename} ({size})",
+             filename=args.input,
+             size=bytes2human(os.path.getsize(args.input)))
     input_box = mailbox.mbox(args.input, create=False)
-    log.info("Opening output file: {} (new file)".format(args.output))
+    log.info("Opening output file: {} (new file)", args.output)
     output_box = mailbox.mbox(args.output, create=True)
 
     log.info("Processing messages...")
@@ -134,12 +135,12 @@ def main() -> None:
     for message in input_box.itervalues():
         msg_count += 1
         if msg_count % args.report == 0:
-            log.debug("Processing message {}".format(msg_count))
+            log.debug("Processing message {}", msg_count)
         processed_msg = clean_message(message, topmost=True)
         output_box.add(processed_msg)
-    log.info("Done; processed {} messages.".format(msg_count))
-    log.info("Output size: {}".format(
-        bytes2human(os.path.getsize(args.output))))
+    log.info("Done; processed {} messages.", msg_count)
+    log.info("Output size: {}",
+             bytes2human(os.path.getsize(args.output)))
 
 
 if __name__ == '__main__':

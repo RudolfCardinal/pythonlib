@@ -26,8 +26,7 @@
 
 """
 
-import logging
-
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.wsgi.constants import (
     TYPE_WSGI_APP,
     TYPE_WSGI_APP_RESULT,
@@ -39,8 +38,7 @@ from cardinal_pythonlib.wsgi.constants import (
     TYPE_WSGI_STATUS,
 )
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 # log.setLevel(logging.DEBUG)
 
 
@@ -77,7 +75,7 @@ class DisableClientSideCachingMiddleware(object):
                                   exc_info: TYPE_WSGI_EXC_INFO = None) \
                 -> TYPE_WSGI_START_RESP_RESULT:
             add_never_cache_headers(headers)
-            log.debug("HTTP status {}, headers {}".format(status, headers))
+            log.debug("HTTP status {}, headers {}", status, headers)
             return start_response(status, headers, exc_info)
 
         return self.app(environ, custom_start_response)

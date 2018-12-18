@@ -36,7 +36,7 @@ import sys
 import tempfile
 from typing import Any, Dict, Iterable, Union
 
-from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 # noinspection PyProtectedMember
 from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
 from semantic_version import Version
@@ -45,9 +45,7 @@ from semantic_version import Version
 # Conditional/optional imports
 # =============================================================================
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 pdfkit = None
 xhtml2pdf = None
@@ -388,12 +386,9 @@ def make_pdf_from_html(
                 # be bytes in Python 3.
 
             if debug_wkhtmltopdf_args:
-                log.debug("Probable current user: {!r}".format(
-                    getpass.getuser()
-                ))
-                log.debug("wkhtmltopdf arguments will be: {!r}".format(
-                    kit.command(path=path)
-                ))
+                log.debug("Probable current user: {!r}", getpass.getuser())
+                log.debug("wkhtmltopdf arguments will be: {!r}",
+                          kit.command(path=path))
 
             return kit.to_pdf(path=path)
 

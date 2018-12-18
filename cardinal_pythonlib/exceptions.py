@@ -26,13 +26,13 @@
 
 """
 
-import logging
 import sys
 import traceback
 from typing import Dict
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -116,5 +116,5 @@ def die(exc: Exception = None, exit_code: int = 1) -> None:
         # print("".join(lines), file=sys.stderr, flush=True)
         # Method 2:
         log.critical(msg)
-    log.critical("Exiting with exit code {}".format(exit_code))
+    log.critical("Exiting with exit code {}", exit_code)
     sys.exit(exit_code)

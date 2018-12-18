@@ -49,16 +49,15 @@ To find out what you have available in terms of partitions, clusters, etc.:
 """
 
 from datetime import timedelta
-import logging
 import os
 from subprocess import PIPE, Popen
 from typing import List
 
 from cardinal_pythonlib.datetimefunc import strfdelta
 from cardinal_pythonlib.fileops import pushd
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 SLURM_TIMEDELTA_FMT = "{D}-{H:02}:{M:02}:{S:02}"
@@ -102,7 +101,7 @@ def launch_slurm(jobname: str,
     if modules is None:
         modules = ["default-wbic"]
 
-    log.info("Launching SLURM job: {}".format(jobname))
+    log.info("Launching SLURM job: {}", jobname)
     script = """#!/bin/bash
 
 #! Name of the job:

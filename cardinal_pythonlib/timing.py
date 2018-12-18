@@ -28,14 +28,11 @@
 
 from collections import OrderedDict
 import datetime
-import logging
 
 from cardinal_pythonlib.datetimefunc import get_now_utc_pendulum
-from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 class MultiTimer(object):
@@ -174,11 +171,12 @@ class MultiTimer(object):
             log.info("<no timings recorded>")
 
         unmetered = overall_duration - grand_total
-        log.info("Unmetered time: {:.3f} s ({:.2f}%)".format(
+        log.info(
+            "Unmetered time: {:.3f} s ({:.2f}%)",
             unmetered.total_seconds(),
             100 * unmetered.total_seconds() / overall_duration.total_seconds()
-        ))
-        log.info("Total time: {:.3f} s".format(grand_total.total_seconds()))
+        )
+        log.info("Total time: {:.3f} s", grand_total.total_seconds())
 
 
 class MultiTimerContext(object):

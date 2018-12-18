@@ -175,6 +175,8 @@ import time
 from typing import (Any, Container, Dict, Iterable, Iterator, List, Optional,
                     Sequence, Tuple, Type, TypeVar, Union)
 
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
 # 1. An ODBC driver
 try:
     import pypyodbc as pyodbc  # pip install pypyodbc
@@ -216,8 +218,7 @@ if not pymysql:
         _mysql = None
         mysql = None
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 log.setLevel(logging.INFO)
 
 log.warning("The cardinal_pythonlib.rnc_db module is DEPRECATED; "
@@ -1032,9 +1033,9 @@ def debug_object(obj: T) -> str:
 def dump_database_object(obj: T, fieldlist: Iterable[str]) -> None:
     """Prints key/value pairs for an object's dictionary."""
     log.info(_LINE_EQUALS)
-    log.info(u"DUMP OF: {}".format(obj))
+    log.info("DUMP OF: {}", obj)
     for f in fieldlist:
-        log.info(u"{f}: {v}".format(f=f, v=getattr(obj, f)))
+        log.info(u"{f}: {v}", f=f, v=getattr(obj, f))
     log.info(_LINE_EQUALS)
 
 
@@ -1091,9 +1092,9 @@ def blank_object(obj: T, fieldlist: Sequence[str]) -> None:
 
 def debug_query_result(rows: Sequence[Any]) -> None:
     """Writes a query result to the log."""
-    log.info("Retrieved {} rows".format(len(rows)))
+    log.info("Retrieved {} rows", len(rows))
     for i in range(len(rows)):
-        log.info("Row {}: {}".format(i, rows[i]))
+        log.info("Row {}: {}", i, rows[i])
 
 
 # =============================================================================
@@ -1295,10 +1296,10 @@ def _convert_java_binary(rs, col: int) -> Optional[bytes]:
         v = binascii.unhexlify(j_hexstr)
     finally:
         time2 = time.time()
-        log.debug("... done (in {} seconds)".format(time2 - time1))
+        log.debug("... done (in {} seconds)", time2 - time1)
         # if v:
-        #     log.debug("_convert_java_binary: type={}, length={}".format(
-        #         type(v), len(v)))
+        #     log.debug("_convert_java_binary: type={}, length={}",
+        #               type(v), len(v))
         return v
 
 
@@ -1420,7 +1421,7 @@ def create_database_mysql(database: str,
     cursor = con.cursor()
     debug_sql(sql)
     cursor.execute(sql)
-    log.info("Created database {}".format(database))
+    log.info("Created database {}", database)
     return True
 
 
@@ -1454,8 +1455,7 @@ def add_master_user_mysql(database: str,
     cursor = con.cursor()
     debug_sql(sql)
     cursor.execute(sql)
-    log.info("Added master user {} to database {}".format(
-        new_user, database))
+    log.info("Added master user {} to database {}", new_user, database)
 
 
 # =============================================================================
@@ -1893,7 +1893,7 @@ class DatabaseSupporter:
 
         elif engine == ENGINE_ACCESS and interface == INTERFACE_ODBC:
             dsn = "DSN={}".format(dsn)
-            log.info("ODBC connect: DSN={}".format(dsn))
+            log.info("ODBC connect: DSN={}", dsn)
             self.db = pyodbc.connect(dsn)
             self.db.autocommit = autocommit
             # http://stackoverflow.com/questions/1063770
@@ -2774,7 +2774,7 @@ class DatabaseSupporter:
         if self.table_exists(to_table):
             raise RuntimeError("Can't rename table {} to {}: destination "
                                "already exists!".format(from_table, to_table))
-        log.info("Renaming table {} to {}".format(from_table, to_table))
+        log.info("Renaming table {} to {}", from_table, to_table)
         sql = "RENAME TABLE {} TO {}".format(from_table, to_table)
         return self.db_exec_literal(sql)
 

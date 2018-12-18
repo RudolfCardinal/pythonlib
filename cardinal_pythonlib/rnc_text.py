@@ -31,7 +31,9 @@ import datetime
 import logging
 from typing import Any, Dict, Iterable, List, Optional, Sequence, TextIO, Tuple
 
-log = logging.getLogger(__name__)
+from cardinal_pythonlib.logs import BraceStyleAdapter
+
+log = BraceStyleAdapter(logging.getLogger(__name__))
 
 
 def produce_csv_output(filehandle: TextIO,
@@ -397,19 +399,19 @@ def get_lines_from_to(strings: List[str],
     To search to a blank line, use ``list_of_lastline_starts = [None]``
     """
     start_index = find_line_beginning(strings, firstlinestart)
-    # log.debug("start_index: {}".format(start_index))
+    # log.debug("start_index: {}", start_index)
     if start_index == -1:
         return []
     end_offset = None  # itself a valid slice index
     for lls in list_of_lastline_starts:
         possible_end_offset = find_line_beginning(strings[start_index:], lls)
-        # log.debug("lls {!r} -> possible_end_offset {}".format(
-        #     lls, possible_end_offset))
+        # log.debug("lls {!r} -> possible_end_offset {}",
+        #           lls, possible_end_offset)
         if possible_end_offset != -1:  # found one
             if end_offset is None or possible_end_offset < end_offset:
                 end_offset = possible_end_offset
     end_index = None if end_offset is None else (start_index + end_offset)
-    # log.debug("end_index: {}".format(end_index))
+    # log.debug("end_index: {}", end_index)
     return strings[start_index:end_index]
 
 

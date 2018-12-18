@@ -31,14 +31,14 @@ load).
 # Imports
 # =============================================================================
 
-import logging
 import sys
 from typing import Optional, Union
 
 import numpy as np  # pip install numpy
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================

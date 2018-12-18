@@ -27,12 +27,11 @@ reverse proxy.**
 
 """
 
-import logging
 from pprint import pformat
 from typing import List
 
 from cardinal_pythonlib.dicts import dict_diff, delete_keys
-from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.wsgi.constants import (
     TYPE_WSGI_APP,
     TYPE_WSGI_APP_RESULT,
@@ -41,9 +40,7 @@ from cardinal_pythonlib.wsgi.constants import (
     WsgiEnvVar,
 )
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -381,15 +378,16 @@ class ReverseProxiedMiddleware(object):
     @staticmethod
     def _report(option: str, value: str, envvars: List[str]) -> None:
         if value:
-            log.debug("... WSGI environment variable {} will be set to "
-                      "{}".format(option, value))
+            log.debug("... WSGI environment variable {} will be set to {}",
+                      option, value)
         elif envvars:
             log.debug("... WSGI environment variable {} will be set according "
                       "to reflect environment variables {!r} in "
-                      "incoming requests".format(option, envvars))
+                      "incoming requests",
+                      option, envvars)
         else:
-            log.debug("... WSGI environment variable {} will not be "
-                      "changed".format(option))
+            log.debug("... WSGI environment variable {} will not be changed",
+                      option)
 
     @classmethod
     def _get_first(cls,
@@ -457,6 +455,8 @@ class ReverseProxiedMiddleware(object):
         REWRITING THE PROTOCOL
         -----------------------------------------------------------------------
         Consider how we get here. For example, we may have this sequence:
+        
+        .. code-block:: none
 
             user's web browser
             -> Apache front-end web server via HTTPS on port 443
@@ -470,9 +470,11 @@ class ReverseProxiedMiddleware(object):
         So if you want to see what's coming by way of raw headers, put this
         in at the end of that get_environ() function:
 
-            from pprint import pformat; import logging; log = logging.getLogger(__name__); log.critical("Request headers:\n" + pformat(req.inheaders))  # noqa
+        .. code-block:: python
 
-        """
+            from pprint import pformat; import logging; log = logging.getLogger(__name__); log.critical("Request headers:\n" + pformat(req.inheaders))
+
+        """  # noqa
         if self.debug:
             log.debug("Starting WSGI environment: \n{}", pformat(environ))
             oldenv = environ.copy()

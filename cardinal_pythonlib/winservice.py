@@ -249,7 +249,6 @@ to clean up. Still, it works (usually at one of the two TASKKILL stages).
 import atexit
 import ctypes
 import os
-import logging
 import platform
 import subprocess
 import sys
@@ -290,8 +289,9 @@ except ImportError:
     else:
         raise
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 TEST_FILENAME = r'C:\test_win_svc.txt'
 TEST_PERIOD_MS = 5000

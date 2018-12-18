@@ -32,9 +32,12 @@ import logging
 import os
 from typing import List
 
-from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+from cardinal_pythonlib.logs import (
+    BraceStyleAdapter,
+    main_only_quicksetup_rootlogger,
+)
 
-log = logging.getLogger(__name__)
+log = BraceStyleAdapter(logging.getLogger(__name__))
 
 
 def list_file_extensions(path: str, reportevery: int = 1) -> List[str]:
@@ -55,7 +58,7 @@ def list_file_extensions(path: str, reportevery: int = 1) -> List[str]:
     for root, dirs, files in os.walk(path):
         count += 1
         if count % reportevery == 0:
-            log.debug("Walking directory {}: {}".format(count, repr(root)))
+            log.debug("Walking directory {}: {!r}", count, root)
         for file in files:
             filename, ext = os.path.splitext(file)
             extensions.add(ext)
@@ -71,7 +74,7 @@ def main() -> None:
     parser.add_argument("directory", nargs="?", default=os.getcwd())
     parser.add_argument("--reportevery", default=10000)
     args = parser.parse_args()
-    log.info("Extensions in directory {}:".format(repr(args.directory)))
+    log.info("Extensions in directory {!r}:", args.directory)
     print("\n".join(repr(x) for x in
                     list_file_extensions(args.directory,
                                          reportevery=args.reportevery)))

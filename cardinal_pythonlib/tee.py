@@ -72,13 +72,11 @@ import traceback
 from typing import IO, List, TextIO
 
 from cardinal_pythonlib.logs import (
-    BraceStyleAdapter,
+    get_brace_style_log_with_null_handler,
     get_monochrome_handler,
 )
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 def tee(infile: IO, *files: IO) -> Thread:
@@ -233,8 +231,8 @@ class TeeContextManager(object):
         self.filename = file.name
         # Announce
         self.output_description = "stdout" if capture_stdout else "stderr"
-        log.debug("Copying {} to file {}".format(self.output_description,
-                                                 self.filename))
+        log.debug("Copying {} to file {}",
+                  self.output_description, self.filename)
 
         # Redirect
         if self.using_stdout:
@@ -284,8 +282,8 @@ class TeeContextManager(object):
         if self.file:
             # Do NOT close the file; we don't own it.
             self.file = None
-            log.debug("Finished copying {} to {}".format(
-                self.output_description, self.filename))
+            log.debug("Finished copying {} to {}",
+                      self.output_description, self.filename)
 
 
 @contextmanager

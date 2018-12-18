@@ -29,8 +29,6 @@ See https://www.python.org/dev/peps/pep-0249/.
 """
 
 from collections import OrderedDict
-# import logging
-# log = logging.getLogger(__name__)
 from typing import Any, Dict, Generator, List, Optional
 
 from cardinal_pythonlib.typing_helpers import Pep249DatabaseCursorType as Cursor  # noqa

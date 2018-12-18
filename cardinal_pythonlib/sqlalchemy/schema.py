@@ -33,7 +33,6 @@ import copy
 import csv
 from functools import lru_cache
 import io
-import logging
 import re
 from typing import Any, Dict, Generator, List, Optional, Type, Union
 
@@ -49,13 +48,13 @@ from sqlalchemy.sql import sqltypes, text
 from sqlalchemy.sql.sqltypes import BigInteger, TypeEngine
 from sqlalchemy.sql.visitors import VisitableType
 
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sqlalchemy.dialect import (
     quote_identifier,
     SqlaDialectName,
 )
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 # =============================================================================
 # Constants
@@ -260,8 +259,8 @@ def get_single_int_autoincrement_colname(table_: Table) -> Optional[str]:
             if is_sqlatype_integer(col.type):
                 int_autoinc_names.append(col.name)
     if n_autoinc > 1:
-        log.warning("Table {} has {} autoincrement columns".format(
-            repr(table_.name), n_autoinc))
+        log.warning("Table {!r} has {} autoincrement columns",
+                    table_.name, n_autoinc)
     if n_autoinc == 1 and len(int_autoinc_names) == 1:
         return int_autoinc_names[0]
     return None
@@ -441,11 +440,13 @@ def add_index(engine: Engine,
                  "exists".format(idxname, tablename))
         return
         # because it will crash if you add it again!
-    log.info("Creating{ft} index {i} on table {t}, column(s) {c}".format(
+    log.info(
+        "Creating{ft} index {i} on table {t}, column(s) {c}",
         ft=" full-text" if fulltext else "",
         i=idxname or "<unnamed>",
         t=tablename,
-        c=", ".join(colnames)))
+        c=", ".join(colnames),
+    )
 
     if fulltext:
         if is_mysql:
@@ -1118,7 +1119,7 @@ def column_lists_equal(a: List[Column], b: List[Column]) -> bool:
         return False
     for i in range(n):
         if not columns_equal(a[i], b[i]):
-            log.debug("Mismatch: {} != {}".format(repr(a[i]), repr(b[i])))
+            log.debug("Mismatch: {!r} != {!r}", a[i], b[i])
             return False
     return True
 
@@ -1141,7 +1142,7 @@ def index_lists_equal(a: List[Index], b: List[Index]) -> bool:
         return False
     for i in range(n):
         if not indexes_equal(a[i], b[i]):
-            log.debug("Mismatch: {} != {}".format(repr(a[i]), repr(b[i])))
+            log.debug("Mismatch: {!r} != {!r}", a[i], b[i])
             return False
     return True
 

@@ -45,7 +45,6 @@ Once implemented, you can do
 
 """  # noqa
 
-import logging
 import re
 from typing import Any
 
@@ -53,10 +52,10 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql.compiler import SQLCompiler
 from sqlalchemy.sql.expression import Insert, TableClause
 
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # noinspection PyAbstractClass

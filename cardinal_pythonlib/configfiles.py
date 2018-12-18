@@ -30,11 +30,9 @@ from configparser import ConfigParser, NoOptionError
 import logging
 from typing import Any, Callable, Iterable, List
 
-from .logs import BraceStyleAdapter
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================

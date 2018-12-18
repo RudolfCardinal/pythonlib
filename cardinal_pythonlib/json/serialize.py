@@ -60,7 +60,6 @@ also with the simpler dictionary:
 import datetime
 from enum import Enum
 import json
-import logging
 import pprint
 import sys
 from typing import Any, Callable, Dict, List, TextIO, Tuple, Type
@@ -71,10 +70,10 @@ from pendulum import Date, DateTime
 # from pendulum.tz.timezone_info import TimezoneInfo
 # from pendulum.tz.transition import Transition
 
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.reprfunc import auto_repr
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log = get_brace_style_log_with_null_handler(__name__)
 
 Instance = Any
 ClassType = Type[object]
@@ -359,8 +358,8 @@ class JsonDescriptor(object):
         except Exception as err:
             log.warning(
                 "Failed to deserialize object of type {t}; exception was {e}; "
-                "dict was {d}; will use default factory instead".format(
-                    t=self._typename, e=repr(err), d=repr(d)))
+                "dict was {d}; will use default factory instead",
+                t=self._typename, e=repr(err), d=repr(d))
             if self._default_factory:
                 return self._default_factory()
             else:
@@ -595,7 +594,7 @@ class JsonClassEncoder(json.JSONEncoder):
                 raise ValueError("Class already has attribute: " + TYPE_LABEL)
             d[TYPE_LABEL] = typename
             if DEBUG:
-                log.debug("Serializing {} -> {}".format(repr(obj), repr(d)))
+                log.debug("Serializing {!r} -> {!r}", obj, d)
             return d
         # Otherwise, nothing that we know about:
         return super().default(obj)
@@ -610,12 +609,12 @@ def json_class_decoder_hook(d: Dict) -> Any:
         typename = d.get(TYPE_LABEL)
         if typename in TYPE_MAP:
             if DEBUG:
-                log.debug("Deserializing: {}".format(repr(d)))
+                log.debug("Deserializing: {!r}", d)
             d.pop(TYPE_LABEL)
             descriptor = TYPE_MAP[typename]
             obj = descriptor.to_obj(d)
             if DEBUG:
-                log.debug("... to: {}".format(repr(obj)))
+                log.debug("... to: {!r}", obj)
             return obj
     return d
 
@@ -641,8 +640,7 @@ def json_decode(s: str) -> Any:
     try:
         return json.JSONDecoder(object_hook=json_class_decoder_hook).decode(s)
     except json.JSONDecodeError:
-        log.warning("Failed to decode JSON (returning None): {}".format(
-            repr(s)))
+        log.warning("Failed to decode JSON (returning None): {!r}", s)
         return None
 
 

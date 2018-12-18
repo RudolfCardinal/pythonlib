@@ -26,7 +26,6 @@
 
 """
 
-import logging
 from typing import Any, Dict, Sequence, Tuple, Union
 
 from sqlalchemy.engine.base import Connection, Engine
@@ -38,12 +37,10 @@ from sqlalchemy.sql.expression import ClauseElement, literal
 from sqlalchemy.sql import func
 from sqlalchemy.sql.selectable import Exists
 
-from cardinal_pythonlib.logs import BraceStyleAdapter
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
-log = BraceStyleAdapter(log)
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================

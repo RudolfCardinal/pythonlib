@@ -32,7 +32,6 @@ import fnmatch
 import gzip
 from html import escape
 import io
-import logging
 from operator import attrgetter
 import os
 import shutil
@@ -43,8 +42,9 @@ from typing import (Any, BinaryIO, Generator, Iterable, IO, List, TextIO,
                     Tuple, Union)
 import zipfile
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 UTF8 = "utf8"
 
@@ -249,7 +249,7 @@ def gen_files_from_zipfiles(
             for zipinfo in infolist:
                 if not fnmatch.fnmatch(zipinfo.filename, filespec):
                     continue
-                log.debug("Reading subfile {}".format(zipinfo.filename))
+                log.debug("Reading subfile {}", zipinfo.filename)
                 if on_disk:
                     with tempfile.TemporaryDirectory() as tmpdir:
                         zf.extract(zipinfo.filename, tmpdir)
@@ -373,8 +373,8 @@ def remove_gzip_timestamp(filename: str,
         with open(newzip, 'wb') as z:
             log.info(
                 "Removing gzip timestamp: "
-                "{} -> gunzip -c -> gzip -n -> {}".format(
-                    basezipfilename, newzip))
+                "{} -> gunzip -c -> gzip -n -> {}",
+                basezipfilename, newzip)
             p1 = subprocess.Popen([gunzip_executable, "-c", filename],
                                   stdout=subprocess.PIPE)
             p2 = subprocess.Popen([gzip_executable] + gzip_args,
@@ -396,8 +396,8 @@ def replace_in_file(filename: str, text_from: str, text_to: str) -> None:
         text_from: original text to replace
         text_to: replacement text
     """
-    log.info("Amending {}: {} -> {}".format(
-        filename, repr(text_from), repr(text_to)))
+    log.info("Amending {}: {} -> {}",
+             filename, repr(text_from), repr(text_to))
     with open(filename) as infile:
         contents = infile.read()
     contents = contents.replace(text_from, text_to)
@@ -417,8 +417,8 @@ def replace_multiple_in_file(filename: str,
     with open(filename) as infile:
         contents = infile.read()
     for text_from, text_to in replacements:
-        log.info("Amending {}: {} -> {}".format(
-            filename, repr(text_from), repr(text_to)))
+        log.info("Amending {}: {} -> {}",
+                 filename, repr(text_from), repr(text_to))
         contents = contents.replace(text_from, text_to)
     with open(filename, 'w') as outfile:
         outfile.write(contents)
@@ -441,13 +441,13 @@ def convert_line_endings(filename: str, to_unix: bool = False,
     windows_eol = b"\r\n"  # CR LF
     unix_eol = b"\n"  # LF
     if to_unix:
-        log.info("Converting from Windows to UNIX line endings: {!r}".format(
-            filename))
+        log.info("Converting from Windows to UNIX line endings: {!r}",
+                 filename)
         src = windows_eol
         dst = unix_eol
     else:  # to_windows
-        log.info("Converting from UNIX to Windows line endings: {!r}".format(
-            filename))
+        log.info("Converting from UNIX to Windows line endings: {!r}",
+                 filename)
         src = unix_eol
         dst = windows_eol
         if windows_eol in contents:
@@ -485,6 +485,6 @@ def add_line_if_absent(filename: str, line: str) -> None:
     """
     assert "\n" not in line
     if not is_line_in_file(filename, line):
-        log.info("Appending line {!r} to file {!r}".format(line, filename))
+        log.info("Appending line {!r} to file {!r}", line, filename)
         with open(filename, "a") as file:
             file.writelines([line])

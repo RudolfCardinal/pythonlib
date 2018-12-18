@@ -30,15 +30,15 @@ a text field (in ISO-8601 format).**
 
 import datetime
 import dateutil.parser
-import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from django.db import models
 from django.db.models.fields import DateField, DateTimeField, Field
 from django.utils import timezone
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
@@ -208,7 +208,7 @@ class IsoDateTimeTzField(models.CharField):
         Convert database value to Python value.
         Called when data is loaded from the database.
         """
-        # log.debug("from_db_value: {}, {}".format(value, type(value)))
+        # log.debug("from_db_value: {}, {}", value, type(value))
         if value is None:
             return value
         if value == '':
@@ -223,7 +223,7 @@ class IsoDateTimeTzField(models.CharField):
         Should raise ``ValidationError`` if problems.
         """
         # https://docs.djangoproject.com/en/1.8/howto/custom-model-fields/
-        # log.debug("to_python: {}, {}".format(value, type(value)))
+        # log.debug("to_python: {}, {}", value, type(value))
         if isinstance(value, datetime.datetime):
             return value
         if value is None:
@@ -240,7 +240,7 @@ class IsoDateTimeTzField(models.CharField):
         Calls to this function are followed by calls to ``get_db_prep_value()``,
         which is for backend-specific conversions.
         """
-        log.debug("get_prep_value: {}, {}".format(value, type(value)))
+        log.debug("get_prep_value: {}, {}", value, type(value))
         if not value:
             return ''
             # For underlying (database) string types, e.g. VARCHAR, this
@@ -255,12 +255,12 @@ class IsoDateTimeTzField(models.CharField):
         This follows ``get_prep_value()``, and is for backend-specific stuff.
         See notes above.
         """
-        log.debug("get_db_prep_value: {}, {}".format(value, type(value)))
+        log.debug("get_db_prep_value: {}, {}", value, type(value))
         value = super().get_db_prep_value(value, connection, prepared)
         if value is None:
             return value
-        # log.debug("connection.settings_dict['ENGINE']: {}".format(
-        #              connection.settings_dict['ENGINE']))
+        # log.debug("connection.settings_dict['ENGINE']: {}",
+        #           connection.settings_dict['ENGINE'])
         if connection.settings_dict['ENGINE'] == 'django.db.backends.sqlite3':
             return python_utc_datetime_to_sqlite_strftime_string(value)
         return value
@@ -270,7 +270,7 @@ class IsoDateTimeTzField(models.CharField):
         Convert Python value to database value for SAVING.
         We save with full timezone information.
         """
-        log.debug("get_db_prep_save: {}, {}".format(value, type(value)))
+        log.debug("get_db_prep_save: {}, {}", value, type(value))
         if not value:
             return ''
             # For underlying (database) string types, e.g. VARCHAR, this
