@@ -228,3 +228,8 @@ First started in 2009.
 - Bugfix to :meth:`cardinal_pythonlib.psychiatry.drugs.Drug.regex`; was using
   ``self._regex_text`` but should have been ``self.regex_text``.
   Also fixed example (was mis-importing).
+
+**1.0.41, 2018-12-17**
+
+- Improvements to :func:`cardinal_pythonlib.email.sendmail.send_email`.
+- Config file parsers report the section for missing/improper parameters.

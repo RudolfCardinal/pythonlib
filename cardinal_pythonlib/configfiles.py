@@ -191,8 +191,9 @@ def get_config_parameter(config: ConfigParser,
     try:
         value = fn(config.get(section, param))
     except (TypeError, ValueError, NoOptionError):
-        log.warning("Configuration variable {} not found or improper; "
-                    "using default of {}", param, default)
+        log.warning(
+            "Configuration variable {} not found or improper in section [{}]; "
+            "using default of {!r}", param, section, default)
         if default is None:
             value = default
         else:
@@ -218,8 +219,9 @@ def get_config_parameter_boolean(config: ConfigParser,
     try:
         value = config.getboolean(section, param)
     except (TypeError, ValueError, NoOptionError):
-        log.warning("Configuration variable {} not found or improper; "
-                    "using default of {}", param, default)
+        log.warning(
+            "Configuration variable {} not found or improper in section [{}]; "
+            "using default of {!r}", param, section, default)
         value = default
     return value
 
@@ -255,8 +257,9 @@ def get_config_parameter_loglevel(config: ConfigParser,
         else:
             raise ValueError
     except (TypeError, ValueError, NoOptionError, AttributeError):
-        log.warning("Configuration variable {} not found or improper; "
-                    "using default of {}", param, default)
+        log.warning(
+            "Configuration variable {} not found or improper in section [{}]; "
+            "using default of {!r}", param, section, default)
         return default
 
 
@@ -278,8 +281,10 @@ def get_config_parameter_multiline(config: ConfigParser,
     """
     try:
         multiline = config.get(section, param)
-        return [x.strip() for x in multiline.splitlines() if x.strip()]
+        lines = [x.strip() for x in multiline.splitlines()]
+        return [line for line in lines if line]
     except (TypeError, ValueError, NoOptionError):
-        log.warning("Configuration variable {} not found or improper; "
-                    "using default of {}", param, default)
+        log.warning(
+            "Configuration variable {} not found or improper in section [{}]; "
+            "using default of {!r}", param, section, default)
         return default

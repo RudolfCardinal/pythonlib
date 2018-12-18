@@ -38,91 +38,153 @@ import os
 import re
 import smtplib
 import sys
-from typing import Iterable, List, Tuple, Union
+from typing import List, Sequence, Tuple, Union
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
+
+# =============================================================================
+# Constants
+# =============================================================================
+
+CONTENT_TYPE_TEXT = "text/plain"
+CONTENT_TYPE_HTML = "text/html"
+
+COMMA = ","
+COMMASPACE = ", "
+COMMA_PROHIBITED_MSG = "Commas not allowed in e-mail addresses"
+FROM_SINGLE_EMAIL_MSG = (
+    "'From:' can only be a single address "
+    "(for Python sendmail, not RFC 2822)"
+)
+NO_RECIPIENTS_MSG = "No recipients (must have some of: To, Cc, Bcc)"
+SENDER_SINGLE_EMAIL_MSG = "'Sender:' can only be a single address"
 
 STANDARD_SMTP_PORT = 25
 STANDARD_TLS_PORT = 587
 
 
 # =============================================================================
-# Send e-mail
+# Make e-mail message
 # =============================================================================
 
-def send_email(sender: str,
-               recipient: Union[str, List[str]],
-               subject: str,
-               body: str,
-               host: str,
-               user: str,
-               password: str,
-               port: int = None,
-               use_tls: bool = True,
-               content_type: str = "text/plain",
-               attachment_filenames: Iterable[str] = None,
-               attachment_binaries: Iterable[bytes] = None,
-               attachment_binary_filenames: Iterable[str] = None,
+def make_email(from_addr: str,
+               date: str = None,
+               sender: str = "",
+               reply_to: Union[str, List[str]] = "",
+               to: Union[str, List[str]] = "",
+               cc: Union[str, List[str]] = "",
+               bcc: Union[str, List[str]] = "",
+               subject: str = "",
+               body: str = "",
+               content_type: str = CONTENT_TYPE_TEXT,
                charset: str = "utf8",
-               verbose: bool = False) -> Tuple[bool, str]:
+               attachment_filenames: Sequence[str] = None,
+               attachment_binaries: Sequence[bytes] = None,
+               attachment_binary_filenames: Sequence[str] = None,
+               verbose: bool = False) -> email.mime.multipart.MIMEMultipart:
     """
-    Sends an e-mail in text/html format using SMTP via TLS.
+    Makes an e-mail message.
 
     Args:
-        sender: name of the sender
-        recipient: e-mail address(es) of the recipients
+        from_addr: name of the sender for the "From:" field
+        date: e-mail date in RFC 2822 format, or ``None`` for "now"
+        sender: name of the sender for the "Sender:" field
+        reply_to: name of the sender for the "Reply-To:" field
+
+        to: e-mail address(es) of the recipients for "To:" field
+        cc: e-mail address(es) of the recipients for "Cc:" field
+        bcc: e-mail address(es) of the recipients for "Bcc:" field
+
         subject: e-mail subject
         body: e-mail body
-        host: mail server host
-        user: username on mail server
-        password: password for username on mail server
-        port: port to use, or ``None`` for protocol default
-        use_tls: use TLS, rather than plain SMTP?
-        content_type: MIME type for content, default ``text/plain``
+        content_type: MIME type for body content, default ``text/plain``
+        charset: character set for body; default ``utf8``
+
         attachment_filenames: filenames of attachments to add
         attachment_binaries: binary objects to add as attachments
         attachment_binary_filenames: filenames corresponding to
             ``attachment_binaries``
-        charset: character set, default ``utf8``
         verbose: be verbose?
 
     Returns:
-         tuple: ``(success, error_or_success_message)``
+        a :class:`email.mime.multipart.MIMEMultipart`
+
+    Raises:
+        :exc:`AssertionError`, :exc:`ValueError`
 
     """
-    # http://segfault.in/2010/12/sending-gmail-from-python/
-    # http://stackoverflow.com/questions/64505
-    # http://stackoverflow.com/questions/3362600
-    attachment_filenames = attachment_filenames or []
-    attachment_binaries = attachment_binaries or []
-    attachment_binary_filenames = attachment_binary_filenames or []
-    if port is None:
-        port = STANDARD_TLS_PORT if use_tls else STANDARD_SMTP_PORT
-    if content_type == "text/plain":
+    def _csv_list_to_list(x: str) -> List[str]:
+        return [e.strip() for e in x.split()]
+
+    # -------------------------------------------------------------------------
+    # Arguments
+    # -------------------------------------------------------------------------
+    if not date:
+        date = email.utils.formatdate(localtime=True)
+    assert isinstance(from_addr, str), FROM_SINGLE_EMAIL_MSG
+    assert COMMA not in from_addr, COMMA_PROHIBITED_MSG
+    assert isinstance(sender, str), SENDER_SINGLE_EMAIL_MSG
+    assert COMMA not in sender, COMMA_PROHIBITED_MSG
+    if isinstance(reply_to, str):
+        reply_to = [reply_to]
+    assert all(COMMA not in addr for addr in reply_to), COMMA_PROHIBITED_MSG
+    if isinstance(to, str):
+        to = _csv_list_to_list(to)
+    if isinstance(cc, str):
+        cc = _csv_list_to_list(cc)
+    if isinstance(bcc, str):
+        bcc = _csv_list_to_list(bcc)
+    assert to or cc or bcc, NO_RECIPIENTS_MSG
+    assert all(COMMA not in addr for addr in to), COMMA_PROHIBITED_MSG
+    assert all(COMMA not in addr for addr in cc), COMMA_PROHIBITED_MSG
+    assert all(COMMA not in addr for addr in bcc), COMMA_PROHIBITED_MSG
+    attachment_filenames = attachment_filenames or []  # type: List[str]
+    attachment_binaries = attachment_binaries or []  # type: List[bytes]
+    attachment_binary_filenames = attachment_binary_filenames or []  # type: List[str]  # noqa
+    assert len(attachment_binaries) == len(attachment_binary_filenames), (
+        "If you specify attachment_binaries or attachment_binary_filenames, "
+        "they must be iterables of the same length."
+    )
+
+    # -------------------------------------------------------------------------
+    # Make message
+    # -------------------------------------------------------------------------
+    msg = email.mime.multipart.MIMEMultipart()
+
+    # Headers: mandatory
+    msg["From"] = from_addr
+    msg["Date"] = date
+    msg["Subject"] = subject
+
+    # Headers: optional
+    if sender:
+        msg["Sender"] = sender  # Single only, not a list
+    if reply_to:
+        msg["Reply-To"] = COMMASPACE.join(reply_to)
+    if to:
+        msg["To"] = COMMASPACE.join(to)
+    if cc:
+        msg["Cc"] = COMMASPACE.join(to)
+    if bcc:
+        msg["Bcc"] = COMMASPACE.join(to)
+
+    # Body
+    if content_type == CONTENT_TYPE_TEXT:
         msgbody = email.mime.text.MIMEText(body, "plain", charset)
-    elif content_type == "text/html":
+    elif content_type == CONTENT_TYPE_HTML:
         msgbody = email.mime.text.MIMEText(body, "html", charset)
     else:
-        errmsg = "send_email: unknown content_type"
-        log.error(errmsg)
-        return False, errmsg
-
-    # Make message
-    msg = email.mime.multipart.MIMEMultipart()
-    msg["From"] = sender
-    if type(recipient) == list:
-        msg["To"] = ", ".join(recipient)
-    else:
-        msg["To"] = recipient
-    msg["Date"] = email.utils.formatdate(localtime=True)
-    msg["Subject"] = subject
+        raise ValueError("unknown content_type")
     msg.attach(msgbody)
 
     # Attachments
     # noinspection PyPep8,PyBroadException
     try:
-        if attachment_filenames is not None:
+        if attachment_filenames:
+            # -----------------------------------------------------------------
+            # Attach things by filename
+            # -----------------------------------------------------------------
             if verbose:
                 log.debug("attachment_filenames: {}".format(
                     attachment_filenames))
@@ -136,12 +198,10 @@ def send_email(sender: str,
                     'attachment; filename="%s"' % os.path.basename(f)
                 )
                 msg.attach(part)
-        if (attachment_binaries is not None and
-                attachment_binary_filenames is not None and
-                (
-                    len(attachment_binaries) ==
-                    len(attachment_binary_filenames)
-                )):
+        if attachment_binaries:
+            # -----------------------------------------------------------------
+            # Binary attachments, which have a notional filename
+            # -----------------------------------------------------------------
             if verbose:
                 log.debug("attachment_binary_filenames: {}".format(
                     attachment_binary_filenames))
@@ -155,46 +215,230 @@ def send_email(sender: str,
                     'Content-Disposition',
                     'attachment; filename="%s"' % filename)
                 msg.attach(part)
-    except:
-        errmsg = "send_email: Failed to attach files"
-        log.error(errmsg)
-        return False, errmsg
+    except Exception as e:
+        raise ValueError("send_email: Failed to attach files: {}".format(e))
 
+    return msg
+
+
+# =============================================================================
+# Send message
+# =============================================================================
+
+def send_msg(from_addr: str,
+             to_addrs: Union[str, List[str]],
+             host: str,
+             user: str,
+             password: str,
+             port: int = None,
+             use_tls: bool = True,
+             msg: email.mime.multipart.MIMEMultipart = None,
+             msg_string: str = None) -> None:
+    """
+    Sends a pre-built e-mail message.
+
+    Args:
+        from_addr: e-mail address for 'From:' field
+        to_addrs: address or list of addresses to transmit to
+
+        host: mail server host
+        user: username on mail server
+        password: password for username on mail server
+        port: port to use, or ``None`` for protocol default
+        use_tls: use TLS, rather than plain SMTP?
+
+        msg: a :class:`email.mime.multipart.MIMEMultipart`
+        msg_string: alternative: specify the message as a raw string
+
+    Raises:
+        :exc:`RuntimeError`
+
+    See also:
+
+    - https://tools.ietf.org/html/rfc3207
+
+    """
+    assert bool(msg) != bool(msg_string), "Specify either msg or msg_string"
     # Connect
     try:
         session = smtplib.SMTP(host, port)
-    except smtplib.SMTPException:
-        errmsg = "send_email: Failed to connect to host {}, port {}".format(
-            host, port)
-        log.error(errmsg)
-        return False, errmsg
+    except smtplib.SMTPException as e:
+        raise RuntimeError(
+            "send_msg: Failed to connect to host {}, port {}: {}".format(
+                host, port, e))
     try:
         session.ehlo()
-        session.starttls()
-        session.ehlo()
-    except smtplib.SMTPException:
-        errmsg = "send_email: Failed to initiate TLS"
-        log.error(errmsg)
-        return False, errmsg
+    except smtplib.SMTPException as e:
+        raise RuntimeError("send_msg: Failed to issue EHLO: {}".format(e))
+
+    if use_tls:
+        try:
+            session.starttls()
+            session.ehlo()
+        except smtplib.SMTPException as e:
+            raise RuntimeError(
+                "send_msg: Failed to initiate TLS: {}".format(e))
 
     # Log in
     try:
         session.login(user, password)
-    except smtplib.SMTPException:
-        errmsg = "send_email: Failed to login as user {}".format(user)
-        log.error(errmsg)
-        return False, errmsg
+    except smtplib.SMTPException as e:
+        raise RuntimeError("send_msg: Failed to login as user {}: {}".format(
+            user, e))
 
     # Send
     try:
-        session.sendmail(sender, recipient, msg.as_string())
+        session.sendmail(from_addr, to_addrs, msg.as_string())
     except smtplib.SMTPException as e:
-        errmsg = "send_email: Failed to send e-mail: exception: " + str(e)
-        log.error(errmsg)
-        return False, errmsg
+        raise RuntimeError("send_msg: Failed to send e-mail: {}".format(e))
 
     # Log out
     session.quit()
+
+
+# =============================================================================
+# Send e-mail
+# =============================================================================
+
+def send_email(from_addr: str,
+               host: str,
+               user: str,
+               password: str,
+               port: int = None,
+               use_tls: bool = True,
+               date: str = None,
+               sender: str = "",
+               reply_to: Union[str, List[str]] = "",
+               to: Union[str, List[str]] = "",
+               cc: Union[str, List[str]] = "",
+               bcc: Union[str, List[str]] = "",
+               subject: str = "",
+               body: str = "",
+               content_type: str = CONTENT_TYPE_TEXT,
+               charset: str = "utf8",
+               attachment_filenames: Sequence[str] = None,
+               attachment_binaries: Sequence[bytes] = None,
+               attachment_binary_filenames: Sequence[str] = None,
+               verbose: bool = False) -> Tuple[bool, str]:
+    """
+    Sends an e-mail in text/html format using SMTP via TLS.
+
+    Args:
+        host: mail server host
+        user: username on mail server
+        password: password for username on mail server
+        port: port to use, or ``None`` for protocol default
+        use_tls: use TLS, rather than plain SMTP?
+        
+        date: e-mail date in RFC 2822 format, or ``None`` for "now"
+        
+        from_addr: name of the sender for the "From:" field
+        sender: name of the sender for the "Sender:" field
+        reply_to: name of the sender for the "Reply-To:" field
+        
+        to: e-mail address(es) of the recipients for "To:" field
+        cc: e-mail address(es) of the recipients for "Cc:" field
+        bcc: e-mail address(es) of the recipients for "Bcc:" field
+        
+        subject: e-mail subject
+        body: e-mail body
+        content_type: MIME type for body content, default ``text/plain``
+        charset: character set for body; default ``utf8``
+        
+        attachment_filenames: filenames of attachments to add
+        attachment_binaries: binary objects to add as attachments
+        attachment_binary_filenames: filenames corresponding to
+            ``attachment_binaries``
+        verbose: be verbose?
+
+    Returns:
+         tuple: ``(success, error_or_success_message)``
+
+    See
+
+    - https://tools.ietf.org/html/rfc2822
+    - https://tools.ietf.org/html/rfc5322
+    - http://segfault.in/2010/12/sending-gmail-from-python/
+    - http://stackoverflow.com/questions/64505
+    - http://stackoverflow.com/questions/3362600
+
+    Re security:
+
+    - TLS supersedes SSL:
+      https://en.wikipedia.org/wiki/Transport_Layer_Security
+      
+    - https://en.wikipedia.org/wiki/Email_encryption
+    
+    - SMTP connections on ports 25 and 587 are commonly secured via TLS using
+      the ``STARTTLS`` command:
+      https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol
+      
+    - https://tools.ietf.org/html/rfc8314
+    
+    - "STARTTLS on port 587" is one common method. Django refers to this as
+      "explicit TLS" (its ``E_MAIL_USE_TLS`` setting; see
+      https://docs.djangoproject.com/en/2.1/ref/settings/#std:setting-EMAIL_USE_TLS).
+      
+    - Port 465 is also used for "implicit TLS" (3.3 in
+      https://tools.ietf.org/html/rfc8314). Django refers to this as "implicit
+      TLS" too, or SSL; see its ``EMAIL_USE_SSL`` setting at
+      https://docs.djangoproject.com/en/2.1/ref/settings/#email-use-ssl). We
+      don't support that here.
+
+    """  # noqa
+    if isinstance(to, str):
+        to = [to]
+    if isinstance(cc, str):
+        cc = [cc]
+    if isinstance(bcc, str):
+        bcc = [bcc]
+
+    # -------------------------------------------------------------------------
+    # Make it
+    # -------------------------------------------------------------------------
+    try:
+        msg = make_email(
+            from_addr=from_addr,
+            date=date,
+            sender=sender,
+            reply_to=reply_to,
+            to=to,
+            cc=cc,
+            bcc=bcc,
+            subject=subject,
+            body=body,
+            content_type=content_type,
+            charset=charset,
+            attachment_filenames=attachment_filenames,
+            attachment_binaries=attachment_binaries,
+            attachment_binary_filenames=attachment_binary_filenames,
+            verbose=verbose,
+        )
+    except (AssertionError, ValueError) as e:
+        errmsg = str(e)
+        log.error(errmsg)
+        return False, errmsg
+
+    # -------------------------------------------------------------------------
+    # Send it
+    # -------------------------------------------------------------------------
+
+    to_addrs = to + cc + bcc
+    try:
+        send_msg(
+            msg=msg,
+            from_addr=from_addr,
+            to_addrs=to_addrs,
+            host=host,
+            user=user,
+            password=password,
+            port=port,
+            use_tls=use_tls,
+        )
+    except RuntimeError as e:
+        errmsg = str(e)
+        log.error(e)
+        return False, errmsg
 
     return True, "Success"
 
@@ -257,13 +501,13 @@ def main() -> None:
                         help="Prints this help")
     args = parser.parse_args()
     (result, msg) = send_email(
-        args.sender,
-        args.recipient,
-        args.subject,
-        args.body,
-        args.host,
-        args.user,
-        args.password,
+        from_addr=args.sender,
+        to=args.recipient,
+        subject=args.subject,
+        body=args.body,
+        host=args.host,
+        user=args.user,
+        password=args.password,
         use_tls=args.tls,
         attachment_filenames=args.attach,
         verbose=args.verbose,
