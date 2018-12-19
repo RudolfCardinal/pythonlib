@@ -128,6 +128,40 @@ def pendulum_to_datetime(x: DateTime) -> datetime.datetime:
     )
 
 
+def pendulum_to_datetime_stripping_tz(x: DateTime) -> datetime.datetime:
+    """
+    Converts a Pendulum ``DateTime`` to a ``datetime.datetime`` that has had
+    timezone information stripped.
+    """
+    return datetime.datetime(
+        x.year, x.month, x.day,
+        x.hour, x.minute, x.second, x.microsecond,
+        tzinfo=None
+    )
+
+
+def pendulum_to_utc_datetime_without_tz(x: DateTime) -> datetime.datetime:
+    """
+    Converts a Pendulum ``DateTime`` (which will have timezone information) to
+    a ``datetime.datetime`` that (a) has no timezone information, and (b) is
+    in UTC.
+
+    Example:
+
+    .. code-block:: python
+
+        import pendulum
+        from cardinal_pythonlib.datetimefunc import *
+        in_moscow = pendulum.parse("2018-01-01T09:00+0300")  # 9am in Moscow
+        in_london = pendulum.UTC.convert(in_moscow)  # 6am in UTC
+        dt_utc_from_moscow = pendulum_to_utc_datetime_without_tz(in_moscow)  # 6am, no timezone info
+        dt_utc_from_london = pendulum_to_utc_datetime_without_tz(in_london)  # 6am, no timezone info
+
+    """  # noqa
+    pendulum_in_utc = pendulum.UTC.convert(x)
+    return pendulum_to_datetime_stripping_tz(pendulum_in_utc)
+
+
 def pendulum_date_to_datetime_date(x: Date) -> datetime.date:
     """
     Takes a :class:`pendulum.Date` and returns a :class:`datetime.date`.

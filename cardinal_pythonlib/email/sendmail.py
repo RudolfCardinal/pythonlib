@@ -54,13 +54,6 @@ CONTENT_TYPE_HTML = "text/html"
 
 COMMA = ","
 COMMASPACE = ", "
-COMMA_PROHIBITED_MSG = "Commas not allowed in e-mail addresses"
-FROM_SINGLE_EMAIL_MSG = (
-    "'From:' can only be a single address "
-    "(for Python sendmail, not RFC 2822)"
-)
-NO_RECIPIENTS_MSG = "No recipients (must have some of: To, Cc, Bcc)"
-SENDER_SINGLE_EMAIL_MSG = "'Sender:' can only be a single address"
 
 STANDARD_SMTP_PORT = 25
 STANDARD_TLS_PORT = 587
@@ -87,6 +80,10 @@ def make_email(from_addr: str,
                verbose: bool = False) -> email.mime.multipart.MIMEMultipart:
     """
     Makes an e-mail message.
+
+    Arguments that can be multiple e-mail addresses are (a) a single e-mail
+    address as a string, or (b) a list of strings (each a single e-mail
+    address), or (c) a comma-separated list of multiple e-mail addresses.
 
     Args:
         from_addr: name of the sender for the "From:" field
@@ -117,36 +114,56 @@ def make_email(from_addr: str,
 
     """
     def _csv_list_to_list(x: str) -> List[str]:
-        return [item.strip() for item in x.split()]
+        return [item.strip() for item in x.split(COMMA)]
+
+    def _assert_nocomma(x: Union[str, List[str]]) -> None:
+        if isinstance(x, str):
+            x = [x]
+        for _addr in x:
+            assert COMMA not in _addr, (
+                "Commas not allowed in e-mail addresses: {!r}".format(_addr)
+            )
 
     # -------------------------------------------------------------------------
     # Arguments
     # -------------------------------------------------------------------------
     if not date:
         date = email.utils.formatdate(localtime=True)
-    assert isinstance(from_addr, str), FROM_SINGLE_EMAIL_MSG
-    assert COMMA not in from_addr, COMMA_PROHIBITED_MSG
-    assert isinstance(sender, str), SENDER_SINGLE_EMAIL_MSG
-    assert COMMA not in sender, COMMA_PROHIBITED_MSG
+    assert isinstance(from_addr, str), (
+        "'From:' can only be a single address "
+        "(for Python sendmail, not RFC 2822); was {!r}".format(from_addr)
+    )
+    _assert_nocomma(from_addr)
+    assert isinstance(sender, str), (
+        "'Sender:' can only be a single address; was {!r}".format(sender)
+    )
+    _assert_nocomma(sender)
     if isinstance(reply_to, str):
         reply_to = [reply_to]
-    assert all(COMMA not in addr for addr in reply_to), COMMA_PROHIBITED_MSG
+    _assert_nocomma(reply_to)
     if isinstance(to, str):
         to = _csv_list_to_list(to)
     if isinstance(cc, str):
         cc = _csv_list_to_list(cc)
     if isinstance(bcc, str):
         bcc = _csv_list_to_list(bcc)
-    assert to or cc or bcc, NO_RECIPIENTS_MSG
-    assert all(COMMA not in addr for addr in to), COMMA_PROHIBITED_MSG
-    assert all(COMMA not in addr for addr in cc), COMMA_PROHIBITED_MSG
-    assert all(COMMA not in addr for addr in bcc), COMMA_PROHIBITED_MSG
+    assert to or cc or bcc, "No recipients (must have some of: To, Cc, Bcc)"
+    _assert_nocomma(to)
+    _assert_nocomma(cc)
+    _assert_nocomma(bcc)
     attachment_filenames = attachment_filenames or []  # type: List[str]
+    assert all(attachment_binary_filenames), (
+        "Missing attachment filenames: {!r}".format(attachment_filenames)
+    )
     attachment_binaries = attachment_binaries or []  # type: List[bytes]
     attachment_binary_filenames = attachment_binary_filenames or []  # type: List[str]  # noqa
     assert len(attachment_binaries) == len(attachment_binary_filenames), (
         "If you specify attachment_binaries or attachment_binary_filenames, "
         "they must be iterables of the same length."
+    )
+    assert all(attachment_binary_filenames), (
+        "Missing filenames for attached binaries: {!r}".format(
+            attachment_binary_filenames)
     )
 
     # -------------------------------------------------------------------------

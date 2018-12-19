@@ -232,6 +232,8 @@ First started in 2009.
 **1.0.41, 2018-12-17**
 
 - Improvements to :func:`cardinal_pythonlib.email.sendmail.send_email`.
+- New function
+  :func:`cardinal_pythonlib.datetimefunc.pendulum_to_utc_datetime_without_tz`.
 - Config file parsers report the section for missing/improper parameters.
 - More consistent use of brace-style deferred-processing logs internally, and
   :func:`cardinal_pythonlib.logs.get_brace_style_log_with_null_handler`.
