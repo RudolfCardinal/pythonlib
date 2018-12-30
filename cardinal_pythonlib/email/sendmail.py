@@ -114,7 +114,8 @@ def make_email(from_addr: str,
 
     """
     def _csv_list_to_list(x: str) -> List[str]:
-        return [item.strip() for item in x.split(COMMA)]
+        stripped = [item.strip() for item in x.split(COMMA)]
+        return [item for item in stripped if item]
 
     def _assert_nocomma(x: Union[str, List[str]]) -> None:
         if isinstance(x, str):
@@ -139,7 +140,7 @@ def make_email(from_addr: str,
     )
     _assert_nocomma(sender)
     if isinstance(reply_to, str):
-        reply_to = [reply_to]
+        reply_to = [reply_to] if reply_to else []  # type: List[str]
     _assert_nocomma(reply_to)
     if isinstance(to, str):
         to = _csv_list_to_list(to)
@@ -184,9 +185,9 @@ def make_email(from_addr: str,
     if to:
         msg["To"] = COMMASPACE.join(to)
     if cc:
-        msg["Cc"] = COMMASPACE.join(to)
+        msg["Cc"] = COMMASPACE.join(cc)
     if bcc:
-        msg["Bcc"] = COMMASPACE.join(to)
+        msg["Bcc"] = COMMASPACE.join(bcc)
 
     # Body
     if content_type == CONTENT_TYPE_TEXT:

@@ -255,6 +255,11 @@ import sys
 import traceback
 from typing import Any, List, TextIO, Type
 
+import arrow
+
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+from cardinal_pythonlib.process import kill_proc_tree
+
 try:
     from subprocess import CREATE_NEW_PROCESS_GROUP
     from signal import CTRL_C_EVENT
@@ -264,7 +269,6 @@ except ImportError:
     CTRL_C_EVENT = 0  # wincon.h
     CTRL_BREAK_EVENT = 1  # wincon.h
 
-import arrow
 try:
     # noinspection PyPackageRequirements
     import servicemanager  # part of pypiwin32
@@ -288,8 +292,6 @@ except ImportError:
         ServiceFramework = object  # duff thing for inheritance
     else:
         raise
-
-from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 log = get_brace_style_log_with_null_handler(__name__)
 
@@ -577,7 +579,67 @@ class ProcessManager(object):
         Returns:
             return code from ``TASKKILL``
 
-        """
+        **Test code:**
+
+        Firstly we need a program that won't let itself be killed. Save this as
+        ``nokill.py``:
+
+        .. code-block:: python
+
+            #!/usr/bin/env python
+
+            import logging
+            import time
+            import os
+            from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+            from cardinal_pythonlib.signalfunc import trap_ctrl_c_ctrl_break
+
+            main_only_quicksetup_rootlogger(level=logging.DEBUG)
+            trap_ctrl_c_ctrl_break()
+
+            while True:
+                print("Process ID is {}; time is {} s".format(os.getpid(), time.clock()))
+                time.sleep(1)
+
+        Now run that with ``python nokill.py``. It should resist CTRL-C and
+        CTRL-BREAK. Start another command prompt in which to play with
+        ``TASKKILL``.
+
+        .. code-block:: bat
+
+            REM Firstly, avoid this single-ampersand syntax:
+            REM     taskkill /im notepad.exe & echo %errorlevel%
+            REM ... as it prints the WRONG (previous?) errorlevel.
+
+            notepad.exe
+            taskkill /im notepad.exe
+            echo %errorlevel%
+            REM ... 0 for success (Windows 10), e.g.
+            REM 'SUCCESS: Sent termination signal to the process "notepad.exe" with PID 6988.'
+
+            taskkill /im notepad.exe
+            echo %errorlevel%
+            REM ... 128 for "not found" (Windows 10), e.g.
+            REM 'ERROR: The process "notepad.exe" not found.'
+
+            REM Now run notepad.exe as Administrator
+            taskkill /im notepad.exe & echo %errorlevel%
+            REM ... 1 for "access denied" (Windows 10)
+
+            REM Now kill the nokill.py process by its PID (e.g. 11892 here):
+            taskkill /pid 11892
+            echo %errorlevel%
+            REM ... 1 for "not allowed" (Windows 10), e.g.
+            REM 'ERROR: The process with PID 11892 could not be terminated.'
+            REM 'Reason: This process can only be terminated forcefully (with /F option).'
+
+            REM Now forcefully:
+            taskkill /pid 11892 /f
+            echo %errorlevel%
+            REM ... 0 for success (Windows 10), e.g.
+            REM 'SUCCESS: The process with PID 11892 has been terminated.'
+            
+        """  # noqa
         args = [
             "taskkill",  # built in to Windows XP and higher
             "/pid", str(self.process.pid),
@@ -589,10 +651,13 @@ class ProcessManager(object):
         retcode = subprocess.call(args)
         # http://stackoverflow.com/questions/18682681/what-are-exit-codes-from-the-taskkill-utility  # noqa
         if retcode == winerror.ERROR_SUCCESS:  # 0
-            # You also get errorlevel 0 (try: echo %ERRORLEVEL%) if a forceful
-            # kill is required but you didn't specify it. So we always specify
-            # a forceful kill, as above.
             self.info("Killed with " + repr(callname))
+        elif retcode == winerror.ERROR_INVALID_FUNCTION:  # 1
+            self.warning(
+                repr(callname) +
+                " failed (error code 1 = ERROR_INVALID_FUNCTION; "
+                "can mean 'Access denied', or 'This process can only be "
+                "terminated forcefully (with /F option)').")
         elif retcode == winerror.ERROR_WAIT_NO_CHILDREN:  # 128
             self.warning(
                 repr(callname) +
@@ -604,7 +669,7 @@ class ProcessManager(object):
             self.warning(
                 repr(callname) +
                 " failed (error code 255 = ERROR_EA_LIST_INCONSISTENT "
-                "= 'The extended attributes are inconsistent.'")
+                "= 'The extended attributes are inconsistent.')")
         else:
             self.warning(callname + " failed: error code {}".format(retcode))
         return retcode
@@ -612,16 +677,20 @@ class ProcessManager(object):
     def _kill(self) -> None:
         """
         Hard kill.
+        
+        - PROBLEM: originally, via ``self.process.kill()``, could leave orphans
+          under Windows.
+        - SOLUTION: see
+          https://stackoverflow.com/questions/1230669/subprocess-deleting-child-processes-in-windows,
+          which uses ``psutil``.
 
-        PROBLEM: may leave orphans under Windows.
-
-        """
-        msg = "Using a hard kill; will assume it worked"
-        if WINDOWS:
-            msg += "; may leave orphans"
-        self.warning(msg)
-        self.process.kill()  # hard kill, Windows or POSIX
-        # ... but will leave orphans under Windows
+        """  # noqa
+        self.warning("Using a recursive hard kill; will assume it worked")
+        pid = self.process.pid
+        gone, still_alive = kill_proc_tree(pid, including_parent=True,
+                                           timeout_s=self.kill_timeout_sec)
+        self.debug("Killed: {!r}".format(gone))
+        self.warning("Still alive: {!r}".format(still_alive))
 
     def wait(self, timeout_s: float = None) -> int:
         """

@@ -229,7 +229,7 @@ First started in 2009.
   ``self._regex_text`` but should have been ``self.regex_text``.
   Also fixed example (was mis-importing).
 
-**1.0.41, 2018-12-17**
+**1.0.41, 2018-12-17 to 2018-12-30**
 
 - Improvements to :func:`cardinal_pythonlib.email.sendmail.send_email`.
 - New function
@@ -238,3 +238,5 @@ First started in 2009.
 - More consistent use of brace-style deferred-processing logs internally, and
   :func:`cardinal_pythonlib.logs.get_brace_style_log_with_null_handler`.
 - Clean pass through PyCharm 2018.3 code inspector.
+- Improved "hard kill" function for Windows in
+  :meth:`cardinal_pythonlib.winservice.ProcessManager._kill`.

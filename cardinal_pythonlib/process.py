@@ -30,7 +30,9 @@ import shlex
 import subprocess
 import sys
 import traceback
-from typing import BinaryIO, List, Sequence
+from typing import BinaryIO, List, Sequence, Set, Tuple
+
+import psutil
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
@@ -132,3 +134,36 @@ def launch_external_file(filename: str, raise_if_fails: bool = False) -> None:
                      filename, str(e), traceback.format_exc())
         if raise_if_fails:
             raise
+
+
+# =============================================================================
+# Kill a process tree. Particularly useful for Windows, where a plain "kill()"
+# (via subprocess) can leave orphans.
+# =============================================================================
+
+def kill_proc_tree(pid: int,
+                   including_parent: bool = True,
+                   timeout_s: float = 5) \
+        -> Tuple[Set[psutil.Process], Set[psutil.Process]]:
+    """
+    Kills a tree of processes, starting with the parent. Slightly modified from
+    https://stackoverflow.com/questions/1230669/subprocess-deleting-child-processes-in-windows.
+    
+    Args:
+        pid: process ID of the parent
+        including_parent: kill the parent too?
+        timeout_s: timeout to wait for processes to close
+
+    Returns:
+        tuple: ``(gone, still_alive)``, where both are sets of
+        :class:`psutil.Process` objects
+
+    """  # noqa
+    parent = psutil.Process(pid)
+    to_kill = parent.children(recursive=True)  # type: List[psutil.Process]
+    if including_parent:
+        to_kill.append(parent)
+    for proc in to_kill:
+        proc.kill()  # SIGKILL
+    gone, still_alive = psutil.wait_procs(to_kill, timeout=timeout_s)
+    return gone, still_alive
