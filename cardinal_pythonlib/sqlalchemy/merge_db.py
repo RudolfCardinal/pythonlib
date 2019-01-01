@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2019 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -568,7 +568,26 @@ def merge_db(base_class: Type,
 
     - maintains relationships, or raises an error if it doesn't know how
 
-    This assumes that the tables exist.
+    Basic method:
+
+    - Examines the metadata for the SQLAlchemy ORM base class you provide.
+
+    - Assumes that the tables exist (in the destination).
+
+    - For each table/ORM class found in the metadata:
+
+      - Queries (via the ORM) from the source.
+
+      - For each ORM instance retrieved:
+
+        - Writes information to the destination SQLAlchemy session.
+
+        - If that ORM object has relationships, process them too.
+
+    If a table is missing in the source, then that's OK if and only if
+    ``allow_missing_src_tables`` is set. (Similarly with columns and
+    ``allow_missing_src_columns``; we ask the ORM to perform a partial load,
+    of a subset of attributes only.)
 
     Args:
         base_class:

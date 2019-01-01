@@ -1,6 +1,6 @@
 ..  cardinal_pythonlib/docs/source/changelog.rst
 
-..  Copyright © 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+..  Copyright (C) 2009-2019 Rudolf Cardinal (rudolf@pobox.com).
     .
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -240,3 +240,8 @@ First started in 2009.
 - Clean pass through PyCharm 2018.3 code inspector.
 - Improved "hard kill" function for Windows in
   :meth:`cardinal_pythonlib.winservice.ProcessManager._kill`.
+- :class:`cardinal_pythonlib.sqlalchemy.list_types.StringListType` no longer
+  writes trailing newlines. This is a back-compatible change.
+- Advice added to
+  :class:`cardinal_pythonlib.sqlalchemy.list_types.StringListType` about the
+  slightly unusual behaviour of lists written to the database.

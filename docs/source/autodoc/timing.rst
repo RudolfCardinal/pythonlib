@@ -1,7 +1,7 @@
 
 ..  cardinal_pythonlib/docs/source/autodoc/timing.rst
 
-..  Copyright © 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+..  Copyright (C) 2009-2019 Rudolf Cardinal (rudolf@pobox.com).
     .
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

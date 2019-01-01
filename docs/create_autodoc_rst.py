@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2019 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -42,7 +42,7 @@ AUTODOC_DIR = os.path.join(THIS_DIR, "source", "autodoc")
 AUTODOC_INDEX = os.path.join(AUTODOC_DIR, "_index.rst")
 
 COPYRIGHT_COMMENT = r"""
-..  Copyright © 2009-2018 Rudolf Cardinal (rudolf@pobox.com).
+..  Copyright (C) 2009-2019 Rudolf Cardinal (rudolf@pobox.com).
     .
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
