@@ -664,6 +664,10 @@ def get_list_of_sql_string_literals_from_quoted_csv(x: str) -> List[str]:
 def get_sqla_coltype_from_dialect_str(coltype: str,
                                       dialect: Dialect) -> TypeEngine:
     """
+    Returns an SQLAlchemy column type, given a column type name (a string) and
+    an SQLAlchemy dialect. For example, this might convert the string
+    ``INTEGER(11)`` to an SQLAlchemy ``Integer(length=11)``.
+
     Args:
         dialect: a SQLAlchemy :class:`Dialect` class
 
@@ -676,10 +680,10 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
 
     Example:
 
-        .. code-block:: python
+    .. code-block:: python
 
-            get_sqla_coltype_from_string('INTEGER(11)', engine.dialect)
-            # gives: Integer(length=11)
+        get_sqla_coltype_from_string('INTEGER(11)', engine.dialect)
+        # gives: Integer(length=11)
 
     Notes:
 

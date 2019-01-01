@@ -84,7 +84,7 @@ def make_autodoc(make: bool, destroy_first: bool) -> None:
         index_heading_underline_char="-",
         method=AutodocMethod.BEST,
         project_root_dir=PROJECT_ROOT_DIR,
-        python_package_root_dir=PYTHON_PACKAGE_ROOT_DIR,
+        python_package_root_dir=PROJECT_ROOT_DIR,
         recursive=True,
         rst_prefix=COPYRIGHT_COMMENT,
         source_filenames_or_globs=[
@@ -94,7 +94,7 @@ def make_autodoc(make: bool, destroy_first: bool) -> None:
         toctree_maxdepth=1,
     )
     top_idx.write_index_and_rst_files(overwrite=True, mock=not make)
-    print(top_idx.index_content())
+    # print(top_idx.index_content())
 
 
 def main() -> None:

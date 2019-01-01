@@ -245,3 +245,4 @@ First started in 2009.
 - Advice added to
   :class:`cardinal_pythonlib.sqlalchemy.list_types.StringListType` about the
   slightly unusual behaviour of lists written to the database.
+- Moved to the ``create_all_autodocs.py`` system.
