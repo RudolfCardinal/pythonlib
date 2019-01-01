@@ -31,7 +31,6 @@ import argparse
 import logging
 import os
 import sys
-from typing import List
 
 from cardinal_pythonlib.fileops import rmtree
 from cardinal_pythonlib.logs import (
@@ -48,7 +47,7 @@ log = BraceStyleAdapter(logging.getLogger(__name__))
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))  # .../docs
 PROJECT_ROOT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))  # .../
 PYTHON_PACKAGE_ROOT_DIR = os.path.join(PROJECT_ROOT_DIR, "cardinal_pythonlib")
-CODE_ROOT_DIR = PROJECT_ROOT_DIR
+CODE_ROOT_DIR = PYTHON_PACKAGE_ROOT_DIR
 AUTODOC_DIR = os.path.join(THIS_DIR, "source", "autodoc")
 INDEX_FILENAME = "_index.rst"
 TOP_AUTODOC_INDEX = os.path.join(AUTODOC_DIR, INDEX_FILENAME)
@@ -69,33 +68,6 @@ COPYRIGHT_COMMENT = r"""
     limitations under the License.
 """
 
-PYGMENTS_OVERRIDE = {
-    # map file extension to Pygments language name
-}
-
-
-def make_subindex(directory: str,
-                  skip_globs: List[str] = None,
-                  method: AutodocMethod = AutodocMethod.BEST) -> AutodocIndex:
-    return AutodocIndex(
-        index_filename=os.path.join(AUTODOC_DIR, directory, INDEX_FILENAME),
-        project_root_dir=PROJECT_ROOT_DIR,
-        python_package_root_dir=PYTHON_PACKAGE_ROOT_DIR,
-        autodoc_rst_root_dir=AUTODOC_DIR,
-        highest_code_dir=CODE_ROOT_DIR,
-        source_filenames_or_globs=[
-            os.path.join(CODE_ROOT_DIR, directory, "**/*.py"),
-        ],
-        rst_prefix=COPYRIGHT_COMMENT,
-        title=directory,  # path style, not module style
-        skip_globs=skip_globs,
-        # source_rst_title_style_python=False,
-        index_heading_underline_char="~",
-        source_rst_heading_underline_char="^",
-        method=method,
-        pygments_language_override=PYGMENTS_OVERRIDE
-    )
-
 
 def make_autodoc(make: bool, destroy_first: bool) -> None:
     if destroy_first:
@@ -106,24 +78,23 @@ def make_autodoc(make: bool, destroy_first: bool) -> None:
             log.warning("Would delete directory {!r} (not doing so as in mock "
                         "mode)", AUTODOC_DIR)
     top_idx = AutodocIndex(
-        index_filename=TOP_AUTODOC_INDEX,
-        project_root_dir=PROJECT_ROOT_DIR,
-        python_package_root_dir=PYTHON_PACKAGE_ROOT_DIR,
         autodoc_rst_root_dir=AUTODOC_DIR,
         highest_code_dir=CODE_ROOT_DIR,
-        toctree_maxdepth=1,
-        rst_prefix=COPYRIGHT_COMMENT,
+        index_filename=TOP_AUTODOC_INDEX,
         index_heading_underline_char="-",
+        method=AutodocMethod.BEST,
+        project_root_dir=PROJECT_ROOT_DIR,
+        python_package_root_dir=PYTHON_PACKAGE_ROOT_DIR,
+        recursive=True,
+        rst_prefix=COPYRIGHT_COMMENT,
+        source_filenames_or_globs=[
+            os.path.join(CODE_ROOT_DIR, "**/*.py"),
+        ],
         source_rst_heading_underline_char="~",
-        pygments_language_override=PYGMENTS_OVERRIDE
+        toctree_maxdepth=1,
     )
-    top_idx.add_indexes([
-        make_subindex("tablet_qt",
-                      method=AutodocMethod.CONTENTS),
-        make_subindex(os.path.join("server", "camcops_server")),
-    ])
     top_idx.write_index_and_rst_files(overwrite=True, mock=not make)
-    # print(top_idx.index_content())
+    print(top_idx.index_content())
 
 
 def main() -> None:
