@@ -247,7 +247,9 @@ First started in 2009.
   slightly unusual behaviour of lists written to the database.
 - Moved to the ``create_all_autodocs.py`` system.
 
-**1.0.42**
+**1.0.42 to 1.0.45, 2019-01-04**
 
 - Minor fix: ``__init__.py`` missing from ``cardinal_pythonlib/email``;
   required for Python 3.5.
+- Some bugfixes to ``sendmail.py`` for e-mail servers not supporting login
+  (!).

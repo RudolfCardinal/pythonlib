@@ -153,7 +153,7 @@ def make_email(from_addr: str,
     _assert_nocomma(cc)
     _assert_nocomma(bcc)
     attachment_filenames = attachment_filenames or []  # type: List[str]
-    assert all(attachment_binary_filenames), (
+    assert all(attachment_filenames), (
         "Missing attachment filenames: {!r}".format(attachment_filenames)
     )
     attachment_binaries = attachment_binaries or []  # type: List[bytes]
@@ -299,11 +299,15 @@ def send_msg(from_addr: str,
                 "send_msg: Failed to initiate TLS: {}".format(e))
 
     # Log in
-    try:
-        session.login(user, password)
-    except smtplib.SMTPException as e:
-        raise RuntimeError("send_msg: Failed to login as user {}: {}".format(
-            user, e))
+    if user:
+        try:
+            session.login(user, password)
+        except smtplib.SMTPException as e:
+            raise RuntimeError(
+                "send_msg: Failed to login as user {}: {}".format(user, e))
+    else:
+        log.debug("Not using SMTP AUTH; no user specified")
+        # For systems with... lax... security requirements
 
     # Send
     try:
@@ -435,7 +439,7 @@ def send_email(from_addr: str,
         )
     except (AssertionError, ValueError) as e:
         errmsg = str(e)
-        log.error(errmsg)
+        log.error("{}", errmsg)
         return False, errmsg
 
     # -------------------------------------------------------------------------
@@ -456,7 +460,7 @@ def send_email(from_addr: str,
         )
     except RuntimeError as e:
         errmsg = str(e)
-        log.error(e)
+        log.error("{}", e)
         return False, errmsg
 
     return True, "Success"
@@ -466,7 +470,7 @@ def send_email(from_addr: str,
 # Misc
 # =============================================================================
 
-_SIMPLE_EMAIL_REGEX = re.compile("[^@]+@[^@]+\.[^@]+")
+_SIMPLE_EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
 
 
 def is_email_valid(email_: str) -> bool:
