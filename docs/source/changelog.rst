@@ -253,3 +253,10 @@ First started in 2009.
   required for Python 3.5.
 - Some bugfixes to ``sendmail.py`` for e-mail servers not supporting login
   (!).
+
+**1.0.46, 2019-01-19**
+
+- Option to :func:`cardinal_pythonlib.buildfunc.untar_to_directory` to perform
+  the change of directory via Python, not via ``tar`` -- because Cygwin ``tar``
+  v1.29 falls over when given a Windows path for its ``-C`` (or
+  ``--directory``) option.

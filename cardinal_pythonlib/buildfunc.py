@@ -33,7 +33,7 @@ import subprocess
 import sys
 from typing import Any, Callable, Dict, List, TextIO, Tuple
 
-from cardinal_pythonlib.fileops import mkdir_p, require_executable
+from cardinal_pythonlib.fileops import mkdir_p, pushd, require_executable
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.network import download
 from cardinal_pythonlib.tee import teed_call
@@ -133,11 +133,13 @@ def git_clone(prettyname: str, url: str, directory: str,
 # tar functions
 # =============================================================================
 
-def untar_to_directory(tarfile: str, directory: str,
+def untar_to_directory(tarfile: str,
+                       directory: str,
                        verbose: bool = False,
                        gzipped: bool = False,
                        skip_if_dir_exists: bool = True,
-                       run_func: Callable[[List[str]], Any] = None) -> None:
+                       run_func: Callable[[List[str]], Any] = None,
+                       chdir_via_python: bool = True) -> None:
     """
     Unpacks a TAR file into a specified directory.
 
@@ -149,6 +151,10 @@ def untar_to_directory(tarfile: str, directory: str,
         skip_if_dir_exists: don't do anything if the destrination directory
             exists?
         run_func: function to use to call an external command
+        chdir_via_python: change directory via Python, not via ``tar``.
+            Consider using this via Windows, because Cygwin ``tar`` v1.29 falls
+            over when given a Windows path for its ``-C`` (or ``--directory``)
+            option.
     """
     if skip_if_dir_exists and os.path.isdir(directory):
         log.info("Skipping extraction of {} as directory {} exists",
@@ -165,8 +171,13 @@ def untar_to_directory(tarfile: str, directory: str,
     if platform.system() != "Darwin":  # OS/X tar doesn't support --force-local
         args.append("--force-local")  # allows filenames with colons in (Windows!)  # noqa
     args.extend(["-f", tarfile])  # -f: filename follows
-    args.extend(["-C", directory])  # -C: change to directory
-    run_func(args)
+    if chdir_via_python:
+        with pushd(directory):
+            run_func(args)
+    else:
+        # chdir via tar
+        args.extend(["-C", directory])  # -C: change to directory
+        run_func(args)
 
 
 # =============================================================================
