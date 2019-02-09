@@ -260,3 +260,10 @@ First started in 2009.
   the change of directory via Python, not via ``tar`` -- because Cygwin ``tar``
   v1.29 falls over when given a Windows path for its ``-C`` (or
   ``--directory``) option.
+
+**1.0.47, 2019-02-09**
+
+- :func:`cardinal_pythonlib.extract_text.document_to_text` raises
+  :exc:`ValueError` if a filename is passed and the file dosn't exist (or isn't
+  a file). This is better than relying on the slightly less predictable
+  behaviour of the various external tools.

@@ -1247,6 +1247,11 @@ def document_to_text(filename: str = None,
             len(blob) if blob is not None else None,
             extension))
 
+    # If we were given a filename and the file doesn't exist, don't bother.
+    if filename and not os.path.isfile(filename):
+        raise ValueError("document_to_text: no such file: {!r}".format(
+            filename))
+
     # Choose method
     info = ext_map.get(extension)
     if info is None:
