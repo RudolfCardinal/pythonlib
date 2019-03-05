@@ -267,3 +267,8 @@ First started in 2009.
   :exc:`ValueError` if a filename is passed and the file dosn't exist (or isn't
   a file). This is better than relying on the slightly less predictable
   behaviour of the various external tools.
+
+**1.0.48, 2019-03-05** IN PROGRESS
+
+- Optional `joiner` parameter to formatting functions in ``reprfunc.py``;
+  extra options to :func:`cardinal_pythonlib.reprfunc.auto_str`.

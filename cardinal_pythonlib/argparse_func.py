@@ -36,7 +36,7 @@ from argparse import (
     Namespace,
     RawDescriptionHelpFormatter,
 )
-from typing import Any, List
+from typing import Any, Dict, List, Type
 
 
 # =============================================================================
@@ -146,6 +146,20 @@ def positive_int(value: str) -> int:
     return ivalue
 
 
+def nonnegative_int(value: str) -> int:
+    """
+    ``argparse`` argument type that checks that its value is a non-negative
+    integer.
+    """
+    try:
+        ivalue = int(value)
+        assert ivalue >= 0
+    except (AssertionError, TypeError, ValueError):
+        raise ArgumentTypeError(
+            "{!r} is an invalid non-negative int".format(value))
+    return ivalue
+
+
 def percentage(value: str) -> float:
     """
     ``argparse`` argument type that checks that its value is a percentage (in
@@ -158,3 +172,57 @@ def percentage(value: str) -> float:
         raise ArgumentTypeError(
             "{!r} is an invalid percentage value".format(value))
     return fvalue
+
+
+class MapType(object):
+    """
+    ``argparse`` type maker that maps strings to a dictionary (map).
+    """
+
+    def __init__(self,
+                 map_separator: str = ":",
+                 pair_separator: str = ",",
+                 strip: bool = True,
+                 from_type: Type = str,
+                 to_type: Type = str) -> None:
+        """
+        Args:
+            map_separator:
+                string that separates the "from" and "to" members of a pair
+            pair_separator:
+                string that separates different pairs
+            strip:
+                strip whitespace after splitting?
+            from_type:
+                type to coerce "from" values to; e.g. ``str``, ``int``
+            to_type:
+                type to coerce "to" values to; e.g. ``str``, ``int``
+        """
+        self.map_separator = map_separator
+        self.pair_separator = pair_separator
+        self.strip = strip
+        self.from_type = from_type
+        self.to_type = to_type
+
+    def __call__(self, value: str) -> Dict:
+        result = {}
+        pairs = value.split(self.pair_separator)
+        for pair in pairs:
+            from_str, to_str = pair.split(self.map_separator)
+            if self.strip:
+                from_str = from_str.strip()
+                to_str = to_str.strip()
+            try:
+                from_val = self.from_type(from_str)
+            except (TypeError, ValueError):
+                raise ArgumentTypeError(
+                    "{!r} cannot be converted to type {!r}".format(
+                        from_str, self.from_type))
+            try:
+                to_val = self.to_type(to_str)
+            except (TypeError, ValueError):
+                raise ArgumentTypeError(
+                    "{!r} cannot be converted to type {!r}".format(
+                        to_str, self.to_type))
+            result[from_val] = to_val
+        return result
