@@ -500,6 +500,7 @@ class AutodocIndex(object):
                  index_heading_underline_char: str = "-",
                  source_rst_heading_underline_char: str = "~",
                  title: str = DEFAULT_INDEX_TITLE,
+                 introductory_rst: str = "",
                  recursive: bool = True,
                  skip_globs: List[str] = None,
                  toctree_maxdepth: int = 1,
@@ -510,50 +511,82 @@ class AutodocIndex(object):
                  pygments_language_override: Dict[str, str] = None) -> None:
         """
         Args:
-            index_filename: filename of the index ``.RST`` (ReStructured Text)
-                file to create
-            project_root_dir: top-level directory for the whole project
-            autodoc_rst_root_dir: directory within which all automatically
-                generated ``.RST`` files (each to document a specific source
-                file) will be placed. A directory hierarchy within this
-                directory will be created, reflecting the structure of the
-                code relative to ``highest_code_dir`` (q.v.).
-            highest_code_dir: the "lowest" directory such that all code is
-                found within it; the directory structure within
-                ``autodoc_rst_root_dir`` is to ``.RST`` files what the
-                directory structure is of the source files, relative to
-                ``highest_code_dir``.
-            python_package_root_dir: if your Python modules live in a directory
-                other than ``project_root_dir``, specify it here
-            source_filenames_or_globs: optional string, or list of strings,
-                each describing a file or glob-style file specification; these
-                are the source filenames to create automatic RST` for. If you
-                don't specify them here, you can use :func:`add_source_files`.
-                To add sub-indexes, use :func:`add_index` and
-                :func:`add_indexes`.
-            index_heading_underline_char: the character used to underline the
-                title in the index file
-            source_rst_heading_underline_char: the character used to underline
-                the heading in each of the source files
-            title: title for the index
-            recursive: use :func:`glob.glob` in recursive mode?
-            skip_globs: list of file names or file specifications to skip; e.g.
+            index_filename:
+                filename of the index ``.RST`` (ReStructured Text) file to
+                create
+
+            project_root_dir:
+                top-level directory for the whole project
+
+            autodoc_rst_root_dir:
+                directory within which all automatically generated ``.RST``
+                files (each to document a specific source file) will be placed.
+                A directory hierarchy within this directory will be created,
+                reflecting the structure of the code relative to
+                ``highest_code_dir`` (q.v.).
+
+            highest_code_dir:
+                the "lowest" directory such that all code is found within it;
+                the directory structure within ``autodoc_rst_root_dir`` is to
+                ``.RST`` files what the directory structure is of the source
+                files, relative to ``highest_code_dir``.
+
+            python_package_root_dir:
+                if your Python modules live in a directory other than
+                ``project_root_dir``, specify it here
+
+            source_filenames_or_globs:
+                optional string, or list of strings, each describing a file or
+                glob-style file specification; these are the source filenames
+                to create automatic RST` for. If you don't specify them here,
+                you can use :func:`add_source_files`. To add sub-indexes, use
+                :func:`add_index` and :func:`add_indexes`.
+
+            index_heading_underline_char:
+                the character used to underline the title in the index file
+
+            source_rst_heading_underline_char:
+                the character used to underline the heading in each of the
+                source files
+
+            title:
+                title for the index
+
+            introductory_rst:
+                extra RST for the index, which goes between the title and the
+                table of contents
+
+            recursive:
+                use :func:`glob.glob` in recursive mode?
+
+            skip_globs:
+                list of file names or file specifications to skip; e.g.
                 ``['__init__.py']``
-            toctree_maxdepth: ``maxdepth`` parameter for the ``toctree``
-                command generated in the index file
-            method: see :class:`FileToAutodocument`
-            rst_prefix: optional RST content (e.g. copyright comment) to put
-                early on in each of the RST files
-            rst_suffix: optional RST content to put late on in each of the RST
-                files
-            source_rst_title_style_python: make the individual RST files use
-                titles in the style of Python modules, ``x.y.z``, rather than
-                path style (``x/y/z``); path style will be used for non-Python
-                files in any case.
-            pygments_language_override: if specified, a dictionary mapping
-                file extensions to Pygments languages (for example: a ``.pro``
-                file will be autodetected as Prolog, but you might want to
-                map that to ``none`` for Qt project files).
+
+            toctree_maxdepth:
+                ``maxdepth`` parameter for the ``toctree`` command generated in
+                the index file
+
+            method:
+                see :class:`FileToAutodocument`
+
+            rst_prefix:
+                optional RST content (e.g. copyright comment) to put early on
+                in each of the RST files
+
+            rst_suffix:
+                optional RST content to put late on in each of the RST files
+
+            source_rst_title_style_python:
+                make the individual RST files use titles in the style of Python
+                modules, ``x.y.z``, rather than path style (``x/y/z``); path
+                style will be used for non-Python files in any case.
+
+            pygments_language_override:
+                if specified, a dictionary mapping file extensions to Pygments
+                languages (for example: a ``.pro`` file will be autodetected as
+                Prolog, but you might want to map that to ``none`` for Qt
+                project files).
 
         """
         assert index_filename
@@ -564,6 +597,7 @@ class AutodocIndex(object):
 
         self.index_filename = abspath(expanduser(index_filename))
         self.title = title
+        self.introductory_rst = introductory_rst
         self.project_root_dir = abspath(expanduser(project_root_dir))
         self.autodoc_rst_root_dir = abspath(expanduser(autodoc_rst_root_dir))
         self.highest_code_dir = abspath(expanduser(highest_code_dir))
@@ -840,7 +874,7 @@ class AutodocIndex(object):
         # Build the toctree command
         index_filename = self.index_filename
         spacer = "    "
-        instruction_lines = [
+        toctree_lines = [
             "..  toctree::",
             spacer + ":maxdepth: {}".format(self.toctree_maxdepth),
             ""
@@ -856,8 +890,8 @@ class AutodocIndex(object):
             else:
                 fail("Unknown thing in files_to_index: {!r}".format(f))
                 rst_filename = ""  # won't get here; for the type checker
-            instruction_lines.append(rst_filename)
-        instruction = "\n".join(instruction_lines)
+            toctree_lines.append(rst_filename)
+        toctree = "\n".join(toctree_lines)
 
         # Create the whole file
         content = """
@@ -869,7 +903,9 @@ class AutodocIndex(object):
 
 {underlined_title}
 
-{instruction}
+{introductory_rst}
+
+{toctree}
 
 {suffix}
                 """.format(
@@ -878,7 +914,8 @@ class AutodocIndex(object):
             prefix=self.rst_prefix,
             underlined_title=rst_underline(
                 self.title, underline_char=self.index_heading_underline_char),
-            instruction=instruction,
+            introductory_rst=self.introductory_rst,
+            toctree=toctree,
             suffix=self.rst_suffix,
         ).strip() + "\n"
         return content

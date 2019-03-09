@@ -272,3 +272,5 @@ First started in 2009.
 
 - Optional `joiner` parameter to formatting functions in ``reprfunc.py``;
   extra options to :func:`cardinal_pythonlib.reprfunc.auto_str`.
+
+- Additional tweaks to :class:`cardinal_pythonlib.sphinxtools.AutodocIndex`.
