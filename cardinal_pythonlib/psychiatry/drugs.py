@@ -209,6 +209,11 @@ Test within R:
     alldrugs = all_drugs_where()
     alldrug_sql_parts = [drug.sql_column_like_drug(colname) for drug in alldrugs]
     alldrug_sql = " OR ".join(alldrug_sql_parts)
+    
+    lithium = get_drug("lithium")
+    lithium_sql = lithium.sql_column_like_drug(colname)
+    # HOWEVER, NOTE THAT LITHIUM IS CURRENTLY OVER-INCLUSIVE and will include
+    # lithium chloride for LiDCO measurement.
 
 """  # noqa
 

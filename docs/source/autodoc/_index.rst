@@ -21,6 +21,8 @@
 Automatic documentation of source code
 --------------------------------------
 
+
+
 ..  toctree::
     :maxdepth: 1
 
@@ -147,4 +149,5 @@ Automatic documentation of source code
     wsgi/cache_mw.py.rst
     wsgi/constants.py.rst
     wsgi/errorreporter_mw.py.rst
+    wsgi/request_logging_mw.py.rst
     wsgi/reverse_proxied_mw.py.rst
