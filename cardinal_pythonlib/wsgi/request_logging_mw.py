@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-**WSGI middleware to produce tracebacks upon error.**
+**WSGI middleware to log incoming request/response details.**
 
 """
 
@@ -51,8 +51,6 @@ class RequestLoggingMiddleware(object):
     """
     WSGI middleware to log incoming request details (+/- the response status
     code and timing information).
-
-    .. todo:: move to cardinal_pythonlib
     """
     def __init__(self, app: TYPE_WSGI_APP,
                  logger: logging.Logger = log,
