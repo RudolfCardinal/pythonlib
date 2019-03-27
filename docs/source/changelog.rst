@@ -268,9 +268,14 @@ First started in 2009.
   a file). This is better than relying on the slightly less predictable
   behaviour of the various external tools.
 
-**1.0.48, 2019-03-05** IN PROGRESS
+**1.0.48 to 1.0.49, 2019-03-24**
 
 - Optional `joiner` parameter to formatting functions in ``reprfunc.py``;
   extra options to :func:`cardinal_pythonlib.reprfunc.auto_str`.
 
 - Additional tweaks to :class:`cardinal_pythonlib.sphinxtools.AutodocIndex`.
+
+**1.0.50** IN PROGRESS
+
+- "Change directory" option to
+  :func:`cardinal_pythonlib.tools.backup_mysql_database.main`.

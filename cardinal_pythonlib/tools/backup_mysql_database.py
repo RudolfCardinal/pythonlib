@@ -119,9 +119,16 @@ def main() -> None:
         "--with_drop_create_database", action="store_true",
         help="Include DROP DATABASE and CREATE DATABASE commands")
     parser.add_argument(
+        "--output_dir", type=str,
+        help="Output directory (if not specified, current directory will be "
+             "used)")
+    parser.add_argument(
         "--verbose", action="store_true",
         help="Verbose output")
     args = parser.parse_args()
+
+    output_dir = args.output_dir or os.getcwd()
+    os.chdir(output_dir)
 
     password = args.password or getpass.getpass(
         prompt="MySQL password for user {}: ".format(args.username))
