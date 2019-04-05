@@ -123,6 +123,28 @@ The result should be:
 
 .. code-block:: none
 
+    > print(testdata_drug_events)
+
+       patient_id drug_event_datetime
+    1:      Alice          2018-01-05
+    2:      Alice          2018-01-20
+    3:      Alice          2018-04-01
+    4:        Bob          2018-06-05
+    5:        Bob          2018-08-20
+    6:        Bob          2018-10-01
+
+    > print(testdata_query_times)
+
+       patient_id      start       when
+    1:      Alice 2017-01-01 2018-01-01
+    2:      Alice 2017-01-01 2018-01-10
+    3:      Alice 2017-01-01 2018-02-01
+    4:        Bob 2015-01-01 2018-01-01
+    5:        Bob 2015-01-01 2018-09-10
+    6:        Bob 2015-01-01 2019-02-01
+
+    > print(testresult)
+
        patient_id      start          t before_days during_days after_days
     1:      Alice 2017-01-01 2018-01-01         365           0          0
     2:      Alice 2017-01-01 2018-01-10         369           3          2
