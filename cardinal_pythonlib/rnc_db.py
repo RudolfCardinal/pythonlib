@@ -228,7 +228,7 @@ log.warning("The cardinal_pythonlib.rnc_db module is DEPRECATED; "
 # Constants
 # =============================================================================
 
-_QUERY_VALUE_REGEX = re.compile("\?", re.MULTILINE)
+_QUERY_VALUE_REGEX = re.compile(r"\?", re.MULTILINE)
 _PERCENT_REGEX = re.compile("%", re.MULTILINE)
 _CONNECTION_ERROR_MSG = "Failed to connect. {ex}: {msg}"
 _LINE_EQUALS = "=" * 79
@@ -1430,7 +1430,7 @@ def add_master_user_mysql(database: str,
                           root_password: str,
                           new_user: str,
                           new_password: str,
-                          server: str= "localhost",
+                          server: str = "localhost",
                           port: int = 3306,
                           charset: str = "utf8",
                           use_unicode: bool = True,
@@ -1970,9 +1970,9 @@ class DatabaseSupporter:
                                        database: str,
                                        user: str,
                                        password: str,
-                                       server: str= "localhost",
+                                       server: str = "localhost",
                                        port: int = 3306,
-                                       driver: str ="{MySQL ODBC 5.1 Driver}",
+                                       driver: str = "{MySQL ODBC 5.1 Driver}",
                                        autocommit: bool = True) -> None:
         """Connects to a MySQL database via ODBC."""
         self.connect(engine=ENGINE_MYSQL, interface=INTERFACE_ODBC,

@@ -176,8 +176,8 @@ def two_antidepressant_episodes_single_patient(
         date_colname: str = DEFAULT_SOURCE_DATE_COLNAME,
         course_length_days: int = DEFAULT_ANTIDEPRESSANT_COURSE_LENGTH_DAYS,
         expect_response_by_days: int = DEFAULT_EXPECT_RESPONSE_BY_DAYS,
-        symptom_assessment_time_days: int =
-        DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS) -> Optional[DataFrame]:
+        symptom_assessment_time_days: int = DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,  # noqa
+        first_episode_only: bool = True) -> Optional[DataFrame]:
     """
     Processes a single patient for ``two_antidepressant_episodes()`` (q.v.).
 
@@ -185,6 +185,7 @@ def two_antidepressant_episodes_single_patient(
     """
     log.debug("Running two_antidepressant_episodes_single_patient() for "
               "patient {!r}".format(patient_id))
+    all_episodes_for_patient = _get_blank_two_antidep_episodes_result()
     flush_stdout_stderr()
     # Get column details from source data
     sourcecolnum_drug = patient_drug_date_df.columns.get_loc(drug_colname)
@@ -215,9 +216,13 @@ def two_antidepressant_episodes_single_patient(
     # -------------------------------------------------------------------------
     # Get antidepressants, in the order they appear
     # -------------------------------------------------------------------------
-    for first_b_rownum in range(2, nrows_all):
+    for first_b_rownum in range(1, nrows_all):
         # ... skip rows 0 and 1, because a drug can't be the second (B) drug
         #     unless there are two mentions of A beforehand.
+        # ... modified 2019-04-01 from range(2, nrows_all) to
+        #     range(1, nrows_all) because we now support A ending on the same
+        #     day that B starts (so first possible "first B" row is the second
+        #     row, row 1)
         # ---------------------------------------------------------------------
         # Check candidate B drug
         # ---------------------------------------------------------------------
@@ -253,8 +258,13 @@ def two_antidepressant_episodes_single_patient(
         preceding_other_antidepressants = tp[
             (tp[drug_colname] != antidepressant_b_name) &
             # ... A is a different drug to B
-            (tp[date_colname] < antidepressant_b_first_mention)
-            # ... A is mentioned before B starts
+
+            # Changed 2019-04-01: WAS THIS:
+            #     (tp[date_colname] < antidepressant_b_first_mention)
+            #     # ... A is mentioned before B starts
+            # CHANGED TO THIS:
+            (tp[date_colname] <= antidepressant_b_first_mention)
+            # ... A is mentioned before B starts or on the same day
         ]
         nrows_a = len(preceding_other_antidepressants)
         if nrows_a < 2:  # need at least two mentions of A
@@ -266,7 +276,8 @@ def two_antidepressant_episodes_single_patient(
         antidepressant_a_first_mention = NaN
         antidepressant_a_second_mention = NaN
         for first_a_rownum in range(nrows_a - 1):
-            # skip the last row, as that's impossible
+            # skip the last row, as that's impossible (the first mention of
+            # A cannot be the last row since there must be two mentions of A)
             antidepressant_a_name = tp.iat[first_a_rownum, sourcecolnum_drug]
             antidepressant_a_first_mention = tp.iat[first_a_rownum,
                                                     sourcecolnum_date]
@@ -274,7 +285,12 @@ def two_antidepressant_episodes_single_patient(
                 antidepressant_a_first_mention +
                 timedelta_days(course_length_days - 1)
             )
-            if (earliest_possible_a_second_mention >=
+
+            # 2019-04-01: CHANGED FROM:
+            #     if (earliest_possible_a_second_mention >=
+            #             antidepressant_b_first_mention):
+            # TO:
+            if (earliest_possible_a_second_mention >
                     antidepressant_b_first_mention):
                 # Impossible to squeeze in the second A mention before B.
                 # Logically unnecessary test, but improves efficiency by
@@ -297,7 +313,11 @@ def two_antidepressant_episodes_single_patient(
             mentions_of_b_within_a_range = tp[
                 (tp[drug_colname] == antidepressant_b_name) &
                 (tp[date_colname] >= antidepressant_a_first_mention) &
-                (tp[date_colname] <= antidepressant_a_second_mention)
+
+                # 2019-04-01: CHANGED FROM:
+                #    (tp[date_colname] <= antidepressant_a_second_mention)
+                # TO:
+                (tp[date_colname] < antidepressant_a_second_mention)
             ]
             if len(mentions_of_b_within_a_range) > 0:
                 # Nope, chuck out this combination.
@@ -334,9 +354,14 @@ def two_antidepressant_episodes_single_patient(
             end_of_symptom_period
         ))
         # We only care about the first episode per patient that matches, so:
-        return result
+        if first_episode_only:
+            return result
+        else:
+            all_episodes_for_patient = all_episodes_for_patient.append(result)
 
-    return None  # nothing found
+    if len(all_episodes_for_patient) == 0:
+        return None  # nothing found
+    return all_episodes_for_patient
 
 
 def two_antidepressant_episodes(
@@ -348,7 +373,8 @@ def two_antidepressant_episodes(
         expect_response_by_days: int = DEFAULT_EXPECT_RESPONSE_BY_DAYS,
         symptom_assessment_time_days: int =
         DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,
-        n_threads: int = DEFAULT_N_THREADS) -> DataFrame:
+        n_threads: int = DEFAULT_N_THREADS,
+        first_episode_only: bool = True) -> DataFrame:
     """
     Takes a *pandas* ``DataFrame``, ``patient_drug_date_df`` (or, via
     ``reticulate``, an R ``data.frame`` or ``data.table``). This should contain
@@ -375,7 +401,8 @@ def two_antidepressant_episodes(
             date_colname=date_colname,
             course_length_days=course_length_days,
             expect_response_by_days=expect_response_by_days,
-            symptom_assessment_time_days=symptom_assessment_time_days
+            symptom_assessment_time_days=symptom_assessment_time_days,
+            first_episode_only=first_episode_only,
         )
 
     combined_result = _get_blank_two_antidep_episodes_result()
@@ -476,10 +503,11 @@ def test_two_antidepressant_episodes(
                     (dave_s, venla, "2018-02-28"),
                     # Elsa: courses overlap; invalid
                     (elsa_s, cital, "2018-01-01"),
-                    (elsa_s, cital, "2018-02-05"),
+                    (elsa_s, cital, "2018-02-02"),
                     (elsa_s, mirtaz, "2018-02-01"),
                     (elsa_s, mirtaz, "2018-02-28"),
-                    # Fred: courses overlap, same day; invalid
+                    # Fred: courses overlap, same day; WAS invalid but now
+                    # VALID as of 2019-04-01
                     (fred_s, cital, "2018-01-01"),
                     (fred_s, cital, "2018-02-01"),
                     (fred_s, mirtaz, "2018-02-01"),
@@ -521,6 +549,7 @@ def test_two_antidepressant_episodes(
     patient_colname = "BrcId"  # DEFAULT_SOURCE_PATIENT_COLNAME
     drug_colname = "generic_drug"  # DEFAULT_SOURCE_DRUG_COLNAME
     date_colname = "Document_Date"  # DEFAULT_SOURCE_DATE_COLNAME
+    first_episode_only = True
 
     log.warning("Testing two_antidepressant_episodes()")
     testdata = _make_example(suffixes=[] if n_sets == 1 else range(n_sets))
@@ -535,17 +564,23 @@ def test_two_antidepressant_episodes(
         course_length_days=DEFAULT_ANTIDEPRESSANT_COURSE_LENGTH_DAYS,
         expect_response_by_days=DEFAULT_EXPECT_RESPONSE_BY_DAYS,
         symptom_assessment_time_days=DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,
+        first_episode_only=first_episode_only,
     )
     log.info("Result:\n" + result.to_string())
     if n_sets == 1:
         # Proper validation
         log.warning("Test complete; will now validate.")
-        _validate(result, alice, 1, cital, fluox)
+        _validate(result, alice, 1 if first_episode_only else 2, cital, fluox)
         _validate(result, bob, 1, mirtaz, sert)
         _validate(result, chloe, 0)
         _validate(result, dave, 1, fluox, venla)
         _validate(result, elsa, 0)
-        _validate(result, fred, 0)
+
+        # CHANGED 2019-04-01 FROM:
+        #     _validate(result, fred, 0)
+        # ... TO:
+        _validate(result, fred, 1, cital, mirtaz)
+
         _validate(result, grace, 1, cital, fluox)
         log.warning("Validation successful.")
     else:

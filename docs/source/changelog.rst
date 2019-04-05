@@ -275,7 +275,25 @@ First started in 2009.
 
 - Additional tweaks to :class:`cardinal_pythonlib.sphinxtools.AutodocIndex`.
 
-**1.0.50** IN PROGRESS
+**1.0.50, 2019-04-05**
 
 - "Change directory" option to
   :func:`cardinal_pythonlib.tools.backup_mysql_database.main`.
+
+- Change to
+  :func:`cardinal_pythonlib/psychiatry/treatment_resistant_depression.two_antidepressant_episodes_single_patient`
+  as agreed on 2019-03-28 (Stewart, Broadbent, Cardinal) such that if
+  antidepressant A "finishes" on the *same* day as B starts, that counts
+  (previously, B needed to start 1 day later).
+
+- New module ``cardinal_pythonlib.interval``.
+
+- New module ``cardinal_pythonlib.psychiatry.timeline``.
+
+- A couple of bad escape sequences fixed (should have been raw strings), in
+  :data:`cardinal_pythonlib.nhs.WHITESPACE_REGEX`,
+  :func:`cardinal_pythonlib.tools.pdf_to_booklet.get_page_count`,
+  :func:`cardinal_pythonlib.sort.natural_keys`,
+  :data:`cardinal_pythonlib.rnc_db._QUERY_VALUE_REGEX`, and
+  :func:`cardinal_pythonlib.rnc_web.make_urls_hyperlinks`. I think the PyCharm
+  inspector has had an upgrade.

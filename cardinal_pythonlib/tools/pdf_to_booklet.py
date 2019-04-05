@@ -225,7 +225,7 @@ def get_page_count(filename: str) -> int:
     log.debug("Getting page count for {!r}", filename)
     require(PDFTK, HELP_MISSING_PDFTK)
     stdout, _ = run([PDFTK, filename, "dump_data"], get_output=True)
-    regex = re.compile("^NumberOfPages: (\d+)$", re.MULTILINE)
+    regex = re.compile(r"^NumberOfPages: (\d+)$", re.MULTILINE)
     m = regex.search(stdout)
     if m:
         return int(m.group(1))

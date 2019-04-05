@@ -172,7 +172,7 @@ def generate_nhs_number_from_first_9_digits(first9digits: str) -> Optional[int]:
 # Get an NHS number out of text
 # =============================================================================
 
-WHITESPACE_REGEX = re.compile('\s')
+WHITESPACE_REGEX = re.compile(r'\s')
 NON_NUMERIC_REGEX = re.compile("[^0-9]")  # or "\D"
 
 

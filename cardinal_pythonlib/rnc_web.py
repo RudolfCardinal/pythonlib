@@ -659,7 +659,7 @@ def make_urls_hyperlinks(text: str) -> str:
         )                  # end of match group
     '''
     replace_url = r'<a href="\1">\1</a>'
-    find_email = re.compile('([.\w\-]+@(\w[\w\-]+\.)+[\w\-]+)')
+    find_email = re.compile(r'([.\w\-]+@(\w[\w\-]+\.)+[\w\-]+)')
     # '.' doesn't need escaping inside square brackets
     # https://stackoverflow.com/questions/10397968/escape-dot-in-a-regex-range
     replace_email = r'<a href="mailto:\1">\1</a>'

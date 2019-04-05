@@ -69,7 +69,7 @@ def natural_keys(text: str) -> List[Union[int, str]]:
         ['something1', 'something2', 'something12', 'something17', 'something25', 'something29']
         
     """  # noqa
-    return [atoi(c) for c in re.split('(\d+)', text)]
+    return [atoi(c) for c in re.split(r'(\d+)', text)]
 
 
 # =============================================================================

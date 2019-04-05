@@ -69,6 +69,7 @@ Automatic documentation of source code
     getch.py.rst
     hash.py.rst
     httpconst.py.rst
+    interval.py.rst
     json/serialize.py.rst
     lang.py.rst
     lists.py.rst
@@ -89,6 +90,7 @@ Automatic documentation of source code
     process.py.rst
     psychiatry/drugs.py.rst
     psychiatry/rfunc.py.rst
+    psychiatry/timeline.py.rst
     psychiatry/treatment_resistant_depression.py.rst
     pyramid/responses.py.rst
     randomness.py.rst
