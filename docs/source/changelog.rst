@@ -284,7 +284,7 @@ First started in 2009.
   :func:`cardinal_pythonlib/psychiatry/treatment_resistant_depression.two_antidepressant_episodes_single_patient`
   as agreed on 2019-03-28 (Stewart, Broadbent, Cardinal) such that if
   antidepressant A "finishes" on the *same* day as B starts, that counts
-  (previously, B needed to start 1 day later).
+  (previously, B needed to start 1 day later). Hard-coded change.
 
 - New module ``cardinal_pythonlib.interval``.
 
