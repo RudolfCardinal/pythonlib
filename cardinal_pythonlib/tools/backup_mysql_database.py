@@ -95,8 +95,15 @@ def main() -> None:
     Command-line processor. See ``--help`` for details.
     """
     main_only_quicksetup_rootlogger()
+    wdcd_suffix = "_with_drop_create_database"
+    timeformat = "%Y%m%dT%H%M%S"
     parser = argparse.ArgumentParser(
-        description="Back up a specific MySQL database",
+        description="""
+        Back up a specific MySQL database. The resulting filename has the
+        format '<DATABASENAME>_<DATETIME><SUFFIX>.sql', where <DATETIME> is of
+        the ISO-8601 format {timeformat!r} and <SUFFIX> is either blank or
+        {suffix!r}. A typical filename is therefore 'mydb_20190415T205524.sql'.
+        """.format(timeformat=timeformat, suffix=wdcd_suffix),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument(
         "databases", nargs="+",
@@ -117,7 +124,8 @@ def main() -> None:
              "prompted for the password)")
     parser.add_argument(
         "--with_drop_create_database", action="store_true",
-        help="Include DROP DATABASE and CREATE DATABASE commands")
+        help="Include DROP DATABASE and CREATE DATABASE commands, and append "
+             "a suffix to the output filename as above")
     parser.add_argument(
         "--output_dir", type=str,
         help="Output directory (if not specified, current directory will be "
@@ -138,11 +146,11 @@ def main() -> None:
         log.info("Note that the DROP DATABASE commands will look like they're "
                  "commented out, but they're not: "
                  "https://dba.stackexchange.com/questions/59294/")
-        suffix = "_with_drop_create_database"
+        suffix = wdcd_suffix
     else:
         suffix = ""
     for db in args.databases:
-        now = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
+        now = datetime.datetime.now().strftime(timeformat)
         outfilename = "{db}_{now}{suffix}.sql".format(db=db, now=now,
                                                       suffix=suffix)
         display_args = cmdargs(
