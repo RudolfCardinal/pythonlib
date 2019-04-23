@@ -46,7 +46,7 @@ from cardinal_pythonlib.logs import BraceStyleAdapter
 try:
     from django.contrib.auth.views import redirect_to_login
 except RuntimeError:
-    if not os.environ["_SPHINX_AUTODOC_IN_PROGRESS"]:
+    if not os.environ.get("_SPHINX_AUTODOC_IN_PROGRESS"):
         raise
 
 log = BraceStyleAdapter(logging.getLogger(__name__))

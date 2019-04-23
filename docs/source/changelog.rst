@@ -297,3 +297,12 @@ First started in 2009.
   :data:`cardinal_pythonlib.rnc_db._QUERY_VALUE_REGEX`, and
   :func:`cardinal_pythonlib.rnc_web.make_urls_hyperlinks`. I think the PyCharm
   inspector has had an upgrade.
+
+**1.0.51, 2019-04-23**
+
+- Bugfix to ``cardinal_pythonlib/winservice.py`` which checked
+  ``if os.environ["_SPHINX_AUTODOC_IN_PROGRESS"]`` when it meant
+  ``if os.environ.get("_SPHINX_AUTODOC_IN_PROGRESS")``, leading to a potential
+  crash.
+
+- Similar fix to ``cardinal_pythonlib.django.middleware.py``.

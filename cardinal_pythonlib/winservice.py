@@ -288,7 +288,7 @@ except ImportError:
     win32event = None
     win32service = None
     win32serviceutil = None
-    if os.environ["_SPHINX_AUTODOC_IN_PROGRESS"]:
+    if os.environ.get("_SPHINX_AUTODOC_IN_PROGRESS"):
         ServiceFramework = object  # duff thing for inheritance
     else:
         raise
