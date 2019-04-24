@@ -167,35 +167,35 @@ class CorruptedZipReader(object):
                 log.debug("... attempt at recovery failed")
 
     def _fix_zip(self, show_zip_output: bool = False) -> None:
-            # We are trying to deal with ZIP (specifically, PPTX) files that
-            # have been retrieved by Scalpel so have large extra bits of junk
-            # on the end.
-            # Make a file in a temporary directory
-            self.tmp_dir = tempfile.mkdtemp()
-            self.rescue_filename = os.path.join(
-                self.tmp_dir, os.path.basename(self.src_filename))
-            cmdargs = [
-                "zip",  # Linux zip tool
-                "-FF",  # or "--fixfix": "fix very broken things"
-                self.src_filename,  # input file
-                "--temp-path", self.tmp_dir,  # temporary storage path
-                "--out", self.rescue_filename  # output file
-            ]
-            # We would like to be able to say "y" automatically to
-            # "Is this a single-disk archive?  (y/n):"
-            # The source code (api.c, zip.c, zipfile.c), from
-            # ftp://ftp.info-zip.org/pub/infozip/src/ , suggests that "-q"
-            # should do this (internally "-q" sets "noisy = 0") - but in
-            # practice it doesn't work. This is a critical switch.
-            # Therefore we will do something very ugly, and send raw text via
-            # stdin.
-            log.debug("Running {!r}", cmdargs)
-            mimic_user_input(cmdargs,
-                             source_challenge_response=ZIP_PROMPTS_RESPONSES,
-                             line_terminators=ZIP_STDOUT_TERMINATORS,
-                             print_stdout=show_zip_output,
-                             print_stdin=show_zip_output)
-            # ... will raise if the 'zip' tool isn't available
+        # We are trying to deal with ZIP (specifically, PPTX) files that
+        # have been retrieved by Scalpel so have large extra bits of junk
+        # on the end.
+        # Make a file in a temporary directory
+        self.tmp_dir = tempfile.mkdtemp()
+        self.rescue_filename = os.path.join(
+            self.tmp_dir, os.path.basename(self.src_filename))
+        cmdargs = [
+            "zip",  # Linux zip tool
+            "-FF",  # or "--fixfix": "fix very broken things"
+            self.src_filename,  # input file
+            "--temp-path", self.tmp_dir,  # temporary storage path
+            "--out", self.rescue_filename  # output file
+        ]
+        # We would like to be able to say "y" automatically to
+        # "Is this a single-disk archive?  (y/n):"
+        # The source code (api.c, zip.c, zipfile.c), from
+        # ftp://ftp.info-zip.org/pub/infozip/src/ , suggests that "-q"
+        # should do this (internally "-q" sets "noisy = 0") - but in
+        # practice it doesn't work. This is a critical switch.
+        # Therefore we will do something very ugly, and send raw text via
+        # stdin.
+        log.debug("Running {!r}", cmdargs)
+        mimic_user_input(cmdargs,
+                         source_challenge_response=ZIP_PROMPTS_RESPONSES,
+                         line_terminators=ZIP_STDOUT_TERMINATORS,
+                         print_stdout=show_zip_output,
+                         print_stdin=show_zip_output)
+        # ... will raise if the 'zip' tool isn't available
 
     def move_to(self, destination_filename: str,
                 alter_if_clash: bool = True) -> None:

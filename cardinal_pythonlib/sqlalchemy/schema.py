@@ -719,8 +719,8 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
     - Thus, this is a bit useless.
     - Fixed, with a few special cases.
     """
-    size = None  # type: int
-    dp = None  # type: int
+    size = None  # type: Optional[int]
+    dp = None  # type: Optional[int]
     args = []  # type: List[Any]
     kwargs = {}  # type: Dict[str, Any]
     basetype = ''

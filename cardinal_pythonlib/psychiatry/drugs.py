@@ -404,9 +404,9 @@ class Drug(object):
         else:
             raise ValueError("Bad generic_name: {!r}".format(generic))
         self.alternatives = alternatives or []  # type: List[str]
-        self._regex_text = None  # type: str
-        self._regex = None  # type: Pattern
-        self._sql_like_fragments = None  # type: List[str]
+        self._regex_text = None  # type: Optional[str]
+        self._regex = None  # type: Optional[Pattern]
+        self._sql_like_fragments = None  # type: Optional[List[str]]
 
         # ---------------------------------------------------------------------
         # Things we know about psychotropics
@@ -521,8 +521,8 @@ class Drug(object):
         Returns a compiled regex for this drug.
         """
         if self._regex is None:
-                self._regex = re.compile(self.regex_text,
-                                         re.IGNORECASE | re.DOTALL)
+            self._regex = re.compile(self.regex_text,
+                                     re.IGNORECASE | re.DOTALL)
         return self._regex
 
     @staticmethod

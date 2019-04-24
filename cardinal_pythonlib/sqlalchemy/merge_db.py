@@ -696,7 +696,7 @@ def merge_db(base_class: Type,
     # Get all lists of tables as their names
     skip_table_names = [ti.tablename for ti in skip_tables]
     only_table_names = [ti.tablename for ti in only_tables]
-    tables_to_keep_pks_for = [ti.tablename for ti in tables_to_keep_pks_for]
+    tables_to_keep_pks_for = [ti.tablename for ti in tables_to_keep_pks_for]  # type: List[str]  # noqa
     # ... now all are of type List[str]
 
     # Safety check: this is an imperfect check for source == destination, but

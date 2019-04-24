@@ -46,7 +46,7 @@ class CompiledRegexMemory(object):
     http://stackoverflow.com/questions/597476/how-to-concisely-cascade-through-multiple-regex-statements-in-python.
     """  # noqa
     def __init__(self) -> None:
-        self.last_match = None  # type: Match
+        self.last_match = None  # type: Optional[Match]
 
     def match(self, compiled_regex: Pattern, text: str) -> Match:
         self.last_match = compiled_regex.match(text)

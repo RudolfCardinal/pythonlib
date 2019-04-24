@@ -22,6 +22,18 @@ Change history
 
 First started in 2009.
 
+Quick links:
+
+- :ref:`2017 <changelog_2017>`
+- :ref:`2018 <changelog_2018>`
+- :ref:`2019 <changelog_2019>`
+
+
+.. _changelog_2017:
+
+2017
+~~~~
+
 **0.2.7, 2017-04-28**
 
 - Fixed bug in ``rnc_extract_text`` that was using ``get_file_contents()`` as a
@@ -65,6 +77,12 @@ First started in 2009.
 **... to 1.0.8, 2017-11-29**
 
 - Similarly.
+
+
+.. _changelog_2018:
+
+2018
+~~~~
 
 **1.0.9 to 1.0.10, 2018-01-05 + 2018-02-19**
 
@@ -247,6 +265,12 @@ First started in 2009.
   slightly unusual behaviour of lists written to the database.
 - Moved to the ``create_all_autodocs.py`` system.
 
+
+.. _changelog_2019:
+
+2019
+~~~~
+
 **1.0.42 to 1.0.45, 2019-01-04**
 
 - Minor fix: ``__init__.py`` missing from ``cardinal_pythonlib/email``;
@@ -306,3 +330,7 @@ First started in 2009.
   crash.
 
 - Similar fix to ``cardinal_pythonlib.django.middleware.py``.
+
+**1.0.52, 2019-04-23**
+
+- New module ``cardinal_pythonlib.sqlalchemy.sqlserver``.

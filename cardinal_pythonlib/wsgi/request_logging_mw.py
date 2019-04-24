@@ -27,7 +27,7 @@
 """
 
 import logging
-from typing import List
+from typing import List, Optional
 
 from pendulum import DateTime as Pendulum
 
@@ -124,7 +124,7 @@ class RequestLoggingMiddleware(object):
             msg_parts.append(request_details)
             self.log(" ".join(msg_parts))
             msg_parts.clear()
-        captured_status = None  # type: int
+        captured_status = None  # type: Optional[int]
 
         def custom_start_response(status: TYPE_WSGI_STATUS,
                                   headers: TYPE_WSGI_RESPONSE_HEADERS,

@@ -285,7 +285,7 @@ def gen_part_from_line(lines: Iterable[str],
 
 def gen_part_from_iterables(iterables: Iterable[Any],
                             part_index: int) -> Generator[Any, None, None]:
-    """
+    r"""
     Yields the *n*\ th part of each thing in ``iterables``.
 
     Args:

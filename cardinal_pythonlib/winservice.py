@@ -253,7 +253,7 @@ import platform
 import subprocess
 import sys
 import traceback
-from typing import Any, List, TextIO, Type
+from typing import Any, List, Optional, TextIO, Type
 
 import arrow
 
@@ -365,10 +365,10 @@ class ProcessManager(object):
         self.procnum = procnum
         self.nprocs = nprocs
         self.kill_timeout_sec = kill_timeout_sec
-        self.process = None  # type: subprocess.Popen
+        self.process = None  # type: Optional[subprocess.Popen]
         self.running = False
-        self.stdout = None  # type: TextIO
-        self.stderr = None  # type: TextIO
+        self.stdout = None  # type: Optional[TextIO]
+        self.stderr = None  # type: Optional[TextIO]
         self.debugging = debugging
 
     @property

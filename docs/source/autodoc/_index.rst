@@ -129,6 +129,7 @@ Automatic documentation of source code
     sqlalchemy/session.py.rst
     sqlalchemy/sqla_version.py.rst
     sqlalchemy/sqlfunc.py.rst
+    sqlalchemy/sqlserver.py.rst
     sqlalchemy/table_identity.py.rst
     stringfunc.py.rst
     subproc.py.rst
