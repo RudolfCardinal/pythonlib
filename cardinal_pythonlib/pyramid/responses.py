@@ -37,10 +37,20 @@ from cardinal_pythonlib.httpconst import MimeType
 # =============================================================================
 
 class BinaryResponse(Response):
+    """
+    Base class for creating binary HTTP responses.
+    """
     def __init__(self, body: bytes, filename: str,
                  content_type: str, as_inline: bool = False, **kwargs) -> None:
-        # Inline: display within browser, if possible.
-        # Attachment: download.
+        """
+        Args:
+            body: binary data
+            filename: filename to associate with the download
+            content_type: MIME content type
+            as_inline: inline, rather than as an attachment?
+                Inline: display within browser, if possible.
+                Attachment: download.
+        """
         disp = "inline" if as_inline else "attachment"
         super().__init__(
             content_type=content_type,
@@ -52,7 +62,24 @@ class BinaryResponse(Response):
         )
 
 
+class OdsResponse(BinaryResponse):
+    """
+    Response class for returning an ODS (OpenOffice Spreadsheet) file to the
+    user.
+    """
+    def __init__(self, body: bytes, filename: str, **kwargs) -> None:
+        super().__init__(
+            content_type=MimeType.ODS,
+            body=body,
+            filename=filename,
+            **kwargs
+        )
+
+
 class PdfResponse(BinaryResponse):
+    """
+    Response class for returning a PDF to the user.
+    """
     def __init__(self, body: bytes, filename: str,
                  as_inline: bool = True, **kwargs) -> None:
         super().__init__(
@@ -65,6 +92,9 @@ class PdfResponse(BinaryResponse):
 
 
 class SqliteBinaryResponse(BinaryResponse):
+    """
+    Response class for returning a SQLite binary database to the user.
+    """
     def __init__(self, body: bytes, filename: str, **kwargs) -> None:
         super().__init__(
             content_type=MimeType.SQLITE3,
@@ -75,6 +105,9 @@ class SqliteBinaryResponse(BinaryResponse):
 
 
 class TextAttachmentResponse(Response):
+    """
+    Response class for returning text to the user as an attachment.
+    """
     def __init__(self, body: str, filename: str, **kwargs) -> None:
         # Will default to UTF-8
         super().__init__(
@@ -86,6 +119,9 @@ class TextAttachmentResponse(Response):
 
 
 class TextResponse(Response):
+    """
+    Response class for returning text to the user, viewed in the browser.
+    """
     def __init__(self, body: str, **kwargs) -> None:
         super().__init__(
             content_type=MimeType.TEXT,
@@ -95,6 +131,9 @@ class TextResponse(Response):
 
 
 class TsvResponse(Response):
+    """
+    Response class for returning a TSV file to the user.
+    """
     def __init__(self, body: str, filename: str, **kwargs) -> None:
         super().__init__(
             content_type=MimeType.TSV,
@@ -104,7 +143,23 @@ class TsvResponse(Response):
         )
 
 
+class XlsxResponse(BinaryResponse):
+    """
+    Response class for returning an XLSX (Excel) file to the user.
+    """
+    def __init__(self, body: bytes, filename: str, **kwargs) -> None:
+        super().__init__(
+            content_type=MimeType.XLSX,
+            body=body,
+            filename=filename,
+            **kwargs
+        )
+
+
 class XmlResponse(Response):
+    """
+    Response class for returning XML to the user.
+    """
     def __init__(self, body: str, **kwargs) -> None:
         # application/xml versus text/xml:
         # https://stackoverflow.com/questions/4832357
@@ -116,6 +171,9 @@ class XmlResponse(Response):
 
 
 class ZipResponse(BinaryResponse):
+    """
+    Response class for returning a ZIP file to the user.
+    """
     def __init__(self, body: bytes, filename: str, **kwargs) -> None:
         # For ZIP, "inline" and "attachment" dispositions are equivalent, since
         # browsers don't display ZIP files inline.

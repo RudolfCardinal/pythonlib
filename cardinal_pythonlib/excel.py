@@ -26,10 +26,14 @@
 
 """
 
-
 import io
+from typing import Any
 
 from openpyxl import Workbook
+from pendulum.datetime import DateTime
+from semantic_version import Version
+
+from cardinal_pythonlib.datetimefunc import pendulum_to_datetime
 
 
 def excel_to_bytes(wb: Workbook) -> bytes:
@@ -40,3 +44,25 @@ def excel_to_bytes(wb: Workbook) -> bytes:
     memfile = io.BytesIO()
     wb.save(memfile)
     return memfile.getvalue()
+
+
+def convert_for_openpyxl(x: Any) -> Any:
+    """
+    Converts known "unusual" data types to formats suitable for ``openpyxl``.
+    Specifically, handles:
+
+    - :class:`pendulum.datetime.DateTime`
+    - :class:`semantic_version.Version`
+
+    Args:
+        x: a data value
+
+    Returns:
+        the same thing, or a more suitable value!
+    """
+    if isinstance(x, DateTime):
+        return pendulum_to_datetime(x)
+    elif isinstance(x, Version):
+        return str(x)
+    else:
+        return x

@@ -334,3 +334,7 @@ Quick links:
 **1.0.52, 2019-04-23**
 
 - New module ``cardinal_pythonlib.sqlalchemy.sqlserver``.
+
+**1.0.53, 2019-04-27**
+
+- New MIME types.
