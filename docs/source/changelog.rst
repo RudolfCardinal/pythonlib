@@ -338,3 +338,6 @@ Quick links:
 **1.0.53, 2019-04-27**
 
 - New MIME types.
+
+- Duration handlers in ``cardinal_pythonlib.sqlalchemy.datetimefunc``,
+  including ISO-8601 representations of duration.

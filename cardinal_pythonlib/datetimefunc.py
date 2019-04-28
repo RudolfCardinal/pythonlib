@@ -26,6 +26,7 @@
 """
 
 import datetime
+import logging
 from string import Formatter
 from typing import Any, Optional, Union
 
@@ -33,12 +34,16 @@ try:
     from arrow import Arrow
 except ImportError:
     Arrow = None
+
 try:
     import dateutil.parser
 except ImportError:
     dateutil = None
+
+from isodate.isoduration import parse_duration, Duration as IsodateDuration
+from isodate.isoerror import ISO8601Error
 import pendulum
-from pendulum import Date, DateTime, Time
+from pendulum import Date, DateTime, Duration, Time
 from pendulum.tz import local_timezone
 from pendulum.tz.timezone import Timezone
 # import tzlocal
@@ -47,6 +52,8 @@ PotentialDatetimeType = Union[None, datetime.datetime, datetime.date,
                               DateTime, str, Arrow]
 DateTimeLikeType = Union[datetime.datetime, DateTime, Arrow]
 DateLikeType = Union[datetime.date, DateTime, Arrow]
+
+log = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -399,6 +406,273 @@ def get_age(dob: PotentialDatetimeType,
     if dob is None or when is None:
         return default
     return (when - dob).years
+
+
+def pendulum_duration_from_timedelta(td: datetime.timedelta) -> Duration:
+    """
+    Converts a :class:`datetime.timedelta` into a :class:`pendulum.Duration`.
+
+    .. code-block:: python
+
+        from cardinal_pythonlib.datetimefunc import pendulum_duration_from_timedelta
+        from datetime import timedelta
+        from pendulum import Duration
+
+        td1 = timedelta(days=5, hours=3, minutes=2, microseconds=5)
+        d1 = pendulum_duration_from_timedelta(td1)
+        
+        td2 = timedelta(microseconds=5010293989234)
+        d2 = pendulum_duration_from_timedelta(td2)
+
+        td3 = timedelta(days=5000)
+        d3 = pendulum_duration_from_timedelta(td3)
+    """  # noqa
+    return Duration(seconds=td.total_seconds())
+
+
+def pendulum_duration_from_isodate_duration(dur: IsodateDuration) -> Duration:
+    """
+    Converts a :class:`isodate.isoduration.Duration` into a
+    :class:`pendulum.Duration`.
+
+    Both :class:`isodate.isoduration.Duration` and :class:`pendulum.Duration`
+    incorporate an internal representation of a :class:`datetime.timedelta`
+    (weeks, days, hours, minutes, seconds, milliseconds, microseconds) and
+    separate representations of years and months.
+    
+    The :class:`isodate.isoduration.Duration` year/month elements are both of
+    type :class:`decimal.Decimal` -- although its ``str()`` representation
+    converts these silently to integer, which is quite nasty.
+    
+    If you create a Pendulum Duration it normalizes within its timedelta parts,
+    but not across years and months. That is obviously because neither years
+    and months are of exactly fixed duration.
+    
+    Raises:
+        
+        :exc:`ValueError` if the year or month component is not an integer
+
+    .. code-block:: python
+
+        from cardinal_pythonlib.datetimefunc import pendulum_duration_from_isodate_duration
+        from isodate.isoduration import Duration as IsodateDuration
+        from pendulum import Duration as PendulumDuration
+        
+        td1 = IsodateDuration(days=5, hours=3, minutes=2, microseconds=5)
+        d1 = pendulum_duration_from_isodate_duration(td1)
+        
+        td2 = IsodateDuration(microseconds=5010293989234)
+        d2 = pendulum_duration_from_isodate_duration(td2)
+        
+        td3 = IsodateDuration(days=5000)
+        d3 = pendulum_duration_from_isodate_duration(td3)
+        
+        td4 = IsodateDuration(days=5000, years=5, months=2)
+        d4 = pendulum_duration_from_isodate_duration(td4)
+        # ... doesn't normalize across years/months; see explanation above
+        
+        td5 = IsodateDuration(days=5000, years=5.1, months=2.2)
+        d5 = pendulum_duration_from_isodate_duration(td5)  # will raise
+    """  # noqa
+    y = dur.years
+    if y.to_integral_value() != y:
+        raise ValueError("Can't handle non-integer years {!r}".format(y))
+    m = dur.months
+    if m.to_integral_value() != m:
+        raise ValueError("Can't handle non-integer months {!r}".format(y))
+    return Duration(seconds=dur.tdelta.total_seconds(),
+                    years=int(y),
+                    months=int(m))
+
+
+def duration_from_iso(iso_duration: str) -> Duration:
+    """
+    Converts an ISO-8601 format duration into a :class:`pendulum.Duration`.
+
+    Raises:
+
+        - :exc:`isodate.isoerror.ISO8601Error` for bad input
+        - :exc:`ValueError` if the input had non-integer year or month values
+
+    - The ISO-8601 duration format is ``P[n]Y[n]M[n]DT[n]H[n]M[n]S``; see
+      https://en.wikipedia.org/wiki/ISO_8601#Durations.
+
+    - ``pendulum.Duration.min`` and ``pendulum.Duration.max`` values are
+      ``Duration(weeks=-142857142, days=-5)`` and ``Duration(weeks=142857142,
+      days=6)`` respectively.
+
+    - ``isodate`` supports negative durations of the format ``-P<something>``,
+      such as ``-PT5S`` for "minus 5 seconds", but not e.g. ``PT-5S``.
+
+    - I'm not clear if ISO-8601 itself supports negative durations. This
+      suggests not: https://github.com/moment/moment/issues/2408. But lots of
+      implementations (including to some limited extent ``isodate``) do support
+      this concept.
+
+    .. code-block:: python
+
+        from pendulum import DateTime
+        from cardinal_pythonlib.datetimefunc import duration_from_iso
+        from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+        main_only_quicksetup_rootlogger()
+
+        d1 = duration_from_iso("P5W")
+        d2 = duration_from_iso("P3Y1DT3H1M2S")
+        d3 = duration_from_iso("P7000D")
+        d4 = duration_from_iso("P1Y7000D")
+        d5 = duration_from_iso("PT10053.22S")
+        d6 = duration_from_iso("PT-10053.22S")  # raises ISO8601 error
+        d7 = duration_from_iso("-PT5S")
+        d7 = duration_from_iso("PT-5S")  # raises ISO8601 error
+        now = DateTime.now()
+        print(now)
+        print(now + d1)
+        print(now + d2)
+        print(now + d3)
+        print(now + d4)
+
+    """
+    duration = parse_duration(iso_duration)  # type: Union[datetime.timedelta, IsodateDuration]  # noqa
+    if isinstance(duration, datetime.timedelta):
+        result = pendulum_duration_from_timedelta(duration)
+    elif isinstance(duration, IsodateDuration):
+        result = pendulum_duration_from_isodate_duration(duration)
+    else:
+        raise AssertionError(
+            "Bug in isodate.parse_duration, which returned unknown duration "
+            "type: {!r}".format(duration))
+    # log.debug("Converted {!r} -> {!r} -> {!r}".format(
+    #     iso_duration, duration, result))
+    return result
+
+
+def duration_to_iso(d: Duration, permit_years_months: bool = True,
+                    minus_sign_at_front: bool = True) -> str:
+    """
+    Converts a :class:`pendulum.Duration` into an ISO-8601 formatted string.
+    
+    Args:
+        d:
+            the duration
+
+        permit_years_months:
+            - if ``False``, durations with non-zero year or month components
+              will raise a :exc:`ValueError`; otherwise, the ISO format will
+              always be ``PT<seconds>S``.
+            - if ``True``, year/month components will be accepted, and the
+              ISO format will be ``P<years>Y<months>MT<seconds>S``.
+
+        minus_sign_at_front:
+            Applies to negative durations, which probably aren't part of the
+            ISO standard.
+            
+            - if ``True``, the format ``-P<positive_duration>`` is used, i.e.
+              with a minus sign at the front and individual components
+              positive.
+            - if ``False``, the format ``PT-<positive_seconds>S`` (etc.) is
+              used, i.e. with a minus sign for each component. This format is
+              not re-parsed successfully by ``isodate`` and will therefore
+              fail :func:`duration_from_iso`.
+              
+    Raises:
+        
+        :exc:`ValueError` for bad input
+
+    The maximum length of the resulting string (see test code below) is:
+    
+    - 21 if years/months are not permitted;
+    - ill-defined if years/months are permitted, but 29 for much more than is
+      realistic (negative, 1000 years, 11 months, and the maximum length for
+      seconds/microseconds).
+
+    .. code-block:: python
+
+        from pendulum import DateTime, Duration
+        from cardinal_pythonlib.datetimefunc import duration_from_iso, duration_to_iso
+        from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+        main_only_quicksetup_rootlogger()
+        
+        d1 = duration_from_iso("P5W")
+        d2 = duration_from_iso("P3Y1DT3H1M2S")
+        d3 = duration_from_iso("P7000D")
+        d4 = duration_from_iso("P1Y7000D")
+        d5 = duration_from_iso("PT10053.22S")
+        print(duration_to_iso(d1))
+        print(duration_to_iso(d2))
+        print(duration_to_iso(d3))
+        print(duration_to_iso(d4))
+        print(duration_to_iso(d5))
+        assert d1 == duration_from_iso(duration_to_iso(d1))
+        assert d2 == duration_from_iso(duration_to_iso(d2))
+        assert d3 == duration_from_iso(duration_to_iso(d3))
+        assert d4 == duration_from_iso(duration_to_iso(d4))
+        assert d5 == duration_from_iso(duration_to_iso(d5))
+        strmin = duration_to_iso(Duration.min)  # '-P0Y0MT86399999913600.0S'
+        strmax = duration_to_iso(Duration.max)  # 'P0Y0MT86400000000000.0S'
+        duration_from_iso(strmin)  # raises ISO8601Error from isodate package (bug?)
+        duration_from_iso(strmax)  # raises OverflowError from isodate package
+        print(strmin)  # P0Y0MT-86399999913600.0S
+        print(strmax)  # P0Y0MT86400000000000.0S
+        d6 = duration_from_iso("P100Y999MT86400000000000.0S")  # OverflowError
+        d7 = duration_from_iso("P0Y1MT86400000000000.0S")  # OverflowError
+        d8 = duration_from_iso("P0Y1111111111111111MT76400000000000.0S")  # accepted!
+        # ... length e.g. 38; see len(duration_to_iso(d8))
+        
+        # So the maximum string length may be ill-defined if years/months are
+        # permitted (since Python 3 integers are unbounded; try 99 ** 10000). 
+        # But otherwise:
+
+        d9longest              = duration_from_iso("-P0Y0MT10000000000000.000009S")
+        d10toolong             = duration_from_iso("-P0Y0MT100000000000000.000009S")  # fails, too many days
+        assert d9longest == duration_from_iso(duration_to_iso(d9longest))
+        
+        d11longest_with_us     = duration_from_iso("-P0Y0MT1000000000.000009S")  # microseconds correct
+        d12toolong_rounds_us   = duration_from_iso("-P0Y0MT10000000000.000009S")  # error in microseconds
+        d13toolong_drops_us    = duration_from_iso("-P0Y0MT10000000000000.000009S")  # drops microseconds (within datetime.timedelta)
+        d14toolong_parse_fails = duration_from_iso("-P0Y0MT100000000000000.000009S")  # fails, too many days
+        assert d11longest_with_us == duration_from_iso(duration_to_iso(d11longest_with_us))
+        assert d12toolong_rounds_us == duration_from_iso(duration_to_iso(d12toolong_rounds_us))
+        assert d13toolong_drops_us == duration_from_iso(duration_to_iso(d13toolong_drops_us))
+        
+        longest_without_ym = duration_to_iso(d11longest_with_us, permit_years_months=False)
+        print(longest_without_ym)  # -PT1000000000.000009S
+        print(len(longest_without_ym))  # 21
+
+        d15longest_realistic_with_ym_us = duration_from_iso("-P1000Y11MT1000000000.000009S")  # microseconds correct
+        longest_realistic_with_ym = duration_to_iso(d15longest_realistic_with_ym_us)
+        print(longest_realistic_with_ym)  # -P1000Y11MT1000000000.000009S
+        print(len(longest_realistic_with_ym))  # 29
+        
+        # Now, double-check how the Pendulum classes handle year/month
+        # calculations:
+        basedate1 = DateTime(year=2000, month=1, day=1)  # 2000-01-01
+        print(basedate1 + Duration(years=1))  # 2001-01-01; OK
+        print(basedate1 + Duration(months=1))  # 2000-02-01; OK
+        basedate2 = DateTime(year=2004, month=2, day=1)  # 2004-02-01; leap year
+        print(basedate2 + Duration(years=1))  # 2005-01-01; OK
+        print(basedate2 + Duration(months=1))  # 2000-03-01; OK
+        print(basedate2 + Duration(months=1, days=1))  # 2000-03-02; OK
+
+    """  # noqa
+    prefix = ""
+    negative = d < Duration()
+    if negative and minus_sign_at_front:
+        prefix = "-"
+        d = -d
+    if permit_years_months:
+        return prefix + "P{years}Y{months}MT{seconds}S".format(
+            years=d.years,
+            months=d.months,
+            seconds=d.total_seconds(),  # float
+        )
+    else:
+        if d.years != 0:
+            raise ValueError(
+                "Duration has non-zero years: {!r}".format(d.years))
+        if d.months != 0:
+            raise ValueError(
+                "Duration has non-zero months: {!r}".format(d.months))
+        return prefix + "PT{seconds}S".format(seconds=d.total_seconds())
 
 
 # =============================================================================

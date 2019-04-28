@@ -68,6 +68,7 @@ colorlog
 deform
 Django>=2.0.0
 dogpile.cache
+isodate>=0.5.4
 numpy
 openpyxl
 pandas
