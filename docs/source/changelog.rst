@@ -341,3 +341,5 @@ Quick links:
 
 - Duration handlers in ``cardinal_pythonlib.sqlalchemy.datetimefunc``,
   including ISO-8601 representations of duration.
+
+- Extra small functions for ``colander``.

@@ -395,6 +395,25 @@ class BooleanNode(SchemaNode):
         super().__init__(*args, **kwargs)
 
 
+def get_child_node(parent: "_SchemaNode", child_name: str) -> "_SchemaNode":
+    """
+    Returns a child node from an instantiated :class:`colander.SchemaNode`
+    object. Such nodes are not accessible via ``self.mychild`` but must be
+    accessed via ``self.children``, which is a list of child nodes.
+
+    Args:
+        parent: the parent node object
+        name: the name of the child node
+
+    Returns:
+        the child node
+
+    Raises:
+        :exc:`StopIteration` if there isn't one
+    """
+    return next(c for c in parent.children if c.name == child_name)
+
+
 class ValidateDangerousOperationNode(MappingSchema):
     """
     Colander node that can be added to forms allowing dangerous operations
@@ -433,7 +452,7 @@ class ValidateDangerousOperationNode(MappingSchema):
     # noinspection PyUnusedLocal
     def after_bind(self, node: SchemaNode, kw: Dict[str, Any]) -> None:
         # Accessing the nodes is fiddly!
-        target_node = next(c for c in self.children if c.name == 'target')  # type: _SchemaNode  # noqa
+        target_node = get_child_node(self, "target")
         # Also, this whole thing is a bit hard to get your head around.
         # - This function will be called every time the form is accessed.
         # - The first time (fresh form load), there will be no value in
@@ -490,8 +509,7 @@ class ValidateDangerousOperationNode(MappingSchema):
                 "target_value={!r}".format(user_entry_value, target_value))
 
     def set_description(self, target_value: str) -> None:
-        user_entry_node = next(c for c in self.children
-                               if c.name == 'user_entry')  # type: _SchemaNode
+        user_entry_node = get_child_node(self, "user_entry")
         prefix = "Please enter the following: "
         user_entry_node.description = prefix + target_value
         if DEBUG_DANGER_VALIDATION:

@@ -42,6 +42,20 @@ log = get_brace_style_log_with_null_handler(__name__)
 
 
 # =============================================================================
+# Types
+# =============================================================================
+
+RunFuncType = Callable
+# ... we were using Callable[[List[str]], Any] but that caused type-checking
+#     errors with functions that also took keyword arguments
+# ... i.e. something that looks like:
+#     def somefunc(strlist, **kwargs) -> ...
+# ... you can't represent that exactly with Callable;
+#     https://docs.python.org/3/library/typing.html#typing.Callable
+# ... so the best is Callable, which is Callable[..., Any]
+
+
+# =============================================================================
 # Constants
 # =============================================================================
 
@@ -78,7 +92,7 @@ def git_clone(prettyname: str, url: str, directory: str,
               branch: str = None,
               commit: str = None,
               clone_options: List[str] = None,
-              run_func: Callable[[List[str]], Any] = None) -> bool:
+              run_func: RunFuncType = None) -> bool:
     """
     Fetches a Git repository, unless we have it already.
 
@@ -138,7 +152,7 @@ def untar_to_directory(tarfile: str,
                        verbose: bool = False,
                        gzipped: bool = False,
                        skip_if_dir_exists: bool = True,
-                       run_func: Callable[[List[str]], Any] = None,
+                       run_func: RunFuncType = None,
                        chdir_via_python: bool = True) -> None:
     """
     Unpacks a TAR file into a specified directory.
