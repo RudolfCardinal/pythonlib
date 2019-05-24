@@ -294,3 +294,13 @@ class LazyButHonestDict(dict):
             return self[key]
         else:
             return self.setdefault(key, thunk(*args, **kwargs))
+
+
+# =============================================================================
+# HashableDict
+# =============================================================================
+
+class HashableDict(dict):
+    # https://stackoverflow.com/questions/1151658/python-hashable-dicts
+    def __hash__(self) -> int:
+        return hash(tuple(sorted(self.items())))

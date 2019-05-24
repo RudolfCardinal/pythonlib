@@ -343,3 +343,9 @@ Quick links:
   including ISO-8601 representations of duration.
 
 - Extra small functions for ``colander``.
+
+**1.0.54, IN PROGRESS**
+
+- :func:`cardinal_pythonlib.randomness.coin`.
+
+- :class:`cardinal_pythonlib.dicts.HashableDict`.

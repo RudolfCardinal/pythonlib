@@ -28,6 +28,7 @@
 
 import base64
 import os
+import random
 
 
 def create_base64encoded_randomness(num_bytes: int) -> str:
@@ -56,3 +57,37 @@ def create_base64encoded_randomness(num_bytes: int) -> str:
     """
     randbytes = os.urandom(num_bytes)  # YES
     return base64.urlsafe_b64encode(randbytes).decode('ascii')
+
+
+def coin(p: float) -> bool:
+    """
+    Flips a biased coin; returns ``True`` or ``False``, with the specified
+    probability being that of ``True``.
+    """
+    assert 0 <= p <= 1
+    r = random.random()  # range [0.0, 1.0), i.e. 0 <= r < 1
+    return r < p
+    # Check edge cases:
+    # - if p == 0, impossible that r < p, since r >= 0
+    # - if p == 1, always true that r < p, since r < 1
+
+
+# =============================================================================
+# Testing
+# =============================================================================
+
+def _test_coin() -> None:
+    """
+    Tests the :func:`coin` function.
+    """
+    probabilities = [0, 0.25, 0.5, 0.75, 1]
+    n_values = [10, 1000, 1000000]
+    for p in probabilities:
+        for n in n_values:
+            coins = [1 if coin(p) else 0 for _ in range(n)]
+            s = sum(coins)
+            print("coin: p = {p}, n = {n} -> {s} true".format(p=p, n=n, s=s))
+
+
+if __name__ == '__main__':
+    _test_coin()
