@@ -233,6 +233,8 @@ def two_antidepressant_episodes_single_patient(
             antidepressant_b_first_mention +
             timedelta_days(course_length_days - 1)
         )
+        # ... e.g. "a 28-day course" means "day 1 to day 28 inclusive" => at
+        # least 27 days between the first and second date
         if earliest_possible_b_second_mention > end_date:
             # Impossible for this to be a B course.
             # Logically unnecessary test, but improves efficiency by skipping
