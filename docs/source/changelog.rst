@@ -344,7 +344,7 @@ Quick links:
 
 - Extra small functions for ``colander``.
 
-**1.0.54, IN PROGRESS**
+**1.0.54, 2019-06-14**
 
 - :func:`cardinal_pythonlib.randomness.coin`.
 
