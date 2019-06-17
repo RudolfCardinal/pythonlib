@@ -31,7 +31,7 @@ import os
 import platform
 import subprocess
 import sys
-from typing import Any, Callable, Dict, List, TextIO, Tuple
+from typing import Callable, Dict, List, TextIO, Tuple
 
 from cardinal_pythonlib.fileops import mkdir_p, pushd, require_executable
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
@@ -111,8 +111,9 @@ def git_clone(prettyname: str, url: str, directory: str,
     run_func = run_func or subprocess.check_call
     clone_options = clone_options or []  # type: List[str]
     if os.path.isdir(directory):
-        log.info("Not re-cloning {} Git repository: using existing source "
-                 "in {}".format(prettyname, directory))
+        log.info(
+            "Not re-cloning {} Git repository: using existing source in {}",
+            prettyname, directory)
         return False
     log.info("Fetching {} source from {} into {}",
              prettyname, url, directory)
@@ -273,22 +274,27 @@ def run(args: List[str],
     copy_paste_cmd = subprocess.list2cmdline(args)
     csep = "=" * 79
     esep = "-" * 79
-    effective_env = env or os.environ
+    effective_env = env if env is not None else os.environ
     if debug_show_env:
         log.debug(
             "Environment for the command that follows:\n"
             "{esep}\n"
             "{env}\n"
-            "{esep}".format(esep=esep, env=make_copy_paste_env(effective_env))
+            "{esep}",
+            esep=esep,
+            env=make_copy_paste_env(effective_env)
         )
     log.info(
         "Launching external command:\n"
         "{csep}\n"
         "WORKING DIRECTORY: {cwd}\n"
-        "PYTHON ARGS: {args!r}\n"
+        "PYTHON ARGS: {pyargs!r}\n"
         "COMMAND: {cmd}\n"
-        "{csep}".format(csep=csep, cwd=cwd, cmd=copy_paste_cmd,
-                        args=args)
+        "{csep}",
+        csep=csep,
+        cwd=cwd,
+        cmd=copy_paste_cmd,
+        pyargs=args
     )
     try:
         with io.StringIO() as out, io.StringIO() as err:
@@ -331,13 +337,12 @@ def run(args: List[str],
             "{env}\n"
             "\n"
             "[DIRECTORY] {cwd}\n"
-            "[PYTHON ARGS] {args}\n"
-            "[COMMAND] {cmd}".format(
-                cwd=cwd,
-                env=make_copy_paste_env(effective_env),
-                cmd=copy_paste_cmd,
-                args=args
-            )
+            "[PYTHON ARGS] {pyargs}\n"
+            "[COMMAND] {cmd}",
+            cwd=cwd,
+            env=make_copy_paste_env(effective_env),
+            cmd=copy_paste_cmd,
+            pyargs=args
         )
         raise
 
@@ -358,5 +363,5 @@ def fetch(args: List[str], env: Dict[str, str] = None,
     """
     stdout, _ = run(args, env=env, capture_stdout=True,
                     echo_stdout=False, encoding=encoding)
-    log.debug(stdout)
+    log.debug("{}", stdout)
     return stdout

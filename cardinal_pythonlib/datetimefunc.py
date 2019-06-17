@@ -41,7 +41,7 @@ except ImportError:
     dateutil = None
 
 from isodate.isoduration import parse_duration, Duration as IsodateDuration
-from isodate.isoerror import ISO8601Error
+# from isodate.isoerror import ISO8601Error
 import pendulum
 from pendulum import Date, DateTime, Duration, Time
 from pendulum.tz import local_timezone

@@ -403,7 +403,7 @@ def get_child_node(parent: "_SchemaNode", child_name: str) -> "_SchemaNode":
 
     Args:
         parent: the parent node object
-        name: the name of the child node
+        child_name: the name of the child node
 
     Returns:
         the child node

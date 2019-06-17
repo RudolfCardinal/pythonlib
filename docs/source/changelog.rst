@@ -349,3 +349,9 @@ Quick links:
 - :func:`cardinal_pythonlib.randomness.coin`.
 
 - :class:`cardinal_pythonlib.dicts.HashableDict`.
+
+**1.0.55, 2019-06-15**
+
+- Bugfix to aspects of logging in ``buildfunc.py``.
+
+- ``rate_limiting.py``

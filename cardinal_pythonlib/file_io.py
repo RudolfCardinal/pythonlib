@@ -387,7 +387,8 @@ def remove_gzip_timestamp(filename: str,
 # File modifications
 # =============================================================================
 
-def replace_in_file(filename: str, text_from: str, text_to: str) -> None:
+def replace_in_file(filename: str, text_from: str, text_to: str,
+                    backup_filename: str = None) -> None:
     """
     Replaces text in a file.
 
@@ -395,33 +396,45 @@ def replace_in_file(filename: str, text_from: str, text_to: str) -> None:
         filename: filename to process (modifying it in place)
         text_from: original text to replace
         text_to: replacement text
+        backup_filename: backup filename to write to, if modifications made
     """
     log.info("Amending {}: {} -> {}",
              filename, repr(text_from), repr(text_to))
     with open(filename) as infile:
-        contents = infile.read()
-    contents = contents.replace(text_from, text_to)
-    with open(filename, 'w') as outfile:
-        outfile.write(contents)
+        original = infile.read()
+    modified = original.replace(text_from, text_to)
+    if modified != original:
+        if backup_filename:
+            with open(filename, 'w') as outfile:
+                outfile.write(original)
+        with open(filename, 'w') as outfile:
+            outfile.write(modified)
 
 
 def replace_multiple_in_file(filename: str,
-                             replacements: List[Tuple[str, str]]) -> None:
+                             replacements: List[Tuple[str, str]],
+                             backup_filename: str = None) -> None:
     """
     Replaces multiple from/to string pairs within a single file.
 
     Args:
         filename: filename to process (modifying it in place)
         replacements: list of ``(from_text, to_text)`` tuples
+        backup_filename: backup filename to write to, if modifications made
     """
     with open(filename) as infile:
-        contents = infile.read()
+        original = infile.read()
+    modified = original
     for text_from, text_to in replacements:
         log.info("Amending {}: {} -> {}",
                  filename, repr(text_from), repr(text_to))
-        contents = contents.replace(text_from, text_to)
-    with open(filename, 'w') as outfile:
-        outfile.write(contents)
+        modified = modified.replace(text_from, text_to)
+    if modified != original:
+        if backup_filename:
+            with open(filename, 'w') as outfile:
+                outfile.write(original)
+        with open(filename, 'w') as outfile:
+            outfile.write(modified)
 
 
 def convert_line_endings(filename: str, to_unix: bool = False,

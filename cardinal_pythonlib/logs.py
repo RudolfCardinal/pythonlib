@@ -694,6 +694,16 @@ class BraceStyleAdapter(logging.LoggerAdapter):
         return msg, log_kwargs
 
 
+def get_log_with_null_handler(name: str) -> logging.Logger:
+    """
+    For use by library functions. Returns a log with the specifed name that
+    has a null handler attached, and a :class:`BraceStyleAdapter`.
+    """
+    log = logging.getLogger(name)
+    log.addHandler(logging.NullHandler())
+    return log
+
+
 def get_brace_style_log_with_null_handler(name: str) -> BraceStyleAdapter:
     """
     For use by library functions. Returns a log with the specifed name that
