@@ -34,7 +34,7 @@ from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 
 
 log = logging.getLogger(__name__)
-FuncType = Callable[[Any], Any]
+FuncType = Callable[..., Any]
 
 
 def rate_limited(max_per_second: Optional[int]) \

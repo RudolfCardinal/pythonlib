@@ -65,6 +65,9 @@ def which_with_envpath(executable: str, env: Dict[str, str]) -> str:
     return which
 
 
+_MISSING_COMMAND = "Missing command (must be on the PATH): "
+
+
 def require_executable(executable: str) -> None:
     """
     If ``executable`` is not found by :func:`shutil.which`, raise
@@ -72,7 +75,20 @@ def require_executable(executable: str) -> None:
     """
     if shutil.which(executable):
         return
-    errmsg = "Missing command (must be on the PATH): " + executable
+    errmsg = _MISSING_COMMAND + executable
+    log.critical(errmsg)
+    raise FileNotFoundError(errmsg)
+
+
+def which_and_require(executable: str, fullpath: bool = False) -> str:
+    """
+    Ensures that ``executable`` is on the path, and returns it (or its full
+    path via :func:`shutil.which`).
+    """
+    w = shutil.which(executable)
+    if w:
+        return w if fullpath else executable
+    errmsg = _MISSING_COMMAND + executable
     log.critical(errmsg)
     raise FileNotFoundError(errmsg)
 

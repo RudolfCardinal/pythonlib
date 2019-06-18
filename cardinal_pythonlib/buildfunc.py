@@ -33,7 +33,12 @@ import subprocess
 import sys
 from typing import Callable, Dict, List, TextIO, Tuple
 
-from cardinal_pythonlib.fileops import mkdir_p, pushd, require_executable
+from cardinal_pythonlib.fileops import (
+    mkdir_p,
+    pushd,
+    require_executable,
+    which_and_require,
+)
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.network import download
 from cardinal_pythonlib.tee import teed_call
@@ -53,14 +58,6 @@ RunFuncType = Callable
 # ... you can't represent that exactly with Callable;
 #     https://docs.python.org/3/library/typing.html#typing.Callable
 # ... so the best is Callable, which is Callable[..., Any]
-
-
-# =============================================================================
-# Constants
-# =============================================================================
-
-GIT = "git"
-TAR = "tar"
 
 
 # =============================================================================
@@ -92,7 +89,8 @@ def git_clone(prettyname: str, url: str, directory: str,
               branch: str = None,
               commit: str = None,
               clone_options: List[str] = None,
-              run_func: RunFuncType = None) -> bool:
+              run_func: RunFuncType = None,
+              git_executable: str = None) -> bool:
     """
     Fetches a Git repository, unless we have it already.
 
@@ -104,10 +102,12 @@ def git_clone(prettyname: str, url: str, directory: str,
         commit: repository commit tag
         clone_options: additional options to pass to ``git clone``
         run_func: function to use to call an external command
+        git_executable: name of git executable (default ``git``)
 
     Returns:
         did we need to do anything?
     """
+    git = which_and_require(git_executable or "git")
     run_func = run_func or subprocess.check_call
     clone_options = clone_options or []  # type: List[str]
     if os.path.isdir(directory):
@@ -117,8 +117,7 @@ def git_clone(prettyname: str, url: str, directory: str,
         return False
     log.info("Fetching {} source from {} into {}",
              prettyname, url, directory)
-    require_executable(GIT)
-    gitargs = [GIT, "clone"] + clone_options
+    gitargs = [git, "clone"] + clone_options
     if branch:
         gitargs += ["--branch", branch]
     gitargs += [url, directory]
@@ -126,7 +125,7 @@ def git_clone(prettyname: str, url: str, directory: str,
     if commit:
         log.info("Resetting {} local Git repository to commit {}",
                  prettyname, commit)
-        run_func([GIT,
+        run_func([git,
                   "-C", directory,
                   "reset", "--hard", commit])
         # Using a Git repository that's not in the working directory:
@@ -148,43 +147,67 @@ def git_clone(prettyname: str, url: str, directory: str,
 # tar functions
 # =============================================================================
 
+def tar_supports_force_local_switch(tar_executable: str) -> bool:
+    """
+    Does ``tar`` support the ``--force-local`` switch? We ask it.
+    """
+    tarhelp = fetch([tar_executable, "--help"])
+    return "--force-local" in tarhelp
+
+
 def untar_to_directory(tarfile: str,
                        directory: str,
                        verbose: bool = False,
                        gzipped: bool = False,
                        skip_if_dir_exists: bool = True,
                        run_func: RunFuncType = None,
-                       chdir_via_python: bool = True) -> None:
+                       chdir_via_python: bool = True,
+                       tar_executable: str = None,
+                       tar_supports_force_local: bool = None) -> None:
     """
     Unpacks a TAR file into a specified directory.
 
     Args:
-        tarfile: filename of the ``.tar`` file
-        directory: destination directory
-        verbose: be verbose?
-        gzipped: is the ``.tar`` also gzipped, e.g. a ``.tar.gz`` file?
-        skip_if_dir_exists: don't do anything if the destrination directory
-            exists?
-        run_func: function to use to call an external command
-        chdir_via_python: change directory via Python, not via ``tar``.
-            Consider using this via Windows, because Cygwin ``tar`` v1.29 falls
-            over when given a Windows path for its ``-C`` (or ``--directory``)
-            option.
+        tarfile:
+            filename of the ``.tar`` file
+        directory:
+            destination directory
+        verbose:
+            be verbose?
+        gzipped:
+            is the ``.tar`` also gzipped, e.g. a ``.tar.gz`` file?
+        skip_if_dir_exists:
+            don't do anything if the destrination directory exists?
+        run_func:
+            function to use to call an external command
+        chdir_via_python:
+            change directory via Python, not via ``tar``. Consider using this
+            via Windows, because Cygwin ``tar`` v1.29 falls over when given a
+            Windows path for its ``-C`` (or ``--directory``) option.
+        tar_executable:
+            name of the ``tar`` executable (default is ``tar``)
+        tar_supports_force_local:
+            does tar support the ``--force-local`` switch? If you pass ``None``
+            (the default), this is checked directly via ``tar --help``.
+            Linux/GNU tar does; MacOS tar doesn't; Cygwin tar does; Windows 10
+            (build 17063+) tar doesn't.
     """
     if skip_if_dir_exists and os.path.isdir(directory):
         log.info("Skipping extraction of {} as directory {} exists",
                  tarfile, directory)
         return
+    tar = which_and_require(tar_executable or "tar")
+    if tar_supports_force_local is None:
+        tar_supports_force_local = tar_supports_force_local_switch(tar)
     log.info("Extracting {} -> {}", tarfile, directory)
-    require_executable(TAR)
     mkdir_p(directory)
-    args = [TAR, "-x"]  # -x: extract
+    args = [tar, "-x"]  # -x: extract
     if verbose:
         args.append("-v")  # -v: verbose
     if gzipped:
         args.append("-z")  # -z: decompress using gzip
-    if platform.system() != "Darwin":  # OS/X tar doesn't support --force-local
-        args.append("--force-local")  # allows filenames with colons in (Windows!)  # noqa
+    if tar_supports_force_local:
+        args.append("--force-local")  # allows filenames with colons in
     args.extend(["-f", tarfile])  # -f: filename follows
     if chdir_via_python:
         with pushd(directory):

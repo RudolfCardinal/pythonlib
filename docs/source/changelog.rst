@@ -355,3 +355,7 @@ Quick links:
 - Bugfix to aspects of logging in ``buildfunc.py``.
 
 - ``rate_limiting.py``
+
+**1.0.56 (buggy), 1.0.57, 2019-06-18**
+
+- Build function updates. Avoid 1.0.56, it has a stupid bug confusing tar/git.
