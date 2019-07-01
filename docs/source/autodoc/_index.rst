@@ -87,6 +87,7 @@ Automatic documentation of source code
     pdf.py.rst
     platformfunc.py.rst
     plot.py.rst
+    probability.py.rst
     process.py.rst
     psychiatry/drugs.py.rst
     psychiatry/rfunc.py.rst
@@ -94,6 +95,7 @@ Automatic documentation of source code
     psychiatry/treatment_resistant_depression.py.rst
     pyramid/responses.py.rst
     randomness.py.rst
+    rate_limiting.py.rst
     regexfunc.py.rst
     register_db_with_odbc.py.rst
     reprfunc.py.rst

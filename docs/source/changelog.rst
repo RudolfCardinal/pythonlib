@@ -359,3 +359,7 @@ Quick links:
 **1.0.56 (buggy), 1.0.57, 2019-06-18**
 
 - Build function updates. Avoid 1.0.56, it has a stupid bug confusing tar/git.
+
+**1.0.58 (2019-06-29)**
+
+- ``probability.py``
