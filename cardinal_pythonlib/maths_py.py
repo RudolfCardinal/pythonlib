@@ -27,6 +27,7 @@
 """
 
 import math
+import sys
 from typing import Optional, Sequence, Union
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
@@ -137,3 +138,38 @@ def normal_round_int(x: float) -> int:
     else:
         # noinspection PyTypeChecker
         return math.ceil(x - 0.5)
+
+
+def round_sf(x: float, n: int = 2) -> float:
+    """
+    Round to a certain number of significant figures.
+    
+    As per http://code.activestate.com/lists/python-tutor/70739/, linked to
+    from
+    https://stackoverflow.com/questions/3410976/how-to-round-a-number-to-significant-figures-in-python
+
+    Args:
+        x: quantity to round
+        n: number of significant figures
+
+    Returns:
+        float: x, rounded to n significant figures
+        
+    This does proper rounding:
+    
+    .. code-block:: none
+
+        round_sf(0.55, 1)  # 0.6
+        round_sf(0.549, 1)  # 0.5
+        round_sf(-0.55, 1)  # -0.6
+        round_sf(-0.549, 1)  # -0.5
+        
+        round_sf(0.000123456, 3)  # 0.000123
+        round_sf(1234567890000, 3)  # 1230000000000
+        round_sf(9876543210000, 3)  # 9880000000000  
+
+    """  # noqa
+    y = abs(x)
+    if y <= sys.float_info.min:
+        return 0.0
+    return round(x, int(n - math.ceil(math.log10(y))))

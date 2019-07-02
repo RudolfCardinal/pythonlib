@@ -363,3 +363,7 @@ Quick links:
 **1.0.58 (2019-06-29)**
 
 - ``probability.py``
+
+**1.0.59 (2019-07-02)**
+
+- :func:`cardinal_pythonlib.maths_py.round_sf`
