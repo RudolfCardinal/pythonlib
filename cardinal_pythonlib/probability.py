@@ -94,7 +94,12 @@ def probability_from_odds(odds: float) -> float:
 
     .. math::
 
-        p = \frac{o}{1 + o}
+        o &= \frac{p}{1 - p}  \\
+        o (1 - p) &= p  \\
+        o - op &= p  \\
+        o &= p + op  \\
+        o &= p(1 + o)  \\
+        p &= \frac{o}{1 + o}
 
     Args:
         odds: odds
