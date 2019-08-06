@@ -36,12 +36,14 @@ Quick links:
 
 **0.2.7, 2017-04-28**
 
-- Fixed bug in ``rnc_extract_text`` that was using ``get_file_contents()`` as a
-  converter when it wasn't accepting generic ``**kwargs``; now it is.
+- Fixed bug in :mod:`cardinal_pythonlib.extract_text` that was using
+  :func:`cardinal_pythonlib.extract_text.get_file_contents` as a converter when
+  it wasn't accepting generic ``**kwargs``; now it is.
 
 **0.2.8, 2017-04-28**
 
-- Fixed DOCX table processing bug, in ``docx_process_table()``.
+- Fixed DOCX table processing bug, in
+  :func:`cardinal_pythonlib.extract_text.docx_process_table`.
 
 **0.2.10, 2017-04-29**
 
@@ -86,35 +88,42 @@ Quick links:
 
 **1.0.9 to 1.0.10, 2018-01-05 + 2018-02-19**
 
-- Additions to ``datetimefunc.py`` and improvements to ``sqlalchemy/dump.py`` for
-  CamCOPS. Addition of ``slurm.py``.
+- Additions to :mod:`cardinal_pythonlib.datetimefunc` and improvements to
+  :mod:`cardinal_pythonlib.sqlalchemy.dump` for CamCOPS. Addition of
+  :mod:`cardinal_pythonlib.slurm`.
 
 **1.0.11, 2018-02-23**
 
-- Automatic JSON encoding of ``Pendulum`` objects; see serialize.py
+- Automatic JSON encoding of ``Pendulum`` objects; see
+  :mod:`cardinal_pythonlib.json.serialize`.
 - Some DSP code.
 
 **1.0.12, 2018-03-08**
 
-- Fixed ``coerce_to_datetime()`` so it coerces Pendulum to datetime too.
+- Fixed :func:`cardinal_pythonlib.datetimefunc.coerce_to_datetime` so it
+  coerces Pendulum to datetime too.
 
 **1.0.13, 2018-03-08**
 
-- ``argparse_func``: ``str2bool()``, ``percentage()``, ``positive_int()``
+- :mod:`cardinal_pythonlib.argparse_func`:
+  :func:`cardinal_pythonlib.argparse_func.str2bool`,
+  :func:`cardinal_pythonlib.argparse_func.percentage`,
+  :func:`cardinal_pythonlib.argparse_func.positive_int`.
 
 **1.0.14, 2018-05-01**
 
-- ``**kwargs`` options to ``json_encode()``
+- ``**kwargs`` options to :func:`cardinal_pythonlib.json.serialize.json_encode`
 
 **1.0.15, 2018-05-04**
 
-- There was a bad character in a comment in ``winservice.py``; fixed.
+- There was a bad character in a comment in
+  :mod:`cardinal_pythonlib.winservice`; fixed.
 
 **1.0.16, 2018-05-22**
 
-- New file ``sqlalchemy/engine_func.py``
+- New file :mod:`cardinal_pythonlib.sqlalchemy.engine_func`
 - JSON serialization of ``pendulum.Date``
-- ``@register_enum_for_json``
+- ``@register_enum_for_json`` in :mod:`cardinal_pythonlib.json.serialize`.
 
 **1.0.17, 2018-05-27**
 
@@ -127,12 +136,13 @@ Quick links:
 
 **1.0.19 to 1.0.21, 2018-07-01 to 2018-07-02**
 
-- ``psychiatry/drugs.py``
+- :mod:`cardinal_pythonlib.psychiatry.drugs`
 - version assertion commands (for R access via reticulate)
 
 **1.0.22, 2018-07-07**
 
-- ``as_sql`` (etc.) options to ``alembic_func.upgrade_database``
+- ``as_sql`` (etc.) options to
+  :func:`cardinal_pythonlib.sqlalchemy.alembic_func.upgrade_database`
 
 **1.0.23, 2018-07-23**
 
@@ -140,10 +150,12 @@ Quick links:
 
 **1.0.24, 2018-09-11 to 2018-09-14**
 
-- extra debug option (``debug_wkhtmltopdf_args``) for ``get_pdf_from_html``
+- extra debug option (``debug_wkhtmltopdf_args``) for
+  :func:`cardinal_pythonlib.pdf.get_pdf_from_html`
 - Sphinx autodocumentation.
-- ``create_base64encoded_randomness()`` removed from ``crypto.py`` as was
-  duplicated in ``randomness.py``.
+- ``create_base64encoded_randomness()`` removed from
+  :mod:`cardinal_pythonlib.crypto` as was duplicated as
+  :func:`cardinal_pythonlib.randomness.create_base64encoded_randomness`.
 - removed all requirements (temporarily? permanently?) as we were having
   problems installing on machines with wrong compiler versions or absent
   compilers, but didn't need those specific sub-dependencies; so consequence is
@@ -153,8 +165,9 @@ Quick links:
 
 - Dependencies put back, except dependency on ``regex`` removed.
 - Further documentation.
-- Duplicate hash-related functions removed from ``crypto.py``; better versions
-  were in ``hash.py``.
+- Duplicate hash-related functions removed from
+  :mod:`cardinal_pythonlib.crypto`; better versions were in
+  :mod:`cardinal_pythonlib.hash`.
 - Bugfix to :func:`cardinal_pythonlib.sqlalchemy.schema.is_sqlatype_date` for
   more recent versions of SQLAlchemy (e.g. 1.2.11). Error was:
   ``AttributeError: module 'sqlalchemy.sql.sqltypes' has no attribute
@@ -175,23 +188,23 @@ Quick links:
 
 **1.0.27 to 1.0.29, 2018-09-23 to 2018-09-28**
 
-- ``sphinxtools.py`` to help with building documentation
+- :mod:`cardinal_pythonlib.sphinxtools` to help with building documentation
 - added ``pygments`` dependency
 
 **1.0.30, 2018-10-10**
 
-- ``email/mailboxpurge.py``
-- ``emailfunc.py`` renamed to - ``email/sendmail.py``
+- :mod:`cardinal_pythonlib.email.mailboxpurge.`
+- ``emailfunc.py`` renamed to :mod:`cardinal_pythonlib.email.sendmail`
 
 **1.0.32, 2018-10-16**
 
-- ``typing_helpers.py``
+- :mod:`cardinal_pythonlib.typing_helpers`
 
 - updated
   :class:`cardinal_pythonlib.django.fields.restrictedcontentfile.ContentTypeRestrictedFileField`
   to cope with Django 2.1.
 
-- improvements to :class`cardinal_pythonlib.sphinxtools.AutodocIndex` in
+- improvements to :class:`cardinal_pythonlib.sphinxtools.AutodocIndex` in
   relation to filename glob processing for ``skip_globs``
 
 **1.0.33, 2018-11-02**
@@ -204,7 +217,7 @@ Quick links:
 
 **1.0.34, 2018-11-06**
 
-- Bugfix to ``cardinal_pythonlib.psychiatry.drugs``; amitriptyline was being
+- Bugfix to :mod:`cardinal_pythonlib.psychiatry.drugs`; amitriptyline was being
   listed as an FGA.
 - New code in that module to calculate SQL ``LIKE`` clauses; see docstring.
 
@@ -231,7 +244,7 @@ Quick links:
 
 **1.0.38, 2018-11-26**
 
-- Bugfix to "missing tkinter" detection code in ``ui.py``.
+- Bugfix to "missing tkinter" detection code in :mod:`cardinal_pythonlib.ui`.
 
 **1.0.39, 2018-12-02**
 
@@ -257,7 +270,7 @@ Quick links:
   :func:`cardinal_pythonlib.logs.get_brace_style_log_with_null_handler`.
 - Clean pass through PyCharm 2018.3 code inspector.
 - Improved "hard kill" function for Windows in
-  :meth:`cardinal_pythonlib.winservice.ProcessManager._kill`.
+  :meth:`cardinal_pythonlib.winservice.ProcessManager.stop`.
 - :class:`cardinal_pythonlib.sqlalchemy.list_types.StringListType` no longer
   writes trailing newlines. This is a back-compatible change.
 - Advice added to
@@ -273,10 +286,10 @@ Quick links:
 
 **1.0.42 to 1.0.45, 2019-01-04**
 
-- Minor fix: ``__init__.py`` missing from ``cardinal_pythonlib/email``;
+- Minor fix: ``__init__.py`` missing from :mod:`cardinal_pythonlib.email`;
   required for Python 3.5.
-- Some bugfixes to ``sendmail.py`` for e-mail servers not supporting login
-  (!).
+- Some bugfixes to :mod:`cardinal_pythonlib.email.sendmail` for e-mail servers
+  not supporting login (!).
 
 **1.0.46, 2019-01-19**
 
@@ -294,8 +307,9 @@ Quick links:
 
 **1.0.48 to 1.0.49, 2019-03-24**
 
-- Optional `joiner` parameter to formatting functions in ``reprfunc.py``;
-  extra options to :func:`cardinal_pythonlib.reprfunc.auto_str`.
+- Optional `joiner` parameter to formatting functions in
+  :mod:`cardinal_pythonlib.reprfunc`; extra options to
+  :func:`cardinal_pythonlib.reprfunc.auto_str`.
 
 - Additional tweaks to :class:`cardinal_pythonlib.sphinxtools.AutodocIndex`.
 
@@ -310,9 +324,9 @@ Quick links:
   antidepressant A "finishes" on the *same* day as B starts, that counts
   (previously, B needed to start 1 day later). Hard-coded change.
 
-- New module ``cardinal_pythonlib.interval``.
+- New module :mod:`cardinal_pythonlib.interval`.
 
-- New module ``cardinal_pythonlib.psychiatry.timeline``.
+- New module :mod:`cardinal_pythonlib.psychiatry.timeline`.
 
 - A couple of bad escape sequences fixed (should have been raw strings), in
   :data:`cardinal_pythonlib.nhs.WHITESPACE_REGEX`,
@@ -324,25 +338,26 @@ Quick links:
 
 **1.0.51, 2019-04-23**
 
-- Bugfix to ``cardinal_pythonlib/winservice.py`` which checked
+- Bugfix to :mod:`cardinal_pythonlib.winservice` which checked
   ``if os.environ["_SPHINX_AUTODOC_IN_PROGRESS"]`` when it meant
   ``if os.environ.get("_SPHINX_AUTODOC_IN_PROGRESS")``, leading to a potential
   crash.
 
-- Similar fix to ``cardinal_pythonlib.django.middleware.py``.
+- Similar fix to :mod:`cardinal_pythonlib.django.middleware`.
 
 **1.0.52, 2019-04-23**
 
-- New module ``cardinal_pythonlib.sqlalchemy.sqlserver``.
+- New module :mod:`cardinal_pythonlib.sqlalchemy.sqlserver`.
 
 **1.0.53, 2019-04-27**
 
 - New MIME types.
 
-- Duration handlers in ``cardinal_pythonlib.sqlalchemy.datetimefunc``,
+- Duration handlers in :mod:`cardinal_pythonlib.datetimefunc`,
   including ISO-8601 representations of duration.
 
-- Extra small functions for ``colander``.
+- Extra small functions for ``colander`` in
+  :mod:`cardinal_pythonlib.colander_utils`.
 
 **1.0.54, 2019-06-14**
 
@@ -352,9 +367,9 @@ Quick links:
 
 **1.0.55, 2019-06-15**
 
-- Bugfix to aspects of logging in ``buildfunc.py``.
+- Bugfix to aspects of logging in :mod:`cardinal_pythonlib.buildfunc`
 
-- ``rate_limiting.py``
+- :mod:`cardinal_pythonlib.rate_limiting`
 
 **1.0.56 (buggy), 1.0.57, 2019-06-18**
 
@@ -362,8 +377,18 @@ Quick links:
 
 **1.0.58 (2019-06-29)**
 
-- ``probability.py``
+- :mod:`cardinal_pythonlib.probability`
 
 **1.0.59 (2019-07-02)**
 
 - :func:`cardinal_pythonlib.maths_py.round_sf`
+
+**1.0.60 (2019-08-06)**
+
+- Bugfixes to log probability handling in
+  :mod:`cardinal_pythonlib.probability`: (a)
+  :func:`cardinal_pythonlib.probability.log10` was just plain wrong and
+  returned ln(x) instead of log10(x); (b)
+  :func:`cardinal_pythonlib.probability.log_probability_from_log_odds` used
+  :func:`math.log` rather than using the internal version that treats log(0) as
+  ``-inf``.

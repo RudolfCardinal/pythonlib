@@ -484,7 +484,7 @@ class ProcessManager(object):
         Asks nicely. Waits. Asks less nicely. Repeat until subprocess is dead.
 
         .. todo::
-            cardinal_pythonlib.winservice.ProcessManager._kill: make
+            cardinal_pythonlib.winservice.ProcessManager.stop: make
             it reliable under Windows
         """
         if not self.running:

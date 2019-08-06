@@ -52,7 +52,7 @@ def ln(x: float) -> float:
 
 def log10(x: float) -> float:
     """
-    Version of :func:`math.log` that treats log(0) as ``-inf``, rather than
+    Version of :func:`math.log10` that treats log(0) as ``-inf``, rather than
     crashing with ``ValueError: math domain error``.
 
     Args:
@@ -64,7 +64,7 @@ def log10(x: float) -> float:
     See
     https://stackoverflow.com/questions/42980201/logarithm-of-zero-in-python.
     """
-    return math.log(x) if x != 0 else -math.inf
+    return math.log10(x) if x != 0 else -math.inf
 
 
 # =============================================================================
@@ -155,7 +155,7 @@ def log_probability_from_log_odds(log_odds: float) -> float:
 
     """
     p = probability_from_log_odds(log_odds)
-    return math.log(p)
+    return ln(p)
 
 
 def log_odds_from_probability(p: float) -> float:

@@ -301,6 +301,10 @@ class LazyButHonestDict(dict):
 # =============================================================================
 
 class HashableDict(dict):
-    # https://stackoverflow.com/questions/1151658/python-hashable-dicts
+    """
+    A dictionary that can be hashed.
+
+    See https://stackoverflow.com/questions/1151658/python-hashable-dicts.
+    """
     def __hash__(self) -> int:
         return hash(tuple(sorted(self.items())))

@@ -622,8 +622,10 @@ def giant_text_sqltype(dialect: Dialect) -> str:
 RE_MYSQL_ENUM_COLTYPE = re.compile(r'ENUM\((?P<valuelist>.+)\)')
 RE_COLTYPE_WITH_COLLATE = re.compile(r'(?P<maintype>.+) COLLATE .+')
 RE_COLTYPE_WITH_ONE_PARAM = re.compile(r'(?P<type>\w+)\((?P<size>\w+)\)')
+# ... e.g. "VARCHAR(10)"
 RE_COLTYPE_WITH_TWO_PARAMS = re.compile(
     r'(?P<type>\w+)\((?P<size>\w+),\s*(?P<dp>\w+)\)')
+# ... e.g. "DECIMAL(10, 2)"
 
 
 # http://www.w3schools.com/sql/sql_create_table.asp
@@ -667,6 +669,10 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
     Returns an SQLAlchemy column type, given a column type name (a string) and
     an SQLAlchemy dialect. For example, this might convert the string
     ``INTEGER(11)`` to an SQLAlchemy ``Integer(length=11)``.
+
+    NOTE that the reverse operation is performed by ``str(coltype)`` or
+    ``coltype.compile()`` or ``coltype.compile(dialect)``; see
+    :class:`TypeEngine`.
 
     Args:
         dialect: a SQLAlchemy :class:`Dialect` class
@@ -946,6 +952,9 @@ def _coltype_to_typeengine(coltype: Union[TypeEngine,
     ``Integer`` (an instance of :class:`VisitableType`), you'll also get
     ``Integer()`` back. The function asserts that its return type is an
     instance of :class:`TypeEngine`.
+
+    See also
+    :func:`cardinal_pythonlib.sqlalchemy.orm_inspect.coltype_as_typeengine`.
     """
     if isinstance(coltype, VisitableType):
         coltype = coltype()
@@ -964,7 +973,7 @@ def is_sqlatype_binary(coltype: Union[TypeEngine, VisitableType]) -> bool:
     return isinstance(coltype, sqltypes._Binary)
 
 
-def is_sqlatype_date(coltype: TypeEngine) -> bool:
+def is_sqlatype_date(coltype: Union[TypeEngine, VisitableType]) -> bool:
     """
     Is the SQLAlchemy column type a date type?
     """
