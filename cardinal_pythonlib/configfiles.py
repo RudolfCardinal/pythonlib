@@ -149,7 +149,7 @@ def get_config_bool_option(parser: ConfigParser,
         default: value to return if option is absent
 
     Returns:
-        string value
+        Boolean value
 
     Raises:
         ValueError: if the section is absent
