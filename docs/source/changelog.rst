@@ -392,3 +392,9 @@ Quick links:
   :func:`cardinal_pythonlib.probability.log_probability_from_log_odds` used
   :func:`math.log` rather than using the internal version that treats log(0) as
   ``-inf``.
+
+**1.0.61 (2019-08-19)**
+
+- Improvement to :func:`cardinal_pythonlib.django.serve.serve_file` so that it
+  won't crash if the ``XSENDFILE`` variable is not present in the Django
+  settings (defaulting to False).

@@ -100,16 +100,20 @@ def serve_file(path_to_file: str,
                as_inline: bool = False) -> HttpResponseBase:
     """
     Serve up a file from disk.
-    Two methods (chosen by ``settings.XSENDFILE``):
-    (a) serve directly
-    (b) serve by asking the web server to do so via the X-SendFile directive.
+
+    There are two methods. One is chosen via ``settings.XSENDFILE`` (a
+    non-standard value in the Django settings file, defaulting to ``False``):
+
+    (a) serve directly (if ``XSENDFILE`` is absent or False);
+    (b) serve by asking the web server to do so via the X-SendFile directive
+        (if ``XSENDFILE`` is True).
     """
     # http://stackoverflow.com/questions/1156246/having-django-serve-downloadable-files  # noqa
     # https://docs.djangoproject.com/en/dev/ref/request-response/#telling-the-browser-to-treat-the-response-as-a-file-attachment  # noqa
     # https://djangosnippets.org/snippets/365/
     if offered_filename is None:
         offered_filename = os.path.basename(path_to_file) or ''
-    if settings.XSENDFILE:
+    if getattr(settings, "XSENDFILE", False):
         response = HttpResponse()
         response['X-Sendfile'] = smart_str(path_to_file)
         content_length = os.path.getsize(path_to_file)
