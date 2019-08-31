@@ -24,7 +24,18 @@
 
 **Constants for use with HTTP.**
 
-"""
+Many of these can be extracted:
+
+.. code-block:: python
+
+    import mimetypes
+    mimetypes.types_map['.zip']  # application/zip -- this is built in
+    mimetypes.types_map['.xlsx']  # fails
+    mimetypes.init()
+    mimetypes.types_map['.xlsx']  # application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+    # ... must read some local thing...
+
+"""  # noqa
 
 
 class MimeType(object):
@@ -59,12 +70,24 @@ class MimeType(object):
 
     """  # noqa
     CSV = "text/csv"
+    DOC = "application/msword"
+    DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"  # noqa
+    DOT = DOC
+    DOTX = "application/vnd.openxmlformats-officedocument.wordprocessingml.template"  # noqa
+    ODP = "application/vnd.oasis.opendocument.presentation"
     ODS = "application/vnd.oasis.opendocument.spreadsheet"
+    ODT = "application/vnd.oasis.opendocument.text"
     PDF = "application/pdf"
     PNG = "image/png"
+    PPT = "application/vnd.ms-powerpoint"
     SQLITE3 = "application/x-sqlite3"
     TEXT = "text/plain"
     TSV = "text/tab-separated-values"
+    TXT = TEXT
+    XLS = "application/vnd.ms-excel"
     XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     XML = "text/xml"
     ZIP = "application/zip"
+
+
+ContentType = MimeType

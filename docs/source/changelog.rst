@@ -398,3 +398,7 @@ Quick links:
 - Improvement to :func:`cardinal_pythonlib.django.serve.serve_file` so that it
   won't crash if the ``XSENDFILE`` variable is not present in the Django
   settings (defaulting to False).
+
+**1.0.62 (2019-08-31)**
+
+- Updates to :mod:`cardinal_pythonlib.httpconst`
