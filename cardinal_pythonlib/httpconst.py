@@ -34,6 +34,20 @@ Many of these can be extracted:
     mimetypes.init()
     mimetypes.types_map['.xlsx']  # application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
     # ... must read some local thing...
+    
+Something's changed -- in Python 3.6.8, there's no need for the init() call.
+There is also a guessing function, :func:`mimetypes.guess_type`; see
+https://docs.python.org/3.6/library/mimetypes.html.
+
+.. code-block:: python
+
+    >>> import mimetypes
+    >>> print(mimetypes.guess_type("thing.html"))
+    ('text/html', None)
+    >>> print(mimetypes.guess_type("thing.xls"))
+    ('application/vnd.ms-excel', None)
+    >>> print(mimetypes.guess_type("thing.xlsx"))
+    ('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', None)
 
 """  # noqa
 
