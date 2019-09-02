@@ -88,6 +88,7 @@ def lowpass_filter(data: FLOATS_TYPE,
 
     Note: number of filter taps = filter order + 1
     """
+    # noinspection PyTypeChecker
     coeffs = firwin(
         numtaps=numtaps,
         cutoff=normalized_frequency(cutoff_freq_hz, sampling_freq_hz),
@@ -117,6 +118,7 @@ def highpass_filter(data: FLOATS_TYPE,
 
     Note: number of filter taps = filter order + 1
     """
+    # noinspection PyTypeChecker
     coeffs = firwin(
         numtaps=numtaps,
         cutoff=normalized_frequency(cutoff_freq_hz, sampling_freq_hz),
@@ -151,6 +153,7 @@ def bandpass_filter(data: FLOATS_TYPE,
     """
     f1 = normalized_frequency(lower_freq_hz, sampling_freq_hz)
     f2 = normalized_frequency(upper_freq_hz, sampling_freq_hz)
+    # noinspection PyTypeChecker
     coeffs = firwin(
         numtaps=numtaps,
         cutoff=[f1, f2],

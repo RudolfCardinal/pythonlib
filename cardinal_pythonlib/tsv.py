@@ -86,6 +86,21 @@ def tsv_pairs_to_dict(line: str, key_lower: bool = True) -> Dict[str, str]:
         line: the line
         key_lower: should the keys be forced to lower case?
 
+    Sometimes we get lines that end in a tab. This is valid. Check with these:
+
+    .. code-block:: python
+
+        import logging
+        from cardinal_pythonlib.tsv import tsv_pairs_to_dict
+        logging.basicConfig(level=logging.DEBUG)
+        print(tsv_pairs_to_dict("a\t1\tb\t2\tc\t3"))  # OK
+        print(tsv_pairs_to_dict("a\t1\tb\t2\tc\t"))  # OK
+        print(tsv_pairs_to_dict("a\t1\tb\t2\tc"))  # not OK; orphan 'c'
+        print(tsv_pairs_to_dict("a\t1\tb\t2\tc\t\n"))  # OK
+
+    Beware using :func:`rstrip` prior to a call to this function, because that
+    will also strip trailing tabs.
+
     """
     items = line.split("\t")
     d = {}  # type: Dict[str, str]

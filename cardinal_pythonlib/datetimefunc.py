@@ -84,6 +84,7 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
         return x
     tz = get_tz_local() if assume_local else get_tz_utc()
     if isinstance(x, datetime.datetime):
+        # noinspection PyTypeChecker
         return pendulum.instance(x, tz=tz)  # (*)
     elif isinstance(x, datetime.date):
         # BEWARE: datetime subclasses date. The order is crucial here.
@@ -91,6 +92,7 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
         # noinspection PyUnresolvedReferences
         midnight = DateTime.min.time()
         dt = DateTime.combine(x, midnight)
+        # noinspection PyTypeChecker
         return pendulum.instance(dt, tz=tz)  # (*)
     elif isinstance(x, str):
         return pendulum.parse(x, tz=tz)  # (*)  # may raise
