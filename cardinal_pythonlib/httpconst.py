@@ -88,6 +88,7 @@ class MimeType(object):
     DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"  # noqa
     DOT = DOC
     DOTX = "application/vnd.openxmlformats-officedocument.wordprocessingml.template"  # noqa
+    FORCE_DOWNLOAD = "application/force-download"
     ODP = "application/vnd.oasis.opendocument.presentation"
     ODS = "application/vnd.oasis.opendocument.spreadsheet"
     ODT = "application/vnd.oasis.opendocument.text"

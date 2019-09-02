@@ -402,3 +402,10 @@ Quick links:
 **1.0.62 (2019-08-31)**
 
 - Updates to :mod:`cardinal_pythonlib.httpconst`
+
+**1.0.63 (2019-09-01)**
+
+- ``default_content_type`` parameters in
+  :mod:`cardinal_pythonlib.django.serve`.
+- bugfix to :func:`cardinal_pythonlib.exceptions.die` (log failing with
+  messages that included braces).

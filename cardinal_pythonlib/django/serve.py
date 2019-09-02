@@ -29,7 +29,7 @@ files, PDFs).**
 
 
 import os
-from typing import Iterable, Union
+from typing import Iterable, Optional, Union
 
 from django.conf import settings
 from django.http import FileResponse, HttpResponse
@@ -55,32 +55,49 @@ from cardinal_pythonlib.pdf import (
 # ... but it turns out that filetransfers.api.serve_file uses a file object,
 # not a filename. Not impossible, but never mind.
 
-def add_http_headers_for_attachment(response: HttpResponse,
-                                    offered_filename: str = None,
-                                    content_type: str = None,
-                                    as_attachment: bool = False,
-                                    as_inline: bool = False,
-                                    content_length: int = None) -> None:
+def add_http_headers_for_attachment(
+        response: HttpResponse,
+        offered_filename: str = None,
+        content_type: str = None,
+        as_attachment: bool = False,
+        as_inline: bool = False,
+        content_length: int = None,
+        default_content_type: Optional[str] = MimeType.FORCE_DOWNLOAD) -> None:
     """
     Add HTTP headers to a Django response class object.
 
     Args:
 
-        response: ``HttpResponse`` instance
-        offered_filename: filename that the client browser will suggest
-        content_type: HTTP content type
-        as_attachment: if True, browsers will generally save to disk.
+        response:
+            ``HttpResponse`` instance
+        offered_filename:
+            filename that the client browser will suggest
+        content_type:
+            HTTP content type
+        as_attachment:
+            If True, browsers will generally save to disk.
             If False, they may display it inline.
             http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html
-        as_inline: attempt to force inline (only if not as_attachment)
-        content_length: HTTP content length
+        as_inline:
+            attempt to force inline (only if not as_attachment)
+        content_length:
+            HTTP content length
+        default_content_type:
+            HTTP content type to use as default, if ``content_type`` is
+            ``None``
 
     """
+    # Parameters
     if offered_filename is None:
         offered_filename = ''
     if content_type is None:
-        content_type = 'application/force-download'
-    response['Content-Type'] = content_type
+        content_type = default_content_type
+
+    # Content-Type
+    if content_type is not None:
+        response['Content-Type'] = content_type
+
+    # Content-Disposition
     if as_attachment:
         prefix = 'attachment; '
     elif as_inline:
@@ -89,6 +106,8 @@ def add_http_headers_for_attachment(response: HttpResponse,
         prefix = ''
     fname = 'filename=%s' % smart_str(offered_filename)
     response['Content-Disposition'] = prefix + fname
+
+    # Content-Length
     if content_length is not None:
         response['Content-Length'] = content_length
 
@@ -97,7 +116,9 @@ def serve_file(path_to_file: str,
                offered_filename: str = None,
                content_type: str = None,
                as_attachment: bool = False,
-               as_inline: bool = False) -> HttpResponseBase:
+               as_inline: bool = False,
+               default_content_type: Optional[str] = MimeType.FORCE_DOWNLOAD) \
+        -> HttpResponseBase:
     """
     Serve up a file from disk.
 
@@ -107,6 +128,24 @@ def serve_file(path_to_file: str,
     (a) serve directly (if ``XSENDFILE`` is absent or False);
     (b) serve by asking the web server to do so via the X-SendFile directive
         (if ``XSENDFILE`` is True).
+
+    Args:
+
+        path_to_file:
+            path to file on our server
+        offered_filename:
+            filename that the client browser will suggest
+        content_type:
+            HTTP content type
+        as_attachment:
+            If True, browsers will generally save to disk.
+            If False, they may display it inline.
+            http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html
+        as_inline:
+            attempt to force inline (only if not as_attachment)
+        default_content_type:
+            HTTP content type to use as default, if ``content_type`` is
+            ``None``
     """
     # http://stackoverflow.com/questions/1156246/having-django-serve-downloadable-files  # noqa
     # https://docs.djangoproject.com/en/dev/ref/request-response/#telling-the-browser-to-treat-the-response-as-a-file-attachment  # noqa
@@ -120,12 +159,14 @@ def serve_file(path_to_file: str,
     else:
         response = FileResponse(open(path_to_file, mode='rb'))
         content_length = None
-    add_http_headers_for_attachment(response,
-                                    offered_filename=offered_filename,
-                                    content_type=content_type,
-                                    as_attachment=as_attachment,
-                                    as_inline=as_inline,
-                                    content_length=content_length)
+    add_http_headers_for_attachment(
+        response,
+        offered_filename=offered_filename,
+        content_type=content_type,
+        as_attachment=as_attachment,
+        as_inline=as_inline,
+        content_length=content_length,
+        default_content_type=default_content_type)
     return response
     # Note for debugging: Chrome may request a file more than once (e.g. with a
     # GET request that's then marked 'canceled' in the Network tab of the
@@ -133,22 +174,27 @@ def serve_file(path_to_file: str,
     #   http://stackoverflow.com/questions/4460661/what-to-do-with-chrome-sending-extra-requests  # noqa
 
 
-def serve_buffer(data: bytes,
-                 offered_filename: str = None,
-                 content_type: str = None,
-                 as_attachment: bool = True,
-                 as_inline: bool = False) -> HttpResponse:
+def serve_buffer(
+        data: bytes,
+        offered_filename: str = None,
+        content_type: str = None,
+        as_attachment: bool = True,
+        as_inline: bool = False,
+        default_content_type: Optional[str] = MimeType.FORCE_DOWNLOAD) \
+        -> HttpResponse:
     """
     Serve up binary data from a buffer.
-    Options as for ``serve_file()``.
+    Options as for :func:`serve_file`.
     """
     response = HttpResponse(data)
-    add_http_headers_for_attachment(response,
-                                    offered_filename=offered_filename,
-                                    content_type=content_type,
-                                    as_attachment=as_attachment,
-                                    as_inline=as_inline,
-                                    content_length=len(data))
+    add_http_headers_for_attachment(
+        response,
+        offered_filename=offered_filename,
+        content_type=content_type,
+        as_attachment=as_attachment,
+        as_inline=as_inline,
+        content_length=len(data),
+        default_content_type=default_content_type)
     return response
 
 

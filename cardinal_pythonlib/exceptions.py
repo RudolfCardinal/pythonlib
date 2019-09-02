@@ -115,6 +115,6 @@ def die(exc: Exception = None, exit_code: int = 1) -> None:
         # Method 1:
         # print("".join(lines), file=sys.stderr, flush=True)
         # Method 2:
-        log.critical(msg)
+        log.critical("{}", msg)
     log.critical("Exiting with exit code {}", exit_code)
     sys.exit(exit_code)
