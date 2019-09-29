@@ -32,6 +32,7 @@ Automatic documentation of source code
     classes.py.rst
     cmdline.py.rst
     colander_utils.py.rst
+    compression.py.rst
     configfiles.py.rst
     convert.py.rst
     crypto.py.rst
@@ -93,6 +94,9 @@ Automatic documentation of source code
     psychiatry/rfunc.py.rst
     psychiatry/timeline.py.rst
     psychiatry/treatment_resistant_depression.py.rst
+    pyramid/compression.py.rst
+    pyramid/constants.py.rst
+    pyramid/requests.py.rst
     pyramid/responses.py.rst
     randomness.py.rst
     rate_limiting.py.rst
