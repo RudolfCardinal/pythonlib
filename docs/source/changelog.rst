@@ -409,3 +409,10 @@ Quick links:
   :mod:`cardinal_pythonlib.django.serve`.
 - bugfix to :func:`cardinal_pythonlib.exceptions.die` (log failing with
   messages that included braces).
+
+**1.0.64 (2019-09-29)**
+
+- :mod:`cardinal_pythonlib.compression`
+- :mod:`cardinal_pythonlib.pyramid.constants`
+- :mod:`cardinal_pythonlib.pyramid.compression`
+- :mod:`cardinal_pythonlib.pyramid.requests`

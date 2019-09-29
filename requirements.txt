@@ -41,6 +41,8 @@ semantic-version
 SQLAlchemy
 sqlparse
 tzlocal
+webob  # installed by pyramid
+
 
 # =============================================================================
 # The following are NOT HANDLED GRACEFULLY; their absence will cause a runtime
