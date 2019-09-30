@@ -416,3 +416,8 @@ Quick links:
 - :mod:`cardinal_pythonlib.pyramid.constants`
 - :mod:`cardinal_pythonlib.pyramid.compression`
 - :mod:`cardinal_pythonlib.pyramid.requests`
+
+**1.0.65 (2019-09-30)**
+
+- :mod:`cardinal_pythonlib.sql.validation`, enabling the use of these functions
+  without the deprecated - :mod:`cardinal_pythonlib.rnc_db`.

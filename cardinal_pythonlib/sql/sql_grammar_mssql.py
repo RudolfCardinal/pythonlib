@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# crate_anon/crateweb/research/sql_grammar_mssql.py
+# cardinal_pythonlib/sql/sql_grammar_mssql.py
 
 """
 ===============================================================================

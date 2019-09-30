@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/sqlalchemy/literals.py
+# cardinal_pythonlib/sql/literals.py
 
 """
 ===============================================================================
