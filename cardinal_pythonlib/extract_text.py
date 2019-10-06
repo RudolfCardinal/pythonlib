@@ -242,24 +242,33 @@ class TextProcessingConfig(object):
                  width: int = DEFAULT_WIDTH,
                  min_col_width: int = DEFAULT_MIN_COL_WIDTH,
                  plain: bool = False,
-                 docx_in_order: bool = True) -> None:
+                 docx_in_order: bool = True,
+                 rstrip: bool = True) -> None:
         """
         Args:
-            encoding: optional text file encoding to try in addition to
+            encoding:
+                optional text file encoding to try in addition to
                 :func:`sys.getdefaultencoding`.
-            width: overall word-wrapping width
-            min_col_width: minimum column width for tables
-            plain: as plain as possible (e.g. for natural language processing);
+            width:
+                overall word-wrapping width
+            min_col_width:
+                minimum column width for tables
+            plain:
+                as plain as possible (e.g. for natural language processing);
                 see :func:`docx_process_table`
-            docx_in_order: for DOCX files: if ``True``, process paragraphs and
-                tables in the order they occur; if ``False``, process all
-                paragraphs followed by all tables
+            docx_in_order:
+                for DOCX files: if ``True``, process paragraphs and tables in
+                the order they occur; if ``False``, process all paragraphs
+                followed by all tables
+            rstrip:
+                Right-strip whitespace from all lines?
         """
         self.encoding = encoding
         self.width = width
         self.min_col_width = min_col_width
         self.plain = plain
         self.docx_in_order = docx_in_order
+        self.rstrip = rstrip
 
 
 _DEFAULT_CONFIG = TextProcessingConfig()
@@ -389,6 +398,16 @@ def get_cmd_output_from_stdin(stdint_content_binary: bytes,
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     stdout, stderr = p.communicate(input=stdint_content_binary)
     return stdout.decode(encoding, errors='ignore')
+
+
+def rstrip_all_lines(text: str) -> str:
+    """
+    Right-strips all lines in a string and returns the result.
+    """
+    return "\n".join(
+        line.rstrip()
+        for line in text.splitlines()
+    )
 
 
 # =============================================================================
@@ -1221,10 +1240,26 @@ def document_to_text(filename: str = None,
 
     Pass either a filename or a binary object.
 
-    - Raises an exception for malformed arguments, missing files, bad
-      filetypes, etc.
+    Args:
 
-    - Returns a string if the file was processed (potentially an empty string).
+        filename:
+            the filename to read
+        blob:
+            binary content (alternative to ``filename``)
+        extension:
+            file extension, used as a hint when ``blob`` is used
+        config:
+            an optional :class:`TextProcessingConfig` object
+
+    Returns:
+
+        Returns a string if the file was processed (potentially an empty
+        string).
+
+    Raises:
+
+        Raises an exception for malformed arguments, missing files, bad
+        filetypes, etc.
     """
     if not filename and not blob:
         raise ValueError("document_to_text: no filename and no blob")
@@ -1258,7 +1293,10 @@ def document_to_text(filename: str = None,
         log.warning("Unknown filetype: {}; using generic tool", extension)
         info = ext_map[None]
     func = info[CONVERTER]
-    return func(filename, blob, config)
+    text = func(filename, blob, config)
+    if config.rstrip:
+        text = rstrip_all_lines(text)
+    return text
 
 
 def is_text_extractor_available(extension: str) -> bool:

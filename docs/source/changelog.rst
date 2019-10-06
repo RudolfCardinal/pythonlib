@@ -421,3 +421,9 @@ Quick links:
 
 - :mod:`cardinal_pythonlib.sql.validation`, enabling the use of these functions
   without the deprecated - :mod:`cardinal_pythonlib.rnc_db`.
+
+**1.0.66 (2019-10-06)**
+
+- ``rstrip`` argument to
+  :class:`cardinal_pythonlib.extract_text.TextProcessingConfig` config class,
+  used by :func:`cardinal_pythonlib.extract_text.document_to_text`.
