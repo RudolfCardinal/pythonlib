@@ -422,8 +422,13 @@ Quick links:
 - :mod:`cardinal_pythonlib.sql.validation`, enabling the use of these functions
   without the deprecated - :mod:`cardinal_pythonlib.rnc_db`.
 
-**1.0.66 (2019-10-06)**
+**1.0.66, 1.0.67 (2019-10-06)**
 
 - ``rstrip`` argument to
   :class:`cardinal_pythonlib.extract_text.TextProcessingConfig` config class,
   used by :func:`cardinal_pythonlib.extract_text.document_to_text`.
+- Renamed current ``plain`` behaviour in that module to ``semiplain``, and
+  added ``plain`` which is plainer (and doesn't use PrettyTable).
+- Fixed DOCX word-wrapping bug (wasn't wrapping plain paragraphs).
+- UTF-8 characters used for tabular markings (see comments in
+  :func:`cardinal_pythonlib.extract_text.docx_process_table`.

@@ -242,7 +242,15 @@ class TextProcessingConfig(object):
                  width: int = DEFAULT_WIDTH,
                  min_col_width: int = DEFAULT_MIN_COL_WIDTH,
                  plain: bool = False,
+                 semiplain: bool = False,
                  docx_in_order: bool = True,
+                 horizontal_char="─",
+                 vertical_char="│",
+                 junction_char="┼",
+                 plain_table_start: str = None,
+                 plain_table_end: str = None,
+                 plain_table_col_boundary: str = None,
+                 plain_table_row_boundary: str = None,
                  rstrip: bool = True) -> None:
         """
         Args:
@@ -255,19 +263,108 @@ class TextProcessingConfig(object):
                 minimum column width for tables
             plain:
                 as plain as possible (e.g. for natural language processing);
-                see :func:`docx_process_table`
+                see :func:`docx_process_table`.
+            semiplain:
+                quite plain, but with some ASCII art representation of the
+                table structure.
             docx_in_order:
                 for DOCX files: if ``True``, process paragraphs and tables in
                 the order they occur; if ``False``, process all paragraphs
                 followed by all tables
             rstrip:
                 Right-strip whitespace from all lines?
+            horizontal_char:
+                horizontal character to use with PrettyTable, e.g. ``-`` or
+                ``─``
+            vertical_char:
+                vertical character to use with PrettyTable, e.g. ``|`` or
+                ``│``
+            junction_char:
+                junction character to use with PrettyTable, e.g. ``+`` or
+                ``┼``
+            plain_table_start:
+                table start line to use with ``plain=True``
+            plain_table_end:
+                table end line to use with ``plain=True``
+            plain_table_col_boundary:
+                boundary between columns to use with ``plain==True``
+            plain_table_row_boundary:
+                boundary between rows to use with ``plain==True``
+
+        Example of a DOCX table processed with:
+
+        - ``plain=False, semiplain=False``
+
+          .. code-block:: none
+
+            ┼─────────────┼─────────────┼
+            │ Row 1 col 1 │ Row 1 col 2 │
+            ┼─────────────┼─────────────┼
+            │ Row 2 col 1 │ Row 2 col 2 │
+            ┼─────────────┼─────────────┼
+
+        - ``plain=False, semiplain=True``
+
+          .. code-block:: none
+
+            ─────────────────────────────
+              Row 1 col 1
+            ─────────────────────────────
+                            Row 1 col 2
+            ─────────────────────────────
+              Row 2 col 1
+            ─────────────────────────────
+                            Row 2 col 2
+            ─────────────────────────────
+
+        - ``plain=True``
+
+          .. code-block:: none
+
+            ╔═════════════════════════════════════════════════════════════════╗
+            Row 1 col 1
+            ───────────────────────────────────────────────────────────────────
+            Row 1 col 2
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            Row 2 col 1
+            ───────────────────────────────────────────────────────────────────
+            Row 2 col 2
+            ╚═════════════════════════════════════════════════════════════════╝
+
+        The plain format is probably better, in general, for NLP, and is
+        definitely clearer with nested tables (for which the word-wrapping
+        algorithm is imperfect).
+
         """
+        if plain and semiplain:
+            log.warning("You specified both plain and semiplain; using plain")
+            semiplain = False
+        middlewidth = width - 2 if width > 2 else 77
+        # double
+        if plain_table_start is None:
+            plain_table_start = "╔" + ("═" * middlewidth) + "╗"
+        if plain_table_end is None:
+            plain_table_end = "╚" + ("═" * middlewidth) + "╝"
+        # heavy
+        if plain_table_row_boundary is None:
+            plain_table_row_boundary = "━" * (middlewidth + 2)
+        # light
+        if plain_table_col_boundary is None:
+            plain_table_col_boundary = "─" * (middlewidth + 2)
+
         self.encoding = encoding
         self.width = width
         self.min_col_width = min_col_width
         self.plain = plain
+        self.semiplain = semiplain
         self.docx_in_order = docx_in_order
+        self.horizontal_char = horizontal_char
+        self.vertical_char = vertical_char
+        self.junction_char = junction_char
+        self.plain_table_start = plain_table_start
+        self.plain_table_end = plain_table_end
+        self.plain_table_col_boundary = plain_table_col_boundary
+        self.plain_table_row_boundary = plain_table_row_boundary
         self.rstrip = rstrip
 
 
@@ -556,21 +653,32 @@ def docx_text_from_xml_node(node: ElementTree.Element,
 
     """
     text = ''
-    # log.debug("Level {}, tag {}", level, node.tag)
-    if node.tag == DOCX_TEXT:
-        text += node.text or ''
-    elif node.tag == DOCX_TAB:
+    tag = node.tag  # for speed
+    log.debug("Level {}, tag {}", level, tag)
+    if tag == DOCX_TEXT:
+        log.debug("Text: {!r}", node.text)
+        text += docx_wordwrap(node.text or '', config.width)
+        # This isn't perfect -- if a node contains children, they are
+        # word-wrapped individually but not collectively. But since those
+        # children could also include tables (more complicated!), this is a
+        # reasonable approximation.
+    elif tag == DOCX_TAB:
+        log.debug("Tab")
         text += '\t'
-    elif node.tag in DOCX_NEWLINES:
+    elif tag in DOCX_NEWLINES:  # rarely used? Mostly "new paragraph"
+        log.debug("Newline")
         text += '\n'
-    elif node.tag == DOCX_NEWPARA:
-        text += '\n\n'
+    elif tag == DOCX_NEWPARA:  # Note that e.g. all table cells start with this
+        log.debug("New paragraph")
+        text += '\n'
 
-    if node.tag == DOCX_TABLE:
-        text += '\n\n' + docx_table_from_xml_node(node, level, config)
+    if tag == DOCX_TABLE:
+        log.debug("Table")
+        text += "\n" + docx_table_from_xml_node(node, level, config)
     else:
         for child in node:
             text += docx_text_from_xml_node(child, level + 1, config)
+
     return text
 
 
@@ -683,7 +791,7 @@ def docx_table_from_xml_node(table_node: ElementTree.Element,
 # Generic
 # -----------------------------------------------------------------------------
 
-def docx_process_simple_text(text: str, width: int) -> str:
+def docx_wordwrap(text: str, width: int) -> str:
     """
     Word-wraps text.
 
@@ -693,11 +801,19 @@ def docx_process_simple_text(text: str, width: int) -> str:
 
     Returns:
         wrapped text
+
+
+    .. code-block:: python
+
+        from cardinal_pythonlib.extract_text import *
+        text = "Here is a very long line that may be word-wrapped. " * 50
+        print(docx_wordwrap(text, 80))
     """
+    if not text:
+        return ''
     if width:
         return '\n'.join(textwrap.wrap(text, width=width))
-    else:
-        return text
+    return text
 
 
 def docx_process_table(table: DOCX_TABLE_TYPE,
@@ -775,58 +891,84 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
         cellparagraphs = [x for x in cellparagraphs if x]
         return '\n\n'.join(cellparagraphs)
 
-    ncols = 1
-    # noinspection PyTypeChecker
-    for row in table.rows:
-        ncols = max(ncols, len(row.cells))
-    pt = prettytable.PrettyTable(
-        field_names=list(range(ncols)),
-        encoding=ENCODING,
-        header=False,
-        border=True,
-        hrules=prettytable.ALL,
-        vrules=prettytable.NONE if config.plain else prettytable.ALL,
-    )
-    pt.align = 'l'
-    pt.valign = 't'
-    pt.max_width = max(config.width // ncols, config.min_col_width)
     if config.plain:
-        # noinspection PyTypeChecker
-        for row in table.rows:
-            for i, cell in enumerate(row.cells):
-                n_before = i
-                n_after = ncols - i - 1
-                # ... use ncols, not len(row.cells), since "cells per row" is
-                #     not constant, but prettytable wants a fixed number.
-                #     (changed in v0.2.8)
-                ptrow = (
-                    [''] * n_before +
-                    [get_cell_text(cell)] +
-                    [''] * n_after
-                )
-                assert(len(ptrow) == ncols)
-                pt.add_row(ptrow)
+        # ---------------------------------------------------------------------
+        # Plain -- good for NLP and better for word-wrapping
+        # ---------------------------------------------------------------------
+        lines = [config.plain_table_start]  # type: List[str]
+        for r, row in enumerate(table.rows):
+            if r > 0:
+                lines.append(config.plain_table_row_boundary)
+            for c, cell in enumerate(row.cells):
+                if c > 0:
+                    lines.append(config.plain_table_col_boundary)
+                lines.append(get_cell_text(cell))
+        lines.append(config.plain_table_end)
+        return "\n".join(lines)
     else:
+        # ---------------------------------------------------------------------
+        # Full table visualization, or semiplain
+        # ---------------------------------------------------------------------
+        ncols = 1
         # noinspection PyTypeChecker
         for row in table.rows:
-            ptrow = []  # type: List[str]
+            ncols = max(ncols, len(row.cells))
+        pt = prettytable.PrettyTable(
+            field_names=list(range(ncols)),
+            encoding=ENCODING,
+            header=False,
+            border=True,
+            hrules=prettytable.ALL,
+            vrules=prettytable.NONE if config.semiplain else prettytable.ALL,
+            # Can we use UTF-8 special characters?
+            # Even under Windows, sys.getdefaultencoding() returns "utf-8"
+            # (under Python 3.6.8, Windows 6.1.7601 = Windows Server 2008 R2).
+            # The advantage would be that these characters are not likely to
+            # influence any form of NLP.
+            horizontal_char=config.horizontal_char,  # default "-"
+            vertical_char=config.vertical_char,  # default "|"
+            junction_char=config.junction_char,  # default "+"
+        )
+        pt.align = 'l'
+        pt.valign = 't'
+        pt.max_width = max(config.width // ncols, config.min_col_width)
+        if config.semiplain:
             # noinspection PyTypeChecker
-            for cell in row.cells:
-                ptrow.append(get_cell_text(cell))
-            ptrow += [''] * (ncols - len(ptrow))  # added in v0.2.8
-            assert (len(ptrow) == ncols)
-            pt.add_row(ptrow)
-    return pt.get_string()
+            for row in table.rows:
+                for i, cell in enumerate(row.cells):
+                    n_before = i
+                    n_after = ncols - i - 1
+                    # ... use ncols, not len(row.cells), since "cells per row"
+                    #     is not constant, but prettytable wants a fixed
+                    #     number. (changed in v0.2.8)
+                    ptrow = (
+                        [''] * n_before +
+                        [get_cell_text(cell)] +
+                        [''] * n_after
+                    )
+                    assert(len(ptrow) == ncols)
+                    pt.add_row(ptrow)
+        else:
+            # noinspection PyTypeChecker
+            for row in table.rows:
+                ptrow = []  # type: List[str]
+                # noinspection PyTypeChecker
+                for cell in row.cells:
+                    ptrow.append(get_cell_text(cell))
+                ptrow += [''] * (ncols - len(ptrow))  # added in v0.2.8
+                assert (len(ptrow) == ncols)
+                pt.add_row(ptrow)
+        return pt.get_string()
 
 
 # -----------------------------------------------------------------------------
 # With the docx library
 # -----------------------------------------------------------------------------
 
+_ = '''
 # noinspection PyProtectedMember,PyUnresolvedReferences
 def docx_docx_iter_block_items(parent: DOCX_CONTAINER_TYPE) \
         -> Iterator[DOCX_BLOCK_ITEM_TYPE]:
-    # only called if docx loaded
     """
     Iterate through items of a DOCX file.
 
@@ -858,7 +1000,6 @@ def docx_docx_iter_block_items(parent: DOCX_CONTAINER_TYPE) \
 # noinspection PyUnresolvedReferences
 def docx_docx_gen_text(doc: DOCX_DOCUMENT_TYPE,
                        config: TextProcessingConfig) -> Iterator[str]:
-    # only called if docx loaded
     """
     Iterate through a DOCX file and yield text.
 
@@ -881,6 +1022,7 @@ def docx_docx_gen_text(doc: DOCX_DOCUMENT_TYPE,
             yield docx_process_simple_text(paragraph.text, config.width)
         for table in doc.tables:
             yield docx_process_table(table, config)
+'''
 
 
 # noinspection PyUnusedLocal
@@ -962,12 +1104,12 @@ def convert_docx_to_text(
 
     """
 
-    if True:
-        text = ''
-        with get_filelikeobject(filename, blob) as fp:
-            for xml in gen_xml_files_from_docx(fp):
-                text += docx_text_from_xml(xml, config)
-        return text
+    text = ''
+    with get_filelikeobject(filename, blob) as fp:
+        for xml in gen_xml_files_from_docx(fp):
+            text += docx_text_from_xml(xml, config)
+    return text
+
     # elif docx:
     #     with get_filelikeobject(filename, blob) as fp:
     #         # noinspection PyUnresolvedReferences
