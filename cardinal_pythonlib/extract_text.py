@@ -670,14 +670,21 @@ def docx_text_from_xml_node(node: ElementTree.Element,
         text += '\n'
     elif tag == DOCX_NEWPARA:  # Note that e.g. all table cells start with this
         log.debug("New paragraph")
-        text += '\n'
+        text += '\n\n'  # One or two? Clarity better with two.
 
     if tag == DOCX_TABLE:
         log.debug("Table")
         text += "\n" + docx_table_from_xml_node(node, level, config)
     else:
+        childparts = []
         for child in node:
-            text += docx_text_from_xml_node(child, level + 1, config)
+            childtext = docx_text_from_xml_node(child, level + 1, config)
+            if childtext:
+                childparts.append(childtext)
+        if childparts:
+            text += " " + " ".join(childparts)  # OK; occasional double space
+            # text += " ".join(childparts)  # OK but some risk of a missing space?  # noqa
+            # text += "".join(childparts)  # nope; missing spaces between sentences  # noqa
 
     return text
 
