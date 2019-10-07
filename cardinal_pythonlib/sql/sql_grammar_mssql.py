@@ -478,7 +478,7 @@ SOUNDEX
 
     @classmethod
     def quote_identifier(cls, identifier: str) -> str:
-        return "[{}]".format(identifier)
+        return f"[{identifier}]"
 
     @classmethod
     def is_quoted(cls, identifier: str) -> bool:

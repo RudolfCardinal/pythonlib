@@ -240,8 +240,8 @@ def make_hasher(hash_method: str, key: str) -> GenericHasher:
     hash_method = hash_method.upper()
     if hash_method in (HashMethods.MD5, HashMethods.SHA256, HashMethods.SHA512):  # noqa
         raise ValueError(
-            "Non-HMAC hashers are deprecated for security reasons. You are "
-            "trying to use: {}".format(hash_method))
+            f"Non-HMAC hashers are deprecated for security reasons. You are "
+            f"trying to use: {hash_method}")
     if hash_method == HashMethods.HMAC_MD5:
         return HmacMD5Hasher(key)
     elif hash_method == HashMethods.HMAC_SHA256 or not hash_method:
@@ -249,8 +249,7 @@ def make_hasher(hash_method: str, key: str) -> GenericHasher:
     elif hash_method == HashMethods.HMAC_SHA512:
         return HmacSHA512Hasher(key)
     else:
-        raise ValueError("Unknown value for hash_method: {}".format(
-            hash_method))
+        raise ValueError(f"Unknown value for hash_method: {hash_method}")
 
 
 def get_longest_supported_hasher_output_length() -> int:
@@ -923,20 +922,14 @@ def compare_python_to_reference_murmur3_32(data: Any, seed: int = 0) -> None:
     py_data = to_bytes(c_data)
     py_unsigned = murmur3_x86_32(py_data, seed=seed)
     py_signed = twos_comp_to_signed(py_unsigned, n_bits=32)
-    preamble = "Hashing {data} with MurmurHash3/32-bit/seed={seed}".format(
-        data=repr(data), seed=seed)
+    preamble = f"Hashing {data!r} with MurmurHash3/32-bit/seed={seed}"
     if c_signed == py_signed:
-        print(preamble + " -> {result}: OK".format(result=c_signed))
+        print(preamble + f" -> {c_signed}: OK")
     else:
         raise AssertionError(
-            preamble + "; mmh3 says "
-            "{c_data} -> {c_signed}, Python version says {py_data} -> "
-            "{py_unsigned} = {py_signed}".format(
-                c_data=repr(c_data),
-                c_signed=c_signed,
-                py_data=repr(py_data),
-                py_unsigned=py_unsigned,
-                py_signed=py_signed))
+            preamble +
+            f"; mmh3 says {c_data!r} -> {c_signed}, "
+            f"Python version says {py_data!r} -> {py_unsigned} = {py_signed}")
 
 
 def compare_python_to_reference_murmur3_64(data: Any, seed: int = 0) -> None:
@@ -958,22 +951,19 @@ def compare_python_to_reference_murmur3_64(data: Any, seed: int = 0) -> None:
                                               x64arch=IS_64_BIT)
     py_data = to_bytes(c_data)
     py_signed_low, py_signed_high = pymmh3_hash64(py_data, seed=seed)
-    preamble = "Hashing {data} with MurmurHash3/64-bit values from 128-bit " \
-               "hash/seed={seed}".format(data=repr(data), seed=seed)
+    preamble = (
+        f"Hashing {data!r} with MurmurHash3/64-bit values from 128-bit "
+        f"hash/seed={seed}"
+    )
     if c_signed_low == py_signed_low and c_signed_high == py_signed_high:
-        print(preamble + " -> (low={low}, high={high}): OK".format(
-            low=c_signed_low, high=c_signed_high))
+        print(preamble + f" -> (low={c_signed_low}, high={c_signed_high}): OK")
     else:
         raise AssertionError(
             preamble +
-            "; mmh3 says {c_data} -> (low={c_low}, high={c_high}), Python "
-            "version says {py_data} -> (low={py_low}, high={py_high})".format(
-                c_data=repr(c_data),
-                c_low=c_signed_low,
-                c_high=c_signed_high,
-                py_data=repr(py_data),
-                py_low=py_signed_low,
-                py_high=py_signed_high))
+            f"; mmh3 says {c_data!r} -> "
+            f"(low={c_signed_low}, high={c_signed_high}), "
+            f"Python version says {py_data!r} -> "
+            f"(low={py_signed_low}, high={py_signed_high})")
 
 
 # =============================================================================

@@ -111,10 +111,8 @@ def repr_parameter(param: inspect.Parameter) -> str:
     Provides a ``repr``-style representation of a function parameter.
     """
     return (
-        "Parameter(name={name}, annotation={annotation}, kind={kind}, "
-        "default={default}".format(
-            name=param.name, annotation=param.annotation, kind=param.kind,
-            default=param.default)
+        f"Parameter(name={param.name}, annotation={param.annotation}, "
+        f"kind={param.kind}, default={param.default}"
     )
 
 
@@ -140,7 +138,7 @@ def get_namespace(fn: Callable, namespace: Optional[str]) -> str:
     return "{module}:{name}{extra}".format(
         module=fn.__module__,
         name=fn.__qualname__,  # __qualname__ includes class name, if present
-        extra="|{}".format(namespace) if namespace is not None else "",
+        extra=f"|{namespace}" if namespace is not None else "",
     )
 
 
@@ -370,8 +368,7 @@ def unit_test_cache() -> None:
         nonlocal fn_was_called
         log.info("{}", result)
         assert fn_was_called == should_call_fn, (
-            "fn_was_called={}, should_call_fn={}".format(
-                fn_was_called, should_call_fn))
+            f"fn_was_called={fn_was_called}, should_call_fn={should_call_fn}")
         if reset:
             fn_was_called = False
 
@@ -417,14 +414,15 @@ def unit_test_cache() -> None:
     @mycache.cache_on_arguments(function_key_generator=kw_fkg)
     def fn_args_kwargs(*args, **kwargs):
         fn_called("CACHED FUNCTION fn_args_kwargs() CALLED")
-        return ("fn_args_kwargs: args={}, kwargs={}".format(repr(args),
-                                                            repr(kwargs)))
+        return f"fn_args_kwargs: args={args!r}, kwargs={kwargs!r}"
 
     @mycache.cache_on_arguments(function_key_generator=kw_fkg)
     def fn_all_possible(a, b, *args, d="David", **kwargs):
         fn_called("CACHED FUNCTION fn_all_possible() CALLED")
-        return "fn_all_possible: a={}, b={}, args={}, d={}, kwargs={}".format(
-            repr(a), repr(b), repr(args), repr(d), repr(kwargs))
+        return (
+            f"fn_all_possible: a={a!r}, b={b!r}, args={args!r}, d={d!r}, "
+            f"kwargs={kwargs!r}"
+        )
 
     class TestClass(object):
         c = 999
@@ -447,13 +445,13 @@ def unit_test_cache() -> None:
         @mycache.cache_on_arguments(function_key_generator=plain_fkg)
         def noparams(self) -> str:
             fn_called("CACHED FUNCTION TestClass.noparams() CALLED")
-            return "Testclass.noparams: hello; a={}".format(self.a)
+            return f"Testclass.noparams: hello; a={self.a}"
 
         @mycache.cache_on_arguments(function_key_generator=kw_fkg)
         def no_params_instance_cache(self) -> str:
             fn_called("PER-INSTANCE-CACHED FUNCTION "
                       "TestClass.no_params_instance_cache() CALLED")
-            return "TestClass.no_params_instance_cache: a={}".format(self.a)
+            return f"TestClass.no_params_instance_cache: a={self.a}"
 
         # Decorator order is critical here:
         # https://stackoverflow.com/questions/1987919/why-can-decorator-not-decorate-a-staticmethod-or-a-classmethod  # noqa
@@ -461,7 +459,7 @@ def unit_test_cache() -> None:
         @mycache.cache_on_arguments(function_key_generator=plain_fkg)
         def classy(cls) -> str:
             fn_called("CACHED FUNCTION TestClass.classy() CALLED")
-            return "TestClass.classy: hello; c={}".format(cls.c)
+            return f"TestClass.classy: hello; c={cls.c}"
 
         @staticmethod
         @mycache.cache_on_arguments(function_key_generator=plain_fkg)
@@ -477,15 +475,15 @@ def unit_test_cache() -> None:
         @mycache.cache_on_arguments(function_key_generator=kw_fkg)
         def fn_all_possible(self, a, b, *args, d="David", **kwargs):
             fn_called("CACHED FUNCTION TestClass.fn_all_possible() CALLED")
-            return ("TestClass.fn_all_possible: a={}, b={}, args={}, d={}, "
-                    "kwargs={}".format(repr(a), repr(b), repr(args), repr(d),
-                                       repr(kwargs)))
+            return (
+                f"TestClass.fn_all_possible: a={a!r}, b={b!r}, args={args!r}, "
+                f"d={d!r}, kwargs={kwargs!r}")
 
         @property
         @mycache.cache_on_arguments(function_key_generator=kw_fkg)
         def prop(self) -> str:
             fn_called("CACHED PROPERTY TestClass.prop() CALLED")
-            return "TestClass.prop: a={}".format(repr(self.a))
+            return f"TestClass.prop: a={self.a!r}"
 
     class SecondTestClass:
         def __init__(self) -> None:
@@ -504,13 +502,13 @@ def unit_test_cache() -> None:
         @mycache.cache_on_arguments(function_key_generator=plain_fkg)
         def noparams(self) -> str:
             fn_called("CACHED FUNCTION Inherited.noparams() CALLED")
-            return "Inherited.noparams: hello; a={}".format(self.a)
+            return f"Inherited.noparams: hello; a={self.a}"
 
         @mycache.cache_on_arguments(function_key_generator=kw_fkg)
         def no_params_instance_cache(self) -> str:
             fn_called("PER-INSTANCE-CACHED FUNCTION "
                       "Inherited.no_params_instance_cache() CALLED")
-            return "Inherited.no_params_instance_cache: a={}".format(self.a)
+            return f"Inherited.no_params_instance_cache: a={self.a}"
 
         # Decorator order is critical here:
         # https://stackoverflow.com/questions/1987919/why-can-decorator-not-decorate-a-staticmethod-or-a-classmethod  # noqa
@@ -518,7 +516,7 @@ def unit_test_cache() -> None:
         @mycache.cache_on_arguments(function_key_generator=plain_fkg)
         def classy(cls) -> str:
             fn_called("CACHED FUNCTION Inherited.classy() CALLED")
-            return "Inherited.classy: hello; c={}".format(cls.c)
+            return f"Inherited.classy: hello; c={cls.c}"
 
         @staticmethod
         @mycache.cache_on_arguments(function_key_generator=plain_fkg)
@@ -537,7 +535,7 @@ def unit_test_cache() -> None:
         @mycache.cache_on_arguments(function_key_generator=kw_fkg)
         def prop(self) -> str:
             fn_called("CACHED PROPERTY Inherited.prop() CALLED")
-            return "Inherited.prop: a={}".format(repr(self.a))
+            return f"Inherited.prop: a={self.a!r}"
 
     log.warning("Fetching cached information #1 (should call noparams())...")
     test(noparams(), True)

@@ -84,7 +84,7 @@ def auto_repr(obj: Any, with_addr: bool = False,
         keys = sorted(obj.__dict__.keys())
     else:
         keys = obj.__dict__.keys()
-    elements = ["{}={}".format(k, repr(getattr(obj, k))) for k in keys]
+    elements = [f"{k}={getattr(obj, k)!r}" for k in keys]
     return repr_result(obj, elements, with_addr=with_addr, joiner=joiner)
 
 
@@ -106,8 +106,7 @@ def simple_repr(obj: Any, attrnames: List[str],
         string: :func:`repr`-style representation
 
     """
-    elements = ["{}={}".format(name, repr(getattr(obj, name)))
-                for name in attrnames]
+    elements = [f"{name}={getattr(obj, name)!r}" for name in attrnames]
     return repr_result(obj, elements, with_addr=with_addr, joiner=joiner)
 
 
@@ -128,7 +127,7 @@ def mapped_repr(obj: Any, attributes: List[Tuple[str, str]],
         string: :func:`repr`-style representation
 
     """
-    elements = ["{}={}".format(init_param_name, repr(getattr(obj, attr_name)))
+    elements = [f"{init_param_name}={getattr(obj, attr_name)!r}"
                 for attr_name, init_param_name in attributes]
     return repr_result(obj, elements, with_addr=with_addr, joiner=joiner)
 
@@ -182,8 +181,7 @@ def ordered_repr(obj: object, attrlist: Iterable[str],
     """
     return "<{classname}({kvp})>".format(
         classname=type(obj).__name__,
-        kvp=joiner.join("{}={}".format(a, repr(getattr(obj, a)))
-                        for a in attrlist)
+        kvp=joiner.join(f"{a}={getattr(obj, a)!r}" for a in attrlist)
     )
 
 

@@ -166,7 +166,7 @@ def convert_duration(duration: datetime.timedelta,
         return s / SECONDS_PER_WEEK
     if units in ['y', 'years']:
         return s / SECONDS_PER_YEAR
-    raise ValueError("Unknown units: {}".format(units))
+    raise ValueError(f"Unknown units: {units}")
 
 
 def is_bank_holiday(date: datetime.date) -> bool:
@@ -239,14 +239,13 @@ class Interval(object):
         """
         Returns the canonical string representation of the object.
         """
-        return "Interval(start={}, end={})".format(
-            repr(self.start), repr(self.end))
+        return f"Interval(start={self.start!r}, end={self.end!r})"
 
     def __str__(self) -> str:
         """
         Returns a string representation of the object.
         """
-        return "{} − {}".format(formatdt(self.start), formatdt(self.end))
+        return f"{formatdt(self.start)} − {formatdt(self.end)}"
 
     def __add__(self, value: datetime.timedelta) -> "Interval":
         """
@@ -587,8 +586,8 @@ class IntervalList(object):
         for i in self.intervals:
             if not isinstance(i, Interval):
                 raise TypeError(
-                    "IntervalList creation failed: contents are not all "
-                    "Interval: {}".format(repr(self.intervals)))
+                    f"IntervalList creation failed: contents are not all "
+                    f"Interval: {self.intervals!r}")
         self._tidy()
 
     def __repr__(self) -> str:
@@ -596,11 +595,9 @@ class IntervalList(object):
         Returns the canonical string representation of the object.
         """
         return (
-            "IntervalList(intervals={}, no_overlap={}, "
-            "no_contiguous={})".format(
-                repr(self.intervals),
-                self.no_overlap,
-                self.no_contiguous))
+            f"IntervalList(intervals={self.intervals!r}, "
+            f"no_overlap={self.no_overlap}, "
+            f"no_contiguous={self.no_contiguous})")
 
     def copy(self, no_overlap: bool = None,
              no_contiguous: bool = None) -> "IntervalList":
@@ -1255,15 +1252,15 @@ class TestInterval(unittest.TestCase):
     """
     def test_interval(self) -> None:
         a = datetime.datetime(2015, 1, 1)
-        log.debug("a = {!r}".format(a))
+        log.debug(f"a = {a!r}")
         b = datetime.datetime(2015, 1, 6)
-        log.debug("b = {!r}".format(b))
+        log.debug(f"b = {b!r}")
         i = Interval(a, b)
-        log.debug("i = {!r}".format(i))
+        log.debug(f"i = {i!r}")
         j = i + datetime.timedelta(hours=3)
-        log.debug("j = {!r}".format(j))
+        log.debug(f"j = {j!r}")
         cut = i.cut(datetime.datetime(2015, 1, 3))
-        log.debug("cut = {!r}".format(cut))
+        log.debug(f"cut = {cut!r}")
 
 
 # =============================================================================

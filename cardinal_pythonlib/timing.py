@@ -121,8 +121,8 @@ class MultiTimer(object):
             raise AssertionError("MultiTimer.stop() when nothing running")
         if self._stack[-1] != name:
             raise AssertionError(
-                "MultiTimer.stop({}) when {} is running".format(
-                    repr(name), repr(self._stack[-1])))
+                f"MultiTimer.stop({name!r}) when "
+                f"{self._stack[-1]!r} is running")
 
         # Finish what we were asked to
         self._totaldurations[name] += now - self._starttimes[name]
@@ -156,12 +156,9 @@ class MultiTimer(object):
             summaries.append({
                 'total': total_sec,
                 'description': (
-                    "- {}: {:.3f} s ({:.2f}%, n={}, mean={:.3f}s)".format(
-                        name,
-                        total_sec,
-                        (100 * total_sec / grand_total.total_seconds()),
-                        n,
-                        mean)),
+                    f"- {name}: {total_sec:.3f} s "
+                    f"({(100 * total_sec / grand_total.total_seconds()):.2f}%, "  # noqa
+                    f"n={n}, mean={mean:.3f}s)"),
             })
         summaries.sort(key=lambda x: x['total'], reverse=True)
         for s in summaries:

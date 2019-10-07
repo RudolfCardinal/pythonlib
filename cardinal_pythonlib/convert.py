@@ -62,7 +62,7 @@ def convert_to_bool(x: Any, default: bool = None) -> bool:
         pass
 
     if not isinstance(x, str):
-        raise Exception("Unknown thing being converted to bool: {!r}".format(x))
+        raise Exception(f"Unknown thing being converted to bool: {x!r}")
 
     x = x.upper()
     if x in ["Y", "YES", "T", "TRUE"]:
@@ -70,7 +70,7 @@ def convert_to_bool(x: Any, default: bool = None) -> bool:
     if x in ["N", "NO", "F", "FALSE"]:
         return False
 
-    raise Exception("Unknown thing being converted to bool: {!r}".format(x))
+    raise Exception(f"Unknown thing being converted to bool: {x!r}")
 
 
 def convert_to_int(x: Any, default: int = None) -> int:

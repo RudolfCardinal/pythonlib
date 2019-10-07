@@ -402,7 +402,7 @@ class Drug(object):
             self.generic_name = generic.lower().strip()
             self.all_generics = [self.generic_name]
         else:
-            raise ValueError("Bad generic_name: {!r}".format(generic))
+            raise ValueError(f"Bad generic_name: {generic!r}")
         self.alternatives = alternatives or []  # type: List[str]
         self._regex_text = None  # type: Optional[str]
         self._regex = None  # type: Optional[Pattern]
@@ -649,12 +649,10 @@ class Drug(object):
 
         """
         clauses = [
-            "{col} LIKE {fragment}".format(
-                col=column_name,
-                fragment=sql_string_literal(f))
+            f"{column_name} LIKE {sql_string_literal(f)}"
             for f in self.sql_like_fragments
         ]
-        return "({})".format(" OR ".join(clauses))
+        return f"({' OR '.join(clauses)})"
 
 
 # Source data.

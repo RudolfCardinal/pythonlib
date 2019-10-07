@@ -422,7 +422,7 @@ Quick links:
 - :mod:`cardinal_pythonlib.sql.validation`, enabling the use of these functions
   without the deprecated - :mod:`cardinal_pythonlib.rnc_db`.
 
-**1.0.66 to 1.0.69 (2019-10-06 to 2019-10-07)**
+**1.0.66 to 1.0.70 (2019-10-06 to 2019-10-07)**
 
 - ``rstrip`` argument to
   :class:`cardinal_pythonlib.extract_text.TextProcessingConfig` config class,
@@ -434,3 +434,5 @@ Quick links:
   :func:`cardinal_pythonlib.extract_text.docx_process_table`.
 - :mod:`cardinal_pythonlib.athena_ohdsi`
 - :mod:`cardinal_pythonlib.snomed`
+- ``cardinalpythonlib_`` prefix to command-line tools
+- **Minimum Python version is now 3.6,** allowing f-strings.

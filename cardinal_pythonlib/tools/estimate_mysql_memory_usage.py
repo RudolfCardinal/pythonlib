@@ -136,10 +136,10 @@ def main():
         help="MySQL server/host (prefer '127.0.0.1' to 'localhost')")
     parser.add_argument(
         "--port", type=int, default=MYSQL_DEFAULT_PORT,
-        help="MySQL port (default={})".format(MYSQL_DEFAULT_PORT))
+        help=f"MySQL port (default={MYSQL_DEFAULT_PORT})")
     parser.add_argument(
         "--user", default=MYSQL_DEFAULT_USER,
-        help="MySQL user (default={})".format(MYSQL_DEFAULT_USER))
+        help=f"MySQL user (default={MYSQL_DEFAULT_USER})")
     args = parser.parse_args()
 
     vardict = get_mysql_vars(

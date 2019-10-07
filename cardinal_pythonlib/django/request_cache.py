@@ -51,7 +51,7 @@ class RequestCache(LocMemCache):
     Local memory request cache for Django.
     """
     def __init__(self):
-        name = 'locmemcache@%i' % hash(currentThread())
+        name = f'locmemcache@{hash(currentThread()):d}'
         params = dict()
         super(RequestCache, self).__init__(name, params)
 

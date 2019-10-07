@@ -156,7 +156,7 @@ def strip_leading_underscores_from_keys(d: Dict) -> Dict:
         if k.startswith('_'):
             k = k[1:]
             if k in newdict:
-                raise ValueError("Attribute conflict: _{k}, {k}".format(k=k))
+                raise ValueError(f"Attribute conflict: _{k}, {k}")
         newdict[k] = v
     return newdict
 
@@ -277,11 +277,10 @@ def wrap_kwargs_to_initdict(init_kwargs_fn: InitKwargsFnType,
     """
     def wrapper(obj: Instance) -> InitDict:
         result = init_kwargs_fn(obj)
-        if check_result:
-            if not isinstance(result, dict):
-                raise ValueError(
-                    "Class {} failed to provide a kwargs dict and "
-                    "provided instead: {}".format(typename, repr(result)))
+        if check_result and not isinstance(result, dict):
+            raise ValueError(
+                f"Class {typename} failed to provide a kwargs dict and "
+                f"provided instead: {result!r}")
         return kwargs_to_initdict(init_kwargs_fn(obj))
 
     return wrapper
@@ -297,14 +296,13 @@ def wrap_args_kwargs_to_initdict(init_args_kwargs_fn: InitArgsKwargsFnType,
     """
     def wrapper(obj: Instance) -> InitDict:
         result = init_args_kwargs_fn(obj)
-        if check_result:
-            if (not isinstance(result, tuple) or
-                    not len(result) == 2 or
-                    not isinstance(result[0], list) or
-                    not isinstance(result[1], dict)):
-                raise ValueError(
-                    "Class {} failed to provide an (args, kwargs) tuple and "
-                    "provided instead: {}".format(typename, repr(result)))
+        if check_result and (not isinstance(result, tuple) or
+                             not len(result) == 2 or
+                             not isinstance(result[0], list) or
+                             not isinstance(result[1], dict)):
+            raise ValueError(
+                f"Class {typename} failed to provide an (args, kwargs) tuple "
+                f"and provided instead: {result!r}")
         return args_kwargs_to_initdict(*result)
 
     return wrapper
@@ -367,21 +365,13 @@ class JsonDescriptor(object):
 
     def __repr__(self):
         return (
-            "<{qualname}("
-            "typename={typename}, "
-            "obj_to_dict_fn={obj_to_dict_fn}, "
-            "dict_to_obj_fn={dict_to_obj_fn}, "
-            "cls={cls}, "
-            "default_factory={default_factory}"
-            ") at {addr}>".format(
-                qualname=self.__class__.__qualname__,
-                typename=repr(self._typename),
-                obj_to_dict_fn=repr(self._obj_to_dict_fn),
-                dict_to_obj_fn=repr(self._dict_to_obj_fn),
-                cls=repr(self._cls),
-                default_factory=repr(self._default_factory),
-                addr=hex(id(self)),
-            )
+            f"<{self.__class__.__qualname__}("
+            f"typename={self._typename!r}, "
+            f"obj_to_dict_fn={self._obj_to_dict_fn!r}, "
+            f"dict_to_obj_fn={self._dict_to_obj_fn!r}, "
+            f"cls={self._cls!r}, "
+            f"default_factory={self._default_factory!r}) "
+            f"at {hex(id(self))}>"
         )
 
 
@@ -484,8 +474,8 @@ def register_for_json(*args, **kwargs) -> Any:
 
     """
     if DEBUG:
-        print("register_for_json: args = {}".format(repr(args)))
-        print("register_for_json: kwargs = {}".format(repr(kwargs)))
+        print(f"register_for_json: args = {args!r}")
+        print(f"register_for_json: kwargs = {kwargs!r}")
 
     # http://stackoverflow.com/questions/653368/how-to-create-a-python-decorator-that-can-be-used-either-with-or-without-paramet  # noqa
     # In brief,
@@ -542,8 +532,8 @@ def register_for_json(*args, **kwargs) -> Any:
                 )
             else:
                 raise ValueError(
-                    "Class type {} does not provide function {}".format(
-                        cls_, INIT_ARGS_KWARGS_FN_NAME))
+                    f"Class type {cls_} does not provide function "
+                    f"{INIT_ARGS_KWARGS_FN_NAME}")
         elif method == METHOD_PROVIDES_INIT_KWARGS:
             if hasattr(cls_, INIT_KWARGS_FN_NAME):
                 odf = wrap_kwargs_to_initdict(
@@ -553,8 +543,8 @@ def register_for_json(*args, **kwargs) -> Any:
                 )
             else:
                 raise ValueError(
-                    "Class type {} does not provide function {}".format(
-                        cls_, INIT_KWARGS_FN_NAME))
+                    f"Class type {cls_} does not provide function "
+                    f"{INIT_KWARGS_FN_NAME}")
         elif method == METHOD_NO_ARGS:
             odf = obj_with_no_args_to_init_dict
         register_class_for_json(cls_,

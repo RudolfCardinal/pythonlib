@@ -122,7 +122,7 @@ def make_email(from_addr: str,
             x = [x]
         for _addr in x:
             assert COMMA not in _addr, (
-                "Commas not allowed in e-mail addresses: {!r}".format(_addr)
+                f"Commas not allowed in e-mail addresses: {_addr!r}"
             )
 
     # -------------------------------------------------------------------------
@@ -131,12 +131,12 @@ def make_email(from_addr: str,
     if not date:
         date = email.utils.formatdate(localtime=True)
     assert isinstance(from_addr, str), (
-        "'From:' can only be a single address "
-        "(for Python sendmail, not RFC 2822); was {!r}".format(from_addr)
+        f"'From:' can only be a single address "
+        f"(for Python sendmail, not RFC 2822); was {from_addr!r}"
     )
     _assert_nocomma(from_addr)
     assert isinstance(sender, str), (
-        "'Sender:' can only be a single address; was {!r}".format(sender)
+        f"'Sender:' can only be a single address; was {sender!r}"
     )
     _assert_nocomma(sender)
     if isinstance(reply_to, str):
@@ -154,7 +154,7 @@ def make_email(from_addr: str,
     _assert_nocomma(bcc)
     attachment_filenames = attachment_filenames or []  # type: List[str]
     assert all(attachment_filenames), (
-        "Missing attachment filenames: {!r}".format(attachment_filenames)
+        f"Missing attachment filenames: {attachment_filenames!r}"
     )
     attachment_binaries = attachment_binaries or []  # type: List[bytes]
     attachment_binary_filenames = attachment_binary_filenames or []  # type: List[str]  # noqa
@@ -163,8 +163,8 @@ def make_email(from_addr: str,
         "they must be iterables of the same length."
     )
     assert all(attachment_binary_filenames), (
-        "Missing filenames for attached binaries: {!r}".format(
-            attachment_binary_filenames)
+        f"Missing filenames for attached binaries: "
+        f"{attachment_binary_filenames!r}"
     )
 
     # -------------------------------------------------------------------------
@@ -235,7 +235,7 @@ def make_email(from_addr: str,
                     'attachment; filename="%s"' % filename)
                 msg.attach(part)
     except Exception as e:
-        raise ValueError("send_email: Failed to attach files: {}".format(e))
+        raise ValueError(f"send_email: Failed to attach files: {e}")
 
     return msg
 
@@ -283,20 +283,18 @@ def send_msg(from_addr: str,
         session = smtplib.SMTP(host, port)
     except smtplib.SMTPException as e:
         raise RuntimeError(
-            "send_msg: Failed to connect to host {}, port {}: {}".format(
-                host, port, e))
+            f"send_msg: Failed to connect to host {host}, port {port}: {e}")
     try:
         session.ehlo()
     except smtplib.SMTPException as e:
-        raise RuntimeError("send_msg: Failed to issue EHLO: {}".format(e))
+        raise RuntimeError(f"send_msg: Failed to issue EHLO: {e}")
 
     if use_tls:
         try:
             session.starttls()
             session.ehlo()
         except smtplib.SMTPException as e:
-            raise RuntimeError(
-                "send_msg: Failed to initiate TLS: {}".format(e))
+            raise RuntimeError(f"send_msg: Failed to initiate TLS: {e}")
 
     # Log in
     if user:
@@ -304,7 +302,7 @@ def send_msg(from_addr: str,
             session.login(user, password)
         except smtplib.SMTPException as e:
             raise RuntimeError(
-                "send_msg: Failed to login as user {}: {}".format(user, e))
+                f"send_msg: Failed to login as user {user}: {e}")
     else:
         log.debug("Not using SMTP AUTH; no user specified")
         # For systems with... lax... security requirements
@@ -313,7 +311,7 @@ def send_msg(from_addr: str,
     try:
         session.sendmail(from_addr, to_addrs, msg.as_string())
     except smtplib.SMTPException as e:
-        raise RuntimeError("send_msg: Failed to send e-mail: {}".format(e))
+        raise RuntimeError(f"send_msg: Failed to send e-mail: {e}")
 
     # Log out
     session.quit()

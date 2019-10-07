@@ -290,11 +290,11 @@ def iso_string_to_sql_utcdatetime_mysql(x: str) -> str:
     converted (such as a column name).
     """
     return (
-        "CONVERT_TZ(STR_TO_DATE(LEFT({x}, 26),"
-        "                       '%Y-%m-%dT%H:%i:%s.%f'),"
-        "           RIGHT({x}, 6),"  # from timezone
-        "           '+00:00')"  # to timezone
-    ).format(x=x)
+        f"CONVERT_TZ(STR_TO_DATE(LEFT({x}, 26),"
+        f"                       '%Y-%m-%dT%H:%i:%s.%f'),"
+        f"           RIGHT({x}, 6),"  # from timezone
+        f"           '+00:00')"  # to timezone
+    )
     # In MySQL:
     # 1. STR_TO_DATE(), with the leftmost 23 characters,
     #    giving microsecond precision, but not correct for timezone
@@ -309,11 +309,11 @@ def iso_string_to_sql_utcdate_mysql(x: str) -> str:
     converted (such as a column name).
     """
     return (
-        "DATE(CONVERT_TZ(STR_TO_DATE(LEFT({x}, 26),"
-        "                            '%Y-%m-%dT%H:%i:%s.%f'),"
-        "                RIGHT({x}, 6),"
-        "                '+00:00')"
-    ).format(x=x)
+        f"DATE(CONVERT_TZ(STR_TO_DATE(LEFT({x}, 26),"
+        f"                            '%Y-%m-%dT%H:%i:%s.%f'),"
+        f"                RIGHT({x}, 6),"
+        f"                '+00:00')"
+    )
 
 
 def iso_string_to_sql_date_mysql(x: str) -> str:
@@ -323,7 +323,7 @@ def iso_string_to_sql_date_mysql(x: str) -> str:
     conversion). The argument ``x`` is the SQL expression to be converted (such
     as a column name).
     """
-    return "STR_TO_DATE(LEFT({x}, 10), '%Y-%m-%d')".format(x=x)
+    return f"STR_TO_DATE(LEFT({x}, 10), '%Y-%m-%d')"
 
 
 # -----------------------------------------------------------------------------
@@ -346,7 +346,7 @@ def iso_string_to_sql_utcdatetime_sqlite(x: str) -> str:
     Internally, we don't use ``DATETIME()``; using ``STRFTIME()`` allows
     millsecond precision.
     """
-    return "STRFTIME('%Y-%m-%d %H:%M:%f', {x})".format(x=x)
+    return f"STRFTIME('%Y-%m-%d %H:%M:%f', {x})"
     # This doesn't mind the 'T' in the middle, rounds to millisecond precision,
     # and corrects for any timezone at the end without having to tell it to
     # explicitly.
@@ -377,12 +377,12 @@ def iso_string_to_sql_utcdatetime_pythonformat_sqlite(x: str) -> str:
       ``datetime``.
     - ... thus matching the RHS of a Django default ``datetime`` comparison.
     """
-    return """
+    return f"""
         CASE SUBSTR(STRFTIME('%f', {x}), 4, 3)
         WHEN '000' THEN STRFTIME('%Y-%m-%d %H:%M:%S', {x})
         ELSE STRFTIME('%Y-%m-%d %H:%M:%f', {x}) || '000'
         END
-    """.format(x=x)
+    """
 
 
 def iso_string_to_sql_utcdate_sqlite(x: str) -> str:
@@ -390,7 +390,7 @@ def iso_string_to_sql_utcdate_sqlite(x: str) -> str:
     Provides SQLite SQL to convert a column to a ``DATE`` in UTC. The argument
     ``x`` is the SQL expression to be converted (such as a column name).
     """
-    return "DATE({x})".format(x=x)
+    return f"DATE({x})"
 
 
 def iso_string_to_sql_date_sqlite(x: str) -> str:
@@ -399,7 +399,7 @@ def iso_string_to_sql_date_sqlite(x: str) -> str:
     date fields (without any timezone conversion). The argument ``x`` is the
     SQL expression to be converted (such as a column name).
     """
-    return "DATE(SUBSTR({x}, 1, 10))".format(x=x)
+    return f"DATE(SUBSTR({x}, 1, 10))"
 
 
 # -----------------------------------------------------------------------------

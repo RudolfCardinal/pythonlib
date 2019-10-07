@@ -53,13 +53,10 @@ def fail_unknown_dialect(compiler: "SQLCompiler", task: str) -> None:
     function hasn't been implemented (with a helpful error message).
     """
     raise NotImplementedError(
-        "Don't know how to {task} on dialect {dialect!r}. "
-        "(Check also: if you printed the SQL before it was bound to an "
-        "engine, you will be trying to use a dialect like StrSQLCompiler, "
-        "which could be a reason for failure.)".format(
-            task=task,
-            dialect=compiler.dialect
-        )
+        f"Don't know how to {task} on dialect {compiler.dialect!r}. "
+        f"(Check also: if you printed the SQL before it was bound to an "
+        f"engine, you will be trying to use a dialect like StrSQLCompiler, "
+        f"which could be a reason for failure.)"
     )
 
 
@@ -70,8 +67,8 @@ def fetch_processed_single_clause(element: "ClauseElement",
     to raw SQL text.
     """
     if len(element.clauses) != 1:
-        raise TypeError("Only one argument supported; {} were passed".format(
-            len(element.clauses)))
+        raise TypeError(f"Only one argument supported; "
+                        f"{len(element.clauses)} were passed")
     clauselist = element.clauses  # type: ClauseList
     first = clauselist.get_children()[0]
     return compiler.process(first)
@@ -136,7 +133,7 @@ def extract_year_year(element: "ClauseElement",
     # https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_year  # noqa
     # https://docs.microsoft.com/en-us/sql/t-sql/functions/year-transact-sql
     clause = fetch_processed_single_clause(element, compiler)
-    return "YEAR({})".format(clause)
+    return f"YEAR({clause})"
 
 
 # noinspection PyUnusedLocal
@@ -146,7 +143,7 @@ def extract_year_extract(element: "ClauseElement",
                          compiler: "SQLCompiler", **kw) -> str:
     # https://docs.oracle.com/cd/B19306_01/server.102/b14200/functions050.htm
     clause = fetch_processed_single_clause(element, compiler)
-    return "EXTRACT(YEAR FROM {})".format(clause)
+    return f"EXTRACT(YEAR FROM {clause})"
 
 
 # noinspection PyUnusedLocal
@@ -155,7 +152,7 @@ def extract_year_strftime(element: "ClauseElement",
                           compiler: "SQLCompiler", **kw) -> str:
     # https://sqlite.org/lang_datefunc.html
     clause = fetch_processed_single_clause(element, compiler)
-    return "STRFTIME('%Y', {})".format(clause)
+    return f"STRFTIME('%Y', {clause})"
 
 
 # =============================================================================
@@ -185,7 +182,7 @@ def extract_month_default(element: "ClauseElement",
 def extract_month_month(element: "ClauseElement",
                         compiler: "SQLCompiler", **kw) -> str:
     clause = fetch_processed_single_clause(element, compiler)
-    return "MONTH({})".format(clause)
+    return f"MONTH({clause})"
 
 
 # noinspection PyUnusedLocal
@@ -194,7 +191,7 @@ def extract_month_month(element: "ClauseElement",
 def extract_month_extract(element: "ClauseElement",
                           compiler: "SQLCompiler", **kw) -> str:
     clause = fetch_processed_single_clause(element, compiler)
-    return "EXTRACT(MONTH FROM {})".format(clause)
+    return f"EXTRACT(MONTH FROM {clause})"
 
 
 # noinspection PyUnusedLocal
@@ -202,7 +199,7 @@ def extract_month_extract(element: "ClauseElement",
 def extract_month_strftime(element: "ClauseElement",
                            compiler: "SQLCompiler", **kw) -> str:
     clause = fetch_processed_single_clause(element, compiler)
-    return "STRFTIME('%m', {})".format(clause)
+    return f"STRFTIME('%m', {clause})"
 
 
 # =============================================================================
@@ -232,7 +229,7 @@ def extract_day_of_month_default(element: "ClauseElement",
 def extract_day_of_month_day(element: "ClauseElement",
                              compiler: "SQLCompiler", **kw) -> str:
     clause = fetch_processed_single_clause(element, compiler)
-    return "DAY({})".format(clause)
+    return f"DAY({clause})"
 
 
 # noinspection PyUnusedLocal
@@ -241,7 +238,7 @@ def extract_day_of_month_day(element: "ClauseElement",
 def extract_day_of_month_extract(element: "ClauseElement",
                                  compiler: "SQLCompiler", **kw) -> str:
     clause = fetch_processed_single_clause(element, compiler)
-    return "EXTRACT(DAY FROM {})".format(clause)
+    return f"EXTRACT(DAY FROM {clause})"
 
 
 # noinspection PyUnusedLocal
@@ -249,4 +246,4 @@ def extract_day_of_month_extract(element: "ClauseElement",
 def extract_day_of_month_strftime(element: "ClauseElement",
                                   compiler: "SQLCompiler", **kw) -> str:
     clause = fetch_processed_single_clause(element, compiler)
-    return "STRFTIME('%d', {})".format(clause)
+    return f"STRFTIME('%d', {clause})"

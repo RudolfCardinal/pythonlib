@@ -102,16 +102,16 @@ def rate_limited(max_per_second: Optional[int]) \
 
 @rate_limited(2)
 def _test_print_2hz(num: int) -> None:
-    log.info("_test_print_2hz: {}".format(num))
+    log.info(f"_test_print_2hz: {num}")
 
 
 @rate_limited(5)
 def _test_print_5hz(num: int) -> None:
-    log.info("_test_print_5hz: {}".format(num))
+    log.info(f"_test_print_5hz: {num}")
 
 
 def _test_print(num: int) -> None:
-    log.info("_test_print: {}".format(num))
+    log.info(f"_test_print: {num}")
 
 
 def test_rate_limiter() -> None:

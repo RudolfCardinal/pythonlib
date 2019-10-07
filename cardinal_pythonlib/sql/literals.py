@@ -90,7 +90,7 @@ def sql_comment(comment: str) -> str:
     """Using -- as a comment marker is ANSI SQL."""
     if not comment:
         return ""
-    return "\n".join("-- {}".format(x) for x in comment.splitlines())
+    return "\n".join(f"-- {x}" for x in comment.splitlines())
 
 
 # =============================================================================

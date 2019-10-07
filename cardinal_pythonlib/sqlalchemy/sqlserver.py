@@ -57,12 +57,10 @@ def if_sqlserver_disable_constraints(session: SqlASession,
     if is_sqlserver(engine):
         quoted_tablename = quote_identifier(tablename, engine)
         session.execute(
-            "ALTER TABLE {} NOCHECK CONSTRAINT all".format(
-                quoted_tablename))
+            f"ALTER TABLE {quoted_tablename} NOCHECK CONSTRAINT all")
         yield
         session.execute(
-            "ALTER TABLE {} WITH CHECK CHECK CONSTRAINT all".format(
-                quoted_tablename))
+            f"ALTER TABLE {quoted_tablename} WITH CHECK CHECK CONSTRAINT all")
     else:
         yield
 
@@ -85,10 +83,10 @@ def if_sqlserver_disable_triggers(session: SqlASession,
     if is_sqlserver(engine):
         quoted_tablename = quote_identifier(tablename, engine)
         session.execute(
-            "ALTER TABLE {} DISABLE TRIGGER all".format(quoted_tablename))
+            f"ALTER TABLE {quoted_tablename} DISABLE TRIGGER all")
         yield
         session.execute(
-            "ALTER TABLE {} ENABLE TRIGGER all".format(quoted_tablename))
+            f"ALTER TABLE {quoted_tablename} ENABLE TRIGGER all")
     else:
         yield
 

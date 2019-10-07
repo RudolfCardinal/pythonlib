@@ -130,7 +130,7 @@ def is_c_extension(module: ModuleType) -> bool:
         is_c_extension(numpy_multiarray)  # True
 
     """  # noqa
-    assert inspect.ismodule(module), '"{}" not a module.'.format(module)
+    assert inspect.ismodule(module), f'"{module}" not a module.'
 
     # If this module was loaded by a PEP 302-compliant CPython-specific loader
     # loading only C extensions, this module is a C extension.
@@ -212,7 +212,7 @@ def contains_c_extension(module: ModuleType,
         contains_c_extension(django)
 
     """  # noqa
-    assert inspect.ismodule(module), '"{}" not a module.'.format(module)
+    assert inspect.ismodule(module), f'"{module}" not a module.'
 
     if seen is None:  # only true for the top-level call
         seen = []  # type: List[ModuleType]

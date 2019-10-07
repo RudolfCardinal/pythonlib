@@ -162,9 +162,9 @@ def django_cache_function(timeout: int = 5 * 60,
                 if (not check_stored_call_sig) or cached_call_sig == call_sig:
                     return func_result
                 log.warning(
-                    "... Cache hit was due to hash collision; cached_call_sig "
-                    "{} != call_sig {}".format(
-                        repr(cached_call_sig), repr(call_sig)))
+                    f"... Cache hit was due to hash collision; "
+                    f"cached_call_sig {cached_call_sig!r} != "
+                    f"call_sig {call_sig!r}")
                 # If we get here, either it wasn't in the cache, or something
                 # was in the cache that matched by cache_key but was actually a
                 # hash collision. Either way, we must do the real work.

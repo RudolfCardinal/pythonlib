@@ -192,7 +192,7 @@ def copyglob(src: str, dest: str, allow_nothing: bool = False,
             something = True
     if something or allow_nothing:
         return
-    raise ValueError("No files found matching: {}".format(src))
+    raise ValueError(f"No files found matching: {src}")
 
 
 def moveglob(src: str, dest: str, allow_nothing: bool = False,
@@ -207,7 +207,7 @@ def moveglob(src: str, dest: str, allow_nothing: bool = False,
             something = True
     if something or allow_nothing:
         return
-    raise ValueError("No files found matching: {}".format(src))
+    raise ValueError(f"No files found matching: {src}")
 
 
 def copy_tree_root(src_dir: str, dest_parent: str) -> None:

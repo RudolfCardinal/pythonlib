@@ -113,8 +113,8 @@ class PendulumType(SchemaType):
         except (ValueError, ParserError) as e:
             raise Invalid(
                 node,
-                "{!r} is not a pendulum.DateTime object; error was "
-                "{!r}".format(appstruct, e))
+                f"{appstruct!r} is not a pendulum.DateTime object; "
+                f"error was {e!r}")
         return appstruct.isoformat()
 
     def deserialize(self,
@@ -130,8 +130,8 @@ class PendulumType(SchemaType):
             result = coerce_to_pendulum(cstruct,
                                         assume_local=self.use_local_tz)
         except (ValueError, ParserError) as e:
-            raise Invalid(node, "Invalid date/time: value={!r}, error="
-                                "{!r}".format(cstruct, e))
+            raise Invalid(node,
+                          f"Invalid date/time: value={cstruct!r}, error={e!r}")
         return result
 
 
@@ -505,8 +505,9 @@ class ValidateDangerousOperationNode(MappingSchema):
         if user_entry_value != target_value:
             raise Invalid(
                 node,
-                "Not correctly validated (user_entry_value={!r}, "
-                "target_value={!r}".format(user_entry_value, target_value))
+                f"Not correctly validated "
+                f"(user_entry_value={user_entry_value!r}, "
+                f"target_value={target_value!r}")
 
     def set_description(self, target_value: str) -> None:
         user_entry_node = get_child_node(self, "user_entry")

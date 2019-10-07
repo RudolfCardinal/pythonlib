@@ -67,9 +67,8 @@ class TableIdentity(object):
 
     def __repr__(self) -> str:
         return (
-            "TableIdentity(table={!r}, tablename={!r}, metadata={!r}".format(
-                self._table, self._tablename, self._metadata
-            )
+            f"TableIdentity(table={self._table!r}, "
+            f"tablename={self._tablename!r}, metadata={self._metadata!r}"
         )
 
     @property
@@ -89,8 +88,8 @@ class TableIdentity(object):
         for table in self._metadata.tables.values():  # type: Table
             if table.name == self._tablename:
                 return table
-        raise ValueError("No table named {!r} is present in the "
-                         "metadata".format(self._tablename))
+        raise ValueError(
+            f"No table named {self._tablename!r} is present in the metadata")
 
     @property
     def tablename(self) -> str:

@@ -97,8 +97,7 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
     elif isinstance(x, str):
         return pendulum.parse(x, tz=tz)  # (*)  # may raise
     else:
-        raise ValueError("Don't know how to convert to DateTime: "
-                         "{!r}".format(x))
+        raise ValueError(f"Don't know how to convert to DateTime: {x!r}")
     # (*) If x already knew its timezone, it will not
     # be altered; "tz" will only be applied in the absence of other info.
 
@@ -262,7 +261,7 @@ def strfdelta(tdelta: Union[datetime.timedelta, int, float, str],
     elif inputtype in ['w', 'weeks']:
         remainder = int(tdelta) * 604800
     else:
-        raise ValueError("Bad inputtype: {}".format(inputtype))
+        raise ValueError(f"Bad inputtype: {inputtype}")
 
     f = Formatter()
     desired_fields = [field_tuple[1] for field_tuple in f.parse(fmt)]
@@ -478,10 +477,10 @@ def pendulum_duration_from_isodate_duration(dur: IsodateDuration) -> Duration:
     """  # noqa
     y = dur.years
     if y.to_integral_value() != y:
-        raise ValueError("Can't handle non-integer years {!r}".format(y))
+        raise ValueError(f"Can't handle non-integer years {y!r}")
     m = dur.months
     if m.to_integral_value() != m:
-        raise ValueError("Can't handle non-integer months {!r}".format(y))
+        raise ValueError(f"Can't handle non-integer months {y!r}")
     return Duration(seconds=dur.tdelta.total_seconds(),
                     years=int(y),
                     months=int(m))
@@ -541,8 +540,8 @@ def duration_from_iso(iso_duration: str) -> Duration:
         result = pendulum_duration_from_isodate_duration(duration)
     else:
         raise AssertionError(
-            "Bug in isodate.parse_duration, which returned unknown duration "
-            "type: {!r}".format(duration))
+            f"Bug in isodate.parse_duration, which returned unknown duration "
+            f"type: {duration!r}")
     # log.debug("Converted {!r} -> {!r} -> {!r}".format(
     #     iso_duration, duration, result))
     return result
@@ -670,11 +669,11 @@ def duration_to_iso(d: Duration, permit_years_months: bool = True,
     else:
         if d.years != 0:
             raise ValueError(
-                "Duration has non-zero years: {!r}".format(d.years))
+                f"Duration has non-zero years: {d.years!r}")
         if d.months != 0:
             raise ValueError(
-                "Duration has non-zero months: {!r}".format(d.months))
-        return prefix + "PT{seconds}S".format(seconds=d.total_seconds())
+                f"Duration has non-zero months: {d.months!r}")
+        return prefix + f"PT{d.total_seconds()}S"
 
 
 # =============================================================================

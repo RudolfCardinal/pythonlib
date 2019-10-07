@@ -132,7 +132,7 @@ def test_nhs_rng(n: int = 100) -> None:
     """Tests the NHS random number generator."""
     for i in range(n):
         x = generate_random_nhs_number()
-        assert is_valid_nhs_number(x), "Invalid NHS number: {}".format(x)
+        assert is_valid_nhs_number(x), f"Invalid NHS number: {x}"
 
 
 def generate_nhs_number_from_first_9_digits(first9digits: str) -> Optional[int]:

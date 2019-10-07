@@ -136,8 +136,8 @@ class StrEnum(Enum):
                 return item
         if not value and allow_none:
             return None
-        raise ValueError("Value {} not found in enum class {}".format(
-            repr(value), cls.__name__))
+        raise ValueError(
+            f"Value {value!r} not found in enum class {cls.__name__}")
 
     def __lt__(self, other: STR_ENUM_FWD_REF) -> bool:
         return str(self) < str(other)
@@ -205,7 +205,7 @@ class LowerCaseAutoStrEnumMeta(EnumMeta):
             if v == ():
                 v = k.lower()
             if v in newclassdict.keys():
-                raise ValueError("Duplicate value caused by key {}".format(k))
+                raise ValueError(f"Duplicate value caused by key {k}")
             newclassdict[k] = v
         return super().__new__(mcs, cls, bases, newclassdict)
 
@@ -342,7 +342,7 @@ class LowerCaseAutoStringObjectMetaClass(type):
                 continue
             value = k.lower()
             if value in classdict.values():
-                raise ValueError("Duplicate value from key: {}".format(k))
+                raise ValueError(f"Duplicate value from key: {k}")
             classdict[k] = value
         cls = type.__new__(mcs, name, bases, dict(classdict))
         return cls

@@ -52,7 +52,7 @@ def raise_if_attr_blank(obj: Any, attrs: Iterable[str]) -> None:
     for a in attrs:
         value = getattr(obj, a)
         if value is None or value is "":
-            raise Exception("Blank attribute: {}".format(a))
+            raise Exception(f"Blank attribute: {a}")
 
 
 # =============================================================================

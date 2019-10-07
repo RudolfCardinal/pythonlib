@@ -151,8 +151,8 @@ def compile_insert_on_duplicate_key_update(insert: Insert,
     columns = [c.strip() for c in m.group('columns').split(",")]
     # log.critical(columns)
     updates = ", ".join(
-        ["{c} = VALUES({c})".format(c=c) for c in columns])
-    s += ' ON DUPLICATE KEY UPDATE {}'.format(updates)
+        [f"{c} = VALUES({c})" for c in columns])
+    s += f' ON DUPLICATE KEY UPDATE {updates}'
     # log.critical(s)
     return s
 

@@ -229,7 +229,7 @@ def get_page_count(filename: str) -> int:
     m = regex.search(stdout)
     if m:
         return int(m.group(1))
-    raise ValueError("Can't get PDF page count for: {!r}".format(filename))
+    raise ValueError(f"Can't get PDF page count for: {filename!r}")
 
 
 def make_blank_pdf(filename: str, paper: str = "A4") -> None:
@@ -349,7 +349,7 @@ def convert_to_foldable(input_filename: str,
             nonlocal intermediate_num
             intermediate_num += 1
             return os.path.join(tmpdir,
-                                "intermediate_{}.pdf".format(intermediate_num))
+                                f"intermediate_{intermediate_num}.pdf")
 
         # Run this as a chain, rewriting input_filename at each step:
         # Slice, if necessary.

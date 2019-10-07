@@ -131,7 +131,7 @@ def strnum(prefix: str, num: int, suffix: str = "") -> str:
     """
     Makes a string of the format ``<prefix><number><suffix>``.
     """
-    return "{}{}{}".format(prefix, num, suffix)
+    return f"{prefix}{num}{suffix}"
 
 
 def strnumlist(prefix: str, numbers: List[int], suffix: str = "") -> List[str]:
@@ -139,7 +139,7 @@ def strnumlist(prefix: str, numbers: List[int], suffix: str = "") -> List[str]:
     Makes a string of the format ``<prefix><number><suffix>`` for every number
     in ``numbers``, and returns them as a list.
     """
-    return ["{}{}{}".format(prefix, num, suffix) for num in numbers]
+    return [f"{prefix}{num}{suffix}" for num in numbers]
 
 
 def strseq(prefix: str, first: int, last: int, suffix: str = "") -> List[str]:

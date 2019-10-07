@@ -216,8 +216,7 @@ class CorruptedZipReader(object):
             counter = 0
             while os.path.exists(destination_filename):
                 root, ext = os.path.splitext(destination_filename)
-                destination_filename = "{r}_{c}{e}".format(
-                    r=root, c=counter, e=ext)
+                destination_filename = f"{root}_{counter}{ext}"
                 counter += 1
             # ... for example, "/a/b/c.txt" becomes "/a/b/c_0.txt", then
             # "/a/b/c_1.txt", and so on.
@@ -344,7 +343,7 @@ def main() -> None:
     """
     parser = ArgumentParser(
         formatter_class=RawDescriptionHelpFormatter,
-        description="""
+        description=f"""
 Tool to recognize and rescue Microsoft Office OpenXML files, even if they have
 garbage appended to them.        
 
@@ -399,11 +398,7 @@ garbage appended to them.
   regularly allows you to clear up the junk. Use the --run_every option to help 
   with this.)
 
-        """.format(
-            DOCX_CONTENTS_REGEX_STR=DOCX_CONTENTS_REGEX_STR,
-            PPTX_CONTENTS_REGEX_STR=PPTX_CONTENTS_REGEX_STR,
-            XLSX_CONTENTS_REGEX_STR=XLSX_CONTENTS_REGEX_STR,
-        )
+        """
     )
     parser.add_argument(
         "filename", nargs="+",
@@ -425,7 +420,7 @@ garbage appended to them.
     )
     parser.add_argument(
         "--filetypes", nargs="+", default=FILETYPES,
-        help="File types to check. Options: {}".format(FILETYPES)
+        help=f"File types to check. Options: {FILETYPES}"
     )
     parser.add_argument(
         "--move_to",
@@ -464,15 +459,14 @@ garbage appended to them.
     )
 
     # Further argument checks
-    if args.move_to:
-        if not os.path.isdir(args.move_to):
-            raise ValueError("Destination directory {!r} is not a "
-                             "directory".format(args.move_to))
+    if args.move_to and not os.path.isdir(args.move_to):
+        raise ValueError(
+            f"Destination directory {args.move_to!r} is not a directory")
     if not args.filetypes:
         raise ValueError("No file type to scan for")
     filetypes = [ft.lower() for ft in args.filetypes]
     if any(ft not in FILETYPES for ft in filetypes):
-        raise ValueError("Invalid filetypes; choose from {}".format(FILETYPES))
+        raise ValueError(f"Invalid filetypes; choose from {FILETYPES}")
     assert shutil.which("zip"), "Need 'zip' tool!"
 
     # Repeated scanning loop

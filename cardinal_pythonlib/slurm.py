@@ -95,14 +95,14 @@ def launch_slurm(jobname: str,
         encoding: encoding to apply to launch script as sent to ``sbatch``
     """
     if partition:
-        partition_cmd = "#SBATCH -p {}".format(partition)
+        partition_cmd = f"#SBATCH -p {partition}"
     else:
         partition_cmd = ""
     if modules is None:
         modules = ["default-wbic"]
 
     log.info("Launching SLURM job: {}", jobname)
-    script = """#!/bin/bash
+    script = f"""#!/bin/bash
 
 #! Name of the job:
 #SBATCH -J {jobname}
@@ -121,7 +121,7 @@ def launch_slurm(jobname: str,
 #SBATCH --mem={memory_mb}
 
 #! How much wall-clock time will be required?
-#SBATCH --time={duration}
+#SBATCH --time={strfdelta(duration, SLURM_TIMEDELTA_FMT)}
 
 #! What e-mail address to use for notifications?
 #SBATCH --mail-user={email}
@@ -146,7 +146,7 @@ def launch_slurm(jobname: str,
 #! (note that SLURM reproduces the environment at submission irrespective of ~/.bashrc):
 . /etc/profile.d/modules.sh                # Leave this line (enables the module command)
 module purge                               # Removes all modules still loaded
-module load {modules}                      # Basic one, e.g. default-wbic, is REQUIRED - loads the basic environment
+module load {" ".join(modules)}            # Basic one, e.g. default-wbic, is REQUIRED - loads the basic environment
 
 #! Insert additional module load commands after this line if needed:
 
@@ -192,19 +192,7 @@ fi
 echo -e "\nExecuting command:\n==================\n$CMD\n"
 
 eval $CMD
-    """.format(  # noqa
-        cmd=cmd,
-        cpus_per_task=cpus_per_task,
-        duration=strfdelta(duration, SLURM_TIMEDELTA_FMT),
-        email=email,
-        jobname=jobname,
-        memory_mb=memory_mb,
-        modules=" ".join(modules),
-        partition_cmd=partition_cmd,
-        project=project,
-        qos=qos,
-        tasks_per_node=tasks_per_node,
-    )
+    """  # noqa
     cmdargs = ["sbatch"]
     with pushd(directory):
         p = Popen(cmdargs, stdin=PIPE)

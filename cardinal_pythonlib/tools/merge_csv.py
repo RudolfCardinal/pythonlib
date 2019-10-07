@@ -77,12 +77,9 @@ def merge_csv(filenames: List[str],
                     new_headers = next(reader)
                     if new_headers != header_items:
                         raise ValueError(
-                            "Header line in file {filename} doesn't match - "
-                            "it was {new} but previous was {old}".format(
-                                filename=repr(filename),
-                                new=repr(new_headers),
-                                old=repr(header_items),
-                            ))
+                            f"Header line in file {filename!r} doesn't match "
+                            f"- it was {new_headers!r} but previous was "
+                            f"{header_items!r}")
                     if debug:
                         log.debug("Header row matches previous")
             else:

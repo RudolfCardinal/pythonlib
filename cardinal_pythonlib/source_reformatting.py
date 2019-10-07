@@ -103,10 +103,10 @@ class PythonProcessor(object):
                     else line_with_nl
                 )
                 if TAB in line_without_newline:
-                    self._warn("Tab character at line {}".format(linenum))
+                    self._warn(f"Tab character at line {linenum}")
                 if CR in line_without_newline:
-                    self._warn("Carriage return character at line {} "
-                               "(Windows CR+LF endings?)".format(linenum))
+                    self._warn(f"Carriage return character at line {linenum} "
+                               f"(Windows CR+LF endings?)")
                 self.source_lines.append(line_without_newline)
 
     def _create_dest(self) -> None:
@@ -125,7 +125,7 @@ class PythonProcessor(object):
             dl = sl
 
             if dl.endswith(SPACE):
-                self._debug("Line {} ends in whitespace".format(linenum))
+                self._debug(f"Line {linenum} ends in whitespace")
                 dl = dl.rstrip()
 
             if not in_body:
@@ -133,18 +133,18 @@ class PythonProcessor(object):
                 if linenum == 1:
                     # Shebang
                     if not dl.startswith(SHEBANG_START):
-                        self._warn("File does not start with shebang; "
-                                   "first line was {!r}".format(dl))
+                        self._warn(f"File does not start with shebang; "
+                                   f"first line was {dl!r}")
                         self._too_risky()
                         return
                     if dl != CORRECT_SHEBANG:
-                        self._debug("Rewriting shebang; was {!r}".format(dl))
+                        self._debug(f"Rewriting shebang; was {dl!r}")
                     dl = CORRECT_SHEBANG
 
                 if (linenum == 2 and dl.startswith(HASH_SPACE) and
                         dl.endswith(PYTHON_EXTENSION)):
                     self._debug(
-                        "Removing filename comment: {!r}".format(dl))
+                        f"Removing filename comment: {dl!r}")
                     dl = None
 
                 elif TRIPLE_DOUBLEQUOTE in dl:
@@ -224,9 +224,9 @@ class PythonProcessor(object):
                             BLANK,
                             TRIPLE_DOUBLEQUOTE
                         ]
-                        self._warn("File had no docstring; adding one. "
-                                   "Will need manual edit to add RST title. "
-                                   "Search for {!r}".format(MISSING_RST_TITLE))
+                        self._warn(f"File had no docstring; adding one. "
+                                   f"Will need manual edit to add RST title. "
+                                   f"Search for {MISSING_RST_TITLE!r}")
                         self.dest_lines[1:1] = new_docstring_lines
 
             if dl is not None:
@@ -246,7 +246,7 @@ class PythonProcessor(object):
         """
         Formats a log message.
         """
-        return "{}: {}".format(self.advertised_filename, msg)
+        return f"{self.advertised_filename}: {msg}"
 
     def _critical(self, msg: str) -> None:
         """

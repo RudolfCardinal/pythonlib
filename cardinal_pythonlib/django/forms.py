@@ -45,8 +45,7 @@ def clean_int(x) -> int:
     try:
         return int(x)
     except ValueError:
-        raise forms.ValidationError(
-            "Cannot convert to integer: {}".format(repr(x)))
+        raise forms.ValidationError(f"Cannot convert to integer: {x!r}")
 
 
 def clean_nhs_number(x) -> int:
@@ -60,8 +59,7 @@ def clean_nhs_number(x) -> int:
             raise ValueError
         return x
     except ValueError:
-        raise forms.ValidationError(
-            "Not a valid NHS number: {}".format(repr(x)))
+        raise forms.ValidationError(f"Not a valid NHS number: {x!r}")
 
 
 class MultipleIntAreaField(forms.Field):

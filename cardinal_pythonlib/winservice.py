@@ -376,10 +376,9 @@ class ProcessManager(object):
         """
         Description of the process.
         """
-        fullname = "Process {}/{} ({})".format(self.procnum, self.nprocs,
-                                               self.details.name)
+        fullname = f"Process {self.procnum}/{self.nprocs} ({self.details.name})"  # noqa
         if self.running:
-            fullname += " (PID={})".format(self.process.pid)
+            fullname += f" (PID={self.process.pid})"
         return fullname
 
     # -------------------------------------------------------------------------
@@ -391,7 +390,7 @@ class ProcessManager(object):
         If we are being verbose, write a debug message to the Python disk log.
         """
         if self.debugging:
-            s = "{}: {}".format(self.fullname, msg)
+            s = f"{self.fullname}: {msg}"
             log.debug(s)
 
     def info(self, msg: str) -> None:
@@ -400,7 +399,7 @@ class ProcessManager(object):
         (± to the Python disk log).
         """
         # noinspection PyUnresolvedReferences
-        s = "{}: {}".format(self.fullname, msg)
+        s = f"{self.fullname}: {msg}"
         servicemanager.LogInfoMsg(s)
         if self.debugging:
             log.info(s)
@@ -412,7 +411,7 @@ class ProcessManager(object):
         """
         # Log messages go to the Windows APPLICATION log.
         # noinspection PyUnresolvedReferences
-        s = "{}: {}".format(self.fullname, msg)
+        s = f"{self.fullname}: {msg}"
         servicemanager.LogWarningMsg(s)
         if self.debugging:
             log.warning(s)
@@ -423,7 +422,7 @@ class ProcessManager(object):
         (± to the Python disk log).
         """
         # noinspection PyUnresolvedReferences
-        s = "{}: {}".format(self.fullname, msg)
+        s = f"{self.fullname}: {msg}"
         servicemanager.LogErrorMsg(s)
         if self.debugging:
             log.warning(s)
@@ -465,10 +464,10 @@ class ProcessManager(object):
         """
         if self.running:
             return
-        self.info("Starting: {} (with logs stdout={}, stderr={})".format(
-            self.details.procargs,
-            self.details.logfile_out,
-            self.details.logfile_err))
+        self.info(
+            f"Starting: {self.details.procargs} (with logs "
+            f"stdout={self.details.logfile_out}, "
+            f"stderr={self.details.logfile_err})")
         self.open_logs()
         creationflags = CREATE_NEW_PROCESS_GROUP if WINDOWS else 0
         # self.warning("creationflags: {}".format(creationflags))
@@ -521,7 +520,7 @@ class ProcessManager(object):
 
         # SEE NOTES ABOVE. This is tricky under Windows.
 
-        suffix = " [to child process {}]".format(self.process.pid)
+        suffix = f" [to child process {self.process.pid}]"
         if level == self.KILL_LEVEL_CTRL_C_OR_SOFT_KILL:
             if WINDOWS:
                 success = 0 != ctypes.windll.kernel32.GenerateConsoleCtrlEvent(

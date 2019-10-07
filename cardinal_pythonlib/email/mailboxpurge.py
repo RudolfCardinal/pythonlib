@@ -120,7 +120,7 @@ def main() -> None:
                                     else logging.INFO)
 
     if os.path.exists(args.output):
-        errmsg = "Output file exists: {}".format(args.output)
+        errmsg = f"Output file exists: {args.output}"
         log.critical(errmsg)
         raise ValueError(errmsg)
     log.info("Opening input file: {filename} ({size})",

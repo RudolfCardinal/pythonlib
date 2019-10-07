@@ -92,8 +92,8 @@ class ContentTypeRestrictedFileField(models.FileField):
             # noinspection PyProtectedMember,PyUnresolvedReferences
             uploaded_file_size = f._size
         else:
-            raise AssertionError("Don't know how to get file size from "
-                                 "{!r}".format(f))
+            raise AssertionError(
+                f"Don't know how to get file size from {f!r}")
         if (self.max_upload_size is not None and
                 uploaded_file_size > self.max_upload_size):
             raise forms.ValidationError(ugettext_lazy(

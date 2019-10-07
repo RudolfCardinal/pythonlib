@@ -121,7 +121,7 @@ def number_to_dp(number: Optional[float],
     if number == float("-inf"):
         s = u"-∞"
     else:
-        s = u"{:.{precision}f}".format(number, precision=dp)
+        s = f"{number:.{dp}f}"
     if en_dash_for_minus:
         s = s.replace("-", u"–")  # hyphen becomes en dash for minus sign
     return s
@@ -138,7 +138,7 @@ def debug_form_contents(form: cgi.FieldStorage,
     Writes the keys and values of a CGI form to ``stderr``.
     """
     for k in form.keys():
-        text = "{0} = {1}".format(k, form.getvalue(k))
+        text = f"{k} = {form.getvalue(k)}"
         if to_stderr:
             sys.stderr.write(text)
         if to_logger:
@@ -410,8 +410,8 @@ def get_png_img_html(blob: Union[bytes, memoryview],
     """
     Converts a PNG blob to an HTML IMG tag with embedded data.
     """
-    return """<img {}src="{}" />""".format(
-        'class="{}" '.format(extra_html_class) if extra_html_class else "",
+    return '<img {}src="{}" />'.format(
+        f'class="{extra_html_class}" ' if extra_html_class else "",
         get_png_data_url(blob)
     )
 
@@ -433,11 +433,11 @@ def pdf_result(pdf_binary: bytes,
     extraheaders = extraheaders or []
     if filename:
         extraheaders.append(
-            ('content-disposition', 'inline; filename="{}"'.format(filename))
+            ('content-disposition', f'inline; filename="{filename}"')
         )
     contenttype = 'application/pdf'
     if filename:
-        contenttype += '; filename="{}"'.format(filename)
+        contenttype += f'; filename="{filename}"'
     # log.debug("type(pdf_binary): {}", type(pdf_binary))
     return contenttype, extraheaders, pdf_binary
 
@@ -451,11 +451,11 @@ def zip_result(zip_binary: bytes,
     extraheaders = extraheaders or []
     if filename:
         extraheaders.append(
-            ('content-disposition', 'inline; filename="{}"'.format(filename))
+            ('content-disposition', f'inline; filename="{filename}"')
         )
     contenttype = 'application/zip'
     if filename:
-        contenttype += '; filename="{}"'.format(filename)
+        contenttype += f'; filename="{filename}"'
     return contenttype, extraheaders, zip_binary
 
 
@@ -488,11 +488,11 @@ def text_result(text: str,
     extraheaders = extraheaders or []
     if filename:
         extraheaders.append(
-            ('content-disposition', 'inline; filename="{}"'.format(filename))
+            ('content-disposition', f'inline; filename="{filename}"')
         )
     contenttype = 'text/plain; charset=utf-8'
     if filename:
-        contenttype += '; filename="{}"'.format(filename)
+        contenttype += f'; filename="{filename}"'
     return contenttype, extraheaders, text.encode("utf-8")
 
 
@@ -505,11 +505,11 @@ def tsv_result(text: str,
     extraheaders = extraheaders or []
     if filename:
         extraheaders.append(
-            ('content-disposition', 'inline; filename="{}"'.format(filename))
+            ('content-disposition', f'inline; filename="{filename}"')
         )
     contenttype = 'text/tab-separated-values; charset=utf-8'
     if filename:
-        contenttype += '; filename="{}"'.format(filename)
+        contenttype += f'; filename="{filename}"'
     return contenttype, extraheaders, text.encode("utf-8")
 
 
@@ -630,8 +630,8 @@ def bold_if_not_blank(x: Optional[str]) -> str:
     HTML-emboldens content, unless blank.
     """
     if x is None:
-        return u"{}".format(x)
-    return u"<b>{}</b>".format(x)
+        return f"{x}"
+    return f"<b>{x}</b>"
 
 
 def make_urls_hyperlinks(text: str) -> str:
@@ -682,7 +682,7 @@ def html_table_from_query(rows: Iterable[Iterable[Optional[str]]],
     for x in descriptions:
         if x is None:
             x = u""
-        html += u"<th>{}</th>".format(webify(x))
+        html += f"<th>{webify(x)}</th>"
     html += u"</tr>\n"
 
     # Data rows
@@ -691,7 +691,7 @@ def html_table_from_query(rows: Iterable[Iterable[Optional[str]]],
         for x in row:
             if x is None:
                 x = u""
-            html += u"<td>{}</td>".format(webify(x))
+            html += f"<td>{webify(x)}</td>"
         html += u"<tr>\n"
 
     html += u"</table>\n"

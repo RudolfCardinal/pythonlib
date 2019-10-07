@@ -98,10 +98,10 @@ class DebuggingCooperativeMeta(type):
         meta = type(name, tuple(metas), dict(combined_metas=metas))
         obj = meta(name, bases, members)
 
-        print("DebuggingCooperativeMeta.__new__: bases = {}".format(repr(bases)))  # noqa
-        print("DebuggingCooperativeMeta.__new__: metas = {}".format(repr(metas)))  # noqa
-        print("DebuggingCooperativeMeta.__new__: meta = {}".format(repr(meta)))
-        print("DebuggingCooperativeMeta.__new__: obj = {}".format(repr(obj)))
+        print(f"DebuggingCooperativeMeta.__new__: bases = {bases!r}")
+        print(f"DebuggingCooperativeMeta.__new__: metas = {metas!r}")
+        print(f"DebuggingCooperativeMeta.__new__: meta = {meta!r}")
+        print(f"DebuggingCooperativeMeta.__new__: obj = {obj!r}")
 
         # make the actual object
         return obj
@@ -114,13 +114,8 @@ class DebuggingCooperativeMeta(type):
         # noinspection PyUnresolvedReferences
         for meta in cls.combined_metas:
             print(
-                "DebuggingCooperativeMeta.__init__: calling {meta}.__init__("
-                "{name}, {bases}, {members}".format(
-                    meta=meta.__name__,
-                    name=repr(name),
-                    bases=repr(bases),
-                    members=repr(members)
-                )
+                f"DebuggingCooperativeMeta.__init__: calling "
+                f"{meta.__name__}.__init__({name!r}, {bases!r}, {members!r}"
             )
             meta.__init__(cls, name, bases, members)
 

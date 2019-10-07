@@ -160,8 +160,8 @@ def require_debian_packages(packages: List[str]) -> None:
     if missing_packages:
         missing_packages.sort()
         msg = (
-            "Debian packages are missing, as follows. Suggest:\n\n"
-            "sudo apt install {}".format(" ".join(missing_packages))
+            f"Debian packages are missing, as follows. Suggest:\n\n"
+            f"sudo apt install {' '.join(missing_packages)}"
         )
         log.critical(msg)
         raise ValueError(msg)
@@ -236,8 +236,7 @@ def windows_get_environment_from_batch_command(
     # create a tag so we can tell in the output when the proc is done
     tag = '+/!+/!+/! Finished command to set/print env +/!+/!+/!'  # RNC
     # construct a cmd.exe command to do accomplish this
-    cmd = 'cmd.exe /s /c "{env_cmd} && echo "{tag}" && set"'.format(
-        env_cmd=env_cmd, tag=tag)
+    cmd = f'cmd.exe /s /c "{env_cmd} && echo "{tag}" && set"'
     # launch the process
     log.info("Fetching environment using command: {}", env_cmd)
     log.debug("Full command: {}", cmd)

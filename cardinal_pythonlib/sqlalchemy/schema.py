@@ -411,9 +411,10 @@ def add_index(engine: Engine,
                          "(Microsoft SQL Server) full-text indexing")
     if bool(multiple_sqla_columns) == (sqla_column is not None):
         raise ValueError(
-            "add_index: Use either sqla_column or multiple_sqla_columns, not "
-            "both (sqla_column = {}, multiple_sqla_columns = {}".format(
-                repr(sqla_column), repr(multiple_sqla_columns)))
+            f"add_index: Use either sqla_column or multiple_sqla_columns, "
+            f"not both (sqla_column = {sqla_column!r}, "
+            f"multiple_sqla_columns = {multiple_sqla_columns!r}"
+        )
     if sqla_column is not None:
         colnames = [sqla_column.name]
         sqla_table = sqla_column.table
@@ -424,9 +425,8 @@ def add_index(engine: Engine,
         tablename = sqla_table.name
         if any(c.table.name != tablename for c in multiple_sqla_columns[1:]):
             raise ValueError(
-                "add_index: tablenames are inconsistent in "
-                "multiple_sqla_columns = {}".format(
-                    repr(multiple_sqla_columns)))
+                f"add_index: tablenames are inconsistent in "
+                f"multiple_sqla_columns = {multiple_sqla_columns!r}")
 
     if fulltext:
         if is_mssql:
@@ -436,8 +436,8 @@ def add_index(engine: Engine,
     else:
         idxname = "_idx_{}".format("_".join(colnames))
     if idxname and index_exists(engine, tablename, idxname):
-        log.info("Skipping creation of index {} on table {}; already "
-                 "exists".format(idxname, tablename))
+        log.info(f"Skipping creation of index {idxname} on "
+                 f"table {tablename}; already exists")
         return
         # because it will crash if you add it again!
     log.info(
@@ -476,19 +476,18 @@ def add_index(engine: Engine,
                                         tablename=tablename,
                                         schemaname=schemaname):
                 log.info(
-                    "... skipping creation of full-text index on table {}; a "
-                    "full-text index already exists for that table; you can "
-                    "have only one full-text index per table, though it can "
-                    "be on multiple columns".format(tablename))
+                    f"... skipping creation of full-text index on table "
+                    f"{tablename}; a full-text index already exists for that "
+                    f"table; you can have only one full-text index per table, "
+                    f"though it can be on multiple columns")
                 return
             pk_index_name = mssql_get_pk_index_name(
                 engine=engine, tablename=tablename, schemaname=schemaname)
             if not pk_index_name:
                 raise ValueError(
-                    "To make a FULLTEXT index under SQL Server, we need to "
-                    "know the name of the PK index, but couldn't find one "
-                    "from get_pk_index_name() for table {}".format(
-                        repr(tablename)))
+                    f"To make a FULLTEXT index under SQL Server, we need to "
+                    f"know the name of the PK index, but couldn't find one "
+                    f"from get_pk_index_name() for table {tablename!r}")
             # We don't name the FULLTEXT index itself, but it has to relate
             # to an existing unique index.
             sql = (
@@ -513,8 +512,8 @@ def add_index(engine: Engine,
             #     pyodbc); see create_indexes()
             transaction_count = mssql_transaction_count(engine)
             if transaction_count != 0:
-                log.critical("SQL Server transaction count (should be 0): "
-                             "{}".format(transaction_count))
+                log.critical(f"SQL Server transaction count (should be 0): "
+                             f"{transaction_count}")
                 # Executing serial COMMITs or a ROLLBACK won't help here if
                 # this transaction is due to Python DBAPI default behaviour.
             DDL(sql, bind=engine).execute()
@@ -522,8 +521,8 @@ def add_index(engine: Engine,
             # The reversal procedure is DROP FULLTEXT INDEX ON tablename;
 
         else:
-            log.error("Don't know how to make full text index on dialect "
-                      "{}".format(engine.dialect.name))
+            log.error(f"Don't know how to make full text index on dialect "
+                      f"{engine.dialect.name}")
 
     else:
         index = Index(idxname, sqla_column, unique=unique, mysql_length=length)
@@ -549,8 +548,8 @@ def make_bigint_autoincrement_column(column_name: str,
         # return Column(column_name, BigInteger, autoincrement=True)
         # noinspection PyUnresolvedReferences
         raise AssertionError(
-            "SQLAlchemy doesn't support non-PK autoincrement fields yet for "
-            "dialect {}".format(repr(dialect.name)))
+            f"SQLAlchemy doesn't support non-PK autoincrement fields yet for "
+            f"dialect {dialect.name!r}")
         # see http://stackoverflow.com/questions/2937229
 
 
@@ -608,7 +607,7 @@ def giant_text_sqltype(dialect: Dialect) -> str:
     elif dialect.name == SqlaDialectName.MYSQL:
         return 'LONGTEXT'
     else:
-        raise ValueError("Unknown dialect: {}".format(dialect.name))
+        raise ValueError(f"Unknown dialect: {dialect.name}")
 
 
 # =============================================================================
@@ -800,9 +799,8 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
 
     except:
         # noinspection PyUnresolvedReferences
-        raise ValueError("Failed to convert SQL type {} in dialect {} to an "
-                         "SQLAlchemy type".format(repr(coltype),
-                                                  repr(dialect.name)))
+        raise ValueError(f"Failed to convert SQL type {coltype!r} in dialect "
+                         f"{dialect.name!r} to an SQLAlchemy type")
 
 
 # get_sqla_coltype_from_dialect_str("INTEGER", engine.dialect)
@@ -1168,7 +1166,7 @@ def test_assert(x, y) -> None:
     try:
         assert x == y
     except AssertionError:
-        print("{} should have been {}".format(repr(x), repr(y)))
+        print(f"{x!r} should have been {y!r}")
         raise
 
 
@@ -1211,10 +1209,8 @@ def unit_tests() -> None:
         ("ENUM('red','green','blue')", d_mysql),
     ]
     for coltype, dialect in to_check:
-        print("... {} -> dialect {} -> {}".format(
-            repr(coltype),
-            repr(dialect.name),
-            repr(get_sqla_coltype_from_dialect_str(coltype, dialect))))
+        print(f"... {coltype!r} -> dialect {dialect.name!r} -> "
+              f"{get_sqla_coltype_from_dialect_str(coltype, dialect)!r}")
 
 
 if __name__ == '__main__':

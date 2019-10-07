@@ -34,9 +34,7 @@ CARDINAL_PYTHONLIB_VERSION = Version(VERSION)
 
 
 def _get_version_failure_msg(op: str, version_str: str) -> str:
-    return "Requested {op}{v} but cardinal_pythonlib=={cpv}".format(
-        op=op, v=version_str, cpv=VERSION
-    )
+    return f"Requested {op}{version_str} but cardinal_pythonlib=={VERSION}"
 
 
 def assert_version_lt(version_str: str) -> None:

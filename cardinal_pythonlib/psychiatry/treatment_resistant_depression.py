@@ -124,15 +124,15 @@ def timedelta_days(days: int) -> timedelta64:
     """
     int_days = int(days)
     if int_days != days:
-        raise ValueError("Fractional days passed to timedelta_days: "
-                         "{!r}".format(days))
+        raise ValueError(f"Fractional days passed to timedelta_days: {days!r}")
     try:
         # Do not pass e.g. 27.0; that will raise a ValueError.
         # Must be an actual int:
         return timedelta64(int_days, 'D')
     except ValueError as e:
-        raise ValueError("Failure in timedelta_days; value was {!r}; original "
-                         "error was: {}".format(days, e))
+        raise ValueError(
+            f"Failure in timedelta_days; value was {days!r}; "
+            f"original error was: {e}")
 
 
 def _get_generic_two_antidep_episodes_result(
@@ -183,8 +183,9 @@ def two_antidepressant_episodes_single_patient(
 
     Implements the key algorithm.
     """
-    log.debug("Running two_antidepressant_episodes_single_patient() for "
-              "patient {!r}".format(patient_id))
+    log.debug(
+        f"Running two_antidepressant_episodes_single_patient() "
+        f"for patient {patient_id!r}")
     all_episodes_for_patient = _get_blank_two_antidep_episodes_result()
     flush_stdout_stderr()
     # Get column details from source data

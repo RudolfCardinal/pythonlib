@@ -55,12 +55,12 @@ def is_valid_table_name(t: Optional[str]) -> bool:
 
 def ensure_valid_field_name(f: Optional[str]) -> None:
     if not is_valid_field_name(f):
-        raise ValueError("Field name invalid: {}".format(f))
+        raise ValueError(f"Field name invalid: {f}")
 
 
 def ensure_valid_table_name(t: Optional[str]) -> None:
     if not is_valid_table_name(t):
-        raise ValueError("Table name invalid: {}".format(t))
+        raise ValueError(f"Table name invalid: {t}")
 
 
 SQLTYPES_INTEGER = [

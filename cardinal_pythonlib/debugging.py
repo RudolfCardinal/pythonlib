@@ -147,7 +147,7 @@ def get_caller_name(back: int = 0) -> str:
     function_name = frame.f_code.co_name
     class_name = get_class_name_from_frame(frame)
     if class_name:
-        return "{}.{}".format(class_name, function_name)
+        return f"{class_name}.{function_name}"
     return function_name
 
 
@@ -277,9 +277,9 @@ def debug_object(obj, log_level: int = logging.DEBUG) -> None:
         obj: object to debug
         log_level: log level to use; default is ``logging.DEBUG``
     """
-    msgs = ["For {o!r}:".format(o=obj)]
+    msgs = [f"For {obj!r}:"]
     for attrname in dir(obj):
         attribute = getattr(obj, attrname)
-        msgs.append("- {an!r}: {at!r}, of type {t!r}".format(
-            an=attrname, at=attribute, t=type(attribute)))
+        msgs.append(
+            f"- {attrname!r}: {attribute!r}, of type {type(attribute)!r}")
     log.log(log_level, "{}", "\n".join(msgs))

@@ -162,13 +162,13 @@ def deduplicate(directories: List[str], recursive: bool,
     num_originals = 0
     num_deleted = 0
     for d in duplicate_sets:
-        print("Original is: {}".format(d[0]))
+        print(f"Original is: {d[0]}")
         num_originals += 1
         for f in d[1:]:
             if dummy_run:
-                print("Would delete: {}".format(f))
+                print(f"Would delete: {f}")
             else:
-                print("Deleting: {}".format(f))
+                print(f"Deleting: {f}")
                 os.remove(f)
             num_deleted += 1
         print()

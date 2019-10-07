@@ -209,8 +209,7 @@ def add_download_filename(response: HttpResponse, filename: str) -> None:
     """
     # https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     add_http_headers_for_attachment(response)
-    response['Content-Disposition'] = 'attachment; filename="{}"'.format(
-        filename)
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
 
 def file_response(data: Union[bytes, str],  # HttpResponse encodes str if req'd

@@ -73,7 +73,7 @@ def cmdargs(mysqldump: str,
         mysqldump,
         "-u", username,
         "-p{}".format("*****" if hide_password else password),
-        "--max_allowed_packet={}".format(max_allowed_packet),
+        f"--max_allowed_packet={max_allowed_packet}",
         "--hex-blob",  # preferable to raw binary in our .sql file
     ]
     if verbose:
@@ -98,12 +98,13 @@ def main() -> None:
     wdcd_suffix = "_with_drop_create_database"
     timeformat = "%Y%m%dT%H%M%S"
     parser = argparse.ArgumentParser(
-        description="""
+        description=f"""
         Back up a specific MySQL database. The resulting filename has the
         format '<DATABASENAME>_<DATETIME><SUFFIX>.sql', where <DATETIME> is of
         the ISO-8601 format {timeformat!r} and <SUFFIX> is either blank or
-        {suffix!r}. A typical filename is therefore 'mydb_20190415T205524.sql'.
-        """.format(timeformat=timeformat, suffix=wdcd_suffix),
+        {wdcd_suffix!r}. 
+        A typical filename is therefore 'mydb_20190415T205524.sql'.
+        """,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument(
         "databases", nargs="+",
@@ -139,7 +140,7 @@ def main() -> None:
     os.chdir(output_dir)
 
     password = args.password or getpass.getpass(
-        prompt="MySQL password for user {}: ".format(args.username))
+        prompt=f"MySQL password for user {args.username}: ")
 
     output_files = []  # type: List[str]
     if args.with_drop_create_database:
@@ -151,8 +152,7 @@ def main() -> None:
         suffix = ""
     for db in args.databases:
         now = datetime.datetime.now().strftime(timeformat)
-        outfilename = "{db}_{now}{suffix}.sql".format(db=db, now=now,
-                                                      suffix=suffix)
+        outfilename = f"{db}_{now}{suffix}.sql"
         display_args = cmdargs(
             mysqldump=args.mysqldump,
             username=args.username,

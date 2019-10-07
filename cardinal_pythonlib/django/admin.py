@@ -82,7 +82,7 @@ def admin_view_url(admin_site: AdminSite,
     app_name = obj._meta.app_label.lower()
     model_name = obj._meta.object_name.lower()
     pk = obj.pk
-    viewname = "admin:{}_{}_{}".format(app_name, model_name, view_type)
+    viewname = f"admin:{app_name}_{model_name}_{view_type}"
     if current_app is None:
         current_app = admin_site.name
     url = reverse(viewname, args=[pk], current_app=current_app)
@@ -106,7 +106,7 @@ def admin_view_fk_link(modeladmin: ModelAdmin,
     linked_obj = getattr(obj, fkfield)
     app_name = linked_obj._meta.app_label.lower()
     model_name = linked_obj._meta.object_name.lower()
-    viewname = "admin:{}_{}_{}".format(app_name, model_name, view_type)
+    viewname = f"admin:{app_name}_{model_name}_{view_type}"
     # https://docs.djangoproject.com/en/dev/ref/contrib/admin/#reversing-admin-urls  # noqa
     if current_app is None:
         current_app = modeladmin.admin_site.name
@@ -115,9 +115,8 @@ def admin_view_fk_link(modeladmin: ModelAdmin,
     if use_str:
         label = escape(str(linked_obj))
     else:
-        label = "{} {}".format(escape(linked_obj._meta.object_name),
-                               linked_obj.pk)
-    return '<a href="{}">{}</a>'.format(url, label)
+        label = f"{escape(linked_obj._meta.object_name)} {linked_obj.pk}"
+    return f'<a href="{url}">{label}</a>'
 
 
 # noinspection PyProtectedMember
@@ -142,7 +141,7 @@ def admin_view_reverse_fk_links(modeladmin: ModelAdmin,
     first = linked_objs[0]
     app_name = first._meta.app_label.lower()
     model_name = first._meta.object_name.lower()
-    viewname = "admin:{}_{}_{}".format(app_name, model_name, view_type)
+    viewname = f"admin:{app_name}_{model_name}_{view_type}"
     if current_app is None:
         current_app = modeladmin.admin_site.name
     links = []
@@ -153,8 +152,7 @@ def admin_view_reverse_fk_links(modeladmin: ModelAdmin,
         if use_str:
             label = escape(str(linked_obj))
         else:
-            label = "{} {}".format(escape(linked_obj._meta.object_name),
-                                   linked_obj.pk)
-        links.append('<a href="{}">{}</a>'.format(url, label))
+            label = f"{escape(linked_obj._meta.object_name)} {linked_obj.pk}"
+        links.append(f'<a href="{url}">{label}</a>')
     # log.debug("links: {}", links)
     return separator.join(links)

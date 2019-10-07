@@ -115,7 +115,7 @@ def write_if_allowed(filename: str,
     """
     # Check we're allowed
     if not overwrite and exists(filename):
-        fail("File exists, not overwriting: {!r}".format(filename))
+        fail(f"File exists, not overwriting: {filename!r}")
 
     # Make the directory, if necessary
     directory = dirname(filename)
@@ -211,23 +211,22 @@ class FileToAutodocument(object):
         )
         self.pygments_language_override = pygments_language_override or {}  # type: Dict[str, str]  # noqa
         assert isfile(self.source_filename), (
-            "Not a file: source_filename={!r}".format(self.source_filename))
+            f"Not a file: source_filename={self.source_filename!r}")
         assert isdir(self.project_root_dir), (
-            "Not a directory: project_root_dir={!r}".format(
-                self.project_root_dir))
+            f"Not a directory: project_root_dir={self.project_root_dir!r}")
         assert relative_filename_within_dir(
             filename=self.source_filename,
             directory=self.project_root_dir
         ), (
-            "Source file {!r} is not within project directory {!r}".format(
-                self.source_filename, self.project_root_dir)
+            f"Source file {self.source_filename!r} is not within "
+            f"project directory {self.project_root_dir!r}"
         )
         assert relative_filename_within_dir(
             filename=self.python_package_root_dir,
             directory=self.project_root_dir
         ), (
-            "Python root {!r} is not within project directory {!r}".format(
-                self.python_package_root_dir, self.project_root_dir)
+            f"Python root {self.python_package_root_dir!r} is not within "
+            f"project directory {self.project_root_dir!r}"
         )
         assert isinstance(method, AutodocMethod)
 
@@ -366,8 +365,9 @@ class FileToAutodocument(object):
                 title = self.python_module_name
             else:
                 title = self.source_filename_rel_project_root
-            instruction = ".. automodule:: {modulename}\n    :members:".format(
-                modulename=self.python_module_name
+            instruction = (
+                f".. automodule:: {self.python_module_name}\n"
+                f"    :members:"
             )
         elif method == AutodocMethod.CONTENTS:
             title = self.source_filename_rel_project_root
@@ -617,29 +617,27 @@ class AutodocIndex(object):
         self.pygments_language_override = pygments_language_override or {}  # type: Dict[str, str]  # noqa
 
         assert isdir(self.project_root_dir), (
-            "Not a directory: project_root_dir={!r}".format(
-                self.project_root_dir))
+            f"Not a directory: project_root_dir={self.project_root_dir!r}")
         assert relative_filename_within_dir(
             filename=self.index_filename,
             directory=self.project_root_dir
         ), (
-            "Index file {!r} is not within project directory {!r}".format(
-                self.index_filename, self.project_root_dir)
+            f"Index file {self.index_filename!r} is not within "
+            f"project directory {self.project_root_dir!r}"
         )
         assert relative_filename_within_dir(
             filename=self.highest_code_dir,
             directory=self.project_root_dir
         ), (
-            "Highest code directory {!r} is not within project directory "
-            "{!r}".format(self.highest_code_dir, self.project_root_dir)
+            f"Highest code directory {self.highest_code_dir!r} is not within "
+            f"project directory {self.project_root_dir!r}"
         )
         assert relative_filename_within_dir(
             filename=self.autodoc_rst_root_dir,
             directory=self.project_root_dir
         ), (
-            "Autodoc RST root directory {!r} is not within project "
-            "directory {!r}".format(
-                self.autodoc_rst_root_dir, self.project_root_dir)
+            f"Autodoc RST root directory {self.autodoc_rst_root_dir!r} is not "
+            f"within project directory {self.project_root_dir!r}"
         )
         assert isinstance(method, AutodocMethod)
         assert isinstance(recursive, bool)
@@ -843,7 +841,7 @@ class AutodocIndex(object):
             elif isinstance(f, AutodocIndex):
                 f.write_index_and_rst_files(overwrite=overwrite, mock=mock)
             else:
-                fail("Unknown thing in files_to_index: {!r}".format(f))
+                fail(f"Unknown thing in files_to_index: {f!r}")
         self.write_index(overwrite=overwrite, mock=mock)
 
     @property
@@ -876,7 +874,7 @@ class AutodocIndex(object):
         spacer = "    "
         toctree_lines = [
             "..  toctree::",
-            spacer + ":maxdepth: {}".format(self.toctree_maxdepth),
+            spacer + f":maxdepth: {self.toctree_maxdepth}",
             ""
         ]
         for f in self.files_to_index:
@@ -888,7 +886,7 @@ class AutodocIndex(object):
                     spacer + f.index_filename_rel_other_index(index_filename)
                 )
             else:
-                fail("Unknown thing in files_to_index: {!r}".format(f))
+                fail(f"Unknown thing in files_to_index: {f!r}")
                 rst_filename = ""  # won't get here; for the type checker
             toctree_lines.append(rst_filename)
         toctree = "\n".join(toctree_lines)

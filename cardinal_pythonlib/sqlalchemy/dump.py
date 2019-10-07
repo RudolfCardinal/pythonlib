@@ -73,7 +73,7 @@ def dump_connection_info(engine: Engine, fileobj: TextIO = sys.stdout) -> None:
             information to
     """
     meta = MetaData(bind=engine)
-    writeline_nl(fileobj, sql_comment('Database info: {}'.format(meta)))
+    writeline_nl(fileobj, sql_comment(f'Database info: {meta}'))
 
 
 def dump_ddl(metadata: MetaData,
@@ -97,11 +97,11 @@ def dump_ddl(metadata: MetaData,
     # noinspection PyUnusedLocal
     def dump(querysql, *multiparams, **params):
         compsql = querysql.compile(dialect=engine.dialect)
-        writeline_nl(fileobj, "{sql};".format(sql=compsql))
+        writeline_nl(fileobj, f"{compsql};")
 
     writeline_nl(fileobj,
-                 sql_comment("Schema (for dialect {}):".format(dialect_name)))
-    engine = create_engine('{dialect}://'.format(dialect=dialect_name),
+                 sql_comment(f"Schema (for dialect {dialect_name}):"))
+    engine = create_engine(f'{dialect_name}://',
                            strategy='mock', executor=dump)
     metadata.create_all(engine, checkfirst=checkfirst)
     # ... checkfirst doesn't seem to be working for the mock strategy...
@@ -268,7 +268,7 @@ def get_literal_query(statement: Union[Query, Executable],
                   isinstance(value, pendulum.Date) or
                   isinstance(value, pendulum.Time)):
                 # All have an isoformat() method.
-                return "'{}'".format(value.isoformat())
+                return f"'{value.isoformat()}'"
                 # return (
                 #     "TO_DATE('%s','YYYY-MM-DD HH24:MI:SS')"
                 #     % value.strftime("%Y-%m-%d %H:%M:%S")
@@ -307,9 +307,9 @@ def dump_table_as_insert_sql(engine: Engine,
     log.info("dump_data_as_insert_sql: table_name={}", table_name)
     writelines_nl(fileobj, [
         SEP1,
-        sql_comment("Data for table: {}".format(table_name)),
+        sql_comment(f"Data for table: {table_name}"),
         SEP2,
-        sql_comment("Filters: {}".format(wheredict)),
+        sql_comment(f"Filters: {wheredict}"),
     ])
     dialect = engine.dialect
     if not dialect.supports_multivalues_insert:

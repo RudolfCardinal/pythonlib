@@ -175,9 +175,9 @@ def decompress_request(request: Request) -> None:
                 request.body = brotli.decompress(request.body)
             else:
                 raise NotImplementedError(
-                    "Content-Encoding {} not supported (brotlipy package not "
-                    "installed)".format(encoding))
+                    f"Content-Encoding {encoding} not supported "
+                    f"(brotlipy package not installed)")
         else:
-            raise ValueError("Unknown Content-Encoding: {}".format(encoding))
+            raise ValueError(f"Unknown Content-Encoding: {encoding}")
             # ... e.g. "compress"; LZW; patent expired; see
             # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding  # noqa

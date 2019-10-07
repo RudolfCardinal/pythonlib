@@ -153,12 +153,12 @@ class RequestLoggingMiddleware(object):
                 t2 = Pendulum.utcnow()
             if self.show_response:
                 if captured_status is not None:
-                    msg_parts.append("-> {}".format(captured_status))
+                    msg_parts.append(f"-> {captured_status}")
                 else:
                     msg_parts.append("[no response status]")
             if self.show_timing:
                 # noinspection PyUnboundLocalVariable
                 time_taken_s = (t2 - t1).total_seconds()
-                msg_parts.append("[{} s]".format(time_taken_s))
+                msg_parts.append(f"[{time_taken_s} s]")
             if msg_parts:
                 self.log(" ".join(msg_parts))

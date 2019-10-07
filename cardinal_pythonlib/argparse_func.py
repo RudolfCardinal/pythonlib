@@ -70,7 +70,7 @@ class ShowAllSubparserHelpAction(_HelpAction):
         for subparsers_action in subparsers_actions:
             for choice, subparser in subparsers_action.choices.items():
                 messages.append(sep)
-                messages.append("Help for command '{}'".format(choice))
+                messages.append(f"Help for command '{choice}'")
                 messages.append(sep)
                 messages.append(subparser.format_help())
         print("\n".join(messages))
@@ -142,7 +142,7 @@ def positive_int(value: str) -> int:
         assert ivalue > 0
     except (AssertionError, TypeError, ValueError):
         raise ArgumentTypeError(
-            "{!r} is an invalid positive int".format(value))
+            f"{value!r} is an invalid positive int")
     return ivalue
 
 
@@ -156,7 +156,7 @@ def nonnegative_int(value: str) -> int:
         assert ivalue >= 0
     except (AssertionError, TypeError, ValueError):
         raise ArgumentTypeError(
-            "{!r} is an invalid non-negative int".format(value))
+            f"{value!r} is an invalid non-negative int")
     return ivalue
 
 
@@ -170,7 +170,7 @@ def percentage(value: str) -> float:
         assert 0 <= fvalue <= 100
     except (AssertionError, TypeError, ValueError):
         raise ArgumentTypeError(
-            "{!r} is an invalid percentage value".format(value))
+            f"{value!r} is an invalid percentage value")
     return fvalue
 
 
@@ -216,13 +216,13 @@ class MapType(object):
                 from_val = self.from_type(from_str)
             except (TypeError, ValueError):
                 raise ArgumentTypeError(
-                    "{!r} cannot be converted to type {!r}".format(
-                        from_str, self.from_type))
+                    f"{from_str!r} cannot be converted to type "
+                    f"{self.from_type!r}")
             try:
                 to_val = self.to_type(to_str)
             except (TypeError, ValueError):
                 raise ArgumentTypeError(
-                    "{!r} cannot be converted to type {!r}".format(
-                        to_str, self.to_type))
+                    f"{to_str!r} cannot be converted to type "
+                    f"{self.to_type!r}")
             result[from_val] = to_val
         return result

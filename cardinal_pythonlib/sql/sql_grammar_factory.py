@@ -57,4 +57,4 @@ def make_grammar(dialect: str) -> SqlGrammar:
     elif dialect == SqlaDialectName.MSSQL:
         return mssql_grammar
     else:
-        raise AssertionError("Invalid SQL dialect: {}".format(repr(dialect)))
+        raise AssertionError(f"Invalid SQL dialect: {dialect!r}")

@@ -90,8 +90,8 @@ from colorlog import ColoredFormatter
 
 LOG_FORMAT = '%(asctime)s.%(msecs)03d:%(levelname)s:%(name)s:%(message)s'
 LOG_FORMAT_WITH_PID = (
-    '%(asctime)s.%(msecs)03d:%(levelname)s:{}:%(name)s:%(message)s'.format(
-        os.getpid()))
+    f'%(asctime)s.%(msecs)03d:%(levelname)s:{os.getpid()}:%(name)s:%(message)s'
+)
 
 LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
 
@@ -127,9 +127,9 @@ def get_monochrome_handler(
             procinfo.append("p%(process)d")
         if with_thread_id:
             procinfo.append("t%(thread)d")
-        fmt += " [{}]".format(".".join(procinfo))
+        fmt += f" [{'.'.join(procinfo)}]"
     extras = ":" + ":".join(extranames) if extranames else ""
-    fmt += " %(name)s{extras}:%(levelname)s: ".format(extras=extras)
+    fmt += f" %(name)s{extras}:%(levelname)s: "
     fmt += "%(message)s"
     f = logging.Formatter(fmt, datefmt=LOG_DATEFMT, style='%')
     h = logging.StreamHandler(stream)
@@ -161,9 +161,9 @@ def get_colour_handler(extranames: List[str] = None,
             procinfo.append("p%(process)d")
         if with_thread_id:
             procinfo.append("t%(thread)d")
-        fmt += " [{}]".format(".".join(procinfo))
+        fmt += f" [{'.'.join(procinfo)}]"
     extras = ":" + ":".join(extranames) if extranames else ""
-    fmt += " %(name)s{extras}:%(levelname)s: ".format(extras=extras)
+    fmt += f" %(name)s{extras}:%(levelname)s: "
     fmt += "%(reset)s%(log_color)s%(message)s"
     cf = ColoredFormatter(fmt,
                           datefmt=LOG_DATEFMT,
@@ -438,7 +438,7 @@ def get_log_report(log: Union[logging.Logger,
             "(object)": str(log),
         }
     else:
-        raise ValueError("Unknown object type: {!r}".format(log))
+        raise ValueError(f"Unknown object type: {log!r}")
 
 
 def print_report_on_all_logs() -> None:
@@ -535,7 +535,7 @@ class HtmlColorFormatter(logging.Formatter):
                 lvname=record.levelname,
                 color=self.log_colors[record.levelno],
                 msg=msg,
-                bg=";background-color:{}".format(bg_col) if bg_col else "",
+                bg=f";background-color:{bg_col}" if bg_col else "",
                 br="<br>" if self.append_br else "",
             )
         )

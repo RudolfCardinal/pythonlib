@@ -105,20 +105,14 @@ def main() -> None:
     assert minimum < maximum, "Minimum must be less than maximum"
 
     log.info(
-        "Starting: controlling process {proc}; "
-        "checking disk space every {period} s; "
-        "will pause when free space on {path} is less than {minimum} and "
-        "resume when free space is at least {maximum}; "
-        "pause command will be {pause}; "
-        "resume command will be {resume}.".format(
-            proc=process_id,
-            period=period,
-            path=path,
-            minimum=sizeof_fmt(minimum),
-            maximum=sizeof_fmt(maximum),
-            pause=pause_args,
-            resume=resume_args,
-        ))
+        f"Starting: controlling process {process_id}; "
+        f"checking disk space every {period} s; "
+        f"will pause when free space on {path} "
+        f"is less than {sizeof_fmt(minimum)} and "
+        f"resume when free space is at least {sizeof_fmt(maximum)}; "
+        f"pause command will be {pause_args}; "
+        f"resume command will be {resume_args}."
+    )
     log.debug("Presuming that the process is RUNNING to begin with.")
 
     paused = False

@@ -84,7 +84,7 @@ class BetweenDict(dict):
         for k, v in self.items():
             if k[0] <= key < k[1]:
                 return v
-        raise KeyError("Key '{}' is not in any ranges".format(key))
+        raise KeyError(f"Key {key!r} is not in any ranges")
 
     def __setitem__(self, key, value):
         try:

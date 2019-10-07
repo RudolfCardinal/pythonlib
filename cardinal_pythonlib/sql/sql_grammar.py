@@ -488,18 +488,15 @@ def test_succeed(parser: ParserElement,
         actual = standardize_for_testing(raw)
         if intended != actual:
             raise ValueError(
-                "Failure on: {input}\n"
-                "-> Raw output:\n{raw}\n"
-                "-> Standardized output:\n{actual}\n"
-                "... should have been:\n{intended}\n"
-                "... parser: {parser}\n"
-                "... as list: {as_list}]".format(
-                    input=text,
-                    raw=repr(raw),
-                    actual=repr(actual),
-                    intended=repr(intended),
-                    parser=parser,
-                    as_list=repr(p.asList())))
+                f"Failure on: {text}\n"
+                f"-> Raw output:\n"
+                f"{raw!r}\n"
+                f"-> Standardized output:\n"
+                f"{actual!r}\n"
+                f"... should have been:\n"
+                f"{intended!r}\n"
+                f"... parser: {parser}\n"
+                f"... as list: {p.asList()!r}]")
 
 
 def test_fail(parser: ParserElement, text: str, verbose: bool = True) -> None:
@@ -508,20 +505,16 @@ def test_fail(parser: ParserElement, text: str, verbose: bool = True) -> None:
     try:
         p = parser.parseString(text, parseAll=True)
         raise ValueError(
-            "Succeeded erroneously (no ParseException): {input}\n"
-            "-> structured format: {p}\n"
-            "-> Raw text output: {raw}\n"
-            "... parser: {parser}]".format(
-                input=text,
-                raw=text_from_parsed(p),
-                p=p,
-                parser=parser))
+            f"Succeeded erroneously (no ParseException): {text}\n"
+            f"-> structured format: {p}\n"
+            f"-> Raw text output: {text_from_parsed(p)}\n"
+            f"... parser: {parser}]")
     except ParseException:
         log.debug("Correctly failed: {}", text)
 
 
 def test(parser: ParserElement, text: str) -> None:
-    print("STATEMENT:\n{}".format(text))
+    print(f"STATEMENT:\n{text}")
 
     # scanned = parser.scanString(text)
     # for tokens, start, end in scanned:
@@ -532,12 +525,12 @@ def test(parser: ParserElement, text: str) -> None:
         print(tokens.asXML())
         # print(tokens.dump())
         # print(text_from_parsed(tokens))
-        print("tokens = {}".format(tokens))
+        print(f"tokens = {tokens}")
         d = tokens.asDict()
         for k, v in d.items():
-            print("tokens.{} = {}".format(k, v))
+            print(f"tokens.{k} = {v}")
         for c in tokens.columns:
-            print("column: {}".format(c))
+            print(f"column: {c}")
     except ParseException as err:
         print(statement_and_failure_marker(text, err))
         raise

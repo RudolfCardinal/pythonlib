@@ -477,7 +477,7 @@ def get_file_contents_text(
         if guess['encoding']:
             return binary_contents.decode(guess['encoding'])
     raise ValueError("Unknown encoding ({})".format(
-        "filename={}".format(repr(filename)) if filename else "blob"))
+        f"filename={filename!r}" if filename else "blob"))
 
 
 def get_cmd_output(*args, encoding: str = SYS_ENCODING) -> str:
@@ -582,7 +582,7 @@ DOCX_SCHEMA_URL = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
 
 
 def docx_qn(tagroot):
-    return '{{{}}}{}'.format(DOCX_SCHEMA_URL, tagroot)
+    return f'{{{DOCX_SCHEMA_URL}}}{tagroot}'
 
 
 DOCX_TEXT = docx_qn('t')
@@ -768,7 +768,7 @@ class CustomDocxParagraph(object):
         self.text = text or ''
 
     def __repr__(self) -> str:
-        return "CustomDocxParagraph(text={})".format(repr(self.text))
+        return f"CustomDocxParagraph(text={self.text!r})"
 
 
 class CustomDocxTableCell(object):
@@ -783,8 +783,7 @@ class CustomDocxTableCell(object):
         self.paragraphs.append(CustomDocxParagraph(text))
 
     def __repr__(self) -> str:
-        return "CustomDocxTableCell(paragraphs={})".format(
-            repr(self.paragraphs))
+        return f"CustomDocxTableCell(paragraphs={self.paragraphs!r})"
 
 
 class CustomDocxTableRow(object):
@@ -805,7 +804,7 @@ class CustomDocxTableRow(object):
         self.cells[-1].add_paragraph(text)
 
     def __repr__(self) -> str:
-        return "CustomDocxTableRow(cells={})".format(repr(self.cells))
+        return f"CustomDocxTableRow(cells={self.cells!r})"
 
 
 class CustomDocxTable(object):
@@ -829,7 +828,7 @@ class CustomDocxTable(object):
         self.rows[-1].add_paragraph(text)
 
     def __repr__(self) -> str:
-        return "CustomDocxTable(rows={})".format(repr(self.rows))
+        return f"CustomDocxTable(rows={self.rows!r})"
 
 
 def docx_table_from_xml_node(table_node: ElementTree.Element,
@@ -914,43 +913,8 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
     That's the structure of a :class:`docx.table.Table` object, but also of our
     homebrew creation, :class:`CustomDocxTable`.
 
-    The ``plain`` option optimizes for natural language processing, by:
-
-    - removing vertical lines:
-
-      .. code-block:: none
-
-        +-------------+-------------+
-        | AAA AAA     | BBB BBB     |
-        | AAA AAA     | BBB BBB     |
-        +-------------+-------------+
-
-      becomes
-
-      .. code-block:: none
-
-        -----------------------------
-          AAA AAA       BBB BBB
-          AAA AAA       BBB BBB
-        -----------------------------
-
-    - and offsetting cells:
-
-      .. code-block:: none
-
-        AAA AAA     BBB BBB     CCC CCC
-        AAA AAA     BBB BBB     CCC CCC
-
-      becomes
-
-      .. code-block:: none
-
-        AAA AAA
-        AAA AAA
-                    BBB BBB
-                    BBB BBB
-                                CCC CCC
-                                CCC CCC
+    - The ``plain`` and ``semiplain`` options are implemented via the
+      :class:`TextProcessingConfig`.
 
     - Note also that the grids in DOCX files can have varying number of cells
       per row, e.g.
@@ -1498,16 +1462,13 @@ def document_to_text(filename: str = None,
 
     # Ensure blob is an appropriate type
     log.debug(
-        "filename: {}, blob type: {}, blob length: {}, extension: {}".format(
-            filename,
-            type(blob),
-            len(blob) if blob is not None else None,
-            extension))
+        f"filename: {filename}, blob type: {type(blob)}, "
+        f"blob length: {len(blob) if blob is not None else None}, "
+        f"extension: {extension}")
 
     # If we were given a filename and the file doesn't exist, don't bother.
     if filename and not os.path.isfile(filename):
-        raise ValueError("document_to_text: no such file: {!r}".format(
-            filename))
+        raise ValueError(f"document_to_text: no such file: {filename!r}")
 
     # Choose method
     info = ext_map.get(extension)
@@ -1537,7 +1498,7 @@ def is_text_extractor_available(extension: str) -> bool:
         return availability()
     else:
         raise ValueError(
-            "Bad information object for extension: {}".format(extension))
+            f"Bad information object for extension: {extension}")
 
 
 def require_text_extractor(extension: str) -> None:
@@ -1547,7 +1508,7 @@ def require_text_extractor(extension: str) -> None:
     """
     if not is_text_extractor_available(extension):
         raise ValueError(
-            "No text extractor available for extension: {}".format(extension))
+            f"No text extractor available for extension: {extension}")
 
 
 # =============================================================================
@@ -1559,7 +1520,8 @@ def main() -> None:
     Command-line processor. See ``--help`` for details.
     """
     logging.basicConfig(level=logging.DEBUG)
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("inputfile", nargs="?", help="Input file name")
     parser.add_argument(
         "--availability", nargs='*',
@@ -1567,25 +1529,24 @@ def main() -> None:
              "and use the special extension 'None' to check the fallback "
              "processor")
     parser.add_argument(
-        "--plain", action="store_true",
-        help="Keep it plain: minimize layout (e.g. of tables) and maximize "
-             "the likelihood of source sentence flowing properly in the "
-             "output (e.g. for natural language processing).")
+        '--plain', action='store_true',
+        help="Use plainest format (re e.g. table layouts)")
+    parser.add_argument(
+        '--semiplain', action='store_true',
+        help="Use semi-plain format (re e.g. table layouts)")
     parser.add_argument(
         "--width", type=int, default=DEFAULT_WIDTH,
-        help="Word wrapping width (default {})".format(DEFAULT_WIDTH))
+        help=f"Word wrapping width")
     parser.add_argument(
         "--min-col-width", type=int, default=DEFAULT_MIN_COL_WIDTH,
-        help="Minimum column width for tables (default {})".format(
-            DEFAULT_MIN_COL_WIDTH))
+        help=f"Minimum column width for tables")
     args = parser.parse_args()
     if args.availability:
         for ext in args.availability:
             if ext.lower() == 'none':
                 ext = None
             available = is_text_extractor_available(ext)
-            print("Extractor for extension {} present: {}".format(ext,
-                                                                  available))
+            print(f"Extractor for extension {ext} present: {available}")
         return
     if not args.inputfile:
         parser.print_help(sys.stderr)
@@ -1594,6 +1555,7 @@ def main() -> None:
         width=args.width,
         min_col_width=args.min_col_width,
         plain=args.plain,
+        semiplain=args.semiplain,
     )
     result = document_to_text(filename=args.inputfile, config=config)
     if result is None:

@@ -54,7 +54,7 @@ class BinaryResponse(Response):
         disp = "inline" if as_inline else "attachment"
         super().__init__(
             content_type=content_type,
-            content_disposition="{}; filename={}".format(disp, filename),
+            content_disposition=f"{disp}; filename={filename}",
             content_encoding="binary",
             content_length=len(body),
             body=body,
@@ -112,7 +112,7 @@ class TextAttachmentResponse(Response):
         # Will default to UTF-8
         super().__init__(
             content_type=MimeType.TEXT,
-            content_disposition="attachment; filename={}".format(filename),
+            content_disposition=f"attachment; filename={filename}",
             body=body,
             **kwargs
         )
@@ -137,7 +137,7 @@ class TsvResponse(Response):
     def __init__(self, body: str, filename: str, **kwargs) -> None:
         super().__init__(
             content_type=MimeType.TSV,
-            content_disposition="attachment; filename={}".format(filename),
+            content_disposition=f"attachment; filename={filename}",
             body=body,
             **kwargs
         )

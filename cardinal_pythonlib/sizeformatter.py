@@ -145,7 +145,7 @@ def human2bytes(s: str) -> int:
       ValueError: can't interpret '12 foo'
     """  # noqa
     if not s:
-        raise ValueError("Can't interpret {!r} as integer".format(s))
+        raise ValueError(f"Can't interpret {s!r} as integer")
     try:
         return int(s)
     except ValueError:

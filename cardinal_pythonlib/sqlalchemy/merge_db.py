@@ -146,12 +146,13 @@ class TableDependency(object):
                                         metadata=metadata)
 
     def __str__(self) -> str:
-        return "{} -> {}".format(
-            self.child_tablename, self.parent_tablename)
+        return f"{self.child_tablename} -> {self.parent_tablename}"
 
     def __repr__(self) -> str:
-        return "TableDependency({!r} depends on {!r})".format(
-            self.child_tablename, self.parent_tablename)
+        return (
+            f"TableDependency({self.child_tablename!r} "
+            f"depends on {self.parent_tablename!r})"
+        )
 
     def set_metadata(self, metadata: MetaData) -> None:
         """
@@ -355,15 +356,17 @@ class TableDependencyClassification(object):
         else:
             desc = "standalone"
         if self.circular:
-            desc += "+CIRCULAR({})".format(self.circular_description)
+            desc += f"+CIRCULAR({self.circular_description})"
         return desc
 
     def __str__(self) -> str:
-        return "{}:{}".format(self.tablename, self.description)
+        return f"{self.tablename}:{self.description}"
 
     def __repr__(self) -> str:
-        return "TableDependencyClassification({!r}:{})".format(
-            self.tablename, self.description)
+        return (
+            f"TableDependencyClassification("
+            f"{self.tablename!r}:{self.description})"
+        )
 
 
 def classify_tables_by_dependency_type(
@@ -743,7 +746,7 @@ def merge_db(base_class: Type,
     dep_classifications = classify_tables_by_dependency_type(
         metadata, extra_table_dependencies)
     circular = [tdc for tdc in dep_classifications if tdc.circular]
-    assert not circular, "Circular dependencies! {!r}".format(circular)
+    assert not circular, f"Circular dependencies! {circular!r}"
     log.debug("All table dependencies: {}",
               "; ".join(str(td) for td in all_dependencies))
     log.debug("Table dependency classifications: {}",
@@ -804,11 +807,10 @@ def merge_db(base_class: Type,
         dst_columns = sorted([column.name for column in table.columns])
         missing_columns = sorted(list(set(dst_columns) - set(src_columns)))
 
-        if not allow_missing_src_columns:
-            if missing_columns:
-                raise RuntimeError(
-                    "The following columns are missing from source table "
-                    "{!r}: {!r}".format(tablename, missing_columns))
+        if not allow_missing_src_columns and missing_columns:
+            raise RuntimeError(
+                f"The following columns are missing from source table "
+                f"{tablename!r}: {missing_columns!r}")
 
         orm_class = tablename_to_ormclass[tablename]
         pk_attrs = get_pk_attrnames(orm_class)

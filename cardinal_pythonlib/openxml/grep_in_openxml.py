@@ -70,7 +70,7 @@ def report_hit_filename(zipfilename: str, contentsfilename: str,
 
     """
     if show_inner_file:
-        print("{} [{}]".format(zipfilename, contentsfilename))
+        print(f"{zipfilename} [{contentsfilename}]")
     else:
         print(zipfilename)
 
@@ -96,9 +96,9 @@ def report_line(zipfilename: str, contentsfilename: str, line: str,
             just the ``.zip`` filename
     """
     if show_inner_file:
-        print("{} [{}]: {}".format(zipfilename, contentsfilename, line))
+        print(f"{zipfilename} [{contentsfilename}]: {line}")
     else:
-        print("{}: {}".format(zipfilename, line))
+        print(f"{zipfilename}: {line}")
 
 
 def parse_zip(zipfilename: str,

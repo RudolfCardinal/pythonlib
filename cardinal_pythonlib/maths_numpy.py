@@ -103,8 +103,9 @@ def softmax(x: np.ndarray,
     # noinspection PyUnresolvedReferences
 
     if products.max() > MAX_E_EXPONENT:
-        log.warning("OVERFLOW in softmax(): x = {}, b = {}, constant = {}, "
-                    "x*b - constant = {}".format(x, b, constant, products))
+        log.warning(
+            f"OVERFLOW in softmax(): x = {x}, b = {b}, constant = {constant}, "
+            f"x*b - constant = {products}")
         # map the maximum to 1, other things to zero
         index_of_max = np.argmax(products)
         answer = np.zeros(n)
@@ -150,8 +151,8 @@ def pick_from_probabilities(probabilities: Union[List[float],
         if r < cs[idx]:
             return idx
     raise ValueError(
-        "Probabilities sum to <1: probabilities = {!r}, "
-        "cumulative sum = {!r}".format(probabilities, cs)
+        f"Probabilities sum to <1: probabilities = {probabilities!r}, "
+        f"cumulative sum = {cs!r}"
     )
 
 
@@ -232,7 +233,7 @@ def _test_softmax() -> None:
     for x in arrays:
         for b in betas:
             y = softmax(np.array(x), b=b)
-            print("softmax({x!r}, b={b}) -> {y}".format(x=x, b=b, y=y))
+            print(f"softmax({x!r}, b={b}) -> {y}")
 
 
 def _test_pick_from_probabilities() -> None:
@@ -252,8 +253,7 @@ def _test_pick_from_probabilities() -> None:
             c = Counter()
             c.update(pick_from_probabilities(p) for _ in range(n))
             sc = sorted(c.items(), key=lambda kv: kv[0])
-            print("_test_pick_from_probabilities: p = {p}, n = {n} "
-                  "-> {sc}".format(p=p, n=n, sc=sc))
+            print(f"_test_pick_from_probabilities: p = {p}, n = {n} -> {sc}")
 
 
 if __name__ == '__main__':

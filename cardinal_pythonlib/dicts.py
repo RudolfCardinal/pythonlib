@@ -126,8 +126,8 @@ def rename_keys_in_dict(d: Dict[str, Any], renames: Dict[str, str]) -> None:
         if old_key in d:
             if new_key in d:
                 raise ValueError(
-                    "rename_keys_in_dict: renaming {} -> {} but new key "
-                    "already exists".format(repr(old_key), repr(new_key)))
+                    f"rename_keys_in_dict: renaming {old_key!r} -> "
+                    f"{new_key!r} but new key already exists")
             d[new_key] = d.pop(old_key)
 
 

@@ -86,7 +86,7 @@ def _test_coin() -> None:
         for n in n_values:
             coins = [1 if coin(p) else 0 for _ in range(n)]
             s = sum(coins)
-            print("coin: p = {p}, n = {n} -> {s} true".format(p=p, n=n, s=s))
+            print(f"coin: p = {p}, n = {n} -> {s} true")
 
 
 if __name__ == '__main__':

@@ -119,7 +119,7 @@ class SqlAlchemyAttrDictMixin(object):
     def __repr__(self) -> str:
         return "<{classname}({kvp})>".format(
             classname=type(self).__name__,
-            kvp=", ".join("{}={}".format(k, repr(v))
+            kvp=", ".join(f"{k}={v!r}"
                           for k, v in self.get_attrdict().items())
         )
 
@@ -547,8 +547,9 @@ def gen_columns(obj) -> Generator[Tuple[str, Column], None, None]:
 
     """
     mapper = obj.__mapper__  # type: Mapper
-    assert mapper, "gen_columns called on {!r} which is not an " \
-                   "SQLAlchemy ORM object".format(obj)
+    assert mapper, (
+        f"gen_columns called on {obj!r} which is not an SQLAlchemy ORM object"
+    )
     colmap = mapper.columns  # type: OrderedProperties
     if not colmap:
         return
