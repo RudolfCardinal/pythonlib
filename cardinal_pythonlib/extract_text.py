@@ -80,7 +80,9 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from typing import BinaryIO, Dict, Iterator, List, Optional, Union
+from typing import (
+    BinaryIO, Dict, Generator, Iterable, Iterator, List, Optional, Union,
+)
 from xml.etree import ElementTree as ElementTree
 # ... cElementTree used to be the fast implementation; now ElementTree is fast
 # and cElementTree is deprecated; see
@@ -325,7 +327,7 @@ class TextProcessingConfig(object):
             Row 1 col 1
             ───────────────────────────────────────────────────────────────────
             Row 1 col 2
-            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            ═══════════════════════════════════════════════════════════════════
             Row 2 col 1
             ───────────────────────────────────────────────────────────────────
             Row 2 col 2
@@ -333,7 +335,8 @@ class TextProcessingConfig(object):
 
         The plain format is probably better, in general, for NLP, and is
         definitely clearer with nested tables (for which the word-wrapping
-        algorithm is imperfect).
+        algorithm is imperfect). We avoid "heavy" box drawing as it has a
+        higher chance of being mangled under Windows.
 
         """
         if plain and semiplain:
@@ -347,7 +350,7 @@ class TextProcessingConfig(object):
             plain_table_end = "╚" + ("═" * middlewidth) + "╝"
         # heavy
         if plain_table_row_boundary is None:
-            plain_table_row_boundary = "━" * (middlewidth + 2)
+            plain_table_row_boundary = "═" * (middlewidth + 2)
         # light
         if plain_table_col_boundary is None:
             plain_table_col_boundary = "─" * (middlewidth + 2)
@@ -621,19 +624,104 @@ def gen_xml_files_from_docx(fp: BinaryIO) -> Iterator[str]:
         raise zipfile.BadZipFile("File is not a zip file - encrypted DOCX?")
 
 
-def docx_text_from_xml(xml: str, config: TextProcessingConfig) -> str:
+class DocxFragment(object):
     """
-    Converts an XML tree of a DOCX file to string contents.
+    Representation of a line, or multiple lines, which may or may not need
+    word-wrapping.
+    """
+    def __init__(self, text: str, wordwrap: bool = True) -> None:
+        self.text = text
+        self.wordwrap = wordwrap
+
+
+def docx_gen_wordwrapped_fragments(fragments: Iterable[DocxFragment],
+                                   width: int) -> Generator[str, None, None]:
+    """
+    Generates word-wrapped fragments.
+    """
+    to_wrap = []  # type: List[DocxFragment]
+
+    def yield_wrapped():
+        """
+        Yield the word-wrapped stuff to date.
+        """
+        nonlocal to_wrap
+        if to_wrap:
+            block = "".join(x.text for x in to_wrap)
+            wrapped = "\n".join(
+                docx_wordwrap(line, width)
+                for line in block.splitlines()
+            )
+            yield wrapped
+            to_wrap.clear()
+
+    for f in fragments:
+        if f.wordwrap:
+            # Add it to the current wrapping block.
+            to_wrap.append(f)
+        else:
+            # Yield the wrapped stuff to date
+            yield from yield_wrapped()
+            # Yield the new, unwrapped
+            yield f.text
+
+    yield from yield_wrapped()  # any leftovers
+
+
+def docx_wordwrap_fragments(fragments: Iterable[DocxFragment],
+                            width: int) -> str:
+    """
+    Joins multiple fragments and word-wraps them as necessary.
+    """
+    return "".join(docx_gen_wordwrapped_fragments(fragments, width))
+
+
+def docx_gen_fragments_from_xml_node(
+        node: ElementTree.Element,
+        level: int,
+        config: TextProcessingConfig) -> Generator[DocxFragment, None, None]:
+    """
+    Returns text from an XML node within a DOCX file.
 
     Args:
-        xml: raw XML text
+        node: an XML node
+        level: current level in XML hierarchy (used for recursion; start level
+            is 0)
         config: :class:`TextProcessingConfig` control object
 
     Returns:
         contents as a string
+
     """
-    root = ElementTree.fromstring(xml)
-    return docx_text_from_xml_node(root, 0, config)
+    tag = node.tag  # for speed
+    log.debug("Level {}, tag {}", level, tag)
+    if tag == DOCX_TEXT:
+        log.debug("Text: {!r}", node.text)
+        yield DocxFragment(node.text or "")
+    elif tag == DOCX_TAB:
+        log.debug("Tab")
+        yield DocxFragment("\t")
+    elif tag in DOCX_NEWLINES:  # rarely used? Mostly "new paragraph"
+        log.debug("Newline")
+        yield DocxFragment("\n")
+    elif tag == DOCX_NEWPARA:  # Note that e.g. all table cells start with this
+        log.debug("New paragraph")
+        yield DocxFragment("\n\n")
+        # One or two newlines? Clarity better with two -- word-wrapping means
+        # that "single" source lines can take up multiple lines in text format.
+        # So we need a gap between lines to ensure paragraph separation is
+        # visible -- i.e. two newlines.
+
+    if tag == DOCX_TABLE:
+        log.debug("Table")
+        yield DocxFragment("\n", wordwrap=False)
+        yield DocxFragment(docx_table_from_xml_node(node, level, config),
+                           wordwrap=False)
+    else:
+        for child in node:
+            for fragment in docx_gen_fragments_from_xml_node(
+                    child, level + 1, config):
+                yield fragment
 
 
 def docx_text_from_xml_node(node: ElementTree.Element,
@@ -652,41 +740,24 @@ def docx_text_from_xml_node(node: ElementTree.Element,
         contents as a string
 
     """
-    text = ''
-    tag = node.tag  # for speed
-    log.debug("Level {}, tag {}", level, tag)
-    if tag == DOCX_TEXT:
-        log.debug("Text: {!r}", node.text)
-        text += docx_wordwrap(node.text or '', config.width)
-        # This isn't perfect -- if a node contains children, they are
-        # word-wrapped individually but not collectively. But since those
-        # children could also include tables (more complicated!), this is a
-        # reasonable approximation.
-    elif tag == DOCX_TAB:
-        log.debug("Tab")
-        text += '\t'
-    elif tag in DOCX_NEWLINES:  # rarely used? Mostly "new paragraph"
-        log.debug("Newline")
-        text += '\n'
-    elif tag == DOCX_NEWPARA:  # Note that e.g. all table cells start with this
-        log.debug("New paragraph")
-        text += '\n\n'  # One or two? Clarity better with two.
+    return docx_wordwrap_fragments(
+        docx_gen_fragments_from_xml_node(node, level, config),
+        config.width)
 
-    if tag == DOCX_TABLE:
-        log.debug("Table")
-        text += "\n" + docx_table_from_xml_node(node, level, config)
-    else:
-        childparts = []
-        for child in node:
-            childtext = docx_text_from_xml_node(child, level + 1, config)
-            if childtext:
-                childparts.append(childtext)
-        if childparts:
-            text += " " + " ".join(childparts)  # OK; occasional double space
-            # text += " ".join(childparts)  # OK but some risk of a missing space?  # noqa
-            # text += "".join(childparts)  # nope; missing spaces between sentences  # noqa
 
-    return text
+def docx_text_from_xml(xml: str, config: TextProcessingConfig) -> str:
+    """
+    Converts an XML tree of a DOCX file to string contents.
+
+    Args:
+        xml: raw XML text
+        config: :class:`TextProcessingConfig` control object
+
+    Returns:
+        contents as a string
+    """
+    root = ElementTree.fromstring(xml)
+    return docx_text_from_xml_node(root, 0, config)
 
 
 class CustomDocxParagraph(object):
@@ -803,8 +874,10 @@ def docx_wordwrap(text: str, width: int) -> str:
     Word-wraps text.
 
     Args:
-        text: text to process
-        width: width to word-wrap to (or 0 to skip word wrapping)
+        text:
+            text to process (will be treated as a single line)
+        width:
+            width to word-wrap to (or 0 to skip word wrapping)
 
     Returns:
         wrapped text

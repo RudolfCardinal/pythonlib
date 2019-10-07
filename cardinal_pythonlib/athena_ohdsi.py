@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/athena_ohdsi.py
 
 """
 ===============================================================================
@@ -22,14 +22,8 @@
 
 ===============================================================================
 
-**Current version number of this library.**
+**Functions to assist with the Athena OHDSI vocabularies.**
 
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
+See http://athena.ohdsi.org/.
 
 """
-
-VERSION_STRING = '1.0.69'
-# Use semantic versioning: http://semver.org/
