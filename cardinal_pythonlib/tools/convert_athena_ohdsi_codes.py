@@ -49,9 +49,7 @@ from cardinal_pythonlib.athena_ohdsi import (
     get_athena_concept_relationships,
 )
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
-from cardinal_pythonlib.version import assert_version_ge
 
-assert_version_ge("1.0.71")  # check cardinal_pythonlib version
 log = logging.getLogger()
 
 DEFAULT_CONCEPT = os.path.join(os.getcwd(), "CONCEPT.csv")
