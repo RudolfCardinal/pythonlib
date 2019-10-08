@@ -58,8 +58,14 @@ class AthenaVocabularyId(object):
 
 
 class AthenaRelationshipId(object):
-    """
+    r"""
     Constant-holding class for Athena relationship IDs that we care about.
+    To show all (there are lots!):
+
+    .. code-block:: bash
+
+        awk 'BEGIN {FS="\t"}; {print $3}' CONCEPT_RELATIONSHIP.csv | sort -u
+
     """
     IS_A = "Is a"  # "is a child of"
     MAPS_TO = "Maps to"  # converting between vocabularies
