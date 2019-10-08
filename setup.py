@@ -228,6 +228,7 @@ setup(
             'cardinalpythonlib_list_all_file_extensions=cardinal_pythonlib.tools.list_all_file_extensions:main',  # noqa
             'cardinalpythonlib_merge_csv=cardinal_pythonlib.tools.merge_csv:main',
             'cardinalpythonlib_remove_duplicate_files=cardinal_pythonlib.tools.remove_duplicate_files:main',  # noqa
+            'cardinalpythonlib_convert_athena_ohdsi_codes=cardinal_pythonlib.tools.convert_athena_ohdsi_codes:main',  # noqa
 
             # other
             'cardinalpythonlib_email=cardinal_pythonlib.email.sendmail:main',

@@ -146,6 +146,7 @@ Automatic documentation of source code
     text.py.rst
     timing.py.rst
     tools/backup_mysql_database.py.rst
+    tools/convert_athena_ohdsi_codes.py.rst
     tools/estimate_mysql_memory_usage.py.rst
     tools/list_all_file_extensions.py.rst
     tools/merge_csv.py.rst
