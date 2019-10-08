@@ -27,6 +27,7 @@ Automatic documentation of source code
     :maxdepth: 1
 
     argparse_func.py.rst
+    athena_ohdsi.py.rst
     betweendict.py.rst
     buildfunc.py.rst
     classes.py.rst
@@ -109,6 +110,7 @@ Automatic documentation of source code
     signalfunc.py.rst
     sizeformatter.py.rst
     slurm.py.rst
+    snomed.py.rst
     sort.py.rst
     source_reformatting.py.rst
     sphinxtools.py.rst
@@ -117,6 +119,7 @@ Automatic documentation of source code
     sql/sql_grammar_factory.py.rst
     sql/sql_grammar_mssql.py.rst
     sql/sql_grammar_mysql.py.rst
+    sql/validation.py.rst
     sqlalchemy/alembic_func.py.rst
     sqlalchemy/alembic_ops.py.rst
     sqlalchemy/arrow_types.py.rst
