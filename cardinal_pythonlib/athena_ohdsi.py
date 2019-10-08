@@ -264,23 +264,39 @@ class AthenaConceptRelationshipRow(object):
 # Fetch data from TSV files
 # -----------------------------------------------------------------------------
 
+# noinspection DuplicatedCode
 def get_athena_concepts(
         tsv_filename: str,
         vocabulary_ids: Collection[str] = None,
         concept_codes: Collection[str] = None,
-        concept_ids: Collection[int] = None) -> List[AthenaConceptRow]:
+        concept_ids: Collection[int] = None,
+        not_vocabulary_ids: Collection[str] = None,
+        not_concept_codes: Collection[str] = None,
+        not_concept_ids: Collection[int] = None) -> List[AthenaConceptRow]:
     """
     From the Athena ``CONCEPT.csv`` tab-separated value file, return a list
     of concepts matching the restriction criteria.
 
     Args:
-        tsv_filename: filename
-        vocabulary_ids: permissible ``vocabulary_id`` values, or None or an
-            empty list for all
-        concept_codes: permissible ``concept_code`` values, or None or an
-            empty list for all
-        concept_ids: permissible ``concept_id`` values, or None or an
-            empty list for all
+        tsv_filename:
+            filename
+        vocabulary_ids:
+            permissible ``vocabulary_id`` values, or None or an empty list for
+            all
+        concept_codes:
+            permissible ``concept_code`` values, or None or an empty list for
+            all
+        concept_ids:
+            permissible ``concept_id`` values, or None or an empty list for all
+        not_vocabulary_ids:
+            impermissible ``vocabulary_id`` values, or None or an empty list
+            for none
+        not_concept_codes:
+            impermissible ``concept_code`` values, or None or an empty list for
+            none
+        not_concept_ids:
+            impermissible ``concept_id`` values, or None or an empty list for
+            none
 
     Returns:
         list: of :class:`AthenaConceptRow` objects
@@ -299,11 +315,19 @@ def get_athena_concepts(
         for row in reader:
             n_rows_read += 1
             concept = AthenaConceptRow(*row)
+            # Positive checks
             if vocabulary_ids and concept.vocabulary_id not in vocabulary_ids:
                 continue
             if concept_codes and concept.concept_code not in concept_codes:
                 continue
             if concept_ids and concept.concept_id not in concept_ids:
+                continue
+            # Negative checks
+            if not_vocabulary_ids and concept.vocabulary_id in not_vocabulary_ids:  # noqa
+                continue
+            if not_concept_codes and concept.concept_code in not_concept_codes:
+                continue
+            if not_concept_ids and concept.concept_id in not_concept_ids:
                 continue
             # log.debug("{}", concept)
             concepts.append(concept)
@@ -311,24 +335,41 @@ def get_athena_concepts(
     return concepts
 
 
+# noinspection DuplicatedCode
 def get_athena_concept_relationships(
         tsv_filename: str,
         concept_id_1_values: Collection[int] = None,
         concept_id_2_values: Collection[int] = None,
-        relationship_id_values: Collection[str] = None) \
+        relationship_id_values: Collection[str] = None,
+        not_concept_id_1_values: Collection[int] = None,
+        not_concept_id_2_values: Collection[int] = None,
+        not_relationship_id_values: Collection[str] = None) \
         -> List[AthenaConceptRelationshipRow]:
     """
     From the Athena ``CONCEPT_RELATIONSHIP.csv`` tab-separated value file,
     return a list of relationships matching the restriction criteria.
 
     Args:
-        tsv_filename: filename
-        concept_id_1_values: permissible ``concept_id_1`` values, or None or an
-            empty list for all
-        concept_id_2_values: permissible ``concept_id_2`` values, or None or an
-            empty list for all
-        relationship_id_values: permissible ``relationship_id`` values, or None
-            or an empty list for all
+        tsv_filename:
+            filename
+        concept_id_1_values:
+            permissible ``concept_id_1`` values, or None or an empty list for
+            all
+        concept_id_2_values:
+            permissible ``concept_id_2`` values, or None or an empty list for
+            all
+        relationship_id_values:
+            permissible ``relationship_id`` values, or None or an empty list
+            for all
+        not_concept_id_1_values:
+            impermissible ``concept_id_1`` values, or None or an empty list for
+            none
+        not_concept_id_2_values:
+            impermissible ``concept_id_2`` values, or None or an empty list for
+            none
+        not_relationship_id_values:
+            impermissible ``relationship_id`` values, or None or an empty list
+            for none
 
     Returns:
         list: of :class:`AthenaConceptRelationshipRow` objects
@@ -349,11 +390,19 @@ def get_athena_concept_relationships(
         for row in reader:
             n_rows_read += 1
             rel = AthenaConceptRelationshipRow(*row)
+            # Positive checks
             if relationship_id_values and rel.relationship_id not in relationship_id_values:  # noqa
                 continue
             if concept_id_1_values and rel.concept_id_1 not in concept_id_1_values:  # noqa
                 continue
             if concept_id_2_values and rel.concept_id_2 not in concept_id_2_values:  # noqa
+                continue
+            # Negative checks
+            if not_relationship_id_values and rel.relationship_id in not_relationship_id_values:  # noqa
+                continue
+            if not_concept_id_1_values and rel.concept_id_1 in not_concept_id_1_values:  # noqa
+                continue
+            if not_concept_id_2_values and rel.concept_id_2 in not_concept_id_2_values:  # noqa
                 continue
             # log.debug("{}", rel)
             relationships.append(rel)
