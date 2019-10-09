@@ -39,12 +39,9 @@ from typing import Dict, Union
 
 from prettytable import PrettyTable
 
-from cardinal_pythonlib.logs import (
-    BraceStyleAdapter,
-    main_only_quicksetup_rootlogger,
-)
+from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 
-log = BraceStyleAdapter(logging.getLogger(__name__))
+log = logging.getLogger(__name__)
 
 MYSQL_DEFAULT_PORT = 3306
 MYSQL_DEFAULT_USER = 'root'
@@ -76,7 +73,7 @@ def get_mysql_vars(mysql: str,
         "-u", user,
         "-p"  # prompt for password
     ]
-    log.info("Connecting to MySQL with user: {}", user)
+    log.info(f"Connecting to MySQL with user: {user}")
     log.debug(cmdargs)
     process = subprocess.Popen(cmdargs, stdout=subprocess.PIPE)
     out, err = process.communicate()
