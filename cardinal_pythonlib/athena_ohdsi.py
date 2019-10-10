@@ -272,7 +272,8 @@ class AthenaConceptRelationshipRow(object):
 
 # noinspection DuplicatedCode
 def get_athena_concepts(
-        tsv_filename: str,
+        tsv_filename: str = "",
+        cached_concepts: Iterable[AthenaConceptRow] = None,
         vocabulary_ids: Collection[str] = None,
         concept_codes: Collection[str] = None,
         concept_ids: Collection[int] = None,
@@ -287,6 +288,8 @@ def get_athena_concepts(
     Args:
         tsv_filename:
             filename
+        cached_concepts:
+            alternative to tsv_filename
         vocabulary_ids:
             permissible ``vocabulary_id`` values, or None or an empty list for
             all
@@ -343,7 +346,9 @@ def get_athena_concepts(
         # After speedup: 3.9 s for 1.1m rows.
 
     """  # noqa
-    log.info("Loading Athena concepts from file: {}", tsv_filename)
+    assert bool(tsv_filename) != bool(cached_concepts), (
+        "Specify either tsv_filename or cached_concepts"
+    )
     n_rows_read = 0
 
     def gen_rows() -> Generator[AthenaConceptRow, None, None]:
@@ -397,7 +402,12 @@ def get_athena_concepts(
                 yield concept
 
     # Build up the fastest pipeline we can.
-    gen = gen_rows()
+    if tsv_filename:
+        log.info(f"Loading Athena concepts from file: {tsv_filename}")
+        gen = gen_rows()
+    else:
+        log.info("Using cached Athena concepts")
+        gen = cached_concepts
     # Positive checks
     if vocabulary_ids:
         gen = filter_vocab(gen)
@@ -414,13 +424,14 @@ def get_athena_concepts(
         gen = filter_not_id(gen)
 
     concepts = list(concept for concept in gen)
-    log.debug("Retrieved {} concepts from {} rows", len(concepts), n_rows_read)
+    log.debug(f"Retrieved {len(concepts)} concepts from {n_rows_read} rows")
     return concepts
 
 
 # noinspection DuplicatedCode
 def get_athena_concept_relationships(
-        tsv_filename: str,
+        tsv_filename: str = "",
+        cached_concept_relationships: Iterable[AthenaConceptRelationshipRow] = None,  # noqa
         concept_id_1_values: Collection[int] = None,
         concept_id_2_values: Collection[int] = None,
         relationship_id_values: Collection[str] = None,
@@ -436,6 +447,8 @@ def get_athena_concept_relationships(
     Args:
         tsv_filename:
             filename
+        cached_concept_relationships:
+            alternative to tsv_filename
         concept_id_1_values:
             permissible ``concept_id_1`` values, or None or an empty list for
             all
@@ -461,8 +474,9 @@ def get_athena_concept_relationships(
         list: of :class:`AthenaConceptRelationshipRow` objects
 
     """
-    log.info("Loading Athena concept relationships from file: {}",
-             tsv_filename)
+    assert bool(tsv_filename) != bool(cached_concept_relationships), (
+        "Specify either tsv_filename or cached_concept_relationships"
+    )
     n_rows_read = 0
 
     def gen_rows() -> Generator[AthenaConceptRelationshipRow, None, None]:
@@ -517,7 +531,13 @@ def get_athena_concept_relationships(
                 yield rel
 
     # Build up the fastest pipeline we can.
-    gen = gen_rows()
+    if tsv_filename:
+        log.info(f"Loading Athena concept relationships from file: "
+                 f"{tsv_filename}")
+        gen = gen_rows()
+    else:
+        log.info("Using cached Athena concept relationships")
+        gen = cached_concept_relationships
     # Positive checks
     if relationship_id_values:
         gen = filter_rel(gen)
@@ -534,6 +554,6 @@ def get_athena_concept_relationships(
         gen = filter_not_c2(gen)
 
     relationships = list(rel for rel in gen)
-    log.debug("Retrieved {} relationships from {} rows",
-              len(relationships), n_rows_read)
+    log.debug(f"Retrieved {len(relationships)} relationships from "
+              f"{n_rows_read} rows")
     return relationships

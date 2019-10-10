@@ -94,10 +94,34 @@ def print_equivalent_opcs_codes(source_vocabulary: str,
     log.debug(f"Concepts file: {concept_file}")
     log.debug(f"Concept relationship file: {concept_relationship_file}")
 
+    equivalent_relationships = [
+        AthenaRelationshipId.IS_A
+    ]
+    child_parent_relationships = [
+        AthenaRelationshipId.MAPS_TO,
+        AthenaRelationshipId.MAPPED_FROM,
+        AthenaRelationshipId.SUBSUMES,
+    ]
+    all_relationships_of_interest = (
+        equivalent_relationships +
+        child_parent_relationships
+    )
+
+    # Since we are scanning many times, cache what we care about:
+
+    concept_rows = get_athena_concepts(
+        tsv_filename=concept_file,
+        vocabulary_ids=[source_vocabulary, destination_vocabulary],
+    )
+    cr_rows = get_athena_concept_relationships(
+        tsv_filename=concept_relationship_file,
+        relationship_id_values=all_relationships_of_interest
+    )
+
     # 1. Find Athena concepts from source codes
     source_codes_str = [str(x) for x in source_codes]
     parent_concepts = get_athena_concepts(
-        tsv_filename=concept_file,
+        cached_concepts=concept_rows,
         vocabulary_ids=[source_vocabulary],
         concept_codes=source_codes_str,
     )
@@ -117,8 +141,8 @@ def print_equivalent_opcs_codes(source_vocabulary: str,
             new_children = [
                 relrow.concept_id_1
                 for relrow in get_athena_concept_relationships(
-                    tsv_filename=concept_relationship_file,
-                    relationship_id_values=[AthenaRelationshipId.IS_A],
+                    cached_concept_relationships=cr_rows,
+                    relationship_id_values=equivalent_relationships,
                     concept_id_2_values=parents_to_search,
                     not_concept_id_1_values=ignore
                 )
@@ -134,7 +158,7 @@ def print_equivalent_opcs_codes(source_vocabulary: str,
 
     # Cosmetic only...
     source_concepts = get_athena_concepts(
-        tsv_filename=concept_file,
+        cached_concepts=concept_rows,
         concept_ids=source_concept_ids
     )
     log.debug(f"All source concepts:\n"
@@ -145,13 +169,9 @@ def print_equivalent_opcs_codes(source_vocabulary: str,
     destination_concept_ids = set(
         relrow.concept_id_2
         for relrow in get_athena_concept_relationships(
-            tsv_filename=concept_relationship_file,
+            cached_concept_relationships=cr_rows,
             concept_id_1_values=source_concept_ids,
-            relationship_id_values=[
-                AthenaRelationshipId.MAPS_TO,
-                AthenaRelationshipId.MAPPED_FROM,
-                AthenaRelationshipId.SUBSUMES,
-            ]
+            relationship_id_values=child_parent_relationships
         )
     ) - source_concept_ids
     # There are plenty of codes that are listed as mapping to themselves; we

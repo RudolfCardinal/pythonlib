@@ -629,6 +629,8 @@ class DocxFragment(object):
     Representation of a line, or multiple lines, which may or may not need
     word-wrapping.
     """
+
+    # noinspection PyShadowingNames
     def __init__(self, text: str, wordwrap: bool = True) -> None:
         self.text = text
         self.wordwrap = wordwrap
@@ -649,7 +651,7 @@ def docx_gen_wordwrapped_fragments(fragments: Iterable[DocxFragment],
         if to_wrap:
             block = "".join(x.text for x in to_wrap)
             wrapped = "\n".join(
-                docx_wordwrap(line, width)
+                wordwrap(line, width)
                 for line in block.splitlines()
             )
             yield wrapped
@@ -868,7 +870,7 @@ def docx_table_from_xml_node(table_node: ElementTree.Element,
 # Generic
 # -----------------------------------------------------------------------------
 
-def docx_wordwrap(text: str, width: int) -> str:
+def wordwrap(text: str, width: int) -> str:
     """
     Word-wraps text.
 

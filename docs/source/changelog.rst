@@ -436,3 +436,10 @@ Quick links:
 - :mod:`cardinal_pythonlib.snomed`
 - ``cardinalpythonlib_`` prefix to command-line tools
 - **Minimum Python version is now 3.6,** allowing f-strings.
+
+**1.0.72 to 1.0.73 (to 2019-10-10)**
+
+- Speedup to Athena OHDSI code extraction.
+- Renaming of core wordwrapping function to
+  :func:`cardinal_pythonlib.extract_text.wordwrap` (otherwise confusing
+  reference from CRATE).
