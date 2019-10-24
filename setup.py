@@ -61,6 +61,7 @@ REQUIREMENTS_TEXT = """
 #   compiler).
 
 alembic
+appdirs>=1.4.0
 arrow
 beautifulsoup4
 colander
@@ -226,11 +227,12 @@ setup(
             'cardinalpythonlib_backup_mysql_database=cardinal_pythonlib.tools.backup_mysql_database:main',  # noqa
             'cardinalpythonlib_estimate_mysql_memory_usage=cardinal_pythonlib.tools.estimate_mysql_memory_usage:main',  # noqa
             'cardinalpythonlib_list_all_file_extensions=cardinal_pythonlib.tools.list_all_file_extensions:main',  # noqa
-            'cardinalpythonlib_merge_csv=cardinal_pythonlib.tools.merge_csv:main',
+            'cardinalpythonlib_merge_csv=cardinal_pythonlib.tools.merge_csv:main',  # noqa
             'cardinalpythonlib_remove_duplicate_files=cardinal_pythonlib.tools.remove_duplicate_files:main',  # noqa
             'cardinalpythonlib_convert_athena_ohdsi_codes=cardinal_pythonlib.tools.convert_athena_ohdsi_codes:main',  # noqa
 
             # other
+            'cardinalpythonlib_chebi=cardinal_pythonlib.chebi:main',
             'cardinalpythonlib_email=cardinal_pythonlib.email.sendmail:main',
             'cardinalpythonlib_extract_text=cardinal_pythonlib.extract_text:main',  # noqa
         ],

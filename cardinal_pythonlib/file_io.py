@@ -135,24 +135,30 @@ def write_gzipped_text(basefilename: str, text: str) -> None:
 
 def get_lines_without_comments(filename: str) -> List[str]:
     """
+    See :func:`gen_lines_without_comments`; returns results as a list.
+    """
+    return list(gen_lines_without_comments(filename))
+
+
+# =============================================================================
+# More file input: generic generators
+# =============================================================================
+
+def gen_lines_without_comments(filename: str) -> Generator[str, None, None]:
+    """
     Reads a file, and returns all lines as a list, left- and right-stripping
     the lines and removing everything on a line after the first ``#``.
+    Also removes blank lines.
     NOTE: does not cope well with quoted ``#`` symbols!
     """
-    lines = []
     with open(filename) as f:
         for line in f:
             line = line.partition('#')[0]  # the part before the first #
             line = line.rstrip()
             line = line.lstrip()
             if line:
-                lines.append(line)
-    return lines
+                yield line
 
-
-# =============================================================================
-# More file input: generic generators
-# =============================================================================
 
 def gen_textfiles_from_filenames(
         filenames: Iterable[str]) -> Generator[TextIO, None, None]:

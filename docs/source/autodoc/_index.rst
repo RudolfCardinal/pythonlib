@@ -30,6 +30,7 @@ Automatic documentation of source code
     athena_ohdsi.py.rst
     betweendict.py.rst
     buildfunc.py.rst
+    chebi.py.rst
     classes.py.rst
     cmdline.py.rst
     colander_utils.py.rst

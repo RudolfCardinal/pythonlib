@@ -443,3 +443,21 @@ Quick links:
 - Renaming of core wordwrapping function to
   :func:`cardinal_pythonlib.extract_text.wordwrap` (otherwise confusing
   reference from CRATE).
+
+**1.0.74 (2019-10-24)**
+
+- Add ``appdirs`` package requirement.
+- :mod:`cardinal_pythonlib.chebi` (note that ``libchebipy`` is imported but
+  not required in the package)
+
+  - Problem with ``libchebipy`` as it imported ``requests`` which imported
+    ``email.parser`` which got upset by my ``email`` directory. It seems that
+    there should be no file or subdirectory that clashes with a Python standard
+    library -- or potentially any other? Seems a bit daft. See:
+
+    - https://stackoverflow.com/questions/6861818/unable-to-import-pythons-email-module-at-all/6862236
+    - https://docs.python.org/3/whatsnew/2.5.html#pep-328-absolute-and-relative-imports
+    - https://www.evanjones.ca/python-name-clashes.html
+
+    Ah, no -- it's only a problem if you execute one of the
+    ``cardinal_pythonlib`` files from its own directory. Avoid that!

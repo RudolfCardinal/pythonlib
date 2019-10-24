@@ -17,6 +17,7 @@
 #   compiler).
 
 alembic
+appdirs>=1.4.0
 arrow
 beautifulsoup4
 colander
