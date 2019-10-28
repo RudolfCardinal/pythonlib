@@ -26,8 +26,7 @@
 
 """
 
-from typing import (Any, Callable, Dict, Hashable, Iterable, List, Mapping,
-                    Optional, Tuple, Union)
+from typing import Any, Callable, Dict, Hashable, List, Optional
 
 
 # =============================================================================
@@ -330,21 +329,23 @@ class CaseInsensitiveDict(dict):
     
     .. code-block:: python
     
-from cardinal_pythonlib.dicts import CaseInsensitiveDict
-
-d1 = CaseInsensitiveDict()  # d1 is now: {}
-d2 = CaseInsensitiveDict({'A': 1, 'b': 2})  # d2 is now: {'a': 1, 'b': 2}
-d3 = CaseInsensitiveDict(C=3, d=4)  # d3 is now: {'c': 3, 'd': 4}
-
-d1.update({'E': 5, 'f': 6})  # d1 is now: {'e': 5, 'f': 6}
-d1.update(G=7, h=8)  # d1 is now: {'e': 5, 'f': 6, 'g': 7, 'h': 8}
-'H' in d1  # True
-d1['I'] = 9  # None, and key 'i' added
-del d1['I']  # None, and key 'i' deleted
-d1.pop('H')  # 8
-d1.get('E')  # 5
-d1.get('Z')  # None
-d1.setdefault('J', 10)  # 10, and key 'j' added
+        from cardinal_pythonlib.dicts import CaseInsensitiveDict
+        
+        d1 = CaseInsensitiveDict()  # d1 is now: {}
+        d2 = CaseInsensitiveDict({'A': 1, 'b': 2})  # d2 is now: {'a': 1, 'b': 2}
+        d3 = CaseInsensitiveDict(C=3, d=4)  # d3 is now: {'c': 3, 'd': 4}
+        
+        d1.update({'E': 5, 'f': 6})  # d1 is now: {'e': 5, 'f': 6}
+        d1.update(G=7, h=8)  # d1 is now: {'e': 5, 'f': 6, 'g': 7, 'h': 8}
+        'H' in d1  # True
+        d1['I'] = 9  # None, and key 'i' added
+        del d1['I']  # None, and key 'i' deleted
+        d1.pop('H')  # 8
+        d1.get('E')  # 5
+        d1.get('Z')  # None
+        d1.setdefault('J', 10)  # 10, and key 'j' added
+        d1.update([('K', 11), ('L', 12)])
+        d1  # {'e': 5, 'f': 6, 'g': 7, 'j': 10, 'k': 11, 'l': 12}
 
     """  # noqa
 
@@ -355,18 +356,18 @@ d1.setdefault('J', 10)  # 10, and key 'j' added
         """
         return key.lower() if isinstance(key, str) else key
 
-    def __init__(self,
-                 mapping_or_iterable: Union[Mapping,
-                                            Iterable[Tuple[Any, Any]]] = None,
-                 **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """
         Dictionary initialization.
 
         - Optional positional argument is ``mapping`` or ``iterable``. If an
           iterable, its elements are iterables of length 2.
+          (Note that passing ``None`` is different from not passing anything,
+          hence the signature. The type of the first argument, if present, is
+          ``Union[Mapping, Iterable[Tuple[Any, Any]]]``.)
         - Keyword arguments are key/value pairs.
         """
-        super().__init__(mapping_or_iterable, **kwargs)
+        super().__init__(*args, **kwargs)
         self._convert_keys()
 
     def __getitem__(self, key: Any) -> Any:
@@ -424,8 +425,7 @@ d1.setdefault('J', 10)  # 10, and key 'j' added
         """
         return super().setdefault(self.__class__._k(key), default)
 
-    def update(self, other: Union[Mapping, Iterable[Tuple[Any, Any]]] = None,
-               **kwargs) -> None:
+    def update(self, *args, **kwargs) -> None:
         """
         As per the Python docs:
 
@@ -436,13 +436,12 @@ d1.setdefault('J', 10)  # 10, and key 'j' added
         of key/value pairs (as tuples or other iterables of length two). If
         keyword arguments are specified, the dictionary is then updated with
         those key/value pairs: ``d.update(red=1, blue=2)``.
+
+        ... so the type of the first argument, if present, is ``Union[Mapping,
+        .Iterable[Tuple[Any, Any]]]``.
         """
-        if other:
-            # noinspection PyTypeChecker
-            super().update(self.__class__(other))
-        if kwargs:
-            # noinspection PyTypeChecker
-            super().update(self.__class__(**kwargs))
+        # noinspection PyTypeChecker
+        super().update(self.__class__(*args, **kwargs))
 
     def _convert_keys(self) -> None:
         """
