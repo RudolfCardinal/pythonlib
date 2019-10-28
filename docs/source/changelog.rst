@@ -461,3 +461,7 @@ Quick links:
 
     Ah, no -- it's only a problem if you execute one of the
     ``cardinal_pythonlib`` files from its own directory. Avoid that!
+
+**1.0.75 (2019-10-25)**
+
+- ChEBI lookup improvements.

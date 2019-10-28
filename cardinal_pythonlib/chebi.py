@@ -242,6 +242,8 @@ def search_entities(search_term: Union[int, str],
     """
     Search for ChEBI entities.
 
+    Case-insensitive.
+
     Args:
         search_term:
             String or integer to search for.
@@ -516,6 +518,7 @@ def testfunc1() -> None:
 
 def get_category(entity_name: str,
                  categories: Sequence[str],
+                 entity_synonyms: Dict[str, str] = None,
                  category_synonyms: Dict[str, str] = None,
                  manual_categories: Dict[str, str] = None,
                  relationships: List[str] = None) -> Optional[str]:
@@ -526,6 +529,8 @@ def get_category(entity_name: str,
             name of entity to categorize
         categories:
             permissible categories (earlier preferable to later)
+        entity_synonyms:
+            map to rename entities
         category_synonyms:
             mapping of categories to other (preferred) categories
         manual_categories:
@@ -536,13 +541,25 @@ def get_category(entity_name: str,
     Returns:
         chosen category, or ``None`` if none found
     """
+    entity_synonyms = entity_synonyms or {}  # type: Dict[str, str]
     category_synonyms = category_synonyms or {}  # type: Dict[str, str]
     manual_categories = manual_categories or {}  # type: Dict[str, str]
     relationships = relationships or DEFAULT_ANCESTOR_RELATIONSHIPS
 
-    # Manual override?
+    # Manual override for original name?
     if entity_name in manual_categories:
         category = manual_categories[entity_name]
+        category = category_synonyms.get(category, category)
+        log.debug(f"Manual categorization: {entity_name} → {category}")
+        return category
+
+    # Renamed?
+    entity_name = entity_synonyms.get(entity_name, entity_name)
+
+    # Manual override for renamed entity?
+    if entity_name in manual_categories:
+        category = manual_categories[entity_name]
+        category = category_synonyms.get(category, category)
         log.debug(f"Manual categorization: {entity_name} → {category}")
         return category
 
@@ -565,14 +582,15 @@ def get_category(entity_name: str,
         category_synonyms.get(a.get_name(), a.get_name())
         for a in ancestors
     ]
+    # log.debug(f"ancestor_categories: {ancestor_categories!r}")
     for category in categories:  # implements category order
-        probe_category = category_synonyms.get(category, category)
-        if probe_category in ancestor_categories:
+        category = category_synonyms.get(category, category)
+        if category in ancestor_categories:
             return category
     return None
 
 
-def read_dict(filename: str) -> Dict[str, str]:
+def read_dict(filename: str, to_lower: bool = False) -> Dict[str, str]:
     """
     Reads a filename that may have comments but is otherwise in the format
 
@@ -582,6 +600,12 @@ def read_dict(filename: str) -> Dict[str, str]:
         a2, b2
         ...
 
+    Args:
+        filename:
+            filename to read
+        to_lower:
+            convert everything to lower case
+
     Returns:
         dict: mapping the first column to the second.
 
@@ -590,7 +614,12 @@ def read_dict(filename: str) -> Dict[str, str]:
     for line in gen_lines_without_comments(filename):
         parts = [p.strip() for p in line.split(",")]
         if len(parts) == 2:
-            d[parts[0]] = parts[1]
+            a = parts[0]
+            b = parts[1]
+            if to_lower:
+                a = a.lower()
+                b = b.lower()
+            d[a] = b
         else:
             log.error(f"Bad CSV-pair line: {line!r}")
     return d
@@ -641,7 +670,7 @@ def categorize_from_file(entity_filename: str,
     entity_synonyms = {}  # type: Dict[str, str]
     if entity_synonyms_filename:
         log.info(f"Reading entity synonyms from {entity_synonyms_filename}")
-        entity_synonyms = read_dict(entity_synonyms_filename)
+        entity_synonyms = read_dict(entity_synonyms_filename, to_lower=True)
     log.debug(f"Using entity synonyms: {entity_synonyms!r}")
 
     category_synonyms = {}  # type: Dict[str, str]
@@ -657,16 +686,22 @@ def categorize_from_file(entity_filename: str,
     log.debug(f"Using manual categories: {manual_categories!r}")
 
     log.info(f"Writing to {results_filename!r}")
+    entities_seen = set()  # type: Set[str]
     with open(results_filename, "w") as outfile:
         writer = csv.writer(outfile, dialect=output_dialect)
         if headers:
             writer.writerow(["entity", "category"])
         log.info(f"Reading entities from {entity_filename}")
         for entity_name in gen_lines_without_comments(entity_filename):
-            entity_name = entity_synonyms.get(entity_name, entity_name)
+            entity_name = entity_name.lower()
+            if entity_name in entities_seen:
+                log.warning(f"Ignoring duplicate: {entity_name!r}")
+                continue
+            entities_seen.add(entity_name)
             category = get_category(
                 entity_name=entity_name,
                 categories=categories,
+                entity_synonyms=entity_synonyms,
                 category_synonyms=category_synonyms,
                 manual_categories=manual_categories,
                 relationships=relationships
@@ -813,7 +848,11 @@ def main() -> None:
     parser_categorize.add_argument(
         "--category_synonyms", type=str, default=None,
         help="Name of CSV file (with optional # comments) containing synonyms "
-             "in the format 'category_from, category_to'"
+             "in the format 'category_from, category_to'. The translation is "
+             "applied to ChEBI categories before matching. For example you "
+             "can map 'EC 3.1.1.7 (acetylcholinesterase) inhibitor' to "
+             "'acetylcholinesterase inhibitor' and then use only "
+             "'acetylcholinesterase inhibitor' in your category file."
     )
     parser_categorize.add_argument(
         "--manual_categories", type=str, default=None,
