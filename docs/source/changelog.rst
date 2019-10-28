@@ -462,6 +462,7 @@ Quick links:
     Ah, no -- it's only a problem if you execute one of the
     ``cardinal_pythonlib`` files from its own directory. Avoid that!
 
-**1.0.75 (2019-10-25)**
+**1.0.75 to 1.0.76 (2019-10-25 to 2019-10-26)**
 
 - ChEBI lookup improvements.
+- Added :class:`cardinal_pythonlib.dicts.CaseInsensitiveDict`.

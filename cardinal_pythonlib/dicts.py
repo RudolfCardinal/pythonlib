@@ -26,7 +26,8 @@
 
 """
 
-from typing import Any, Callable, Dict, Hashable, List, Optional
+from typing import (Any, Callable, Dict, Hashable, Iterable, List, Mapping,
+                    Optional, Tuple, Union)
 
 
 # =============================================================================
@@ -308,3 +309,145 @@ class HashableDict(dict):
     """
     def __hash__(self) -> int:
         return hash(tuple(sorted(self.items())))
+
+
+# =============================================================================
+# CaseInsensitiveDict
+# =============================================================================
+
+class CaseInsensitiveDict(dict):
+    """
+    A case-insensitive dictionary, as per
+    https://stackoverflow.com/questions/2082152/case-insensitive-dictionary/32888599#32888599,
+    with updates for Python 3 and type hinting.
+    
+    See also
+    
+    - https://docs.python.org/3/tutorial/datastructures.html#dictionaries
+    - https://docs.python.org/3/library/stdtypes.html#mapping-types-dict
+    
+    Test code:
+    
+    .. code-block:: python
+    
+from cardinal_pythonlib.dicts import CaseInsensitiveDict
+
+d1 = CaseInsensitiveDict()  # d1 is now: {}
+d2 = CaseInsensitiveDict({'A': 1, 'b': 2})  # d2 is now: {'a': 1, 'b': 2}
+d3 = CaseInsensitiveDict(C=3, d=4)  # d3 is now: {'c': 3, 'd': 4}
+
+d1.update({'E': 5, 'f': 6})  # d1 is now: {'e': 5, 'f': 6}
+d1.update(G=7, h=8)  # d1 is now: {'e': 5, 'f': 6, 'g': 7, 'h': 8}
+'H' in d1  # True
+d1['I'] = 9  # None, and key 'i' added
+del d1['I']  # None, and key 'i' deleted
+d1.pop('H')  # 8
+d1.get('E')  # 5
+d1.get('Z')  # None
+d1.setdefault('J', 10)  # 10, and key 'j' added
+
+    """  # noqa
+
+    @classmethod
+    def _k(cls, key: Any) -> Any:
+        """
+        Convert key to lower case, if it's a string.
+        """
+        return key.lower() if isinstance(key, str) else key
+
+    def __init__(self,
+                 mapping_or_iterable: Union[Mapping,
+                                            Iterable[Tuple[Any, Any]]] = None,
+                 **kwargs) -> None:
+        """
+        Dictionary initialization.
+
+        - Optional positional argument is ``mapping`` or ``iterable``. If an
+          iterable, its elements are iterables of length 2.
+        - Keyword arguments are key/value pairs.
+        """
+        super().__init__(mapping_or_iterable, **kwargs)
+        self._convert_keys()
+
+    def __getitem__(self, key: Any) -> Any:
+        """
+        Given a key, return the associated value. Implements ``d[key]`` as an
+        rvalue.
+        """
+        return super().__getitem__(self.__class__._k(key))
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        """
+        Sets the value for a key. Implements ``d[key] = value``.
+        """
+        super().__setitem__(self.__class__._k(key), value)
+
+    def __delitem__(self, key: Any) -> None:
+        """
+        Deletes the item with the specified key. Implements ``del d[key]``.
+        Raises :exc:`KeyError` if absent.
+        """
+        super().__delitem__(self.__class__._k(key))
+
+    def __contains__(self, key: Any) -> bool:
+        """
+        Is the key in the dictionary? Implements ``key in d``.
+        """
+        return super().__contains__(self.__class__._k(key))
+
+    # has_key() was removed in Python 3.0
+    # https://docs.python.org/3.1/whatsnew/3.0.html#builtins
+
+    def pop(self, key: Any, *args, **kwargs) -> Any:
+        """
+        Retrieves/returns the item and removes it. Takes a single optional
+        argument, being the default to return if the key is not present
+        (otherwise raises :exc:`KeyError`). Note that supplying a default of
+        ``None`` is different to supplying no default.
+        """
+        return super().pop(self.__class__._k(key), *args, **kwargs)
+
+    def get(self, key: Any, default: Any = None) -> Any:
+        """
+        If the key is in the dictionary, return the corresponding value;
+        otherwise, return ``default``, which defaults to ``None``.
+        """
+        return super().get(self.__class__._k(key), default)
+
+    def setdefault(self, key: Any, default: Any = None) -> Any:
+        """
+        As per the Python docs:
+
+        If ``key`` is in the dictionary, return its value. If not, insert
+        ``key`` with a value of ``default`` and return ``default``. ``default``
+        defaults to ``None``.
+        """
+        return super().setdefault(self.__class__._k(key), default)
+
+    def update(self, other: Union[Mapping, Iterable[Tuple[Any, Any]]] = None,
+               **kwargs) -> None:
+        """
+        As per the Python docs:
+
+        Update the dictionary with the key/value pairs from ``other``,
+        overwriting existing keys. Return ``None``.
+
+        :func:`update``accepts either another dictionary object or an iterable
+        of key/value pairs (as tuples or other iterables of length two). If
+        keyword arguments are specified, the dictionary is then updated with
+        those key/value pairs: ``d.update(red=1, blue=2)``.
+        """
+        if other:
+            # noinspection PyTypeChecker
+            super().update(self.__class__(other))
+        if kwargs:
+            # noinspection PyTypeChecker
+            super().update(self.__class__(**kwargs))
+
+    def _convert_keys(self) -> None:
+        """
+        Ensure all our keys are in lower case.
+        """
+        for k in list(self.keys()):
+            v = super().pop(k)
+            self.__setitem__(k, v)

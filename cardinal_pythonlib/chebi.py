@@ -110,7 +110,7 @@ using files like these:
 import argparse
 import csv
 import logging
-from typing import Dict, List, Generator, Optional, Sequence, Set, Tuple, Union
+from typing import List, Generator, Optional, Sequence, Set, Tuple, Union
 
 from appdirs import user_cache_dir
 try:
@@ -129,6 +129,7 @@ from cardinal_pythonlib.file_io import (
     get_lines_without_comments,
 )
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
+from cardinal_pythonlib.version_string import VERSION_STRING
 
 log = logging.getLogger(__name__)
 
@@ -144,7 +145,7 @@ DEFAULT_EXACT_MATCH = False
 
 
 # =============================================================================
-# Hashable version...
+# Hashable version of ChebiEntity
 # =============================================================================
 
 _CHEBI_ID_PREFIX = "CHEBI:"
@@ -201,7 +202,7 @@ class HashableChebiEntity(ChebiEntity):
 
 
 # =============================================================================
-# Descriptions
+# Descriptions of a ChebiEntity
 # =============================================================================
 
 def brief_description(entity: ChebiEntity) -> str:
@@ -218,7 +219,7 @@ def brief_description(entity: ChebiEntity) -> str:
 
 
 # =============================================================================
-# Searching
+# Searching ChEBI
 # =============================================================================
 
 def get_entity(chebi_id: Union[int, str]) -> ChebiEntity:
@@ -274,7 +275,7 @@ def search_entities(search_term: Union[int, str],
 
 
 # =============================================================================
-# Describing
+# Describing ChEBI entries
 # =============================================================================
 
 def describe_entity(entity: ChebiEntity) -> None:
@@ -378,7 +379,7 @@ def search_and_list_multiple(search_terms: List[Union[int, str]],
 
 
 # =============================================================================
-# Ancestors and descendants
+# Ancestors and descendants of ChEBI entities
 # =============================================================================
 
 def gen_ancestor_info(entity: ChebiEntity,
@@ -513,14 +514,87 @@ def testfunc1() -> None:
 
 
 # =============================================================================
+# Mapping terms via dictionaries
+# =============================================================================
+
+class CaseInsensitiveDict(dict):
+    """
+    Case-insensitive dictionary for strings; see
+    https://stackoverflow.com/questions/2082152/case-insensitive-dictionary
+    """
+    def __setitem__(self, key: str, value: str) -> None:
+        # https://docs.python.org/3/reference/datamodel.html#object.__setitem__
+        super().__setitem__(key.lower(), value)
+
+    def __contains__(self, key: str) -> bool:
+        # https://docs.python.org/3/reference/datamodel.html#object.__contains__
+        return super().__contains__(key.lower())
+
+    def __getitem__(self, key: str) -> str:
+        # https://docs.python.org/3/reference/datamodel.html#object.__getitem__
+        return super().__getitem__(key.lower())
+
+
+def read_dict(filename: str) -> CaseInsensitiveDict:
+    """
+    Reads a filename that may have comments but is otherwise in the format
+
+    .. code-block:: none
+
+        a1, b1
+        a2, b2
+        ...
+
+    Args:
+        filename:
+            filename to read
+
+    Returns:
+        dict: mapping the first column (converted to lower case) to the second
+        (case left intact).
+
+    """
+    d = CaseInsensitiveDict()
+    for line in gen_lines_without_comments(filename):
+        parts = [p.strip() for p in line.split(",")]
+        if len(parts) == 2:
+            a = parts[0]
+            b = parts[1]
+            d[a] = b
+        else:
+            log.error(f"Bad CSV-pair line: {line!r}")
+    return d
+
+
+def translate(term: str, mapping: CaseInsensitiveDict) -> Tuple[str, bool]:
+    """
+    Translates a term through a dictionary. If the term (once converted to
+    lower case) is in the dictionary (see :func:`read_dict`), the mapped term
+    is returned; otherwise the original search term is returned.
+
+    Args:
+        term:
+            term to look up
+        mapping:
+            the mapping dictionary
+
+    Returns:
+        tuple: result (str), renamed? (bool)
+
+    """
+    result = mapping.get(term, term)
+    return result, result != term
+
+
+# =============================================================================
 # Categorizing drugs
 # =============================================================================
 
 def get_category(entity_name: str,
                  categories: Sequence[str],
-                 entity_synonyms: Dict[str, str] = None,
-                 category_synonyms: Dict[str, str] = None,
-                 manual_categories: Dict[str, str] = None,
+                 entity_synonyms: CaseInsensitiveDict = None,
+                 category_synonyms: CaseInsensitiveDict = None,
+                 manual_categories: CaseInsensitiveDict = None,
                  relationships: List[str] = None) -> Optional[str]:
     """
 
@@ -541,27 +615,30 @@ def get_category(entity_name: str,
     Returns:
         chosen category, or ``None`` if none found
     """
-    entity_synonyms = entity_synonyms or {}  # type: Dict[str, str]
-    category_synonyms = category_synonyms or {}  # type: Dict[str, str]
-    manual_categories = manual_categories or {}  # type: Dict[str, str]
+    entity_synonyms = entity_synonyms or CaseInsensitiveDict()
+    category_synonyms = category_synonyms or CaseInsensitiveDict()
+    manual_categories = manual_categories or CaseInsensitiveDict()
     relationships = relationships or DEFAULT_ANCESTOR_RELATIONSHIPS
+
+    log.debug(f"get_category: entity_name={entity_name!r}")
 
     # Manual override for original name?
     if entity_name in manual_categories:
-        category = manual_categories[entity_name]
-        category = category_synonyms.get(category, category)
+        category, _ = translate(manual_categories[entity_name],
+                                category_synonyms)
         log.debug(f"Manual categorization: {entity_name} → {category}")
         return category
 
     # Renamed?
-    entity_name = entity_synonyms.get(entity_name, entity_name)
+    entity_name, renamed = translate(entity_name, entity_synonyms)
 
     # Manual override for renamed entity?
-    if entity_name in manual_categories:
-        category = manual_categories[entity_name]
-        category = category_synonyms.get(category, category)
-        log.debug(f"Manual categorization: {entity_name} → {category}")
-        return category
+    if renamed:
+        if entity_name in manual_categories:
+            category, _ = translate(manual_categories[entity_name],
+                                    category_synonyms)
+            log.debug(f"Manual categorization: {entity_name} → {category}")
+            return category
 
     # Find entity
     entities = search_entities(entity_name,
@@ -579,50 +656,15 @@ def get_category(entity_name: str,
     # Find category
     ancestors = list(gen_ancestors(entity, relationships=relationships))
     ancestor_categories = [
-        category_synonyms.get(a.get_name(), a.get_name())
+        translate(a.get_name(), category_synonyms)[0]
         for a in ancestors
     ]
     # log.debug(f"ancestor_categories: {ancestor_categories!r}")
     for category in categories:  # implements category order
-        category = category_synonyms.get(category, category)
+        category, _ = translate(category, category_synonyms)
         if category in ancestor_categories:
             return category
     return None
-
-
-def read_dict(filename: str, to_lower: bool = False) -> Dict[str, str]:
-    """
-    Reads a filename that may have comments but is otherwise in the format
-
-    .. code-block:: none
-
-        a1, b1
-        a2, b2
-        ...
-
-    Args:
-        filename:
-            filename to read
-        to_lower:
-            convert everything to lower case
-
-    Returns:
-        dict: mapping the first column to the second.
-
-    """
-    d = {}  # type: Dict[str, str]
-    for line in gen_lines_without_comments(filename):
-        parts = [p.strip() for p in line.split(",")]
-        if len(parts) == 2:
-            a = parts[0]
-            b = parts[1]
-            if to_lower:
-                a = a.lower()
-                b = b.lower()
-            d[a] = b
-        else:
-            log.error(f"Bad CSV-pair line: {line!r}")
-    return d
 
 
 def categorize_from_file(entity_filename: str,
@@ -667,22 +709,25 @@ def categorize_from_file(entity_filename: str,
     log.info(f"Reading categories from {category_filename}")
     categories = get_lines_without_comments(category_filename)
 
-    entity_synonyms = {}  # type: Dict[str, str]
     if entity_synonyms_filename:
         log.info(f"Reading entity synonyms from {entity_synonyms_filename}")
-        entity_synonyms = read_dict(entity_synonyms_filename, to_lower=True)
+        entity_synonyms = read_dict(entity_synonyms_filename)
+    else:
+        entity_synonyms = CaseInsensitiveDict()
     log.debug(f"Using entity synonyms: {entity_synonyms!r}")
 
-    category_synonyms = {}  # type: Dict[str, str]
     if category_synonyms_filename:
-        log.info(f"Reading category synonyms from {category_synonyms_filename}")  # noqa
+        log.info(f"Reading category synonyms from {category_synonyms_filename}")
         category_synonyms = read_dict(category_synonyms_filename)
+    else:
+        category_synonyms = CaseInsensitiveDict()
     log.debug(f"Using category synonyms: {category_synonyms!r}")
 
-    manual_categories = {}  # type: Dict[str, str]
     if manual_categories_filename:
         log.info(f"Reading manual categories from {manual_categories_filename}")  # noqa
         manual_categories = read_dict(manual_categories_filename)
+    else:
+        manual_categories = CaseInsensitiveDict()
     log.debug(f"Using manual categories: {manual_categories!r}")
 
     log.info(f"Writing to {results_filename!r}")
@@ -693,11 +738,11 @@ def categorize_from_file(entity_filename: str,
             writer.writerow(["entity", "category"])
         log.info(f"Reading entities from {entity_filename}")
         for entity_name in gen_lines_without_comments(entity_filename):
-            entity_name = entity_name.lower()
-            if entity_name in entities_seen:
+            entity_name_lower = entity_name.lower()
+            if entity_name_lower in entities_seen:
                 log.warning(f"Ignoring duplicate: {entity_name!r}")
                 continue
-            entities_seen.add(entity_name)
+            entities_seen.add(entity_name_lower)
             category = get_category(
                 entity_name=entity_name,
                 categories=categories,
@@ -886,6 +931,7 @@ def main() -> None:
     # Logging
     main_only_quicksetup_rootlogger(level=logging.DEBUG if cmdargs.verbose
                                     else logging.INFO)
+    log.debug(f"ChEBI lookup from cardinal_pythonlib=={VERSION_STRING}")
 
     # Caching
     log.debug(f"Using cache path: {cmdargs.cachepath}")
