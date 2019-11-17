@@ -236,3 +236,19 @@ def get_unicode_category_strings() -> Dict[str, str]:
     """
     return {k: _unicode_def_src_to_str(v)
             for k, v in _UNICODE_CATEGORY_SRC.items()}
+
+
+def get_unicode_characters(category: str) -> str:
+    """
+    Args:
+        category:
+            a Unicode category, e.g. "ASCII"
+
+    Returns:
+        str: a string containing those characters
+
+    Raises:
+        :exc:`KeyError` if the category is bad
+    """
+    definition_strings = _UNICODE_CATEGORY_SRC[category]
+    return _unicode_def_src_to_str(definition_strings)
