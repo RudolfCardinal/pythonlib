@@ -500,3 +500,30 @@ def relative_filename_within_dir(filename: str, directory: str) -> str:
         # Filename is not within directory
         return ""
     return os.path.relpath(filename, start=directory)
+
+
+# =============================================================================
+# Disk space
+# =============================================================================
+
+def get_directory_contents_size(directory: str = ".") -> int:
+    """
+    Returns the total size of all files within a directory.
+
+    See https://stackoverflow.com/questions/1392413/calculating-a-directorys-size-using-python.
+
+    Args:
+        directory: directory to check
+
+    Returns:
+        int: size in bytes
+    """
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(directory):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            # skip if it is symbolic link
+            if not os.path.islink(fp):
+                total_size += os.path.getsize(fp)
+
+    return total_size

@@ -467,7 +467,7 @@ Quick links:
 - ChEBI lookup improvements.
 - Added :class:`cardinal_pythonlib.dicts.CaseInsensitiveDict`.
 
-**1.0.78 to 1.0.80 (2019-11-17)**
+**1.0.78 to 1.0.81 (2019-11-17)**
 
 - :func:`cardinal_pythonlib.debugging.pdb_run` returns its function result.
 - :data:`cardinal_pythonlib.text.UNICODE_CATEGORY_STRINGS` replaced by
@@ -476,3 +476,4 @@ Quick links:
 - New function :func:`cardinal_pythonlib.text.get_unicode_characters`.
 - New function :func:`cardinal_pythonlib.process.nice_call`, to clean up
   children better when the calling parent receives a Ctrl-C (SIGINT).
+- New function :func:`cardinal_pythonlib.fileops.get_directory_contents_size`
