@@ -466,3 +466,7 @@ Quick links:
 
 - ChEBI lookup improvements.
 - Added :class:`cardinal_pythonlib.dicts.CaseInsensitiveDict`.
+
+**1.0.78 IN PROGRESS 2019-11-17**
+
+- :func:`cardinal_pythonlib.debugging.pdb_run` returns its function result.
