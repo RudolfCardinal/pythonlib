@@ -63,7 +63,11 @@ class MimeType(object):
         mimetypes.types_map['.pdf']  # 'application/pdf'
         
     See:
-        
+
+    - Binary:
+
+      - https://stackoverflow.com/questions/6783921/which-mime-type-to-use-for-a-binary-file-thats-specific-to-my-program
+
     - CSV
     
       - http://stackoverflow.com/questions/264256/what-is-the-best-mime-type-and-extension-to-use-when-exporting-tab-delimited
@@ -83,6 +87,7 @@ class MimeType(object):
       - https://stackoverflow.com/questions/31489757/what-is-correct-mimetype-with-apache-openoffice-files-like-odt-ods-odp
 
     """  # noqa
+    BINARY = "application/octet-stream"
     CSV = "text/csv"
     DOC = "application/msword"
     DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"  # noqa
