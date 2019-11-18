@@ -467,8 +467,16 @@ Quick links:
 - ChEBI lookup improvements.
 - Added :class:`cardinal_pythonlib.dicts.CaseInsensitiveDict`.
 
-**1.0.78 (2019-11-18)**
+**1.0.78 to 1.0.81 (2019-11-17)**
 
+- :func:`cardinal_pythonlib.debugging.pdb_run` returns its function result.
+- :data:`cardinal_pythonlib.text.UNICODE_CATEGORY_STRINGS` replaced by
+  :func:`cardinal_pythonlib.text.get_unicode_category_strings`. This is a large
+  data item (~5 Mb) that should only be generated on request.
+- New function :func:`cardinal_pythonlib.text.get_unicode_characters`.
+- New function :func:`cardinal_pythonlib.process.nice_call`, to clean up
+  children better when the calling parent receives a Ctrl-C (SIGINT).
+- New function :func:`cardinal_pythonlib.fileops.get_directory_contents_size`
 - Bug fix https://github.com/RudolfCardinal/pythonlib/issues/1
   :func:`cardinal_pythonlib.sqlalchemy.alembic_func.create_database_migration_numbered_style`
   now ignores backup files (and anything else that doesn't look like a migration file).

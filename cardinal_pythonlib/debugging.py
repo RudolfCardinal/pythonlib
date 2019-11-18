@@ -45,14 +45,14 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Debugging
 # =============================================================================
 
-def pdb_run(func: Callable, *args: Any, **kwargs: Any) -> None:
+def pdb_run(func: Callable, *args: Any, **kwargs: Any) -> Any:
     """
     Calls ``func(*args, **kwargs)``; if it raises an exception, break into
     the ``pdb`` debugger.
     """
     # noinspection PyBroadException
     try:
-        func(*args, **kwargs)
+        return func(*args, **kwargs)
     except:  # nopep8
         type_, value, tb = sys.exc_info()
         traceback.print_exc()

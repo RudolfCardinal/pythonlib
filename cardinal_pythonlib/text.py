@@ -26,7 +26,7 @@
 
 """
 
-from typing import List, Union
+from typing import Dict, List, Union
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
@@ -221,9 +221,34 @@ _UNICODE_CATEGORY_SRC = {
         'FB00-FB06',  # Alphabetic Presentation Forms (Latin ligatures): those assigned  # noqa
         'FF20-FF5F',  # Halfwidth and Fullwidth Forms: those assigned
     ],
-
 }
-UNICODE_CATEGORY_STRINGS = {k: _unicode_def_src_to_str(v)
-                            for k, v in _UNICODE_CATEGORY_SRC.items()}
 
-# NB 'Alphabetic' has length 118240; 'Latin_Alphabetic' only 1022.
+
+def get_unicode_category_strings() -> Dict[str, str]:
+    """
+    Returns a dictionary mapping Unicode categories (e.g. "ASCII") to a string
+    containing those characters.
+
+    This is large (~5 Mb) so don't call it unnecessarily and don't have it as a
+    module-level variable.
+
+    NB 'Alphabetic' has length 118240; 'Latin_Alphabetic' only 1022.
+    """
+    return {k: _unicode_def_src_to_str(v)
+            for k, v in _UNICODE_CATEGORY_SRC.items()}
+
+
+def get_unicode_characters(category: str) -> str:
+    """
+    Args:
+        category:
+            a Unicode category, e.g. "ASCII"
+
+    Returns:
+        str: a string containing those characters
+
+    Raises:
+        :exc:`KeyError` if the category is bad
+    """
+    definition_strings = _UNICODE_CATEGORY_SRC[category]
+    return _unicode_def_src_to_str(definition_strings)

@@ -167,3 +167,41 @@ def kill_proc_tree(pid: int,
         proc.kill()  # SIGKILL
     gone, still_alive = psutil.wait_procs(to_kill, timeout=timeout_s)
     return gone, still_alive
+
+
+# =============================================================================
+# nice_call
+# =============================================================================
+
+def nice_call(*popenargs, timeout: float = None,
+              cleanup_timeout: float = None, **kwargs) -> int:
+    """
+    Like :func:`subprocess.call`, but give the child process time to
+    clean up and communicate if a :exc:`KeyboardInterrupt` is raised.
+    
+    Modified from
+    https://stackoverflow.com/questions/34458583/python-subprocess-call-doesnt-handle-signal-correctly
+    """  # noqa
+    with subprocess.Popen(*popenargs, **kwargs) as p:
+        try:
+            return p.wait(timeout=timeout)
+        except KeyboardInterrupt:
+            log.error("KeyboardInterrupt received")
+            if cleanup_timeout:
+                # Wait again, now that the child has received SIGINT, too.
+                log.info(f"Waiting {cleanup_timeout} seconds "
+                         f"for child process {p.pid} to finish...")
+                try:
+                    p.wait(timeout=cleanup_timeout)  # may raise TimeoutExpired
+                    log.info(f"Child process {p.pid} shut down cleanly")
+                except subprocess.TimeoutExpired:
+                    log.info(f"Killing child process {p.pid}")
+                    p.kill()
+                    p.wait()
+            raise  # propagate KeyboardInterrupt up through Python program
+        except Exception:
+            log.error(f"Error with child process {p.pid}. Killing it...")
+            p.kill()
+            p.wait()
+            log.info(f"Child process {p.pid} killed")
+            raise
