@@ -479,4 +479,5 @@ Quick links:
 - New function :func:`cardinal_pythonlib.fileops.get_directory_contents_size`
 - Bug fix https://github.com/RudolfCardinal/pythonlib/issues/1
   :func:`cardinal_pythonlib.sqlalchemy.alembic_func.create_database_migration_numbered_style`
-  now ignores backup files (and anything else that doesn't look like a migration file).
+  now ignores backup files (and anything else that doesn't look like a
+  migration file).
