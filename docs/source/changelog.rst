@@ -466,3 +466,9 @@ Quick links:
 
 - ChEBI lookup improvements.
 - Added :class:`cardinal_pythonlib.dicts.CaseInsensitiveDict`.
+
+**1.0.78 (2019-11-18)**
+
+- Bug fix https://github.com/RudolfCardinal/pythonlib/issues/1
+  :func:`cardinal_pythonlib.sqlalchemy.alembic_func.create_database_migration_numbered_style`
+  now ignores backup files (and anything else that doesn't look like a migration file).
