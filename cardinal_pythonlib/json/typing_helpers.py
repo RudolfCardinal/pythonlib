@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/json/typing_helpers.py
 
 """
 ===============================================================================
@@ -22,14 +22,21 @@
 
 ===============================================================================
 
-**Current version number of this library.**
-
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
+Type hints for JSON.
 
 """
 
-VERSION_STRING = '1.0.82'
-# Use semantic versioning: http://semver.org/
+from typing import Dict, List, Union
+
+# =============================================================================
+# Type definitions; see https://www.json.org/
+# =============================================================================
+
+# Types for the Python representation of JSON:
+JsonLiteralType = Union[str, int, float, bool, None]
+JsonValueType = Union[JsonLiteralType, Dict, List]
+JsonObjectType = Dict[str, JsonValueType]
+JsonArrayType = List[JsonValueType]
+
+# Type for the string representation of JSON:
+JsonAsStringType = str

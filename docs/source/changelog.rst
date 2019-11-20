@@ -481,3 +481,7 @@ Quick links:
   :func:`cardinal_pythonlib.sqlalchemy.alembic_func.create_database_migration_numbered_style`
   now ignores backup files (and anything else that doesn't look like a
   migration file).
+
+**1.0.82 (2019-11-20)**
+
+- :mod:`cardinal_pythonlib.json.typing_helpers`
