@@ -173,3 +173,30 @@ def round_sf(x: float, n: int = 2) -> float:
     if y <= sys.float_info.min:
         return 0.0
     return round(x, int(n - math.ceil(math.log10(y))))
+
+
+# =============================================================================
+# Addition, permutation
+# =============================================================================
+
+def sum_of_integers_in_inclusive_range(a: int, b: int) -> int:
+    """
+    Returns the sum of all integers in the range ``[a, b]``, i.e. from ``a`` to
+    ``b`` inclusive.
+
+    See
+
+    - https://math.stackexchange.com/questions/1842152/finding-the-sum-of-numbers-between-any-two-given-numbers
+    """  # noqa
+    return int((b - a + 1) * (a + b) / 2)
+
+
+def n_permutations(n: int, k: int) -> int:
+    """
+    Returns the number of permutations of length ``k`` from a list of length
+    ``n``.
+
+    See https://en.wikipedia.org/wiki/Permutation#k-permutations_of_n.
+    """
+    assert n > 0 and 0 < k <= n
+    return int(math.factorial(n) / math.factorial(n - k))

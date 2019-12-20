@@ -28,7 +28,7 @@
 
 import logging
 import time
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 
@@ -37,13 +37,15 @@ log = logging.getLogger(__name__)
 FuncType = Callable[..., Any]
 
 
-def rate_limited(max_per_second: Optional[int]) \
+def rate_limited(max_per_second: Optional[Union[int, float]]) \
         -> Callable[[FuncType], FuncType]:
     """
     Returns a function that rate-limits another function to the specified
     frequency. Can be used as a decorator, e.g.
 
     .. code-block:: python
+
+        from cardinal_pythonlib.rate_limiting import rate_limited
 
         @rate_limited(2)
         def do_something_max_2hz():
@@ -55,6 +57,8 @@ def rate_limited(max_per_second: Optional[int]) \
     or dynamically:
 
     .. code-block:: python
+
+        from cardinal_pythonlib.rate_limiting import rate_limited
 
         def do_something():
             print("tick...")

@@ -485,3 +485,10 @@ Quick links:
 **1.0.82 (2019-11-20)**
 
 - :mod:`cardinal_pythonlib.json.typing_helpers`
+
+**1.0.83 (2019-12-03)**
+
+- :func:`cardinal_pythonlib.maths_py.sum_of_integers_in_inclusive_range`
+- :func:`cardinal_pythonlib.maths_py.n_permutations`
+- type hint accepts floats to
+  :func:`cardinal_pythonlib.rate_limiting.rate_limited`
