@@ -1,6 +1,6 @@
 ..  cardinal_pythonlib/docs/source/changelog.rst
 
-..  Copyright (C) 2009-2019 Rudolf Cardinal (rudolf@pobox.com).
+..  Copyright (C) 2009-2020 Rudolf Cardinal (rudolf@pobox.com).
     .
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -492,3 +492,8 @@ Quick links:
 - :func:`cardinal_pythonlib.maths_py.n_permutations`
 - type hint accepts floats to
   :func:`cardinal_pythonlib.rate_limiting.rate_limited`
+
+**1.0.84 (2012-01-11), in progress**
+
+- Create ``cardinal_pythonlib.__version__``
+- Copyright years to 2020.

@@ -18,7 +18,7 @@ Then rewritten a fair bit, Rudolf Cardinal, 9 Oct 2018
 
 ===============================================================================
 
-    Original code copyright (C) 2009-2019 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2020 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 

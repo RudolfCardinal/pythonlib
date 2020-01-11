@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2019 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2020 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -26,3 +26,6 @@ The mere existence of this file makes Python treat the directory as a
 package.
 
 """
+
+# Create cardinal_pythonlib.__version__:
+from cardinal_pythonlib.version_string import VERSION_STRING as __version__

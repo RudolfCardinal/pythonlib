@@ -6,7 +6,7 @@
 
 ===============================================================================
 
-    Original code copyright (C) 2009-2019 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2020 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -53,7 +53,7 @@ INDEX_FILENAME = "_index.rst"
 TOP_AUTODOC_INDEX = os.path.join(AUTODOC_DIR, INDEX_FILENAME)
 
 COPYRIGHT_COMMENT = r"""
-..  Copyright (C) 2009-2019 Rudolf Cardinal (rudolf@pobox.com).
+..  Copyright (C) 2009-2020 Rudolf Cardinal (rudolf@pobox.com).
     .
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

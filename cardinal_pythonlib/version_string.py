@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2019 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2020 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -31,5 +31,5 @@ For changelog, see changelog.rst
 
 """
 
-VERSION_STRING = '1.0.83'
+VERSION_STRING = '1.0.84'
 # Use semantic versioning: http://semver.org/
