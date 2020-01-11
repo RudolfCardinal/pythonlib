@@ -28,4 +28,5 @@ package.
 """
 
 # Create cardinal_pythonlib.__version__:
+# noinspection PyPep8Naming
 from cardinal_pythonlib.version_string import VERSION_STRING as __version__
