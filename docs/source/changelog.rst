@@ -493,7 +493,7 @@ Quick links:
 - type hint accepts floats to
   :func:`cardinal_pythonlib.rate_limiting.rate_limited`
 
-**1.0.84 (2012-01-11), in progress**
+**1.0.84 (2012-01-11 to 2012-01-19)**
 
 - Create ``cardinal_pythonlib.__version__``
 - Copyright years to 2020.
