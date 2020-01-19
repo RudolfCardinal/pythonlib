@@ -230,6 +230,7 @@ setup(
             'cardinalpythonlib_merge_csv=cardinal_pythonlib.tools.merge_csv:main',  # noqa
             'cardinalpythonlib_remove_duplicate_files=cardinal_pythonlib.tools.remove_duplicate_files:main',  # noqa
             'cardinalpythonlib_convert_athena_ohdsi_codes=cardinal_pythonlib.tools.convert_athena_ohdsi_codes:main',  # noqa
+            'cardinalpythonlib_convert_mdb_to_mysql=cardinal_pythonlib.tools.convert_mdb_to_mysql:main',  # noqa
 
             # other
             'cardinalpythonlib_chebi=cardinal_pythonlib.chebi:main',

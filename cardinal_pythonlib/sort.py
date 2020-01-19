@@ -87,6 +87,9 @@ class MinType(object):
     def __eq__(self, other: Any) -> bool:
         return self is other
 
+    def __str__(self) -> str:
+        return "MinType"
+
 
 MINTYPE_SINGLETON = MinType()
 
