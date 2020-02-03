@@ -498,3 +498,7 @@ Quick links:
 - Create ``cardinal_pythonlib.__version__``
 - Copyright years to 2020.
 - ``cardinalpythonlib_convert_mdb_to_mysql`` tool.
+
+**1.0.85 (2020-02-03)**
+
+- :func:`cardinal_pythonlib.file_io.gen_noncomment_lines`.

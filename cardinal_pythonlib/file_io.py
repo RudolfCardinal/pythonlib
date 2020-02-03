@@ -78,6 +78,9 @@ def smart_open(filename: str, mode: str = 'Ur', buffering: int = -1,
     finally:
         if filename is not '-':
             fh.close()
+        # It does matter that you do NOT close sys.stdin or sys.stdout!
+        # The close() calls will work, and after that, operations on
+        # stdin/stdout will fail.
 
 
 # =============================================================================
@@ -144,20 +147,49 @@ def get_lines_without_comments(filename: str) -> List[str]:
 # More file input: generic generators
 # =============================================================================
 
-def gen_lines_without_comments(filename: str) -> Generator[str, None, None]:
+def gen_noncomment_lines(
+        file: TextIO,
+        comment_at_start_only: bool = False) -> Generator[str, None, None]:
     """
-    Reads a file, and returns all lines as a list, left- and right-stripping
-    the lines and removing everything on a line after the first ``#``.
+    From an open file, yields all lines as a list, left- and right-stripping
+    the lines and (by default) removing everything on a line after the first
+    ``#``.
+
     Also removes blank lines.
-    NOTE: does not cope well with quoted ``#`` symbols!
+
+    Args:
+        file:
+            The input file-like object.
+        comment_at_start_only:
+            Only detect comments when the ``#`` is the first non-whitespace
+            character of a line? (The default is False, meaning that comments
+            are also allowed at the end of lines. NOTE that this does not cope
+            well with quoted ``#`` symbols.)
+
     """
-    with open(filename) as f:
-        for line in f:
+    if comment_at_start_only:
+        for line in file:
+            line = line.strip()  # equivalent to lstrip() and rstrip()
+            if line and not line.startswith("#"):
+                yield line
+    else:
+        for line in file:
             line = line.partition('#')[0]  # the part before the first #
-            line = line.rstrip()
-            line = line.lstrip()
+            line = line.strip()  # equivalent to lstrip() and rstrip()
             if line:
                 yield line
+
+
+def gen_lines_without_comments(
+        filename: str,
+        comment_at_start_only: bool = False) -> Generator[str, None, None]:
+    """
+    As for :func:`gen_noncomment_lines`, but using a filename.
+    """
+    with open(filename) as f:
+        for line in gen_noncomment_lines(
+                f, comment_at_start_only=comment_at_start_only):
+            yield line
 
 
 def gen_textfiles_from_filenames(
