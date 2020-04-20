@@ -422,7 +422,7 @@ def gen_ancestor_info(entity: ChebiEntity,
                 # log.debug(f"Skipping {target!r}")
                 continue
             seen_.add(target)
-            yield (target, rel.get_type(), starting_generation_ + 1)
+            yield target, rel.get_type(), starting_generation_ + 1
             yield from gen_ancestor_info(
                 entity=target,
                 relationships=relationships,

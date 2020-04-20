@@ -502,3 +502,11 @@ Quick links:
 **1.0.85 (2020-02-03)**
 
 - :func:`cardinal_pythonlib.file_io.gen_noncomment_lines`.
+
+**1.0.86 (2020-04-20)**
+
+- :mod:`cardinal_pythonlib.contexts`
+- :mod:`cardinal_pythonlib.iterhelp`
+- :mod:`cardinal_pythonlib.parallel`
+- :mod:`cardinal_pythonlib.profile`
+- Speedup to :func:`cardinal_pythonlib.randomness.coin`

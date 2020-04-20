@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/profile.py
 
 """
 ===============================================================================
@@ -22,14 +22,32 @@
 
 ===============================================================================
 
-**Current version number of this library.**
-
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
+**Profiling assistance functions.**
 
 """
 
-VERSION_STRING = '1.0.86'
-# Use semantic versioning: http://semver.org/
+import cProfile
+from typing import Any, Callable
+
+
+def do_cprofile(func: Callable, sort: str = "tottime") -> Callable:
+    """
+    Print profile stats to screen. To be used as a decorator for the function
+    or method you want to profile. For example:
+
+    .. code-block:: python
+
+        profiled_func = do_cprofile(original_func)
+        profiled_func(args_to_original_func)
+
+    """
+    def profiled_func(*args, **kwargs) -> Any:
+        profile = cProfile.Profile()
+        try:
+            profile.enable()
+            result = func(*args, **kwargs)
+            profile.disable()
+            return result
+        finally:
+            profile.print_stats(sort=sort)
+    return profiled_func

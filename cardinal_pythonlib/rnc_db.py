@@ -213,6 +213,7 @@ if not pymysql:
         import MySQLdb  # pip install [mysql-python | mysqlclient]
         import MySQLdb.converters  # needs manual import
         import _mysql
+        # noinspection PyTypeChecker
         mysql = MySQLdb
     except ImportError:
         MySQLdb = None

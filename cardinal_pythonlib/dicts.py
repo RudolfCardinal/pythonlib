@@ -167,6 +167,7 @@ def set_null_values_in_dict(d: Dict[str, Any],
             d[k] = None
 
 
+# noinspection PyPep8
 def map_keys_to_values(l: List[Any], d: Dict[Any, Any], default: Any = None,
                        raise_if_missing: bool = False,
                        omit_if_missing: bool = False) -> List[Any]:

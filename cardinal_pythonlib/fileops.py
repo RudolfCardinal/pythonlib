@@ -510,14 +510,15 @@ def get_directory_contents_size(directory: str = ".") -> int:
     """
     Returns the total size of all files within a directory.
 
-    See https://stackoverflow.com/questions/1392413/calculating-a-directorys-size-using-python.
+    See
+    https://stackoverflow.com/questions/1392413/calculating-a-directorys-size-using-python.
 
     Args:
         directory: directory to check
 
     Returns:
         int: size in bytes
-    """
+    """  # noqa
     total_size = 0
     for dirpath, dirnames, filenames in os.walk(directory):
         for f in filenames:

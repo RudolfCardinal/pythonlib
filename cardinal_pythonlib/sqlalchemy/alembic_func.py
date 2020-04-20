@@ -325,7 +325,7 @@ def create_database_migration_numbered_style(
         n_sequence_chars: number of numerical sequence characters to use in the
             filename/revision (see above).
     """  # noqa
-    file_regex = "\d{" + str(n_sequence_chars) + "}_\S*\.py$"
+    file_regex = r"\d{" + str(n_sequence_chars) + r"}_\S*\.py$"
 
     _, _, existing_version_filenames = next(os.walk(alembic_versions_dir),
                                             (None, None, []))

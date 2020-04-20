@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/contexts.py
 
 """
 ===============================================================================
@@ -22,14 +22,21 @@
 
 ===============================================================================
 
-**Current version number of this library.**
-
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
+**Context manager assistance.**
 
 """
 
-VERSION_STRING = '1.0.86'
-# Use semantic versioning: http://semver.org/
+import contextlib
+
+
+@contextlib.contextmanager
+def dummy_context_mgr():
+    """
+    We might be using Python 3.6 which doesn't have ``contextlib.nullcontext``.
+    Hence this.
+
+    - https://stackoverflow.com/questions/27803059/conditional-with-statement-in-python
+    - See also
+      https://stackoverflow.com/questions/893333/multiple-variables-in-a-with-statement
+    """  # noqa
+    yield None

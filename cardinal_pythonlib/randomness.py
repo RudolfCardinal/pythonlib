@@ -28,7 +28,8 @@
 
 import base64
 import os
-import random
+# import random
+from random import random as random_random
 
 
 def create_base64encoded_randomness(num_bytes: int) -> str:
@@ -64,12 +65,19 @@ def coin(p: float) -> bool:
     Flips a biased coin; returns ``True`` or ``False``, with the specified
     probability being that of ``True``.
     """
-    assert 0 <= p <= 1
-    r = random.random()  # range [0.0, 1.0), i.e. 0 <= r < 1
-    return r < p
+    # Slower code:
+
+    # assert 0 <= p <= 1
+    # r = random.random()  # range [0.0, 1.0), i.e. 0 <= r < 1
+    # return r < p
+
     # Check edge cases:
     # - if p == 0, impossible that r < p, since r >= 0
     # - if p == 1, always true that r < p, since r < 1
+
+    # Faster code:
+
+    return random_random() < p
 
 
 # =============================================================================
