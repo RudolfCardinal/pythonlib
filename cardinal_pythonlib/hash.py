@@ -58,8 +58,6 @@ from typing import Any, Callable, Tuple, Union
 
 from sqlalchemy.sql.sqltypes import String, TypeEngine
 
-from cardinal_pythonlib.timing import MultiTimerContext, timer
-
 try:
     # noinspection PyPackageRequirements
     import mmh3
@@ -133,9 +131,8 @@ class GenericSaltedHasher(GenericHasher):
         self.salt_bytes = salt.encode('utf-8')
 
     def hash(self, raw: Any) -> str:
-        with MultiTimerContext(timer, TIMING_HASH):
-            raw_bytes = str(raw).encode('utf-8')
-            return self.hashfunc(self.salt_bytes + raw_bytes).hexdigest()
+        raw_bytes = str(raw).encode('utf-8')
+        return self.hashfunc(self.salt_bytes + raw_bytes).hexdigest()
 
 
 class MD5Hasher(GenericSaltedHasher):
@@ -189,11 +186,10 @@ class GenericHmacHasher(GenericHasher):
         """
         Returns the hex digest of a HMAC-encoded version of the input.
         """
-        with MultiTimerContext(timer, TIMING_HASH):
-            raw_bytes = str(raw).encode('utf-8')
-            hmac_obj = hmac.new(key=self.key_bytes, msg=raw_bytes,
-                                digestmod=self.digestmod)
-            return hmac_obj.hexdigest()
+        raw_bytes = str(raw).encode('utf-8')
+        hmac_obj = hmac.new(key=self.key_bytes, msg=raw_bytes,
+                            digestmod=self.digestmod)
+        return hmac_obj.hexdigest()
 
 
 class HmacMD5Hasher(GenericHmacHasher):
@@ -970,7 +966,7 @@ def compare_python_to_reference_murmur3_64(data: Any, seed: int = 0) -> None:
 # Hashing in a NON-CRYPTOGRAPHIC, PREDICTABLE, and fast way
 # =============================================================================
 
-def hash32(data: Any, seed=0) -> int:
+def hash32(data: Any, seed: int = 0) -> int:
     """
     Non-cryptographic, deterministic, fast hash.
 
@@ -981,13 +977,12 @@ def hash32(data: Any, seed=0) -> int:
     Returns:
         signed 32-bit integer
     """
-    with MultiTimerContext(timer, TIMING_HASH):
-        c_data = to_str(data)
-        if mmh3:
-            return mmh3.hash(c_data, seed=seed)
-        py_data = to_bytes(c_data)
-        py_unsigned = murmur3_x86_32(py_data, seed=seed)
-        return twos_comp_to_signed(py_unsigned, n_bits=32)
+    c_data = to_str(data)
+    if mmh3:
+        return mmh3.hash(c_data, seed=seed)
+    py_data = to_bytes(c_data)
+    py_unsigned = murmur3_x86_32(py_data, seed=seed)
+    return twos_comp_to_signed(py_unsigned, n_bits=32)
 
 
 def hash64(data: Any, seed: int = 0) -> int:

@@ -510,3 +510,7 @@ Quick links:
 - :mod:`cardinal_pythonlib.parallel`
 - :mod:`cardinal_pythonlib.profile`
 - Speedup to :func:`cardinal_pythonlib.randomness.coin`
+
+**1.0.87 (2020-04-24)**
+
+- Removed timing overheads from :mod:`cardinal_pythonlib.hash`.
