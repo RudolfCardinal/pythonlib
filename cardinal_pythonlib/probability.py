@@ -27,6 +27,15 @@
 """
 
 import math
+from math import (
+    exp as math_exp,
+    log as math_ln,
+    log10 as math_log10,
+)
+
+# For speed:
+INFINITY = math.inf
+MINUS_INFINITY = -math.inf
 
 
 # =============================================================================
@@ -46,8 +55,29 @@ def ln(x: float) -> float:
 
     See
     https://stackoverflow.com/questions/42980201/logarithm-of-zero-in-python.
+
+    For speed, use ``from math import log as math_log``, etc.:
+
+    .. code-block: python
+
+        import math
+        from math import log as math_log
+        import timeit
+        INFINITY = math.inf
+        MINUS_INFINITY = -math.inf
+
+        timeit.timeit('(math.log(x) for x in range(1, 100))', number=10000)
+        # 0.00756470113992691
+        timeit.timeit('(math_log(x) for x in range(1, 100))', number=10000)
+        # 0.004151405766606331
+
+        timeit.timeit('(-math.inf for _ in range(1, 100))', number=10000)
+        # 0.009433002211153507
+        timeit.timeit('(MINUS_INFINITY for _ in range(1, 100))', number=10000)
+        # 0.004293474368751049
+
     """
-    return math.log(x) if x != 0 else -math.inf
+    return math_ln(x) if x != 0 else MINUS_INFINITY
 
 
 def log10(x: float) -> float:
@@ -64,7 +94,7 @@ def log10(x: float) -> float:
     See
     https://stackoverflow.com/questions/42980201/logarithm-of-zero-in-python.
     """
-    return math.log10(x) if x != 0 else -math.inf
+    return math_log10(x) if x != 0 else MINUS_INFINITY
 
 
 # =============================================================================
@@ -120,7 +150,7 @@ def probability_from_log_prob(log_p: float) -> float:
     Returns:
         float: p
     """
-    return math.exp(log_p)
+    return math_exp(log_p)
 
 
 def probability_from_log_odds(log_odds: float) -> float:
@@ -133,8 +163,7 @@ def probability_from_log_odds(log_odds: float) -> float:
     Returns:
         float: p
     """
-    odds = math.exp(log_odds)
-    return probability_from_odds(odds)
+    return probability_from_odds(math_exp(log_odds))
 
 
 def log_probability_from_log_odds(log_odds: float) -> float:
@@ -154,8 +183,7 @@ def log_probability_from_log_odds(log_odds: float) -> float:
         float: ln(p)
 
     """
-    p = probability_from_log_odds(log_odds)
-    return ln(p)
+    return ln(probability_from_log_odds(log_odds))
 
 
 def log_odds_from_probability(p: float) -> float:
@@ -327,13 +355,12 @@ def log_posterior_odds_from_pdh_pdnh(log_prior_odds: float,
             posterior odds of H, :math:`ln(\frac{ P(H | D) }{ P(\neg H | D) })`
 
     """
-    log_lr = log_likelihood_ratio_from_p(
-        p_d_given_h=p_d_given_h,
-        p_d_given_not_h=p_d_given_not_h
-    )
     return log_posterior_odds(
         log_prior_odds=log_prior_odds,
-        log_likelihood_ratio=log_lr
+        log_likelihood_ratio=log_likelihood_ratio_from_p(
+            p_d_given_h=p_d_given_h,
+            p_d_given_not_h=p_d_given_not_h
+        )
     )
 
 

@@ -514,3 +514,7 @@ Quick links:
 **1.0.87 (2020-04-24)**
 
 - Removed timing overheads from :mod:`cardinal_pythonlib.hash`.
+
+**1.0.88 (2020-04-24)**
+
+- Optimizations for :mod:`cardinal_pythonlib.probability`.
