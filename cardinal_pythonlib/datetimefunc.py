@@ -95,6 +95,9 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
         # Can also use: type(x) is datetime.date
         # noinspection PyUnresolvedReferences
         midnight = DateTime.min.time()
+        # We use the standard python datetime.combine rather than the pendulum
+        # DateTime.combine so that the tz will not be ignored in the call to
+        # pendulum.instance
         dt = datetime.datetime.combine(x, midnight)
         # noinspection PyTypeChecker
         return pendulum.instance(dt, tz=tz)  # (*)
