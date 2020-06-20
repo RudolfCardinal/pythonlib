@@ -27,8 +27,10 @@
 
 import datetime
 import logging
+import sys
 from string import Formatter
 from typing import Any, Optional, Union
+import unittest
 
 try:
     from arrow import Arrow
@@ -47,6 +49,8 @@ from pendulum import Date, DateTime, Duration, Time
 from pendulum.tz import local_timezone
 from pendulum.tz.timezone import Timezone
 # import tzlocal
+
+from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 
 PotentialDatetimeType = Union[None, datetime.datetime, datetime.date,
                               DateTime, str, Arrow]
@@ -91,7 +95,10 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
         # Can also use: type(x) is datetime.date
         # noinspection PyUnresolvedReferences
         midnight = DateTime.min.time()
-        dt = DateTime.combine(x, midnight)
+        # We use the standard python datetime.combine rather than the pendulum
+        # DateTime.combine so that the tz will not be ignored in the call to
+        # pendulum.instance
+        dt = datetime.datetime.combine(x, midnight)
         # noinspection PyTypeChecker
         return pendulum.instance(dt, tz=tz)  # (*)
     elif isinstance(x, str):
@@ -421,7 +428,7 @@ def pendulum_duration_from_timedelta(td: datetime.timedelta) -> Duration:
 
         td1 = timedelta(days=5, hours=3, minutes=2, microseconds=5)
         d1 = pendulum_duration_from_timedelta(td1)
-        
+
         td2 = timedelta(microseconds=5010293989234)
         d2 = pendulum_duration_from_timedelta(td2)
 
@@ -440,17 +447,17 @@ def pendulum_duration_from_isodate_duration(dur: IsodateDuration) -> Duration:
     incorporate an internal representation of a :class:`datetime.timedelta`
     (weeks, days, hours, minutes, seconds, milliseconds, microseconds) and
     separate representations of years and months.
-    
+
     The :class:`isodate.isoduration.Duration` year/month elements are both of
     type :class:`decimal.Decimal` -- although its ``str()`` representation
     converts these silently to integer, which is quite nasty.
-    
+
     If you create a Pendulum Duration it normalizes within its timedelta parts,
     but not across years and months. That is obviously because neither years
     and months are of exactly fixed duration.
-    
+
     Raises:
-        
+
         :exc:`ValueError` if the year or month component is not an integer
 
     .. code-block:: python
@@ -458,20 +465,20 @@ def pendulum_duration_from_isodate_duration(dur: IsodateDuration) -> Duration:
         from cardinal_pythonlib.datetimefunc import pendulum_duration_from_isodate_duration
         from isodate.isoduration import Duration as IsodateDuration
         from pendulum import Duration as PendulumDuration
-        
+
         td1 = IsodateDuration(days=5, hours=3, minutes=2, microseconds=5)
         d1 = pendulum_duration_from_isodate_duration(td1)
-        
+
         td2 = IsodateDuration(microseconds=5010293989234)
         d2 = pendulum_duration_from_isodate_duration(td2)
-        
+
         td3 = IsodateDuration(days=5000)
         d3 = pendulum_duration_from_isodate_duration(td3)
-        
+
         td4 = IsodateDuration(days=5000, years=5, months=2)
         d4 = pendulum_duration_from_isodate_duration(td4)
         # ... doesn't normalize across years/months; see explanation above
-        
+
         td5 = IsodateDuration(days=5000, years=5.1, months=2.2)
         d5 = pendulum_duration_from_isodate_duration(td5)  # will raise
     """  # noqa
@@ -551,7 +558,7 @@ def duration_to_iso(d: Duration, permit_years_months: bool = True,
                     minus_sign_at_front: bool = True) -> str:
     """
     Converts a :class:`pendulum.Duration` into an ISO-8601 formatted string.
-    
+
     Args:
         d:
             the duration
@@ -566,7 +573,7 @@ def duration_to_iso(d: Duration, permit_years_months: bool = True,
         minus_sign_at_front:
             Applies to negative durations, which probably aren't part of the
             ISO standard.
-            
+
             - if ``True``, the format ``-P<positive_duration>`` is used, i.e.
               with a minus sign at the front and individual components
               positive.
@@ -574,13 +581,13 @@ def duration_to_iso(d: Duration, permit_years_months: bool = True,
               used, i.e. with a minus sign for each component. This format is
               not re-parsed successfully by ``isodate`` and will therefore
               fail :func:`duration_from_iso`.
-              
+
     Raises:
-        
+
         :exc:`ValueError` for bad input
 
     The maximum length of the resulting string (see test code below) is:
-    
+
     - 21 if years/months are not permitted;
     - ill-defined if years/months are permitted, but 29 for much more than is
       realistic (negative, 1000 years, 11 months, and the maximum length for
@@ -592,7 +599,7 @@ def duration_to_iso(d: Duration, permit_years_months: bool = True,
         from cardinal_pythonlib.datetimefunc import duration_from_iso, duration_to_iso
         from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
         main_only_quicksetup_rootlogger()
-        
+
         d1 = duration_from_iso("P5W")
         d2 = duration_from_iso("P3Y1DT3H1M2S")
         d3 = duration_from_iso("P7000D")
@@ -618,15 +625,15 @@ def duration_to_iso(d: Duration, permit_years_months: bool = True,
         d7 = duration_from_iso("P0Y1MT86400000000000.0S")  # OverflowError
         d8 = duration_from_iso("P0Y1111111111111111MT76400000000000.0S")  # accepted!
         # ... length e.g. 38; see len(duration_to_iso(d8))
-        
+
         # So the maximum string length may be ill-defined if years/months are
-        # permitted (since Python 3 integers are unbounded; try 99 ** 10000). 
+        # permitted (since Python 3 integers are unbounded; try 99 ** 10000).
         # But otherwise:
 
         d9longest              = duration_from_iso("-P0Y0MT10000000000000.000009S")
         d10toolong             = duration_from_iso("-P0Y0MT100000000000000.000009S")  # fails, too many days
         assert d9longest == duration_from_iso(duration_to_iso(d9longest))
-        
+
         d11longest_with_us     = duration_from_iso("-P0Y0MT1000000000.000009S")  # microseconds correct
         d12toolong_rounds_us   = duration_from_iso("-P0Y0MT10000000000.000009S")  # error in microseconds
         d13toolong_drops_us    = duration_from_iso("-P0Y0MT10000000000000.000009S")  # drops microseconds (within datetime.timedelta)
@@ -634,7 +641,7 @@ def duration_to_iso(d: Duration, permit_years_months: bool = True,
         assert d11longest_with_us == duration_from_iso(duration_to_iso(d11longest_with_us))
         assert d12toolong_rounds_us == duration_from_iso(duration_to_iso(d12toolong_rounds_us))
         assert d13toolong_drops_us == duration_from_iso(duration_to_iso(d13toolong_drops_us))
-        
+
         longest_without_ym = duration_to_iso(d11longest_with_us, permit_years_months=False)
         print(longest_without_ym)  # -PT1000000000.000009S
         print(len(longest_without_ym))  # 21
@@ -643,7 +650,7 @@ def duration_to_iso(d: Duration, permit_years_months: bool = True,
         longest_realistic_with_ym = duration_to_iso(d15longest_realistic_with_ym_us)
         print(longest_realistic_with_ym)  # -P1000Y11MT1000000000.000009S
         print(len(longest_realistic_with_ym))  # 29
-        
+
         # Now, double-check how the Pendulum classes handle year/month
         # calculations:
         basedate1 = DateTime(year=2000, month=1, day=1)  # 2000-01-01
@@ -719,3 +726,100 @@ def coerce_to_datetime(x: Any) -> Optional[datetime.datetime]:
         return datetime.datetime(x.year, x.month, x.day)
     else:
         return dateutil.parser.parse(x)  # may raise
+
+
+# =============================================================================
+# Unit testing
+# =============================================================================
+
+class TestCoerceToPendulum(unittest.TestCase):
+    def test_returns_none_if_falsey(self) -> None:
+        self.assertIsNone(coerce_to_pendulum(''))
+
+    def test_returns_input_if_pendulum_datetime(self) -> None:
+        datetime_in = DateTime.now()
+        datetime_out = coerce_to_pendulum(datetime_in)
+
+        self.assertIs(datetime_in, datetime_out)
+
+    def test_converts_python_datetime_with_local_tz(self) -> None:
+        datetime_in = datetime.datetime(2020, 6, 15, hour=15, minute=42)
+        datetime_out = coerce_to_pendulum(datetime_in, assume_local=True)
+
+        self.assertIsInstance(datetime_out, DateTime)
+        self.assertTrue(datetime_out.is_local())
+
+    def test_converts_python_datetime_with_utc_tz(self) -> None:
+        datetime_in = datetime.datetime(2020, 6, 15, hour=15, minute=42)
+        datetime_out = coerce_to_pendulum(datetime_in)
+
+        self.assertIsInstance(datetime_out, DateTime)
+        self.assertTrue(datetime_out.is_utc())
+
+    def test_converts_python_datetime_with_tz(self) -> None:
+        utc_offset = datetime.timedelta(hours=5, minutes=30)
+        datetime_in = datetime.datetime(
+            2020, 6, 15, hour=15, minute=42,
+            tzinfo=datetime.timezone(utc_offset)
+        )
+        datetime_out = coerce_to_pendulum(datetime_in)
+
+        self.assertIsInstance(datetime_out, DateTime)
+        self.assertEqual(datetime_out.utcoffset(), utc_offset)
+
+    def test_converts_python_date_with_local_tz(self) -> None:
+        date_in = datetime.date(2020, 6, 15)
+        datetime_out = coerce_to_pendulum(date_in, assume_local=True)
+
+        self.assertIsInstance(datetime_out, DateTime)
+        self.assertTrue(datetime_out.is_local())
+
+    def test_converts_python_date_with_utc_tz(self) -> None:
+        date_in = datetime.date(2020, 6, 15)
+        datetime_out = coerce_to_pendulum(date_in)
+
+        self.assertIsInstance(datetime_out, DateTime)
+        self.assertTrue(datetime_out.is_utc())
+
+    def test_parses_datetime_string_with_tz(self) -> None:
+        datetime_in = "2020-06-15T14:52:36+05:30"
+        datetime_out = coerce_to_pendulum(datetime_in)
+
+        self.assertIsInstance(datetime_out, DateTime)
+        self.assertEqual(
+            datetime_out.utcoffset(),
+            datetime.timedelta(hours=5, minutes=30)
+        )
+
+    def test_parses_datetime_string_with_utc_tz(self) -> None:
+        datetime_in = "2020-06-15T14:52:36"
+        datetime_out = coerce_to_pendulum(datetime_in)
+
+        self.assertIsInstance(datetime_out, DateTime)
+        self.assertTrue(datetime_out.is_utc())
+
+    def test_parses_datetime_string_with_local_tz(self) -> None:
+        datetime_in = "2020-06-15T14:52:36"
+        datetime_out = coerce_to_pendulum(datetime_in, assume_local=True)
+
+        self.assertIsInstance(datetime_out, DateTime)
+        self.assertTrue(datetime_out.is_local())
+
+    def test_raises_if_type_invalid(self) -> None:
+        with self.assertRaises(ValueError) as cm:
+            coerce_to_pendulum(12345)
+
+        self.assertIn(
+            "Don't know how to convert to DateTime", str(cm.exception)
+        )
+
+
+# =============================================================================
+# main
+# =============================================================================
+
+if __name__ == "__main__":
+    main_only_quicksetup_rootlogger(level=logging.DEBUG)
+    log.info("Running unit tests")
+    unittest.main(argv=[sys.argv[0]])
+    sys.exit(0)
