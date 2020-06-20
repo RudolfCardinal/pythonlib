@@ -518,3 +518,8 @@ Quick links:
 **1.0.88 (2020-04-24)**
 
 - Optimizations for :mod:`cardinal_pythonlib.probability`.
+
+**1.0.89 (2020-06-16, MB)**
+
+- Fix :func:`cardinal_pythonlib.datetimefunc.coerce_to_pendulum` when coercing
+  ``datetime.date`` objects; the timezone was being lost.
