@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/docker.py
 
 """
 ===============================================================================
@@ -22,14 +22,24 @@
 
 ===============================================================================
 
-**Current version number of this library.**
-
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
-
+**Support functions for Docker.**
 """
 
-VERSION_STRING = '1.0.90'
-# Use semantic versioning: http://semver.org/
+import os
+
+
+def running_under_docker() -> bool:
+    """
+    Are we running inside a Docker container?
+
+    As per
+    https://stackoverflow.com/questions/43878953/how-does-one-detect-if-one-is-running-within-a-docker-container-within-python
+    """  # noqa
+    path = '/proc/self/cgroup'
+    return (
+        os.path.exists('/.dockerenv') or
+        (
+            os.path.isfile(path) and
+            any('docker' in line for line in open(path))
+        )
+    )

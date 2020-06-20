@@ -523,3 +523,7 @@ Quick links:
 
 - Fix :func:`cardinal_pythonlib.datetimefunc.coerce_to_pendulum` when coercing
   ``datetime.date`` objects; the timezone was being lost.
+
+**1.0.90 (2020-06-20)**
+
+- :mod:`cardinal_pythonlib.docker`
