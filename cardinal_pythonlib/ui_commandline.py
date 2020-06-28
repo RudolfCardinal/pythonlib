@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/ui.py
 
 """
 ===============================================================================
@@ -22,14 +22,30 @@
 
 ===============================================================================
 
-**Current version number of this library.**
+**Support functions for user interaction -- command line only.**
 
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
+Does not need tkinter.
 
 """
 
-VERSION_STRING = '1.0.91'
-# Use semantic versioning: http://semver.org/
+import getpass
+from typing import Optional
+
+
+def ask_user(prompt: str, default: str = None) -> Optional[str]:
+    """
+    Prompts the user, with a default. Returns user input from ``stdin``.
+    """
+    if default is None:
+        prompt += ": "
+    else:
+        prompt += " [" + default + "]: "
+    result = input(prompt)
+    return result if len(result) > 0 else default
+
+
+def ask_user_password(prompt: str) -> str:
+    """
+    Read a password from the console.
+    """
+    return getpass.getpass(prompt + ": ")

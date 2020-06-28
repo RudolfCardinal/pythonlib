@@ -26,10 +26,11 @@
 
 """
 
-
-import getpass
 import os
-from typing import Optional
+
+# For back compatibility (these functions used to be in this file):
+# noinspection PyUnresolvedReferences
+from cardinal_pythonlib.ui_commandline import ask_user, ask_user_password
 
 try:
     import tkinter
@@ -39,25 +40,6 @@ except ImportError:
     filedialog = None  # make type checker happy
     if not os.environ.get("_SPHINX_AUTODOC_IN_PROGRESS", None):
         raise
-
-
-def ask_user(prompt: str, default: str = None) -> Optional[str]:
-    """
-    Prompts the user, with a default. Returns user input from ``stdin``.
-    """
-    if default is None:
-        prompt += ": "
-    else:
-        prompt += " [" + default + "]: "
-    result = input(prompt)
-    return result if len(result) > 0 else default
-
-
-def ask_user_password(prompt: str) -> str:
-    """
-    Read a password from the console.
-    """
-    return getpass.getpass(prompt + ": ")
 
 
 def get_save_as_filename(defaultfilename: str,
