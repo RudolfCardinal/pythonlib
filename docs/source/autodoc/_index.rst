@@ -36,6 +36,7 @@ Automatic documentation of source code
     colander_utils.py.rst
     compression.py.rst
     configfiles.py.rst
+    contexts.py.rst
     convert.py.rst
     crypto.py.rst
     datetimefunc.py.rst
@@ -58,6 +59,7 @@ Automatic documentation of source code
     django/request_cache.py.rst
     django/serve.py.rst
     django/tools/generate_new_django_secret_key.py.rst
+    docker.py.rst
     dogpile_cache.py.rst
     dsp.py.rst
     email/mailboxpurge.py.rst
@@ -73,6 +75,7 @@ Automatic documentation of source code
     hash.py.rst
     httpconst.py.rst
     interval.py.rst
+    iterhelp.py.rst
     json/serialize.py.rst
     json/typing_helpers.py.rst
     lang.py.rst
@@ -88,11 +91,13 @@ Automatic documentation of source code
     openxml/find_recovered_openxml.py.rst
     openxml/grep_in_openxml.py.rst
     openxml/pause_process_by_disk_space.py.rst
+    parallel.py.rst
     pdf.py.rst
     platformfunc.py.rst
     plot.py.rst
     probability.py.rst
     process.py.rst
+    profile.py.rst
     psychiatry/drugs.py.rst
     psychiatry/rfunc.py.rst
     psychiatry/timeline.py.rst
@@ -149,6 +154,7 @@ Automatic documentation of source code
     timing.py.rst
     tools/backup_mysql_database.py.rst
     tools/convert_athena_ohdsi_codes.py.rst
+    tools/convert_mdb_to_mysql.py.rst
     tools/estimate_mysql_memory_usage.py.rst
     tools/list_all_file_extensions.py.rst
     tools/merge_csv.py.rst
@@ -158,6 +164,7 @@ Automatic documentation of source code
     typetests.py.rst
     typing_helpers.py.rst
     ui.py.rst
+    ui_commandline.py.rst
     version.py.rst
     version_string.py.rst
     winservice.py.rst
