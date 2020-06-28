@@ -263,6 +263,7 @@ class Pep249DatabaseCursorType(object):
         # read/write attribute; see below
         pass
 
+    # noinspection PyUnresolvedReferences
     @arraysize.setter
     @abstractmethod
     def arraysize(self, val: int) -> None:

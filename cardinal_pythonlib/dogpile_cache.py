@@ -85,7 +85,7 @@ import inspect
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
-# noinspection PyPackageRequirements
+# noinspection PyUnresolvedReferences,PyPackageRequirements
 from dogpile.cache import make_region
 # from dogpile.util import compat  # repr used as the default instead of compat.to_str  # noqa
 

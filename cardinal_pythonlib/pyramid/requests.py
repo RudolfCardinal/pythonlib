@@ -31,7 +31,9 @@ import logging
 from typing import Generator
 import zlib
 
+# noinspection PyUnresolvedReferences
 from pyramid.request import Request
+# noinspection PyUnresolvedReferences
 from webob.headers import EnvironHeaders
 
 try:
@@ -171,6 +173,7 @@ def decompress_request(request: Request) -> None:
         elif encoding == BR_ENCODING:
             if brotli:
                 # https://python-hyper.org/projects/brotlipy/en/latest/
+                # noinspection PyUnresolvedReferences
                 request.body = brotli.decompress(request.body)
             else:
                 raise NotImplementedError(

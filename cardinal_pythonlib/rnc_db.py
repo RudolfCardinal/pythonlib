@@ -169,11 +169,11 @@ JDBC types:
 import binascii
 import configparser
 import datetime
-import re
+import re  # noqa
 import logging
 import time
-from typing import (Any, Container, Dict, Iterable, Iterator, List, Optional,
-                    Sequence, Tuple, Type, TypeVar, Union)
+from typing import (Any, Container, Dict, Iterable, Iterator, List, Optional,  # noqa
+                    Sequence, Tuple, Type, TypeVar, Union)  # noqa
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sql.validation import *
@@ -1001,7 +1001,7 @@ def datetime2literal_rnc(d: datetime.datetime, c: Optional[Dict]) -> str:
     #   require year >= 1900
     # http://stackoverflow.com/questions/10263956
     dt = d.isoformat(" ")
-    # noinspection PyArgumentList
+    # noinspection PyArgumentList,PyUnresolvedReferences
     return _mysql.string_literal(dt, c)
 
 
@@ -1210,7 +1210,7 @@ def reconfigure_jaydebeapi() -> None:
         else:
             # Older version, e.g. prior to 0.2.0
             log.warning("Old jaydebeapi version")
-            # noinspection PyProtectedMember
+            # noinspection PyUnresolvedReferences,PyProtectedMember
             converters = jaydebeapi.dbapi2._DEFAULT_CONVERTERS
     except:  # nopep8
         raise AssertionError(
@@ -1659,6 +1659,7 @@ class DatabaseSupporter:
                 "USER={4};PASSWORD={5}".format(driver, host, port, database,
                                                user, password)
             )
+            # noinspection PyUnresolvedReferences
             self.db = pyodbc.connect(dsn)
             self.db.autocommit = autocommit
             # http://stackoverflow.com/questions/1063770
@@ -1703,6 +1704,7 @@ class DatabaseSupporter:
                     "DRIVER={};SERVER={};DATABASE={};UID={};PWD={}".format(
                         driver, host, database, user, password)
                 )
+            # noinspection PyUnresolvedReferences
             self.db = pyodbc.connect(connectstring, unicode_results=True)
             self.db.autocommit = autocommit
             # http://stackoverflow.com/questions/1063770
@@ -1748,6 +1750,7 @@ class DatabaseSupporter:
         elif engine == ENGINE_ACCESS and interface == INTERFACE_ODBC:
             dsn = "DSN={}".format(dsn)
             log.info("ODBC connect: DSN={}", dsn)
+            # noinspection PyUnresolvedReferences
             self.db = pyodbc.connect(dsn)
             self.db.autocommit = autocommit
             # http://stackoverflow.com/questions/1063770
@@ -1768,6 +1771,7 @@ class DatabaseSupporter:
                       libs: Union[str, List[str], None],
                       autocommit: bool) -> None:
         try:
+            # noinspection PyUnresolvedReferences
             self.db = jaydebeapi.connect(jclassname, driver_args, jars=jars,
                                          libs=libs)
             # ... which should have had its connectors altered by
@@ -2844,6 +2848,7 @@ class DatabaseSupporter:
         if self.db_pythonlib != PYTHONLIB_JAYDEBEAPI:
             return
         log.info("Calling Java garbage collector...")
+        # noinspection PyUnresolvedReferences
         rt = jpype.java.lang.Runtime.getRuntime()
         rt.gc()
         log.info("... done")

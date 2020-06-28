@@ -28,9 +28,11 @@
 
 from typing import Any, Callable
 
+# noinspection PyUnresolvedReferences
 from django.contrib.admin import AdminSite, ModelAdmin
-# from django.db.models import Model
+# noinspection PyUnresolvedReferences
 from django.utils.html import escape
+# noinspection PyUnresolvedReferences
 from django.urls import reverse
 
 

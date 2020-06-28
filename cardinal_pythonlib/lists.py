@@ -137,20 +137,20 @@ def unique_list(seq: Iterable[Any]) -> List[Any]:
     return [x for x in seq if not (x in seen or seen_add(x))]
 
 
-def chunks(l: List[Any], n: int) -> Iterable[List[Any]]:
+def chunks(x: List[Any], n: int) -> Iterable[List[Any]]:
     """
-    Yield successive ``n``-sized chunks from ``l``.
+    Yield successive ``n``-sized chunks from the list ``x``.
 
     Args:
-        l: input list
+        x: input list
         n: chunk size
 
     Yields:
         successive chunks of size ``n``
 
     """
-    for i in range(0, len(l), n):
-        yield l[i:i + n]
+    for i in range(0, len(x), n):
+        yield x[i:i + n]
 
 
 def count_bool(blist: Iterable[Any]) -> int:

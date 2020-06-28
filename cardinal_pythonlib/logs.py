@@ -408,6 +408,7 @@ def get_handler_report(h: logging.Handler) -> Dict[str, Any]:
     Returns information on a log handler, as a dictionary.
     For debugging.
     """
+    # noinspection PyUnresolvedReferences
     return {
         'get_name()': h.get_name(),
         'level': h.level,
@@ -644,6 +645,7 @@ class BraceStyleAdapter(logging.LoggerAdapter):
             # 2018-09-17 16:13:50.404 __main__:INFO: Hello world, Mr Smith!
         
         """  # noqa
+        # noinspection PyTypeChecker
         super().__init__(logger=logger, extra=None)
         self.pass_special_logger_args = pass_special_logger_args
         self.strip_special_logger_args_from_fmt = strip_special_logger_args_from_fmt  # noqa

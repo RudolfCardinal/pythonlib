@@ -32,6 +32,7 @@ but fixed for Python 3 / Django 1.10.
 import hashlib
 from typing import Any, Callable, Dict, Tuple
 
+# noinspection PyUnresolvedReferences
 from django.core.cache import cache  # default cache
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler

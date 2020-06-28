@@ -528,6 +528,10 @@ Quick links:
 
 - :mod:`cardinal_pythonlib.docker`
 
-**1.0.91 (2020-06-20)**
+**1.0.91 (2020-06-28)**
 
 - Removed ``tkinter`` dependence via :mod:`cardinal_pythonlib.ui_commandline`.
+
+**1.0.92 (2020-06-28)**
+
+- Made several other large dependencies optional.

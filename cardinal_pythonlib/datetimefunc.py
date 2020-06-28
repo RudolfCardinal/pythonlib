@@ -43,12 +43,10 @@ except ImportError:
     dateutil = None
 
 from isodate.isoduration import parse_duration, Duration as IsodateDuration
-# from isodate.isoerror import ISO8601Error
 import pendulum
 from pendulum import Date, DateTime, Duration, Time
 from pendulum.tz import local_timezone
 from pendulum.tz.timezone import Timezone
-# import tzlocal
 
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 
@@ -102,6 +100,7 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
         # noinspection PyTypeChecker
         return pendulum.instance(dt, tz=tz)  # (*)
     elif isinstance(x, str):
+        # noinspection PyTypeChecker
         return pendulum.parse(x, tz=tz)  # (*)  # may raise
     else:
         raise ValueError(f"Don't know how to convert to DateTime: {x!r}")
@@ -290,7 +289,6 @@ def get_tz_local() -> Timezone:  # datetime.tzinfo:
     Returns the local timezone, in :class:`pendulum.Timezone`` format.
     (This is a subclass of :class:`datetime.tzinfo`.)
     """
-    # return tzlocal.get_localzone()
     return local_timezone()
 
 
@@ -807,6 +805,7 @@ class TestCoerceToPendulum(unittest.TestCase):
 
     def test_raises_if_type_invalid(self) -> None:
         with self.assertRaises(ValueError) as cm:
+            # noinspection PyTypeChecker
             coerce_to_pendulum(12345)
 
         self.assertIn(

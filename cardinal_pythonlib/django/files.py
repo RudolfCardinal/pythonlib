@@ -29,8 +29,6 @@
 import os
 from typing import Any, Iterable
 
-# from django.db.models import Model
-
 
 # =============================================================================
 # Making FileFields own their files (i.e. delete them afterwards)

@@ -37,7 +37,9 @@ from cardinal_pythonlib.datetimefunc import (
     PotentialDatetimeType,
 )
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+# noinspection PyUnresolvedReferences
 import colander
+# noinspection PyUnresolvedReferences
 from colander import (
     Boolean,
     Date,
@@ -60,7 +62,7 @@ from pendulum import DateTime as Pendulum  # NB name clash with colander
 from pendulum.parsing.exceptions import ParserError
 
 if TYPE_CHECKING:
-    # noinspection PyProtectedMember
+    # noinspection PyProtectedMember,PyUnresolvedReferences
     from colander import _SchemaNode
 
 log = get_brace_style_log_with_null_handler(__name__)

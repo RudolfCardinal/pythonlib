@@ -70,6 +70,7 @@ class ErrorReportingMiddleware(object):
         # noinspection PyBroadException,PyPep8
         try:
             return self.app(environ, start_response)
+        # noinspection PyBroadException,PyPep8
         except:
             exc_info = sys.exc_info()
             start_response(

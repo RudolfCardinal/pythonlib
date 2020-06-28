@@ -226,6 +226,7 @@ def get_default_fix_pdfkit_encoding_bug() -> bool:
     if pdfkit is None:
         return False
     else:
+        # noinspection PyUnresolvedReferences
         return bool(Version(pdfkit.__version__) == Version("0.5.0"))
 
 
@@ -330,9 +331,11 @@ def make_pdf_from_html(
     elif processor == Processors.WEASYPRINT:
 
         if on_disk:
+            # noinspection PyUnresolvedReferences
             return weasyprint.HTML(string=html).write_pdf(output_path)
         else:
             # http://ampad.de/blog/generating-pdfs-django/
+            # noinspection PyUnresolvedReferences
             return weasyprint.HTML(string=html).write_pdf()
 
     elif processor == Processors.PDFKIT:
@@ -344,12 +347,14 @@ def make_pdf_from_html(
             if fix_pdfkit_encoding_bug:  # needs to be True for pdfkit==0.5.0
                 log.debug("Attempting to fix bug in pdfkit (e.g. version 0.5.0)"
                           " by encoding wkhtmltopdf_filename to UTF-8")
+                # noinspection PyUnresolvedReferences
                 config = pdfkit.configuration(
                     wkhtmltopdf=wkhtmltopdf_filename.encode('utf-8'))
                 # the bug is that pdfkit.pdfkit.PDFKit.__init__ will attempt to
                 # decode the string in its configuration object;
                 # https://github.com/JazzCore/python-pdfkit/issues/32
             else:
+                # noinspection PyUnresolvedReferences
                 config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_filename)
 
         # Temporary files that a subprocess can read:
@@ -373,6 +378,7 @@ def make_pdf_from_html(
                 log.debug("wkhtmltopdf config: {!r}", config)
                 log.debug("wkhtmltopdf_options: {}",
                           pformat(wkhtmltopdf_options))
+            # noinspection PyUnresolvedReferences
             kit = pdfkit.pdfkit.PDFKit(html, 'string', configuration=config,
                                        options=wkhtmltopdf_options)
 
@@ -528,7 +534,8 @@ def serve_pdf_to_stdout(pdf: bytes) -> None:
     """
     # print("Content-type: text/plain\n")  # for debugging
     print("Content-Type: application/pdf\n")
-    sys.stdout.write(pdf)
+    # https://stackoverflow.com/questions/908331/how-to-write-binary-data-to-stdout-in-python-3  # noqa
+    sys.stdout.buffer.write(pdf)
 
 
 def make_pdf_writer() -> PdfFileWriter:

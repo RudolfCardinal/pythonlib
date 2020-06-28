@@ -31,9 +31,13 @@ files, PDFs).**
 import os
 from typing import Iterable, Optional, Union
 
+# noinspection PyUnresolvedReferences
 from django.conf import settings
+# noinspection PyUnresolvedReferences
 from django.http import FileResponse, HttpResponse
+# noinspection PyUnresolvedReferences
 from django.http.response import HttpResponseBase
+# noinspection PyUnresolvedReferences
 from django.utils.encoding import smart_str
 
 from cardinal_pythonlib.httpconst import MimeType

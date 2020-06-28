@@ -29,7 +29,9 @@
 import smtplib
 import ssl
 
+# noinspection PyUnresolvedReferences
 from django.core.mail.backends.smtp import EmailBackend
+# noinspection PyUnresolvedReferences
 from django.core.mail.utils import DNS_NAME
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler

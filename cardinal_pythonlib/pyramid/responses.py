@@ -27,6 +27,7 @@ suggested download methods, etc.).**
 
 """
 
+# noinspection PyUnresolvedReferences
 from pyramid.response import Response
 
 from cardinal_pythonlib.httpconst import MimeType

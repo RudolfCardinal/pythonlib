@@ -27,6 +27,7 @@ from typing import (Any, Callable, Dict, Generator, Iterable, List, Tuple,
                     TYPE_CHECKING)
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+# noinspection PyUnresolvedReferences
 from colander import Invalid, SchemaNode
 from deform.exception import ValidationFailure
 from deform.field import Field
@@ -34,6 +35,7 @@ from deform.form import Form
 from deform.widget import HiddenWidget
 
 if TYPE_CHECKING:
+    # noinspection PyUnresolvedReferences
     from pyramid.request import Request
 
 log = get_brace_style_log_with_null_handler(__name__)

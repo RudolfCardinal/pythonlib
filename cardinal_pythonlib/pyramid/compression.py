@@ -28,8 +28,11 @@ Compression functions.
 
 import logging
 
+# noinspection PyUnresolvedReferences
 from pyramid.request import Request
+# noinspection PyUnresolvedReferences
 from pyramid.response import Response
+# noinspection PyUnresolvedReferences
 from pyramid.registry import Registry
 
 from cardinal_pythonlib.pyramid.constants import PyramidHandlerType

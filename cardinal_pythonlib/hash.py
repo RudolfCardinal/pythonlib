@@ -476,27 +476,28 @@ def murmur3_64(data: Union[bytes, bytearray], seed: int = 19820125) -> int:
         h = (h ^ k)
         h = (h * m) & mask
 
-    l = length & 7
+    # Variable was named "l"; renamed to "l_" for PEP8
+    l_ = length & 7
 
-    if l >= 7:
+    if l_ >= 7:
         h = (h ^ (data[offset + 6] << 48))
 
-    if l >= 6:
+    if l_ >= 6:
         h = (h ^ (data[offset + 5] << 40))
 
-    if l >= 5:
+    if l_ >= 5:
         h = (h ^ (data[offset + 4] << 32))
 
-    if l >= 4:
+    if l_ >= 4:
         h = (h ^ (data[offset + 3] << 24))
 
-    if l >= 3:
+    if l_ >= 3:
         h = (h ^ (data[offset + 2] << 16))
 
-    if l >= 2:
+    if l_ >= 2:
         h = (h ^ (data[offset + 1] << 8))
 
-    if l >= 1:
+    if l_ >= 1:
         h = (h ^ data[offset])
         h = (h * m) & mask
 
@@ -914,6 +915,7 @@ def compare_python_to_reference_murmur3_32(data: Any, seed: int = 0) -> None:
     """
     assert mmh3, "Need mmh3 module"
     c_data = to_str(data)
+    # noinspection PyUnresolvedReferences
     c_signed = mmh3.hash(c_data, seed=seed)  # 32 bit
     py_data = to_bytes(c_data)
     py_unsigned = murmur3_x86_32(py_data, seed=seed)
@@ -943,6 +945,7 @@ def compare_python_to_reference_murmur3_64(data: Any, seed: int = 0) -> None:
     """
     assert mmh3, "Need mmh3 module"
     c_data = to_str(data)
+    # noinspection PyUnresolvedReferences
     c_signed_low, c_signed_high = mmh3.hash64(c_data, seed=seed,
                                               x64arch=IS_64_BIT)
     py_data = to_bytes(c_data)
@@ -979,6 +982,7 @@ def hash32(data: Any, seed: int = 0) -> int:
     """
     c_data = to_str(data)
     if mmh3:
+        # noinspection PyUnresolvedReferences
         return mmh3.hash(c_data, seed=seed)
     py_data = to_bytes(c_data)
     py_unsigned = murmur3_x86_32(py_data, seed=seed)
@@ -1001,6 +1005,7 @@ def hash64(data: Any, seed: int = 0) -> int:
     # -------------------------------------------------------------------------
     c_data = to_str(data)
     if mmh3:
+        # noinspection PyUnresolvedReferences
         c_signed_low, _ = mmh3.hash64(data, seed=seed, x64arch=IS_64_BIT)
         return c_signed_low
     py_data = to_bytes(c_data)

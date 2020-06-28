@@ -54,21 +54,18 @@ REQUIREMENTS_TEXT = """
 # =============================================================================
 # Actual requirements
 # =============================================================================
-# - Include everything that is imported without "try / except ImportError"
+# - Include most things that are imported without "try / except ImportError"
 #   handling.
 # - Include as few version requirements as possible.
 # - Keep it to pure-Python packages (for e.g. Windows installation with no 
 #   compiler).
+# - Keep it to SMALL packages.
+# - SEE ALSO external_dependencies.rst
 
 alembic
 appdirs>=1.4.0
-arrow
-beautifulsoup4
-colander
+beautifulsoup4  # "import bs4" or "from bs4 import ..."
 colorlog
-deform
-Django>=2.0.0
-dogpile.cache
 isodate>=0.5.4
 numpy
 openpyxl
@@ -79,14 +76,11 @@ psutil
 pygments
 pyparsing
 PyPDF2
-pyramid
-python-dateutil
+python-dateutil  # "import dateutil"
 scipy
 semantic-version
 SQLAlchemy
 sqlparse
-tzlocal
-webob  # installed by pyramid
 
 
 # =============================================================================
@@ -94,13 +88,23 @@ webob  # installed by pyramid
 # ImportError, but we don't make them requirements as they need a compiler to
 # install (and one might want to use the rest of the library without them).
 # =============================================================================
+# - SEE ALSO external_dependencies.rst
+
+# arrow
 # bcrypt
+# colander
+# deform
+# Django>=2.0.0
+# dogpile.cache
+# pyramid
+# webob  # installed by pyramid
 
 
 # =============================================================================
 # The following are OPTIONAL; their absence will be handled gracefully, so
 # they are not requirements, but we note them here:
 # =============================================================================
+# - SEE ALSO external_dependencies.rst
 
 # mmh3
 # pdfkit
@@ -111,19 +115,19 @@ webob  # installed by pyramid
 # weasyprint
 # xhtml2pdf
 
+
+# =============================================================================
+# NO LONGER REQUIRED (but worth commenting on for now)
+# =============================================================================
+
 # DATABASE DRIVERS:
-# mysql-python  # "import MySQLdb"
-# mysqlclient  # "import MySQLdb"
-# pymysql
-# pyodbc
-
-
-# =============================================================================
-# NO LONGER REQUIRED
-# =============================================================================
 # jaydebeapi  -- in deprecated rnc_db module only
+# mysql-python  # "import MySQLdb"  -- in deprecated rnc_db module only
+# mysqlclient  # "import MySQLdb"  -- in deprecated rnc_db module only
+# pymysql  -- in deprecated rnc_db module only
+# pyodbc  -- in deprecated rnc_db module only
 # pypyodbc  -- in deprecated rnc_db module only
-# pytz
+
 """
 
 # REMEMBER: code that runs here needs to cope with the INSTALLATION situation

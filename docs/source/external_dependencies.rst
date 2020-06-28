@@ -22,31 +22,39 @@ External libraries
 This package also installs (and uses or extends):
 
 - ``alembic``: http://alembic.zzzcomputing.com/
-- ``arrow``: https://arrow.readthedocs.io/
+- ``appdirs``: https://pypi.org/project/appdirs/
 - ``beautifulsoup4``: https://www.crummy.com/software/BeautifulSoup/bs4/doc/
-- ``colander``: https://docs.pylonsproject.org/projects/colander/
 - ``colorlog``: https://pypi.org/project/colorlog/
-- ``deform``: https://docs.pylonsproject.org/projects/deform/
-- ``Django``: https://www.djangoproject.com/
-- ``dogpile.cache``: https://dogpilecache.readthedocs.io/
+- ``isodate``: https://pypi.org/project/isodate/
 - ``numpy``: http://www.numpy.org/
 - ``openpyxl``: https://openpyxl.readthedocs.io/
 - ``pandas``: https://pandas.pydata.org/
 - ``pendulum``: https://pendulum.eustace.io/
 - ``prettytable``: https://pypi.org/project/PrettyTable/
+- ``psutil``: https://pypi.org/project/psutil/
+- ``pygments``: https://pygments.org/
 - ``pyparsing``: http://infohost.nmt.edu/tcc/help/pubs/pyparsing/web/index.html
 - ``PyPDF2``: https://pythonhosted.org/PyPDF2/
-- ``pyramid``: https://trypyramid.com/
 - ``python-dateutil``: https://dateutil.readthedocs.io/en/stable/
 - ``scipy``: https://www.scipy.org/
 - ``semantic_version``: https://pypi.org/project/semantic_version/
 - ``SQLAlchemy``: https://www.sqlalchemy.org/
 - ``sqlparse``: https://sqlparse.readthedocs.io/
-- ``tzlocal``: https://pypi.org/project/tzlocal/
 
-... and will use:
+The following will be used, if present (and an exception raised if you use
+library code that requires one of these packages without it being installed):
 
+- ``arrow``: https://arrow.readthedocs.io/
 - ``bcrypt``: https://pypi.org/project/bcrypt/
+- ``colander``: https://docs.pylonsproject.org/projects/colander/
+- ``deform``: https://docs.pylonsproject.org/projects/deform/
+- ``Django``: https://www.djangoproject.com/
+- ``dogpile.cache``: https://dogpilecache.readthedocs.io/
+- ``pyramid``: https://trypyramid.com/
+- ``webob``: https://webob.org/ (used by Pyramid)
+
+The following will be used, but the library code won't complain if not:
+
 - ``mmh3``: https://pypi.org/project/mmh3/
 - ``pdfkit``: https://pypi.org/project/pdfkit/
 - ``pdfminer``: https://pypi.org/project/pdfminer/

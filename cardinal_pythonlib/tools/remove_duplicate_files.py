@@ -88,7 +88,7 @@ def deduplicate(directories: List[str], recursive: bool,
         files_of_this_size = files_by_size[k]
         out_files = []  # type: List[str]
         # ... list of all files having >1 file per hash, for this size
-        hashes = {}  # type: Dict[str, Union[bool, str]]
+        hashes = {}  # type: Dict[bytes, Union[bool, str]]
         # ... key is a hash; value is either True or a filename
         if len(files_of_this_size) == 1:
             continue

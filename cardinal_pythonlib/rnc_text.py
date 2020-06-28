@@ -424,7 +424,7 @@ def is_empty_string(s: str) -> bool:
 
 def csv_to_list_of_fields(lines: List[str],
                           csvheader: str,
-                          quotechar: str = '"') -> List[str]:
+                          quotechar: str = '"') -> List[List[str]]:
     """
     Extracts data from a list of CSV lines (starting with a defined header
     line) embedded in a longer text block but ending with a blank line.
@@ -460,7 +460,7 @@ def csv_to_list_of_fields(lines: List[str],
         # [['row1value1', 'row1value2', 'row1value3'], ['row2value1', 'row2value2', 'row2value3']]
 
     """  # noqa
-    data = []  # type: List[str]
+    data = []  # type: List[List[str]]
     # an empty line marks the end of the block
     csvlines = get_lines_from_to(lines, csvheader, [None])[1:]
     # ... remove the CSV header

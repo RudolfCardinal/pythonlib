@@ -65,7 +65,7 @@ class ShowAllSubparserHelpAction(_HelpAction):
         subparsers_actions = [
             action for action in parser._actions
             if isinstance(action, _SubParsersAction)
-        ]
+        ]  # type: List[_SubParsersAction]
         messages = [""]  # type: List[str]
         for subparsers_action in subparsers_actions:
             for choice, subparser in subparsers_action.choices.items():

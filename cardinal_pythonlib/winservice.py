@@ -255,7 +255,7 @@ import sys
 import traceback
 from typing import Any, List, Optional, TextIO, Type
 
-import arrow
+import pendulum
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.process import kill_proc_tree
@@ -400,6 +400,7 @@ class ProcessManager(object):
         """
         # noinspection PyUnresolvedReferences
         s = f"{self.fullname}: {msg}"
+        # noinspection PyUnresolvedReferences
         servicemanager.LogInfoMsg(s)
         if self.debugging:
             log.info(s)
@@ -412,6 +413,7 @@ class ProcessManager(object):
         # Log messages go to the Windows APPLICATION log.
         # noinspection PyUnresolvedReferences
         s = f"{self.fullname}: {msg}"
+        # noinspection PyUnresolvedReferences
         servicemanager.LogWarningMsg(s)
         if self.debugging:
             log.warning(s)
@@ -423,6 +425,7 @@ class ProcessManager(object):
         """
         # noinspection PyUnresolvedReferences
         s = f"{self.fullname}: {msg}"
+        # noinspection PyUnresolvedReferences
         servicemanager.LogErrorMsg(s)
         if self.debugging:
             log.warning(s)
@@ -551,12 +554,14 @@ class ProcessManager(object):
             if not WINDOWS:
                 return False
             retcode = self._taskkill(force=False)  # does its own info messages
+            # noinspection PyUnresolvedReferences
             return retcode == winerror.ERROR_SUCCESS
 
         elif level == self.KILL_LEVEL_TASKKILL_FORCE:
             if not WINDOWS:
                 return False
             retcode = self._taskkill(force=True)  # does its own info messages
+            # noinspection PyUnresolvedReferences
             return retcode == winerror.ERROR_SUCCESS
 
         elif level == self.KILL_LEVEL_HARD_KILL:
@@ -649,6 +654,7 @@ class ProcessManager(object):
         callname = " ".join(args)
         retcode = subprocess.call(args)
         # http://stackoverflow.com/questions/18682681/what-are-exit-codes-from-the-taskkill-utility  # noqa
+        # noinspection PyUnresolvedReferences
         if retcode == winerror.ERROR_SUCCESS:  # 0
             self.info("Killed with " + repr(callname))
         elif retcode == winerror.ERROR_INVALID_FUNCTION:  # 1
@@ -768,6 +774,7 @@ class WindowsService(ServiceFramework):
         # noinspection PyUnresolvedReferences
         assert self._exe_args_, failmsg
         # create an event to listen for stop requests on
+        # noinspection PyUnresolvedReferences
         self.h_stop_event = win32event.CreateEvent(None, 0, 0, None)
         self.process_managers = []  # type: List[ProcessManager]
         self.debugging = False
@@ -816,6 +823,7 @@ class WindowsService(ServiceFramework):
         # noinspection PyUnresolvedReferences
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         # fire the stop event
+        # noinspection PyUnresolvedReferences
         win32event.SetEvent(self.h_stop_event)
 
     # called when service is started
@@ -862,7 +870,7 @@ class WindowsService(ServiceFramework):
         """
         # A test service. This works! (As long as you can write to the file.)
         def write(msg):
-            f.write('{}: {}\n'.format(arrow.now(), msg))
+            f.write(f'{pendulum.now()}: {msg}\n')
             f.flush()
 
         self.info("Starting test service; writing data periodically to "
@@ -871,9 +879,11 @@ class WindowsService(ServiceFramework):
         write('STARTING')
         retcode = None
         # if the stop event hasn't been fired keep looping
+        # noinspection PyUnresolvedReferences
         while retcode != win32event.WAIT_OBJECT_0:
             write('Test data; will now wait {} ms'.format(period_ms))
             # block for a while seconds and listen for a stop event
+            # noinspection PyUnresolvedReferences
             retcode = win32event.WaitForSingleObject(self.h_stop_event,
                                                      period_ms)
         write('SHUTTING DOWN')
@@ -959,6 +969,7 @@ class WindowsService(ServiceFramework):
         stop_requested = False
         subproc_failed = False
         while something_running and not stop_requested and not subproc_failed:
+            # noinspection PyUnresolvedReferences
             if (win32event.WaitForSingleObject(
                     self.h_stop_event,
                     stop_event_timeout_ms) == win32event.WAIT_OBJECT_0):
@@ -1019,6 +1030,7 @@ def generic_service_main(cls: Type[WindowsService], name: str) -> None:
     """
     argc = len(sys.argv)
     if argc == 1:
+        # noinspection PyUnresolvedReferences
         try:
             print("Trying to start service directly...")
             evtsrc_dll = os.path.abspath(servicemanager.__file__)
@@ -1028,14 +1040,18 @@ def generic_service_main(cls: Type[WindowsService], name: str) -> None:
             servicemanager.Initialize(name, evtsrc_dll)
             # noinspection PyUnresolvedReferences
             servicemanager.StartServiceCtrlDispatcher()
+        # noinspection PyUnresolvedReferences
         except win32service.error as details:
             print("Failed: {}".format(details))
             # print(repr(details.__dict__))
             errnum = details.winerror
+            # noinspection PyUnresolvedReferences
             if errnum == winerror.ERROR_FAILED_SERVICE_CONTROLLER_CONNECT:
+                # noinspection PyUnresolvedReferences
                 win32serviceutil.usage()
     elif argc == 2 and sys.argv[1] == 'debug':
         s = cls()
         s.run_debug()
     else:
+        # noinspection PyUnresolvedReferences
         win32serviceutil.HandleCommandLine(cls)

@@ -64,6 +64,7 @@ def png_img_html_from_pyplot_figure(fig: "Figure",
     # or
     #   backend.savefig(fig):
     # see e.g. http://matplotlib.org/api/backend_pdf_api.html
+    # noinspection PyUnresolvedReferences
     fig.savefig(memfile, format="png", dpi=dpi)
     memfile.seek(0)
     pngblob = memoryview(memfile.read())
@@ -77,6 +78,7 @@ def svg_html_from_pyplot_figure(fig: "Figure") -> str:
     if fig is None:
         return ""
     memfile = io.BytesIO()  # StringIO doesn't like mixing str/unicode
+    # noinspection PyUnresolvedReferences
     fig.savefig(memfile, format="svg")
     return memfile.getvalue().decode("utf-8")  # returns a text/Unicode type
     # SVG works directly in HTML; it returns <svg ...></svg>

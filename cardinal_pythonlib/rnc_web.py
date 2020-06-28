@@ -34,6 +34,7 @@ import configparser
 import dateutil.parser
 import dateutil.tz
 import datetime
+import html
 import os
 import re
 import sys
@@ -72,7 +73,7 @@ def print_utf8(s: str) -> None:
     """
     Writes a Unicode string to ``sys.stdout`` in UTF-8 encoding.
     """
-    sys.stdout.write(s.encode('utf-8'))
+    sys.stdout.buffer.write(s.encode('utf-8'))
 
 
 def get_int_or_none(s: str) -> Optional[int]:
@@ -351,8 +352,7 @@ def getenv_escaped(key: str, default: str = None) -> Optional[str]:
     Returns an environment variable's value, CGI-escaped, or ``None``.
     """
     value = os.getenv(key, default)
-    # noinspection PyDeprecation
-    return cgi.escape(value) if value is not None else None
+    return html.escape(value) if value is not None else None
 
 
 def getconfigvar_escaped(config: configparser.ConfigParser,
@@ -364,7 +364,7 @@ def getconfigvar_escaped(config: configparser.ConfigParser,
     """
     value = config.get(section, key)
     # noinspection PyDeprecation
-    return cgi.escape(value) if value is not None else None
+    return html.escape(value) if value is not None else None
 
 
 def get_cgi_fieldstorage_from_wsgi_env(
@@ -459,6 +459,7 @@ def zip_result(zip_binary: bytes,
     return contenttype, extraheaders, zip_binary
 
 
+# noinspection PyShadowingNames
 def html_result(html: str,
                 extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None) \
         -> WSGI_TUPLE_TYPE:
@@ -546,7 +547,7 @@ def print_result_for_plain_cgi_script(contenttype: str,
         ("Content-Length", str(len(content))),
     ] + headers
     sys.stdout.write("\n".join([h[0] + ": " + h[1] for h in headers]) + "\n\n")
-    sys.stdout.write(content)
+    sys.stdout.buffer.write(content)
 
 
 # =============================================================================
@@ -605,16 +606,14 @@ def webify(v: Any, preserve_newlines: bool = True) -> str:
         return ""
     if not isinstance(v, str):
         v = str(v)
-    # noinspection PyDeprecation
-    return cgi.escape(v).replace("\n", nl).replace("\\n", nl)
+    return html.escape(v).replace("\n", nl).replace("\\n", nl)
 
 
 def websafe(value: str) -> str:
     """
     Makes a string safe for inclusion in ASCII-encoded HTML.
     """
-    # noinspection PyDeprecation
-    return cgi.escape(value).encode('ascii', 'xmlcharrefreplace')
+    return html.escape(value).encode('ascii', 'xmlcharrefreplace')
     # http://stackoverflow.com/questions/1061697
 
 
@@ -668,6 +667,7 @@ def make_urls_hyperlinks(text: str) -> str:
     return text
 
 
+# noinspection PyShadowingNames
 def html_table_from_query(rows: Iterable[Iterable[Optional[str]]],
                           descriptions: Iterable[Optional[str]]) -> str:
     """

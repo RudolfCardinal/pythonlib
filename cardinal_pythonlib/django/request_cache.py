@@ -30,6 +30,7 @@
 
 from threading import currentThread
 
+# noinspection PyUnresolvedReferences
 from django.core.cache.backends.locmem import LocMemCache
 
 _request_cache = {}

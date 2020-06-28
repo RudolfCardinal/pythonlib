@@ -30,6 +30,7 @@ type in the database.**
 import datetime
 from typing import Any, Iterable, Optional
 
+# noinspection PyUnresolvedReferences
 import arrow
 import sqlalchemy.dialects.mssql
 import sqlalchemy.dialects.mysql

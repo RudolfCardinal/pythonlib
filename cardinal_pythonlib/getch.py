@@ -55,6 +55,7 @@ def _getch_windows() -> str:
     Under Windows, wets a single character from standard input. Does not echo
     to the screen.
     """
+    # noinspection PyUnresolvedReferences
     return msvcrt.getch().decode('utf-8')
 
 
@@ -76,6 +77,7 @@ def _kbhit_windows() -> bool:
     """
     Under Windows: is a keystroke available?
     """
+    # noinspection PyUnresolvedReferences
     return msvcrt.kbhit()
 
 

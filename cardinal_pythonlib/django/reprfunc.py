@@ -26,6 +26,7 @@
 
 """
 
+# noinspection PyUnresolvedReferences
 from django.core.exceptions import ObjectDoesNotExist
 
 

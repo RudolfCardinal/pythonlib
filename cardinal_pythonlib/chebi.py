@@ -195,6 +195,7 @@ class HashableChebiEntity(ChebiEntity):
         elif isinstance(other, int):
             return other == self.get_id_number()
         else:
+            # noinspection PyUnresolvedReferences
             return self.get_id_number() == other.get_id_number()
 
     def __hash__(self) -> int:

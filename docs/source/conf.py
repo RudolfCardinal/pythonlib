@@ -15,7 +15,9 @@
 
 import os
 
+# noinspection PyUnresolvedReferences
 import django
+# noinspection PyUnresolvedReferences
 from django.conf import settings
 
 from cardinal_pythonlib.version_string import VERSION_STRING

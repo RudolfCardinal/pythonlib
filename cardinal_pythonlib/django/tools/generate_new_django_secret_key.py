@@ -27,6 +27,7 @@
 See ``django.core.management.commands.startproject.Command.handle``.
 """
 
+# noinspection PyUnresolvedReferences
 from django.utils.crypto import get_random_string
 
 

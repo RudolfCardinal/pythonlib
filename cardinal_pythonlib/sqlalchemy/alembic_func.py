@@ -33,7 +33,6 @@ from typing import Tuple
 
 from alembic.config import Config
 from alembic.util.exc import CommandError
-# noinspection PyUnresolvedReferences
 from alembic.runtime.migration import MigrationContext
 from alembic.runtime.environment import EnvironmentContext
 from alembic.script import ScriptDirectory

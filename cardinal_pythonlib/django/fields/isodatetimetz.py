@@ -32,8 +32,11 @@ import datetime
 import dateutil.parser
 from typing import Any, Dict, List, Optional, Tuple
 
+# noinspection PyUnresolvedReferences
 from django.db import models
+# noinspection PyUnresolvedReferences
 from django.db.models.fields import DateField, DateTimeField, Field
+# noinspection PyUnresolvedReferences
 from django.utils import timezone
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
@@ -76,8 +79,7 @@ def python_localized_datetime_to_human_iso(value: datetime.datetime) -> str:
 
     Example:
         >>> import datetime
-        >>> import pytz
-        >>> x = datetime.datetime.now(pytz.utc)
+        >>> x = datetime.datetime.now(datetime.timezone.utc)
         >>> python_localized_datetime_to_human_iso(x)
         '2017-08-21T20:47:18.952971+00:00'
     """
@@ -614,7 +616,6 @@ import logging
 logging.basicConfig()
 import datetime
 import dateutil
-import pytz
 from django.db import models
 from django.utils import timezone
 
@@ -626,7 +627,7 @@ class BlibbleTest(models.Model):
         db_table = 'consent_test'
         verbose_name_plural = "no ideas"
 
-now = datetime.datetime.now(pytz.utc)
+now = datetime.datetime.now(datetime.timezone.utc)
 t = BlibbleTest(at=now)
 time1 = dateutil.parser.parse("2015-11-11T22:21:37.000000+05:00")
 t.save()

@@ -729,7 +729,7 @@ def pendulum_to_dict(p: DateTime) -> Dict[str, Any]:
     }
 
 
-# noinspection PyUnusedLocal
+# noinspection PyUnusedLocal,PyTypeChecker
 def dict_to_pendulum(d: Dict[str, Any],
                      pendulum_class: ClassType) -> DateTime:
     """
@@ -765,7 +765,9 @@ def dict_to_pendulumdate(d: Dict[str, Any],
     Converts a ``dict`` object back to a ``pendulum.Date``.
     """
     # noinspection PyTypeChecker
-    return pendulum.parse(d['iso']).date()
+    dt = pendulum.parse(d['iso'])  # type: pendulum.DateTime
+    # noinspection PyTypeChecker
+    return dt.date()  # type: pendulum.Date
 
 
 register_class_for_json(
