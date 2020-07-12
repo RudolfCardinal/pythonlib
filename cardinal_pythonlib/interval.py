@@ -118,9 +118,29 @@ BANK_HOLIDAYS = [datetime.datetime.strptime(x, "%Y-%m-%d").date() for x in [
     "2019-08-26",  # Summer bank holiday
     "2019-12-25",  # Christmas Day
     "2019-12-26",  # Boxing Day
+    # 2020
+    "2020-01-01",  # New Year's Day
+    "2020-04-10",  # Good Friday
+    "2020-04-13",  # Easter Monday
+    "2020-05-08",  # Early May bank holiday (VE Day)
+    "2020-05-25",  # Spring bank holiday
+    "2020-08-31",  # Summer bank holiday
+    "2020-12-25",  # Christmas Day
+    "2020-12-28",  # Boxing Day (substitute day)
+    # 2021
+    "2020-01-01",  # New Year's Day
+    "2020-04-02",  # Good Friday
+    "2020-04-05",  # Easter Monday
+    "2020-05-03",  # Early May bank holiday
+    "2020-05-31",  # Spring bank holiday
+    "2020-08-30",  # Summer bank holiday
+    "2020-12-27",  # Christmas Day (substitute day)
+    "2020-12-28",  # Boxing Day (substitute day)
 
     # Don't forget to add more in years to come.
 ]]
+FIRST_KNOWN_BANK_HOLIDAY = min(x for x in BANK_HOLIDAYS)
+LAST_KNOWN_BANK_HOLIDAY = max(x for x in BANK_HOLIDAYS)
 
 
 # =============================================================================
@@ -169,12 +189,20 @@ def convert_duration(duration: datetime.timedelta,
     raise ValueError(f"Unknown units: {units}")
 
 
-def is_bank_holiday(date: datetime.date) -> bool:
+def is_uk_bank_holiday(date: datetime.date) -> bool:
     """
     Is the specified date (a ``datetime.date`` object) a UK bank holiday?
 
     Uses the ``BANK_HOLIDAYS`` list.
     """
+    if date < FIRST_KNOWN_BANK_HOLIDAY:
+        log.warning(f"Date {date} is earlier than first known bank holiday of "
+                    f"{FIRST_KNOWN_BANK_HOLIDAY}; cardinal_pythonlib.interval "
+                    f"may need updating")
+    elif date > LAST_KNOWN_BANK_HOLIDAY:
+        log.warning(f"Date {date} is later than last known bank holiday of "
+                    f"{LAST_KNOWN_BANK_HOLIDAY}; cardinal_pythonlib.interval "
+                    f"may need updating")
     return date in BANK_HOLIDAYS
 
 
@@ -199,12 +227,12 @@ def is_sunday(date: datetime.date) -> bool:
     return date.weekday() == 6
 
 
-def is_normal_working_day(date: datetime.date) -> bool:
+def is_normal_uk_working_day(date: datetime.date) -> bool:
     """
     Is the specified date (a ``datetime.date`` object) a normal working day,
     i.e. not a weekend or a bank holiday?
     """
-    return not(is_weekend(date) or is_bank_holiday(date))
+    return not(is_weekend(date) or is_uk_bank_holiday(date))
 
 
 # =============================================================================
@@ -464,7 +492,7 @@ class Interval(object):
                 nighttotal += component.duration()
         return daytotal, nighttotal
 
-    def duration_outside_nwh(
+    def duration_outside_uk_normal_working_hours(
             self,
             starttime: datetime.time = datetime.time(NORMAL_DAY_START_H),
             endtime: datetime.time = datetime.time(NORMAL_DAY_END_H),
@@ -490,7 +518,7 @@ class Interval(object):
             date = startdate + datetime.timedelta(days=i)
             component = self.component_on_date(date)
             # ... an interval on a single day
-            if not is_normal_working_day(date):
+            if not is_normal_uk_working_day(date):
                 if weekdays_only:
                     continue
                 ooh += component.duration()  # all is out-of-normal-hours
@@ -1006,7 +1034,7 @@ class IntervalList(object):
         """
         total = datetime.timedelta()
         for interval in self.intervals:
-            total += interval.duration_outside_nwh(starttime, endtime)
+            total += interval.duration_outside_uk_normal_working_hours(starttime, endtime)
         return total
 
     def max_consecutive_days(self) -> Optional[Tuple[int, Interval]]:

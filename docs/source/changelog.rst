@@ -535,3 +535,8 @@ Quick links:
 **1.0.92 (2020-06-28)**
 
 - Made several other large dependencies optional.
+
+**1.0.93 (2020-07-12)**
+
+- Renamed some functions in :mod:`cardinal_pythonlib.interval` to make UK
+  specificity clear.
