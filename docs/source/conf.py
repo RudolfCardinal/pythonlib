@@ -15,10 +15,14 @@
 
 import os
 
-# noinspection PyUnresolvedReferences
-import django
-# noinspection PyUnresolvedReferences
-from django.conf import settings
+try:
+    # noinspection PyUnresolvedReferences
+    import django
+    # noinspection PyUnresolvedReferences
+    from django.conf import settings
+except ImportError:
+    django = None
+    settings = None
 
 from cardinal_pythonlib.version_string import VERSION_STRING
 
@@ -189,7 +193,8 @@ autoclass_content = 'both'
 # https://stackoverflow.com/questions/36228537/django-settings-module-not-defined-when-building-sphinx-documentation
 
 # But in practice:
-settings.configure()
-django.setup()
+if django:
+    settings.configure()
+    django.setup()
 
 os.environ["_SPHINX_AUTODOC_IN_PROGRESS"] = "true"
