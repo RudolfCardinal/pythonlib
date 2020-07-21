@@ -205,7 +205,7 @@ class IsoDateTimeTzField(models.CharField):
         return name, path, args, kwargs
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection):
         """
         Convert database value to Python value.
         Called when data is loaded from the database.

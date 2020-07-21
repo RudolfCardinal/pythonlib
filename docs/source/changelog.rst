@@ -27,6 +27,7 @@ Quick links:
 - :ref:`2017 <changelog_2017>`
 - :ref:`2018 <changelog_2018>`
 - :ref:`2019 <changelog_2019>`
+- :ref:`2020 <changelog_2020>`
 
 
 .. _changelog_2017:
@@ -493,7 +494,13 @@ Quick links:
 - type hint accepts floats to
   :func:`cardinal_pythonlib.rate_limiting.rate_limited`
 
-**1.0.84 (2012-01-11 to 2012-01-19)**
+
+.. _changelog_2020:
+
+2020
+~~~~
+
+**1.0.84 (2020-01-11 to 2020-01-19)**
 
 - Create ``cardinal_pythonlib.__version__``
 - Copyright years to 2020.
@@ -540,3 +547,13 @@ Quick links:
 
 - Renamed some functions in :mod:`cardinal_pythonlib.interval` to make UK
   specificity clear.
+
+**1.0.94 (2020-07-21)**
+
+- Fixes for Django 3.
+
+  - Remove the final ``context`` parameter from all ``from_db_value`` functions
+    for custom fields, as per
+    https://docs.djangoproject.com/en/2.0/releases/2.0/#context-argument-of-field-from-db-value-and-expression-convert-value.
+    Otherwise you get errors like:
+    ``from_db_value() missing 1 required positional argument: 'context'``.

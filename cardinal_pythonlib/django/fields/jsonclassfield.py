@@ -151,7 +151,7 @@ class JsonClassField(TextField):
     # No need to implement db_type()
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection):
         """
         "Called in all circumstances when the data is loaded from the
         database, including in aggregates and values() calls."
