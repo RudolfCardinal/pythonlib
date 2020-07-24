@@ -45,7 +45,7 @@ from typing import Any, Dict, List, Type
 
 class ShowAllSubparserHelpAction(_HelpAction):
     """
-    Class to serve as the ``action`` for an ``argparse`` master parser that
+    Class to serve as the ``action`` for an ``argparse`` main parser that
     shows help for all subparsers. As per
 
     https://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output

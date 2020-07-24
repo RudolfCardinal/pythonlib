@@ -178,7 +178,7 @@ JOBID=$SLURM_JOB_ID
 
 echo -e "JobID: $JOBID\n======"
 echo "Time: `date`"
-echo "Running on master node: `hostname`"
+echo "Running on main node: `hostname`"
 echo "Current directory: `pwd`"
 
 if [ "$SLURM_JOB_NODELIST" ]; then

@@ -45,7 +45,7 @@ Regarding None/NULL values (in CRATE):
   .. code-block:: none
 
     crate_anon/anonymise/anonymise.py / process_table()
-    -> crate_anon/anonymise/configfiles.py / Config.encrypt_master_pid()
+    -> crate_anon/anonymise/configfiles.py / Config.encrypt_main_pid()
     -> crate_anon/anonymise/patient.py / Patient.get_rid
         ... via PatientInfo.rid
         ... to Config.encrypt_primary_pid()

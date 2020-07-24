@@ -708,7 +708,7 @@ class MySQL(Flavour):
                        Index_priv, Alter_priv,
                        Show_db_priv, Super_priv,
                        Lock_tables_priv, Execute_priv,
-                       Repl_slave_priv, Repl_client_priv,
+                       Repl_subordinate_priv, Repl_client_priv,
                        Create_view_priv,
                        Create_routine_priv, Alter_routine_priv,
                        Create_user_priv,
@@ -1279,7 +1279,7 @@ def create_database_mysql(database: str,
     return True
 
 
-def add_master_user_mysql(database: str,
+def add_main_user_mysql(database: str,
                           root_user: str,
                           root_password: str,
                           new_user: str,
@@ -1309,7 +1309,7 @@ def add_master_user_mysql(database: str,
     cursor = con.cursor()
     debug_sql(sql)
     cursor.execute(sql)
-    log.info("Added master user {} to database {}", new_user, database)
+    log.info("Added main user {} to database {}", new_user, database)
 
 
 # =============================================================================
