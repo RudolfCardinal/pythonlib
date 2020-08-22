@@ -112,6 +112,7 @@ import tempfile
 from typing import List, Tuple
 import unittest
 
+from cardinal_pythonlib.cmdline import cmdline_quote
 from cardinal_pythonlib.logs import BraceStyleAdapter, main_only_quicksetup_rootlogger  # noqa
 
 log = BraceStyleAdapter(logging.getLogger(__name__))
@@ -206,8 +207,8 @@ def run(args: List[str],
     Returns a ``(stdout, stderr)`` tuple (both are blank strings if the output
     wasn't wanted).
     """
-    printable = " ".join(shlex.quote(x) for x in args).replace("\n", r"\n")
-    log.debug("Running external command: {}", printable)
+    printable = cmdline_quote(args)
+    log.debug(f"Running external command: {printable}")
     if get_output:
         p = subprocess.run(args, stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE, check=True)
