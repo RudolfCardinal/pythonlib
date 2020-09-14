@@ -33,6 +33,7 @@ import subprocess
 import sys
 from typing import Callable, Dict, List, TextIO, Tuple
 
+from cardinal_pythonlib.cmdline import cmdline_quote
 from cardinal_pythonlib.fileops import (
     mkdir_p,
     pushd,
@@ -294,7 +295,7 @@ def run(args: List[str],
     """
     cwd = os.getcwd()
     # log.debug("External command Python form: {}", args)
-    copy_paste_cmd = subprocess.list2cmdline(args)
+    copy_paste_cmd = cmdline_quote(args)
     csep = "=" * 79
     esep = "-" * 79
     effective_env = env if env is not None else os.environ
