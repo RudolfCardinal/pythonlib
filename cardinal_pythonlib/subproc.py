@@ -24,7 +24,9 @@
 """
 
 import atexit
+import logging
 from multiprocessing.dummy import Pool  # thread pool
+import os
 from queue import Queue
 from subprocess import (
     check_call,
@@ -35,9 +37,10 @@ from subprocess import (
 import sys
 from threading import Thread
 from time import sleep
-from typing import Any, BinaryIO, List, Tuple, Union
+from typing import Any, BinaryIO, List, Optional, Tuple, Union
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+from cardinal_pythonlib.cmdline import cmdline_quote
 
 log = get_brace_style_log_with_null_handler(__name__)
 
@@ -112,6 +115,26 @@ def check_call_process(args: List[str]) -> None:
     """
     log.debug("{!r}", args)
     check_call(args)
+
+
+def check_call_verbose(args: List[str],
+                       log_level: Optional[int] = logging.INFO,
+                       **kwargs) -> None:
+    """
+    Prints a copy/paste-compatible version of a command, then runs it.
+
+    Args:
+        args: command arguments
+        log_level: log level
+
+    Raises:
+        :exc:`CalledProcessError` on external command failure
+    """
+    if log_level is not None:
+        cmd_as_text = cmdline_quote(args)
+        msg = f"[From directory {os.getcwd()}]: {cmd_as_text}"
+        log.log(level=log_level, msg=msg)
+    check_call(args, **kwargs)
 
 
 def start_process(args: List[str],

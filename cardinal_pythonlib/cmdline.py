@@ -99,8 +99,6 @@ def cmdline_quote_posix(seq: List[str]) -> str:
     copying/pasting.
 
     Based on subprocess.list2cmdline().
-
-    todo: IN PROGRESS.
     """
     result = []  # type: List[str]
     for arg in seq:

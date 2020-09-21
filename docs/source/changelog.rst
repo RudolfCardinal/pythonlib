@@ -557,3 +557,12 @@ Quick links:
     https://docs.djangoproject.com/en/2.0/releases/2.0/#context-argument-of-field-from-db-value-and-expression-convert-value.
     Otherwise you get errors like:
     ``from_db_value() missing 1 required positional argument: 'context'``.
+
+**1.0.95 (2020-09-21)**
+
+- Some more convenience functions for calling subprocesses and checking
+  environment variables:
+
+  - :mod:`cardinal_pythonlib.sysops`
+  - :func:`cardinal_pythonlib.subproc.check_call_verbose`
+
