@@ -39,8 +39,9 @@ Notes:
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import logging
 import multiprocessing
+import os
 import re
-from sys import getdefaultencoding, stdin
+from sys import argv, getdefaultencoding, stdin
 from typing import Pattern
 from zipfile import BadZipFile, ZipFile
 import zlib
@@ -181,20 +182,31 @@ def main() -> None:
     Command-line handler for the ``grep_in_openxml`` tool.
     Use the ``--help`` option for help.
     """
+    exe_name = os.path.basename(argv[0]) or "grep_in_openxml"
     parser = ArgumentParser(
         formatter_class=RawDescriptionHelpFormatter,
-        description="""
+        description=f"""
 Performs a grep (global-regular-expression-print) search of files in OpenXML
 format, which is to say inside ZIP files.
 
 Note that you can chain; for example, to search for OpenXML files containing
 both "armadillo" and "bonobo", you can do:
 
-    grep_in_openxml -l armadillo *.pptx | grep_in_openxml -x -l bonobo
-                    ^^                                    ^^
-                print filenames                       read filenames from stdin
+    {exe_name} -l armadillo *.pptx | grep_in_openxml -x -l bonobo
 
-"""
+To find files in a tree, you can use the "find" tool. For example, to find all
+".docx" files in a directory (or its subdirectories) that contain the phrase
+"armadillo country", you could use:
+
+    find <STARTDIR> -type f -name "*.docx" -exec {exe_name} -l "armadillo country" {{}} \;
+
+Or you could use this tool directly, specifying a directory and "--recursive",
+as in
+
+    {exe_name} -l --recursive "armadillo country" <STARTDIR>
+
+but that won't restrict to ".docx" files.
+"""  # noqa
     )
     parser.add_argument(
         "pattern",
