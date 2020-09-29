@@ -566,3 +566,8 @@ Quick links:
   - :mod:`cardinal_pythonlib.sysops`
   - :func:`cardinal_pythonlib.subproc.check_call_verbose`
 
+**1.0.96 (2020-09-28)**
+
+- :mod:`cardinal_pythonlib.wsgi.headers_mw`
+- :func:`cardinal_pythonlib.enumlike.keys_descriptions_from_enum`
+- :class:`cardinal_pythonlib.enumlike.EnumLower`

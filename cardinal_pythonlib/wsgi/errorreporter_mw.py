@@ -67,11 +67,10 @@ class ErrorReportingMiddleware(object):
                  environ: TYPE_WSGI_ENVIRON,
                  start_response: TYPE_WSGI_START_RESPONSE) \
             -> TYPE_WSGI_APP_RESULT:
-        # noinspection PyBroadException,PyPep8
+        # noinspection PyBroadException
         try:
             return self.app(environ, start_response)
-        # noinspection PyBroadException,PyPep8
-        except:
+        except Exception:
             exc_info = sys.exc_info()
             start_response(
                 '500 Internal Server Error',

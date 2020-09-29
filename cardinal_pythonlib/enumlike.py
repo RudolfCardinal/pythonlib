@@ -95,7 +95,7 @@ from collections import OrderedDict
 # noinspection PyProtectedMember
 from enum import EnumMeta, Enum, _EnumDict
 import itertools
-from typing import Any, Optional
+from typing import Any, List, Optional, Tuple, Type
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.reprfunc import ordered_repr
@@ -466,3 +466,80 @@ class OrderedNamespace(object):
 
     def __repr__(self):
         return ordered_repr(self, self.__dict__.keys())
+
+
+# =============================================================================
+# keys_descriptions_from_enum
+# =============================================================================
+
+def keys_descriptions_from_enum(
+        enum: Type[Enum],
+        sort_keys: bool = False,
+        keys_to_lower: bool = False,
+        keys_to_upper: bool = False,
+        key_to_description: str = ": ",
+        joiner: str = " // ") -> Tuple[List[str], str]:
+    """
+    From an Enum subclass, return (keys, descriptions_as_formatted_string).
+    This is a convenience function used to provide command-line help for
+    options involving a choice of enums from an Enum class.
+    """
+    assert not (keys_to_lower and keys_to_upper)
+    keys = [e.name for e in enum]
+    if keys_to_lower:
+        keys = [k.lower() for k in keys]
+    elif keys_to_upper:
+        keys = [k.upper() for k in keys]
+    if sort_keys:
+        keys.sort()
+    descriptions = [
+        f"{k}{key_to_description}{enum[k].value}"
+        for k in keys
+    ]
+    description_str = joiner.join(descriptions)
+    return keys, description_str
+
+
+# =============================================================================
+# EnumLower
+# =============================================================================
+
+class CaseInsensitiveEnumMeta(EnumMeta):
+    """
+    An Enum that permits lookup by a lower-case version of its keys.
+    
+    https://stackoverflow.com/questions/42658609/how-to-construct-a-case-insensitive-enum
+    
+    Example:
+        
+    .. code-block:: python
+
+        from enum import Enum    
+        from cardinal_pythonlib.enumlike import CaseInsensitiveEnumMeta
+        
+        class TestEnum(Enum, metaclass=CaseInsensitiveEnumMeta):
+            REDAPPLE = 1
+            greenapple = 2
+            PineApple = 3
+            
+        >>> TestEnum["REDAPPLE"]
+        <TestEnum.REDAPPLE: 1>
+        >>> TestEnum["redapple"]
+        <TestEnum.REDAPPLE: 1>
+        >>> TestEnum["greenapple"]
+        <TestEnum.greenapple: 2>
+        >>> TestEnum["greenappLE"]
+        <TestEnum.greenapple: 2>
+        >>> TestEnum["PineApple"]
+        <TestEnum.PineApple: 3>
+        >>> TestEnum["PineApplE"]
+        <TestEnum.PineApple: 3>
+
+    """  # noqa
+    def __getitem__(self, item: Any) -> Any:
+        if isinstance(item, str):
+            item_lower = item.lower()
+            for member in self:
+                if member.name.lower() == item_lower:
+                    return member
+        return super().__getitem__(item)
