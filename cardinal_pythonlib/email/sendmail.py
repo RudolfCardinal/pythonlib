@@ -38,7 +38,7 @@ import os
 import re
 import smtplib
 import sys
-from typing import List, Sequence, Tuple, Union
+from typing import List, NoReturn, Sequence, Tuple, Union
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
@@ -490,7 +490,7 @@ def get_email_domain(email_: str) -> str:
 # Parse command line
 # =============================================================================
 
-def main() -> None:
+def main() -> NoReturn:
     """
     Command-line processor. See ``--help`` for details.
     """

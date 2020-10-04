@@ -26,7 +26,7 @@
 
 """
 
-from typing import TYPE_CHECKING
+from typing import NoReturn, TYPE_CHECKING
 
 from sqlalchemy.ext.compiler import compiles
 # noinspection PyProtectedMember
@@ -47,7 +47,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Support functions
 # =============================================================================
 
-def fail_unknown_dialect(compiler: "SQLCompiler", task: str) -> None:
+def fail_unknown_dialect(compiler: "SQLCompiler", task: str) -> NoReturn:
     """
     Raise :exc:`NotImplementedError` in relation to a dialect for which a
     function hasn't been implemented (with a helpful error message).
@@ -118,7 +118,7 @@ class extract_year(FunctionElement):
 # noinspection PyUnusedLocal
 @compiles(extract_year)
 def extract_year_default(element: "ClauseElement",
-                         compiler: "SQLCompiler", **kw) -> None:
+                         compiler: "SQLCompiler", **kw) -> NoReturn:
     """
     Default implementation of :func:, which raises :exc:`NotImplementedError`.
     """
@@ -172,7 +172,7 @@ class extract_month(FunctionElement):
 # noinspection PyUnusedLocal
 @compiles(extract_month)
 def extract_month_default(element: "ClauseElement",
-                          compiler: "SQLCompiler", **kw) -> None:
+                          compiler: "SQLCompiler", **kw) -> NoReturn:
     fail_unknown_dialect(compiler, "extract month from date")
 
 
@@ -219,7 +219,7 @@ class extract_day_of_month(FunctionElement):
 # noinspection PyUnusedLocal
 @compiles(extract_day_of_month)
 def extract_day_of_month_default(element: "ClauseElement",
-                                 compiler: "SQLCompiler", **kw) -> None:
+                                 compiler: "SQLCompiler", **kw) -> NoReturn:
     fail_unknown_dialect(compiler, "extract day-of-month from date")
 
 

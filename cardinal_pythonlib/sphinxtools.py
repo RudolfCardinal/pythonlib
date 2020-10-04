@@ -38,7 +38,7 @@ from os.path import (
     abspath, basename, dirname, exists, expanduser, isdir, isfile, join,
     relpath, sep, splitext
 )
-from typing import Dict, Iterable, List, Union
+from typing import Dict, Iterable, List, NoReturn, Union
 
 from cardinal_pythonlib.fileops import mkdir_p, relative_filename_within_dir
 from cardinal_pythonlib.logs import BraceStyleAdapter
@@ -92,7 +92,7 @@ def rst_underline(heading: str, underline_char: str) -> str:
     return heading + "\n" + (underline_char * len(heading))
 
 
-def fail(msg: str) -> None:
+def fail(msg: str) -> NoReturn:
     log.critical(msg)
     raise RuntimeError(msg)
 

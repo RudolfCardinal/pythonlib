@@ -32,6 +32,7 @@ import shutil
 import subprocess
 import sys
 from time import sleep
+from typing import NoReturn
 
 from cardinal_pythonlib.logs import (
     BraceStyleAdapter,
@@ -56,7 +57,7 @@ def is_running(process_id: int) -> bool:
     return False
 
 
-def main() -> None:
+def main() -> NoReturn:
     """
     Command-line handler for the ``pause_process_by_disk_space`` tool.
     Use the ``--help`` option for help.

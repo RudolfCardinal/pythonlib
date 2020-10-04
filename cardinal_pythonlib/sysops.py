@@ -29,6 +29,7 @@
 import logging
 import os
 import sys
+from typing import NoReturn
 
 log = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ EXIT_SUCCESS = 0
 
 def die(msg: str,
         log_level: int = logging.CRITICAL,
-        exit_code: int = EXIT_FAILURE) -> None:
+        exit_code: int = EXIT_FAILURE) -> NoReturn:
     """
     Prints a message and hard-exits the program.
 

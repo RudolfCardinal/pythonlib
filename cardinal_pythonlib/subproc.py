@@ -37,7 +37,7 @@ from subprocess import (
 import sys
 from threading import Thread
 from time import sleep
-from typing import Any, BinaryIO, List, Optional, Tuple, Union
+from typing import Any, BinaryIO, List, NoReturn, Optional, Tuple, Union
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.cmdline import cmdline_quote
@@ -94,7 +94,7 @@ def kill_child_processes() -> None:
             p.kill()  # you're dead
 
 
-def fail() -> None:
+def fail() -> NoReturn:
     """
     Call when a child process has failed, and this will print an error
     message to ``stdout`` and execute ``sys.exit(1)`` (which will, in turn,

@@ -28,7 +28,7 @@
 
 import sys
 import traceback
-from typing import Dict
+from typing import Dict, NoReturn
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
@@ -68,7 +68,7 @@ def recover_info_from_exception(err: Exception) -> Dict:
     return info
 
 
-def die(exc: Exception = None, exit_code: int = 1) -> None:
+def die(exc: Exception = None, exit_code: int = 1) -> NoReturn:
     """
     It is not clear that Python guarantees to exit with a non-zero exit code
     (errorlevel in DOS/Windows) upon an unhandled exception. So this function

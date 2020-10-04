@@ -104,12 +104,11 @@ import logging
 import math
 import os
 import re
-import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
-from typing import List, Tuple
+from typing import List, NoReturn, Tuple
 import unittest
 
 from cardinal_pythonlib.cmdline import cmdline_quote
@@ -395,11 +394,12 @@ class TestPdfToBooklet(unittest.TestCase):
 # main
 # =============================================================================
 
-def main() -> None:
+def main() -> NoReturn:
     """
     Command-line processor. See ``--help`` for details.
     """
     main_only_quicksetup_rootlogger(level=logging.DEBUG)
+    # noinspection PyTypeChecker
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
