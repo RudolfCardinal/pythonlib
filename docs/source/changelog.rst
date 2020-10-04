@@ -572,7 +572,7 @@ Quick links:
 - :func:`cardinal_pythonlib.enumlike.keys_descriptions_from_enum`
 - :class:`cardinal_pythonlib.enumlike.EnumLower`
 
-**1.0.97 (2020-10-01)**
+**1.0.97 (2020-10-04)**
 
 - :class:`cardinal_pythonlib.colander_utils.OptionalEmailNode`
 - Some ``NoReturn`` type hinting.
@@ -580,3 +580,7 @@ Quick links:
   DEBUG rather than WARNING).
 - Better HTTP header handling in
   :class:`cardinal_pythonlib.wsgi.headers_mw.AddHeadersMiddleware`
+
+**1.0.97 (in progress)**
+
+- :class:`cardinal_pythonlib.colander_utils.MandatoryEmailNode`

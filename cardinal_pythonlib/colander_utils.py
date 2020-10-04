@@ -273,6 +273,10 @@ class EmailValidatorWithLengthConstraint(Email):
 # Note that we must pass both *args and **kwargs upwards, because SchemaNode
 # does some odd stuff with clone().
 
+# -----------------------------------------------------------------------------
+# Simple types
+# -----------------------------------------------------------------------------
+
 class OptionalIntNode(SchemaNode):
     """
     Colander node accepting integers but also blank values (i.e. it's
@@ -323,14 +327,6 @@ class MandatoryStringNode(SchemaNode):
         return String(allow_empty=False)
 
 
-class OptionalEmailNode(OptionalStringNode):
-    """
-    Colander string node, where the string can be blank but if not then it
-    must look like a valid e-mail address.
-    """
-    validator = EmailValidatorWithLengthConstraint()
-
-
 class HiddenIntegerNode(OptionalIntNode):
     """
     Colander node containing an integer, that is hidden to the user.
@@ -344,6 +340,46 @@ class HiddenStringNode(OptionalStringNode):
     """
     widget = HiddenWidget()
 
+
+class BooleanNode(SchemaNode):
+    """
+    Colander node representing a boolean value with a checkbox widget.
+    """
+    schema_type = Boolean
+    widget = CheckboxWidget()
+
+    def __init__(self, *args, title: str = "?", label: str = "",
+                 default: bool = False, **kwargs) -> None:
+        self.title = title  # above the checkbox
+        self.label = label or title  # to the right of the checkbox
+        self.default = default
+        self.missing = default
+        super().__init__(*args, **kwargs)
+
+
+# -----------------------------------------------------------------------------
+# Email addresses
+# -----------------------------------------------------------------------------
+
+class OptionalEmailNode(OptionalStringNode):
+    """
+    Colander string node, where the string can be blank but if not then it
+    must look like a valid e-mail address.
+    """
+    validator = EmailValidatorWithLengthConstraint()
+
+
+class MandatoryEmailNode(MandatoryStringNode):
+    """
+    Colander string node, requiring something that looks like a valid e-mail
+    address.
+    """
+    validator = EmailValidatorWithLengthConstraint()
+
+
+# -----------------------------------------------------------------------------
+# Date/time types
+# -----------------------------------------------------------------------------
 
 class DateTimeSelectorNode(SchemaNode):
     """
@@ -412,21 +448,9 @@ class OptionalPendulumNodeUTC(SchemaNode):
     )
 
 
-class BooleanNode(SchemaNode):
-    """
-    Colander node representing a boolean value with a checkbox widget.
-    """
-    schema_type = Boolean
-    widget = CheckboxWidget()
-
-    def __init__(self, *args, title: str = "?", label: str = "",
-                 default: bool = False, **kwargs) -> None:
-        self.title = title  # above the checkbox
-        self.label = label or title  # to the right of the checkbox
-        self.default = default
-        self.missing = default
-        super().__init__(*args, **kwargs)
-
+# -----------------------------------------------------------------------------
+# Safety-checking nodes
+# -----------------------------------------------------------------------------
 
 class ValidateDangerousOperationNode(MappingSchema):
     """
