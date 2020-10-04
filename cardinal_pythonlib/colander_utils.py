@@ -231,6 +231,29 @@ def get_values_and_permissible(values: Iterable[Tuple[Any, str]],
     return values, permissible_values
 
 
+def get_child_node(parent: "_SchemaNode", child_name: str) -> "_SchemaNode":
+    """
+    Returns a child node from an instantiated :class:`colander.SchemaNode`
+    object. Such nodes are not accessible via ``self.mychild`` but must be
+    accessed via ``self.children``, which is a list of child nodes.
+
+    Args:
+        parent: the parent node object
+        child_name: the name of the child node
+
+    Returns:
+        the child node
+
+    Raises:
+        :exc:`StopIteration` if there isn't one
+    """
+    return next(c for c in parent.children if c.name == child_name)
+
+
+# =============================================================================
+# Validators
+# =============================================================================
+
 class EmailValidatorWithLengthConstraint(Email):
     """
     The Colander ``Email`` validator doesn't check length. This does.
@@ -298,6 +321,14 @@ class MandatoryStringNode(SchemaNode):
     @staticmethod
     def schema_type() -> SchemaType:
         return String(allow_empty=False)
+
+
+class OptionalEmailNode(OptionalStringNode):
+    """
+    Colander string node, where the string can be blank but if not then it
+    must look like a valid e-mail address.
+    """
+    validator = EmailValidatorWithLengthConstraint()
 
 
 class HiddenIntegerNode(OptionalIntNode):
@@ -395,25 +426,6 @@ class BooleanNode(SchemaNode):
         self.default = default
         self.missing = default
         super().__init__(*args, **kwargs)
-
-
-def get_child_node(parent: "_SchemaNode", child_name: str) -> "_SchemaNode":
-    """
-    Returns a child node from an instantiated :class:`colander.SchemaNode`
-    object. Such nodes are not accessible via ``self.mychild`` but must be
-    accessed via ``self.children``, which is a list of child nodes.
-
-    Args:
-        parent: the parent node object
-        child_name: the name of the child node
-
-    Returns:
-        the child node
-
-    Raises:
-        :exc:`StopIteration` if there isn't one
-    """
-    return next(c for c in parent.children if c.name == child_name)
 
 
 class ValidateDangerousOperationNode(MappingSchema):

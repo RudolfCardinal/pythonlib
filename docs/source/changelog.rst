@@ -571,3 +571,12 @@ Quick links:
 - :mod:`cardinal_pythonlib.wsgi.headers_mw`
 - :func:`cardinal_pythonlib.enumlike.keys_descriptions_from_enum`
 - :class:`cardinal_pythonlib.enumlike.EnumLower`
+
+**1.0.97 (2020-10-01)**
+
+- :class:`cardinal_pythonlib.colander_utils.OptionalEmailNode`
+- Some ``NoReturn`` type hinting.
+- Log level configurable in :mod:`cardinal_pythonlib.configfiles` (and default
+  DEBUG rather than WARNING).
+- Better HTTP header handling in
+  :class:`cardinal_pythonlib.wsgi.headers_mw.AddHeadersMiddleware`
