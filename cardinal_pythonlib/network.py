@@ -117,15 +117,18 @@ def download(url: str, filename: str,
     # https://stackoverflow.com/questions/27804710
     # So:
 
+    # Patching this by Faking a browser request by adding User-Agent to request headers
+    # Using this as example: https://stackoverflow.com/questions/42863240/how-to-get-round-the-http-error-403-forbidden-with-urllib-request-using-python
+
     ctx = ssl.create_default_context()  # type: ssl.SSLContext
     if skip_cert_verify:
         log.debug("Skipping SSL certificate check for " + url)
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-    with urllib.request.urlopen(url, context=ctx) as u, open(filename,
+    page = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5,0'})
+    with urllib.request.urlopen(page,context=ctx) as u, open(filename,
                                                              'wb') as f:  # noqa
         f.write(u.read())
-
 
 # =============================================================================
 # Generators
