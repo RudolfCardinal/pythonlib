@@ -581,6 +581,8 @@ Quick links:
 - Better HTTP header handling in
   :class:`cardinal_pythonlib.wsgi.headers_mw.AddHeadersMiddleware`
 
-**1.0.97 (in progress)**
+**1.0.98 (to 2020-11-02)**
 
 - :class:`cardinal_pythonlib.colander_utils.MandatoryEmailNode`
+- workaround for HTTP 403 errors in
+  :function:`cardinal_pythonlib.network.download`
