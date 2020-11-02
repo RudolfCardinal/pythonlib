@@ -44,7 +44,7 @@ import ssl
 import subprocess
 import sys
 import tempfile
-from typing import BinaryIO, Generator, Iterable
+from typing import BinaryIO, Dict, Generator, Iterable
 import urllib.request
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
@@ -96,16 +96,27 @@ def ping(hostname: str, timeout_s: int = 5) -> bool:
 # Download things
 # =============================================================================
 
-def download(url: str, filename: str,
-             skip_cert_verify: bool = True) -> None:
+def download(url: str,
+             filename: str,
+             skip_cert_verify: bool = True,
+             headers: Dict[str, str] = None) -> None:
     """
     Downloads a URL to a file.
 
     Args:
-        url: URL to download from
-        filename: file to save to
-        skip_cert_verify: skip SSL certificate check?
+        url:
+            URL to download from
+        filename:
+            file to save to
+        skip_cert_verify:
+            skip SSL certificate check?
+        headers:
+            request headers (if not specified, a default will be used that
+            mimics Mozilla 5.0 to avoid certain HTTP 403 errors)
     """
+    headers = {
+        'User-Agent': 'Mozilla/5.0'
+    } if headers is None else headers
     log.info("Downloading from {} to {}", url, filename)
 
     # urllib.request.urlretrieve(url, filename)
@@ -117,13 +128,18 @@ def download(url: str, filename: str,
     # https://stackoverflow.com/questions/27804710
     # So:
 
+    # Patching this by faking a browser request by adding User-Agent to request
+    # headers, using this as example:
+    # https://stackoverflow.com/questions/42863240/how-to-get-round-the-http-error-403-forbidden-with-urllib-request-using-python  # noqa
+
     ctx = ssl.create_default_context()  # type: ssl.SSLContext
     if skip_cert_verify:
         log.debug("Skipping SSL certificate check for " + url)
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-    with urllib.request.urlopen(url, context=ctx) as u, open(filename,
-                                                             'wb') as f:  # noqa
+    page = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(page, context=ctx) as u, \
+            open(filename, 'wb') as f:
         f.write(u.read())
 
 
