@@ -34,12 +34,16 @@ def running_under_docker() -> bool:
 
     As per
     https://stackoverflow.com/questions/43878953/how-does-one-detect-if-one-is-running-within-a-docker-container-within-python
+    ... but without leaving a file open.
     """  # noqa
+    # 1. Does /.dockerenv exist?
+    if os.path.exists('/.dockerenv'):
+        return True
+    # 2. Is there a line containing "docker" in /proc/self/cgroup?
     path = '/proc/self/cgroup'
-    return (
-        os.path.exists('/.dockerenv') or
-        (
-            os.path.isfile(path) and
-            any('docker' in line for line in open(path))
-        )
-    )
+    if os.path.isfile(path):
+        with open(path) as f:
+            for line in f:
+                if "docker" in line:
+                    return True
+    return False
