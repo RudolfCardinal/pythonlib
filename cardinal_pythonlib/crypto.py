@@ -28,7 +28,7 @@
 
 # The following requires a C compiler, so we don't have it in our standard
 # requirements. However, it is vital for this module.
-
+#
 # noinspection PyUnresolvedReferences
 import bcrypt  # pip install bcrypt; see https://pypi.org/project/bcrypt/
 

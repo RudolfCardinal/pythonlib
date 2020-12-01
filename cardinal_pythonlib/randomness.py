@@ -28,9 +28,14 @@
 
 import base64
 import os
-# import random
 from random import random as random_random
+import secrets
+import string
 
+
+# =============================================================================
+# Creating random strings
+# =============================================================================
 
 def create_base64encoded_randomness(num_bytes: int) -> str:
     """
@@ -59,6 +64,23 @@ def create_base64encoded_randomness(num_bytes: int) -> str:
     randbytes = os.urandom(num_bytes)  # YES
     return base64.urlsafe_b64encode(randbytes).decode('ascii')
 
+
+def generate_random_string(length: int,
+                           characters: str = None) -> str:
+    """
+    Generates a random string of the specified length.
+    """
+    characters = characters or (
+        string.ascii_letters + string.digits + string.punctuation
+    )
+    # We use secrets.choice() rather than random.choices() as it's better
+    # for security/cryptography purposes.
+    return "".join(secrets.choice(characters) for _ in range(length))
+
+
+# =============================================================================
+# Coin flips
+# =============================================================================
 
 def coin(p: float) -> bool:
     """

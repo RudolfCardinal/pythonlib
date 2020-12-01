@@ -591,3 +591,10 @@ Quick links:
 
 - Bugfix to :func:`cardinal_pythonlib.docker.running_under_docker` (it left
   a file open).
+
+**1.1.0 (2020-12-01)**
+
+- :mod:`cardinal_pythonlib.counter`
+- :mod:`cardinal_pythonlib.datamapping`
+- :mod:`cardinal_pythonlib.spreadsheets`
+- :func:`cardinal_pythonlib.randomness.generate_random_string`

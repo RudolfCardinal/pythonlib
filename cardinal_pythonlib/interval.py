@@ -1034,7 +1034,8 @@ class IntervalList(object):
         """
         total = datetime.timedelta()
         for interval in self.intervals:
-            total += interval.duration_outside_uk_normal_working_hours(starttime, endtime)
+            total += interval.duration_outside_uk_normal_working_hours(
+                starttime, endtime)
         return total
 
     def max_consecutive_days(self) -> Optional[Tuple[int, Interval]]:
