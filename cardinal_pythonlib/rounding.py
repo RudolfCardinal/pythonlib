@@ -43,7 +43,7 @@ import unittest
 # Rounding/truncation
 # =============================================================================
 
-def round_half_up(x: Union[float, Decimal], dp: int) -> Decimal:
+def round_half_up(x: Union[float, Decimal], dp: int = 0) -> Decimal:
     """
     Rounds, with halves going up (positive).
 
@@ -60,13 +60,13 @@ def round_half_up(x: Union[float, Decimal], dp: int) -> Decimal:
     context = decimal.getcontext()
     factor = context.power(10, dp)
     y = (
-                x * factor + Decimal("0.5")
-        ).quantize(Decimal("1"), rounding=decimal.ROUND_FLOOR) / factor
+        x * factor + Decimal("0.5")
+    ).quantize(Decimal("1"), rounding=decimal.ROUND_FLOOR) / factor
     # print(f"round_half_up({x}, {dp}) = {y}")
     return y
 
 
-def truncate(x: Union[float, Decimal], dp: int) -> Decimal:
+def truncate(x: Union[float, Decimal], dp: int = 0) -> Decimal:
     """
     Truncates a value to a certain number of decimal places.
     """
@@ -87,8 +87,39 @@ def truncate(x: Union[float, Decimal], dp: int) -> Decimal:
 # Reverse rounding/truncation
 # =============================================================================
 
+def remove_exponent_from_decimal(d: Decimal) -> Decimal:
+    """
+    Converts a decimal like ``5.0E+3`` to ``5000``.
+    As per https://docs.python.org/3/library/decimal.html.
+    """
+    return d.quantize(Decimal(1)) if d == d.to_integral() else d.normalize()
+
+
+def num_dp_from_decimal(x: Decimal, with_negative_dp: bool = False) -> int:
+    """
+    Return the number of decimal places used by a ``Decimal``.
+
+    By default, this is what you'd expect; e.g. ``123.45`` has 2 dp, and
+    ``120`` has 0 dp. But if you set ``with_negative_dp`` to ``True``, then you
+    if you pass in ``200`` you will get the answer ``-2``.
+
+    Beware using ``str()``; Decimals can look like ``1E+2`` rather than
+    ``100``.
+    """
+    components = str(remove_exponent_from_decimal(x)).split(".")
+    if len(components) == 1:
+        # No component after the decimal point.
+        if with_negative_dp:
+            before_period = components[0]
+            num_zeros = len(before_period) - len(before_period.rstrip("0"))
+            return -num_zeros
+        else:
+            return 0
+    return len(components[1])
+
+
 def range_roundable_up_to(y: Union[int, float, Decimal],
-                          dp: int,
+                          dp: int = 0,
                           with_description: bool = False) \
         -> Union[Tuple[Decimal, Decimal], Tuple[Decimal, Decimal, str]]:
     """
@@ -113,8 +144,9 @@ def range_roundable_up_to(y: Union[int, float, Decimal],
 
     """  # noqa
     y = Decimal(y)
-    assert round(y, dp) == y, (
-        f"Number {y} is not rounded to {dp} dp as claimed"
+    assert num_dp_from_decimal(y, with_negative_dp=True) <= dp, (
+        f"Number {y} is not rounded to {dp} dp as claimed; it has "
+        f"{num_dp_from_decimal(y, with_negative_dp=True)} dp"
     )
     half = Decimal("0.5") * decimal.getcontext().power(10, -dp)
     a = y - half
@@ -128,7 +160,7 @@ def range_roundable_up_to(y: Union[int, float, Decimal],
 
 
 def range_truncatable_to(y: Union[int, float, Decimal],
-                         dp: int,
+                         dp: int = 0,
                          with_description: bool = False) \
         -> Union[Tuple[Decimal, Decimal], Tuple[Decimal, Decimal, str]]:
     """
@@ -147,8 +179,9 @@ def range_truncatable_to(y: Union[int, float, Decimal],
     Note that ``dp`` can be negative, as in other Python functions.
     """
     y = Decimal(y)
-    assert round(y, dp) == y, (
-        f"Number {y} is not truncated to {dp} dp as claimed"
+    assert num_dp_from_decimal(y, with_negative_dp=True) <= dp, (
+        f"Number {y} is not truncated to {dp} dp as claimed; it has "
+        f"{num_dp_from_decimal(y, with_negative_dp=True)} dp"
     )
     one = decimal.getcontext().power(10, -dp)
     if y >= 0:
@@ -182,7 +215,7 @@ def validate_range_roundable_up_to(x: float, dp: int,
     y = round_half_up(x, dp)
     a, b, description = range_roundable_up_to(y, dp, with_description=True)
     print(
-        f"validating: (1) x={x}, dp={dp}; "
+        f"validate_range_roundable_up_to: (1) x={x}, dp={dp}; "
         f"(2) y = round_half_up(x, dp) = {y}; "
         f"(3) range_roundable_up_to(y, dp) = {description}"
     )
@@ -217,7 +250,7 @@ def validate_range_truncatable_to(x: float, dp: int,
     y = truncate(x, dp)
     a, b, description = range_truncatable_to(y, dp, with_description=True)
     print(
-        f"validating: (1) x={x}, dp={dp}; "
+        f"validate_range_truncatable_to: (1) x={x}, dp={dp}; "
         f"(2) y = truncate(x, dp) = {y}; "
         f"(3) range_truncatable_to(y, dp) = {description}"
     )
@@ -259,103 +292,92 @@ def validate_range_truncatable_to(x: float, dp: int,
 
 
 class TestRoundingAndReversal(unittest.TestCase):
-    """
-    Test the rounding/truncation and reversal functions.
-    """
-    epsilon = Decimal("1e-9")
+    EPSILON = Decimal("1e-9")
 
-    # -------------------------------------------------------------------------
-    # round_half_up()
-    # -------------------------------------------------------------------------
+    def test_round_half_up(self) -> None:
+        assert round_half_up(Decimal("-123.51"), 0) == Decimal("-124.0")
+        assert round_half_up(Decimal("-123.5"), 0) == Decimal("-123.0")
+        assert round_half_up(Decimal("-123.49"), 0) == Decimal("-123.0")
 
-    assert round_half_up(Decimal("-123.51"), 0) == Decimal("-124.0")
-    assert round_half_up(Decimal("-123.5"), 0) == Decimal("-123.0")
-    assert round_half_up(Decimal("-123.49"), 0) == Decimal("-123.0")
+        assert round_half_up(Decimal("-123.456"), -1) == Decimal("-120.0")
+        assert round_half_up(Decimal("-123.456"), 0) == Decimal("-123.0")
+        assert round_half_up(Decimal("-123.456"), 1) == Decimal("-123.5")
 
-    assert round_half_up(Decimal("-123.456"), -1) == Decimal("-120.0")
-    assert round_half_up(Decimal("-123.456"), 0) == Decimal("-123.0")
-    assert round_half_up(Decimal("-123.456"), 1) == Decimal("-123.5")
+        assert round_half_up(Decimal("-0.51"), 0) == Decimal("-1.0")
+        assert round_half_up(Decimal("-0.5"), 0) == Decimal("0.0")
+        assert round_half_up(Decimal("-0.49"), 0) == Decimal("0.0")
+        assert round_half_up(Decimal("0.49"), 0) == Decimal("0.0")
+        assert round_half_up(Decimal("0.49"), 0) == Decimal("0.0")
+        assert round_half_up(Decimal("0.5"), 0) == Decimal("1.0")
 
-    assert round_half_up(Decimal("-0.51"), 0) == Decimal("-1.0")
-    assert round_half_up(Decimal("-0.5"), 0) == Decimal("0.0")
-    assert round_half_up(Decimal("-0.49"), 0) == Decimal("0.0")
-    assert round_half_up(Decimal("0.49"), 0) == Decimal("0.0")
-    assert round_half_up(Decimal("0.49"), 0) == Decimal("0.0")
-    assert round_half_up(Decimal("0.5"), 0) == Decimal("1.0")
+        assert round_half_up(Decimal("123.456"), -1) == Decimal("120.0")
+        assert round_half_up(Decimal("123.456"), 0) == Decimal("123.0")
+        assert round_half_up(Decimal("123.456"), 1) == Decimal("123.5")
 
-    assert round_half_up(Decimal("123.456"), -1) == Decimal("120.0")
-    assert round_half_up(Decimal("123.456"), 0) == Decimal("123.0")
-    assert round_half_up(Decimal("123.456"), 1) == Decimal("123.5")
+    def test_truncate(self) -> None:
 
-    # -------------------------------------------------------------------------
-    # truncate()
-    # -------------------------------------------------------------------------
+        assert truncate(Decimal("-123.456"), -1) == Decimal("-120.0")
+        assert truncate(Decimal("-123.456"), 0) == Decimal("-123.0")
+        assert truncate(Decimal("-123.456"), 1) == Decimal("-123.4")
 
-    assert truncate(Decimal("-123.456"), -1) == Decimal("-120.0")
-    assert truncate(Decimal("-123.456"), 0) == Decimal("-123.0")
-    assert truncate(Decimal("-123.456"), 1) == Decimal("-123.4")
+        assert truncate(Decimal("-0.51"), 0) == Decimal("0.0")
+        assert truncate(Decimal("-0.5"), 0) == Decimal("0.0")
+        assert truncate(Decimal("-0.49"), 0) == Decimal("0.0")
+        assert truncate(Decimal("0.49"), 0) == Decimal("0.0")
+        assert truncate(Decimal("0.49"), 0) == Decimal("0.0")
+        assert truncate(Decimal("0.5"), 0) == Decimal("0.0")
 
-    assert truncate(Decimal("-0.51"), 0) == Decimal("0.0")
-    assert truncate(Decimal("-0.5"), 0) == Decimal("0.0")
-    assert truncate(Decimal("-0.49"), 0) == Decimal("0.0")
-    assert truncate(Decimal("0.49"), 0) == Decimal("0.0")
-    assert truncate(Decimal("0.49"), 0) == Decimal("0.0")
-    assert truncate(Decimal("0.5"), 0) == Decimal("0.0")
+        assert truncate(Decimal("123.456"), -1) == Decimal("120.0")
+        assert truncate(Decimal("123.456"), 0) == Decimal("123.0")
+        assert truncate(Decimal("123.456"), 1) == Decimal("123.4")
 
-    assert truncate(Decimal("123.456"), -1) == Decimal("120.0")
-    assert truncate(Decimal("123.456"), 0) == Decimal("123.0")
-    assert truncate(Decimal("123.456"), 1) == Decimal("123.4")
+    def test_range_roundable_up_to(self) -> None:
 
-    # -------------------------------------------------------------------------
-    # range_roundable_up_to()
-    # -------------------------------------------------------------------------
+        assert range_roundable_up_to(Decimal("200"), -2) == \
+               (Decimal("150.0"), Decimal("250.0"))
+        assert range_roundable_up_to(Decimal("200"), -1) == \
+               (Decimal("195.0"), Decimal("205.0"))
+        assert range_roundable_up_to(Decimal("200"), 0) == \
+               (Decimal("199.5"), Decimal("200.5"))
+        assert range_roundable_up_to(Decimal("200"), 1) == \
+               (Decimal("199.95"), Decimal("200.05"))
+        assert range_roundable_up_to(Decimal("200"), 2) == \
+               (Decimal("199.995"), Decimal("200.005"))
 
-    assert range_roundable_up_to(Decimal("200"), -2) == \
-           (Decimal("150.0"), Decimal("250.0"))
-    assert range_roundable_up_to(Decimal("200"), -1) == \
-           (Decimal("195.0"), Decimal("205.0"))
-    assert range_roundable_up_to(Decimal("200"), 0) == \
-           (Decimal("199.5"), Decimal("200.5"))
-    assert range_roundable_up_to(Decimal("200"), 1) == \
-           (Decimal("199.95"), Decimal("200.05"))
-    assert range_roundable_up_to(Decimal("200"), 2) == \
-           (Decimal("199.995"), Decimal("200.005"))
+        assert range_roundable_up_to(Decimal("-1"), 0) == \
+               (Decimal("-1.5"), Decimal("-0.5"))
 
-    assert range_roundable_up_to(Decimal("-1"), 0) == \
-           (Decimal("-1.5"), Decimal("-0.5"))
+        # range_roundable_up_to(0.5, 0)  # bad input (not correctly rounded); would assert  # noqa
 
-    # range_roundable_up_to(0.5, 0)  # bad input (not correctly rounded); would assert  # noqa
+        for x in [Decimal("100.332"), Decimal("-150.12")]:
+            for dp in [-2, -1, 0, 1, 2]:
+                validate_range_roundable_up_to(x, dp, self.EPSILON)
 
-    for x in [Decimal("100.332"), Decimal("-150.12")]:
-        for dp in [-2, -1, 0, 1, 2]:
-            validate_range_roundable_up_to(x, dp, epsilon)
+    def test_range_truncatable_to(self) -> None:
 
-    # -------------------------------------------------------------------------
-    # range_truncatable_to()
-    # -------------------------------------------------------------------------
-    assert range_truncatable_to(Decimal("200"), -2) == \
-           (Decimal("200"), Decimal("300"))
-    assert range_truncatable_to(Decimal("200"), -1) == \
-           (Decimal("200"), Decimal("210"))
-    assert range_truncatable_to(Decimal("200"), 0) == \
-           (Decimal("200"), Decimal("201"))
-    assert range_truncatable_to(Decimal("200"), 1) == \
-           (Decimal("200"), Decimal("200.1"))
-    assert range_truncatable_to(Decimal("200"), 2) == \
-           (Decimal("200"), Decimal("200.01"))
+        assert range_truncatable_to(Decimal("200"), -2) == \
+               (Decimal("200"), Decimal("300"))
+        assert range_truncatable_to(Decimal("200"), -1) == \
+               (Decimal("200"), Decimal("210"))
+        assert range_truncatable_to(Decimal("200"), 0) == \
+               (Decimal("200"), Decimal("201"))
+        assert range_truncatable_to(Decimal("200"), 1) == \
+               (Decimal("200"), Decimal("200.1"))
+        assert range_truncatable_to(Decimal("200"), 2) == \
+               (Decimal("200"), Decimal("200.01"))
 
-    assert range_truncatable_to(Decimal("-1"), 0) == \
-           (Decimal("-2"), Decimal("-1"))
-    assert range_truncatable_to(Decimal("-1"), 1) == \
-           (Decimal("-1.1"), Decimal("-1"))
-    assert range_truncatable_to(Decimal("-1"), 2) == \
-           (Decimal("-1.01"), Decimal("-1"))
+        assert range_truncatable_to(Decimal("-1"), 0) == \
+               (Decimal("-2"), Decimal("-1"))
+        assert range_truncatable_to(Decimal("-1"), 1) == \
+               (Decimal("-1.1"), Decimal("-1"))
+        assert range_truncatable_to(Decimal("-1"), 2) == \
+               (Decimal("-1.01"), Decimal("-1"))
 
-    # range_truncatable_to(0.5, 0)  # bad input (not correctly rounded); would assert  # noqa
+        # range_truncatable_to(0.5, 0)  # bad input (not correctly rounded); would assert  # noqa
 
-    for x in [Decimal("100.332"), Decimal("-150.12")]:
-        for dp in [-2, -1, 0, 1, 2]:
-            validate_range_truncatable_to(x, dp, epsilon)
+        for x in [Decimal("100.332"), Decimal("-150.12")]:
+            for dp in [-2, -1, 0, 1, 2]:
+                validate_range_truncatable_to(x, dp, self.EPSILON)
 
 
 # =============================================================================

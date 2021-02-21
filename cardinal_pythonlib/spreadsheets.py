@@ -33,6 +33,8 @@ Note:
 """
 
 import datetime
+import decimal
+from decimal import Decimal
 import logging
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
@@ -319,6 +321,31 @@ class SheetHolder(object):
             return default
         return float(v)
 
+    def read_decimal(
+            self,
+            row: int,
+            col: int,
+            default: Decimal = None,
+            check_header: str = None,
+            dp: int = None,
+            rounding: str = decimal.ROUND_HALF_UP) -> Optional[Decimal]:
+        """
+        Reads a Decimal from the spreadsheet.
+
+        If ``dp`` is not ``None``, force the result to a specified number of
+        decimal places, using the specified rounding method.
+        """
+        v = self.read_value(row, col, check_header=check_header)
+        if none_or_blank_string(v):
+            return default
+        x = Decimal(str(v))
+        # ... better than Decimal(v), which converts e.g. 7.4 to
+        # Decimal('7.4000000000000003552713678800500929355621337890625')
+        if dp is not None:
+            nplaces = Decimal(10) ** (-dp)
+            x = x.quantize(exp=nplaces, rounding=rounding)
+        return x
+
     def read_str(self, row: int, col: int,
                  default: str = None,
                  check_header: str = None) -> Optional[str]:
@@ -528,6 +555,12 @@ class RowHolder(object):
         return self.sheetholder.read_float(
             self.row, col, default, check_header=check_header)
 
+    def read_decimal(self, col: int,
+                     default: Decimal = None,
+                     check_header: str = None) -> Optional[Decimal]:
+        return self.sheetholder.read_decimal(
+            self.row, col, default, check_header=check_header)
+
     def read_str(self, col: int,
                  default: str = None,
                  check_header: str = None) -> Optional[str]:
@@ -633,6 +666,20 @@ class RowHolder(object):
         Optionally, checks that the header for this column is as expected.
         """
         v = self.read_float(self._next_col, default, check_header=check_header)
+        self.inc_next_col()
+        return v
+
+    def decimal_pp(self,
+                   default: float = None,
+                   check_header: str = None,
+                   dp: int = None,
+                   rounding: str = decimal.ROUND_HALF_UP) -> Optional[Decimal]:
+        """
+        Reads a Decimal, then increments the "current" column.
+        Optionally, checks that the header for this column is as expected.
+        """
+        v = self.read_decimal(
+            self._next_col, default, check_header=check_header)
         self.inc_next_col()
         return v
 

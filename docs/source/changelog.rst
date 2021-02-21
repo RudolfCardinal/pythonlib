@@ -602,3 +602,4 @@ Quick links:
 **1.1.1 (2021-02-21)**
 
 - :mod:`cardinal_pythonlib.rounding`
+- Decimal option in :mod:`cardinal_pythonlib.spreadsheets`
