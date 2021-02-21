@@ -598,3 +598,7 @@ Quick links:
 - :mod:`cardinal_pythonlib.datamapping`
 - :mod:`cardinal_pythonlib.spreadsheets`
 - :func:`cardinal_pythonlib.randomness.generate_random_string`
+
+**1.1.1 (2021-02-21)**
+
+- :mod:`cardinal_pythonlib.rounding`

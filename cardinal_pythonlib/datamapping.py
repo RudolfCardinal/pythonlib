@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2020 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -59,7 +59,7 @@ def map_value(value: Any,
             return result
     # Not found.
     if required:
-        identity = f"for {name}" if name else ""
+        identity = f" for {name}" if name else ""
         msg = f"Bad value{identity}: {value!r}"
         raise ValueError(msg)
     else:
