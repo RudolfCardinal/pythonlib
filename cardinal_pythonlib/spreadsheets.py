@@ -46,7 +46,7 @@ try:
     # noinspection PyPackageRequirements
     from xlrd import Book
     # noinspection PyPackageRequirements
-    from xlrd.sheet import Cell
+    from xlrd.sheet import Cell, Sheet
 except ImportError:
     raise ImportError("You must install the 'xlrd' package.")
 
@@ -200,19 +200,57 @@ class SheetHolder(object):
     BOOL_UNKNOWN_VALUES_LOWERCASE = [None, "", "?", "not known", "unknown"]
 
     def __init__(self,
-                 book: Book,
+                 book: Book = None,
                  sheet_name: str = None,
+                 sheet_index: int = None,
+                 sheet: Sheet = None,
                  debug_max_rows_per_sheet: int = None) -> None:
-        self.book = book
-        sheet_name = sheet_name or self.SHEET_NAME
-        assert sheet_name, "Provide sheet_name or override SHEET_NAME"
-        self.sheet = book.sheet_by_name(sheet_name)
+        """
+        There are two ways to specify the sheet:
+
+        1.  Provide a workbook via ``book`` and...
+
+            (a) a sheet number, or
+
+            (b) a sheet name
+
+                (i) via :meth:`__init__`, or
+                (ii) by overriding :data:`SHEET_NAME`
+
+        2.  Provide a worksheet directly via ``sheet``.
+        """
+        if book:
+            assert sheet is None, "Specify either book or sheet"
+            if sheet_index is not None:
+                self.sheet = book.sheet_by_index(sheet_index)
+                self.sheet_description = (
+                    f"book={book!r}, sheet_index={sheet_index}"
+                )
+            else:
+                sheet_name = sheet_name or self.SHEET_NAME
+                assert sheet_name, "Provide sheet_name or override SHEET_NAME"
+                self.sheet = book.sheet_by_name(sheet_name)
+                self.sheet_description = (
+                    f"book={book!r}, sheet_name={sheet_name}"
+                )
+        else:
+            assert sheet is not None, "Specify either book or sheet"
+            self.sheet = sheet
+            self.sheet_description = f"sheet={sheet!r}"
+
+        self.book = sheet.book
         self.checked_headers = {}  # type: Dict[int, str]
         self.debug_max_rows_per_sheet = debug_max_rows_per_sheet
 
     # -------------------------------------------------------------------------
     # Information
     # -------------------------------------------------------------------------
+
+    def __str__(self) -> str:
+        return (
+            f"<Sheet {self.sheet_name!r}, specifed as "
+            f"{self.sheet_description}>"
+        )
 
     @property
     def n_rows(self) -> int:
@@ -248,8 +286,11 @@ class SheetHolder(object):
             return
         v = self.read_str(self.HEADER_ROW_ZERO_BASED, col)
         if v != header:
-            raise ValueError(f"Bad header for column {col}: should be "
-                             f"{header!r}, but was {v!r}")
+            raise ValueError(
+                f"Bad header for column {col} (row "
+                f"{self.HEADER_ROW_ZERO_BASED}) in sheet {self}: "
+                f"should be {header!r}, but was {v!r}"
+            )
         self.checked_headers[col] = v
 
     # -------------------------------------------------------------------------
@@ -418,8 +459,8 @@ class SheetHolder(object):
             counter = None
         if self.debug_max_rows_per_sheet is not None:
             log.warning(
-                f"Debug option: limiting to "
-                f"{self.debug_max_rows_per_sheet} rows from spreadsheet")
+                f"Debug option: limiting to {self.debug_max_rows_per_sheet} "
+                f"rows from spreadsheet {self}")
             end = min(n_rows, self.debug_max_rows_per_sheet + 1)
         else:
             end = n_rows
@@ -555,11 +596,21 @@ class RowHolder(object):
         return self.sheetholder.read_float(
             self.row, col, default, check_header=check_header)
 
-    def read_decimal(self, col: int,
-                     default: Decimal = None,
-                     check_header: str = None) -> Optional[Decimal]:
+    def read_decimal(
+            self,
+            col: int,
+            default: Decimal = None,
+            check_header: str = None,
+            dp: int = None,
+            rounding: str = decimal.ROUND_HALF_UP) -> Optional[Decimal]:
         return self.sheetholder.read_decimal(
-            self.row, col, default, check_header=check_header)
+            self.row,
+            col,
+            default,
+            check_header=check_header,
+            dp=dp,
+            rounding=rounding
+        )
 
     def read_str(self, col: int,
                  default: str = None,
@@ -679,7 +730,12 @@ class RowHolder(object):
         Optionally, checks that the header for this column is as expected.
         """
         v = self.read_decimal(
-            self._next_col, default, check_header=check_header)
+            self._next_col,
+            default=default,
+            check_header=check_header,
+            dp=dp,
+            rounding=rounding
+        )
         self.inc_next_col()
         return v
 
