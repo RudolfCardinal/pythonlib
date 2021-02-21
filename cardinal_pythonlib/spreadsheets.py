@@ -238,7 +238,7 @@ class SheetHolder(object):
             self.sheet = sheet
             self.sheet_description = f"sheet={sheet!r}"
 
-        self.book = sheet.book
+        self.book = self.sheet.book
         self.checked_headers = {}  # type: Dict[int, str]
         self.debug_max_rows_per_sheet = debug_max_rows_per_sheet
 

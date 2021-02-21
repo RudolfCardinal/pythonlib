@@ -599,7 +599,8 @@ Quick links:
 - :mod:`cardinal_pythonlib.spreadsheets`
 - :func:`cardinal_pythonlib.randomness.generate_random_string`
 
-**1.1.1 (2021-02-21)**
+**1.1.1 to 1.1.2 (2021-02-21)**
 
 - :mod:`cardinal_pythonlib.rounding`
-- Decimal option in :mod:`cardinal_pythonlib.spreadsheets`
+- Decimal option in :mod:`cardinal_pythonlib.spreadsheets`, and some other
+  minor spreadsheet-handling capabilities. Bugfix from 1.1.1 to 1.1.2.
