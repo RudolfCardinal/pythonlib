@@ -39,6 +39,7 @@ Automatic documentation of source code
     contexts.py.rst
     convert.py.rst
     crypto.py.rst
+    datamapping.py.rst
     datetimefunc.py.rst
     dbfunc.py.rst
     debugging.py.rst
@@ -98,6 +99,7 @@ Automatic documentation of source code
     probability.py.rst
     process.py.rst
     profile.py.rst
+    progress.py.rst
     psychiatry/drugs.py.rst
     psychiatry/rfunc.py.rst
     psychiatry/timeline.py.rst
@@ -114,6 +116,7 @@ Automatic documentation of source code
     rnc_db.py.rst
     rnc_text.py.rst
     rnc_web.py.rst
+    rounding.py.rst
     signalfunc.py.rst
     sizeformatter.py.rst
     slurm.py.rst
@@ -121,6 +124,7 @@ Automatic documentation of source code
     sort.py.rst
     source_reformatting.py.rst
     sphinxtools.py.rst
+    spreadsheets.py.rst
     sql/literals.py.rst
     sql/sql_grammar.py.rst
     sql/sql_grammar_factory.py.rst
@@ -142,6 +146,7 @@ Automatic documentation of source code
     sqlalchemy/orm_query.py.rst
     sqlalchemy/orm_schema.py.rst
     sqlalchemy/schema.py.rst
+    sqlalchemy/semantic_version_coltype.py.rst
     sqlalchemy/session.py.rst
     sqlalchemy/sqla_version.py.rst
     sqlalchemy/sqlfunc.py.rst
@@ -149,6 +154,7 @@ Automatic documentation of source code
     sqlalchemy/table_identity.py.rst
     stringfunc.py.rst
     subproc.py.rst
+    sysops.py.rst
     tee.py.rst
     text.py.rst
     timing.py.rst
@@ -171,5 +177,6 @@ Automatic documentation of source code
     wsgi/cache_mw.py.rst
     wsgi/constants.py.rst
     wsgi/errorreporter_mw.py.rst
+    wsgi/headers_mw.py.rst
     wsgi/request_logging_mw.py.rst
     wsgi/reverse_proxied_mw.py.rst
