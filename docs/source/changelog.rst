@@ -604,3 +604,7 @@ Quick links:
 - :mod:`cardinal_pythonlib.rounding`
 - Decimal option in :mod:`cardinal_pythonlib.spreadsheets`, and some other
   minor spreadsheet-handling capabilities. Bugfix from 1.1.1 to 1.1.2.
+
+**1.1.3 (2021-02-22)**
+
+- :mod:`cardinal_pythonlib.sqlalchemy.semantic_version_coltype`
