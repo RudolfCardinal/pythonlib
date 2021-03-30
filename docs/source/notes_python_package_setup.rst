@@ -73,7 +73,7 @@ This is a standard Python problem: "my_package depends on other_package version
   It's also read when users do a manual installation from it. And it's read by
   PyCharm_ and other IDEs.
 
-  - But possibly it works without this file? See below.
+  - But possibly it works without this file? Yes; it should. See below.
 
 - The ``setup(..., install_requires=[...])`` parameter in ``setup.py`` is read
   by ``pip``.
@@ -165,7 +165,10 @@ Experimenting with a package that has a simple requirement for
             install_requires=REQUIREMENTS,
         )
 
-  - Dependabot is meant to notice.
+  - Dependabot is meant to notice. Its code suggests it will cope with
+    arbitrary indirection:
+    https://github.com/dependabot/dependabot-core/blob/main/python/helpers/lib/parser.py
+
   - ``pip install`` does what's required and the code runs.
 
 - ``requirements.txt`` only:
