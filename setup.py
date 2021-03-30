@@ -15,16 +15,10 @@ To install in development mode:
     pip install -e .
 
 """
-# https://packaging.python.org/en/latest/distributing/#working-in-development-mode
-# http://python-packaging-user-guide.readthedocs.org/en/latest/distributing/
-# http://jtushman.github.io/blog/2013/06/17/sharing-code-across-applications-with-python/  # noqa
 
-import argparse
 from setuptools import setup, find_packages
 from codecs import open
-from io import StringIO
 from os import path
-import sys
 
 from cardinal_pythonlib.version_string import VERSION_STRING
 
@@ -32,62 +26,62 @@ THIS_DIR = path.abspath(path.dirname(__file__))
 README_FILE = path.join(THIS_DIR, 'README.rst')  # read
 REQUIREMENTS_FILE = path.join(THIS_DIR, 'requirements.txt')  # written
 
-# -----------------------------------------------------------------------------
+
+# =============================================================================
 # Get the long description from the README file
-# -----------------------------------------------------------------------------
+# =============================================================================
+
 with open(README_FILE, encoding='utf-8') as f:
     long_description = f.read()
 
-# -----------------------------------------------------------------------------
-# Nasty
-# -----------------------------------------------------------------------------
-
-REQUIREMENTS_TEXT = """
-# This file is AUTOMATICALLY WRITTEN BY setup.py; DO NOT EDIT IT.
-# We only do this so PyCharm knows the requirements too.
 
 # =============================================================================
+# Specify requirements
+# =============================================================================
+
+REQUIREMENTS = [
+    # - Include most things that are imported without "try / except
+    #   ImportError" handling.
+    # - Include as few version requirements as possible.
+    # - Keep it to pure-Python packages (for e.g. Windows installation with no
+    #   compiler).
+    # - Keep it to SMALL packages.
+    # - SEE ALSO external_dependencies.rst
+
+    "alembic",
+    "appdirs>=1.4.0",
+    "beautifulsoup4",  # "import bs4" or "from bs4 import ..."
+    "colorlog",
+    "isodate>=0.5.4",
+    "numpy",
+    "openpyxl",
+    "pandas",
+    "pendulum>=2.0.0",
+    "prettytable",
+    "psutil",
+    "pygments",
+    "pyparsing",
+    "PyPDF2",
+    "python-dateutil",  # "import dateutil"
+    "scipy",
+    "semantic-version",
+    "SQLAlchemy",
+    "sqlparse",
+]
+
+NOTES_RE_OTHER_REQUIREMENTS = """
+
+# -----------------------------------------------------------------------------
 # Use the PyPi index:
-# =============================================================================
+# -----------------------------------------------------------------------------
 --index-url https://pypi.python.org/simple/
 
-# =============================================================================
-# Actual requirements
-# =============================================================================
-# - Include most things that are imported without "try / except ImportError"
-#   handling.
-# - Include as few version requirements as possible.
-# - Keep it to pure-Python packages (for e.g. Windows installation with no 
-#   compiler).
-# - Keep it to SMALL packages.
-# - SEE ALSO external_dependencies.rst
 
-alembic
-appdirs>=1.4.0
-beautifulsoup4  # "import bs4" or "from bs4 import ..."
-colorlog
-isodate>=0.5.4
-numpy
-openpyxl
-pandas
-pendulum>=2.0.0
-prettytable
-psutil
-pygments
-pyparsing
-PyPDF2
-python-dateutil  # "import dateutil"
-scipy
-semantic-version
-SQLAlchemy
-sqlparse
-
-
-# =============================================================================
+# -----------------------------------------------------------------------------
 # The following are NOT HANDLED GRACEFULLY; their absence will cause a runtime
 # ImportError, but we don't make them requirements as they need a compiler to
 # install (and one might want to use the rest of the library without them).
-# =============================================================================
+# -----------------------------------------------------------------------------
 # - SEE ALSO external_dependencies.rst
 
 # arrow
@@ -100,10 +94,10 @@ sqlparse
 # webob  # installed by pyramid
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # The following are OPTIONAL; their absence will be handled gracefully, so
 # they are not requirements, but we note them here:
-# =============================================================================
+# -----------------------------------------------------------------------------
 # - SEE ALSO external_dependencies.rst
 
 # mmh3
@@ -116,17 +110,17 @@ sqlparse
 # xhtml2pdf
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # FOR LIBRARY DEVELOPMENT
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 # sphinx
 # sphinx_rtd_theme
 # twine
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # NO LONGER REQUIRED (but worth commenting on for now)
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 # DATABASE DRIVERS:
 # jaydebeapi  -- in deprecated rnc_db module only
@@ -138,39 +132,11 @@ sqlparse
 
 """
 
-# REMEMBER: code that runs here needs to cope with the INSTALLATION situation
-# as well as the PACKAGE CREATION situation.
 
-requirements = []
-with StringIO(REQUIREMENTS_TEXT) as f:
-    for line in f.readlines():
-        line = line.strip()
-        if (not line) or line.startswith('#') or line.startswith('--'):
-            continue
-        requirements.append(line)
-
-
-EXTRAS_ARG = 'extras'
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    '--' + EXTRAS_ARG, action='store_true',
-    help=(
-        "USE THIS TO CREATE PACKAGES (e.g. 'python setup.py sdist --{}. "
-        "Copies extra info in.".format(EXTRAS_ARG)
-    )
-)
-our_args, leftover_args = parser.parse_known_args()
-sys.argv[1:] = leftover_args
-
-if getattr(our_args, EXTRAS_ARG):
-    # Here's where we do the extra stuff.
-    with open(REQUIREMENTS_FILE, 'wt') as reqfile:
-        reqfile.write(REQUIREMENTS_TEXT)
-
-
-# -----------------------------------------------------------------------------
+# =============================================================================
 # setup args
-# -----------------------------------------------------------------------------
+# =============================================================================
+
 setup(
     name='cardinal_pythonlib',
 
@@ -206,15 +172,11 @@ setup(
         'Natural Language :: English',
 
         'Operating System :: OS Independent',
-        # 'Programming Language :: Python :: 2',
-        # 'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        # 'Programming Language :: Python :: 3.2',
-        # 'Programming Language :: Python :: 3.3',
-        # 'Programming Language :: Python :: 3.4',
-        # 'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
 
         'Topic :: Software Development :: Libraries',
     ],
@@ -223,7 +185,7 @@ setup(
 
     packages=find_packages(),  # finds all the .py files in subdirectories
 
-    install_requires=requirements,  # see requirements.txt
+    install_requires=REQUIREMENTS,
 
     entry_points={
         'console_scripts': [

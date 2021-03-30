@@ -204,6 +204,12 @@ class SheetHolder(object):
                  sheet_name: str = None,
                  sheet_index: int = None,
                  sheet: Sheet = None,
+                 header_row_zero_based: int = None,
+                 first_data_row_zero_based: int = None,
+                 null_values: List[Any] = None,
+                 bool_true_values_lowercase: List[Any] = None,
+                 bool_false_values_lowercase: List[Any] = None,
+                 bool_unknown_values_lowercase: List[Any] = None,
                  debug_max_rows_per_sheet: int = None) -> None:
         """
         There are two ways to specify the sheet:
@@ -211,36 +217,111 @@ class SheetHolder(object):
         1.  Provide a workbook via ``book`` and...
 
             (a) a sheet number, or
-
-            (b) a sheet name
-
-                (i) via :meth:`__init__`, or
-                (ii) by overriding :data:`SHEET_NAME`
+            (b) a sheet name.
 
         2.  Provide a worksheet directly via ``sheet``.
+
+        You can specify the following as ``_init__`` parameters or (via their
+        capitalized versions) by subclassing:
+
+        - sheet_name
+        - header_row_zero_based
+        - null_values
+        - bool_true_values_lowercase
+        - bool_false_values_lowercase
+        - bool_unknown_values_lowercase
+
+        Initialization parameters take priority over subclassed values.
+
+        Args:
+            book:
+                Workbook, from which a worksheet should be selected.
+            sheet_name:
+                Name of a sheet to select from within ``book``.
+            sheet_index:
+                Index (zero-based) of a sheet to select from within ``book``.
+            sheet:
+                Worksheet, provided directly.
+            header_row_zero_based:
+                Row number (zero-based) of the header row.
+            first_data_row_zero_based:
+                Row number (zero-based) of the first row containing data.
+            null_values:
+                Values to treat as null (blank) values, converted to Python
+                ``None``.
+            bool_true_values_lowercase:
+                Values to treat, by default, as ``True`` in Boolean columns.
+            bool_false_values_lowercase:
+                Values to treat, by default, as ``False`` in Boolean columns.
+            bool_unknown_values_lowercase:
+                Values to treat, by default, as missing/unknown in Boolean
+                columns.
+            debug_max_rows_per_sheet:
+                Debugging option: the maximum number of data rows to
+                process.
         """
+
+        # Establish worksheet
         if book:
-            assert sheet is None, "Specify either book or sheet"
+            assert sheet is None, (
+                f"You specified 'book', so must not specify 'sheet', but "
+                f"'sheet' was specified as: {sheet!r}"
+            )
             if sheet_index is not None:
                 self.sheet = book.sheet_by_index(sheet_index)
                 self.sheet_description = (
-                    f"book={book!r}, sheet_index={sheet_index}"
+                    f"book={book!r}, sheet_index={sheet_index!r}"
                 )
             else:
                 sheet_name = sheet_name or self.SHEET_NAME
                 assert sheet_name, "Provide sheet_name or override SHEET_NAME"
                 self.sheet = book.sheet_by_name(sheet_name)
                 self.sheet_description = (
-                    f"book={book!r}, sheet_name={sheet_name}"
+                    f"book={book!r}, sheet_name={sheet_name!r}"
                 )
         else:
-            assert sheet is not None, "Specify either book or sheet"
+            assert sheet is not None, (
+                "You didn't specify 'book', so must specify 'sheet', but it "
+                "was None"
+            )
             self.sheet = sheet
             self.sheet_description = f"sheet={sheet!r}"
 
-        self.book = self.sheet.book
-        self.checked_headers = {}  # type: Dict[int, str]
+        # Other parameters
+        self.header_row_zero_based = (
+            header_row_zero_based if header_row_zero_based is not None
+            else self.HEADER_ROW_ZERO_BASED
+        )
+        self.first_data_row_zero_based = (
+            first_data_row_zero_based if first_data_row_zero_based is not None
+            else self.FIRST_DATA_ROW_ZERO_BASED
+        )
+        self.null_values = (
+            null_values if null_values is not None
+            else self.NULL_VALUES
+        )
+        self.bool_true_values_lowercase = (
+            bool_true_values_lowercase
+            if bool_true_values_lowercase is not None
+            else self.BOOL_TRUE_VALUES_LOWERCASE
+        )
+        self.bool_false_values_lowercase = (
+            bool_false_values_lowercase
+            if bool_false_values_lowercase is not None
+            else self.BOOL_FALSE_VALUES_LOWERCASE
+        )
+        self.bool_unknown_values_lowercase = (
+            bool_unknown_values_lowercase
+            if bool_unknown_values_lowercase is not None
+            else self.BOOL_UNKNOWN_VALUES_LOWERCASE
+        )
         self.debug_max_rows_per_sheet = debug_max_rows_per_sheet
+
+        # Establish workbook
+        self.book = self.sheet.book
+
+        # Cached information
+        self._checked_headers = {}  # type: Dict[int, str]
 
     # -------------------------------------------------------------------------
     # Information
@@ -264,7 +345,7 @@ class SheetHolder(object):
         """
         Total number of data rows (below any header row).
         """
-        return self.n_rows - self.FIRST_DATA_ROW_ZERO_BASED
+        return self.n_rows - self.first_data_row_zero_based
 
     @property
     def sheet_name(self) -> str:
@@ -281,17 +362,17 @@ class SheetHolder(object):
         """
         Ensures that the header is correct for a specified column.
         """
-        if col in self.checked_headers:
+        if col in self._checked_headers:
             # Already checked.
             return
-        v = self.read_str(self.HEADER_ROW_ZERO_BASED, col)
+        v = self.read_str(self.header_row_zero_based, col)
         if v != header:
             raise ValueError(
                 f"Bad header for column {col} (row "
-                f"{self.HEADER_ROW_ZERO_BASED}) in sheet {self}: "
+                f"{self.header_row_zero_based}) in sheet {self}: "
                 f"should be {header!r}, but was {v!r}"
             )
-        self.checked_headers[col] = v
+        self._checked_headers[col] = v
 
     # -------------------------------------------------------------------------
     # Reading
@@ -304,7 +385,7 @@ class SheetHolder(object):
         if check_header is not None:
             self.ensure_header(col, check_header)
         v = self.sheet.cell_value(row, col)
-        if v in self.NULL_VALUES:
+        if v in self.null_values:
             return None
         return v
 
@@ -423,11 +504,11 @@ class SheetHolder(object):
         Reads a boolean value.
         """
         if true_values_lowercase is None:
-            true_values_lowercase = self.BOOL_TRUE_VALUES_LOWERCASE
+            true_values_lowercase = self.bool_true_values_lowercase
         if false_values_lowercase is None:
-            false_values_lowercase = self.BOOL_FALSE_VALUES_LOWERCASE
+            false_values_lowercase = self.bool_false_values_lowercase
         if unknown_values_lowercase is None:
-            unknown_values_lowercase = self.BOOL_UNKNOWN_VALUES_LOWERCASE
+            unknown_values_lowercase = self.bool_unknown_values_lowercase
         raw_v = self.read_value(row, col, check_header=check_header)
         if none_or_blank_string(raw_v):
             v = None
@@ -474,7 +555,7 @@ class SheetHolder(object):
         xlrd uses 0-based numbering, so row 1 is the first beyond a header row.
         """
         end, counter = self._setup_for_gen(with_counter)
-        for rownum in range(self.FIRST_DATA_ROW_ZERO_BASED, end):
+        for rownum in range(self.first_data_row_zero_based, end):
             if counter is not None:
                 counter.tick()
             yield rownum
@@ -487,7 +568,7 @@ class SheetHolder(object):
         xlrd uses 0-based numbering, so row 1 is the first beyond a header row.
         """
         end, counter = self._setup_for_gen(with_counter)
-        for index in range(self.FIRST_DATA_ROW_ZERO_BASED, end):
+        for index in range(self.first_data_row_zero_based, end):
             if counter is not None:
                 counter.tick()
             yield self.sheet.row(index)

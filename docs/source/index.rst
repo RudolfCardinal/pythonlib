@@ -26,6 +26,7 @@ cardinal_pythonlib
     to_do.rst
     autodoc/_index.rst
     external_dependencies.rst
+    notes_python_package_setup.rst
 
 
 Indices and tables

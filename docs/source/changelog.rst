@@ -605,6 +605,7 @@ Quick links:
 - Decimal option in :mod:`cardinal_pythonlib.spreadsheets`, and some other
   minor spreadsheet-handling capabilities. Bugfix from 1.1.1 to 1.1.2.
 
-**1.1.3 (2021-02-22)**
+**1.1.3 (2021-02-22 to 2021-03-15)**
 
 - :mod:`cardinal_pythonlib.sqlalchemy.semantic_version_coltype`
+- Minor tweaks to :mod:`cardinal_pythonlib.spreadsheets`.
