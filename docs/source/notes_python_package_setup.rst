@@ -41,8 +41,8 @@ options:
       ``sudo gdebi DEBFILE``;
 
     - an ``.rpm`` file, for Red Hat Linux and derivatives, creatable from a
-    ``.deb`` file via alien_, and easily installable via ``sudo yum install
-    RPMFILE``;
+      ``.deb`` file via alien_, and easily installable via ``sudo yum install
+      RPMFILE``;
 
     - Windows packaging.
 
@@ -99,7 +99,6 @@ How do these differ? See
 
 - http://jtushman.github.io/blog/2013/06/17/sharing-code-across-applications-with-python/
 
-
 Note:
 
 - It's better to specify a dependency version range when you are providing
@@ -135,9 +134,9 @@ Experimenting with a package that has a simple requirement for
 
   - PyCharm notices (even if indirected via a variable).
 
-    - But note: it will cope with simple indirection, e.g.
+    But note: it will cope with simple indirection, e.g.
 
-      .. code-block:: python
+    .. code-block:: python
 
         REQUIREMENTS = [
             "semantic_version==32.8.4",
@@ -147,9 +146,9 @@ Experimenting with a package that has a simple requirement for
             install_requires=REQUIREMENTS,
         )
 
-      but not with more complex indirection, e.g.
+    but not with more complex indirection, e.g.
 
-      .. code-block:: python
+    .. code-block:: python
 
         REQUIREMENTS_TEXT = """
             semantic_version==32.8.4
@@ -186,7 +185,8 @@ Conclusion
 ~~~~~~~~~~
 
 - For package distribution, ``install_requires`` in ``setup.py`` is mandatory,
-  and ``requirements.txt`` is optional.
+  and ``requirements.txt`` is optional and therefore perhaps best avoided so
+  that automatic code analysis tools don't get confused.
 
 
 Data and other non-Python files: setup.py versus MANIFEST.in
@@ -196,13 +196,95 @@ Here's another tricky thing. In ``setup.py``, you have ``package_data`` and
 ``include_package_data`` arguments to ``setup()``. There is also the file
 ``MANIFEST.in``.
 
+    #
+    # or MANIFEST.in ?
+    # - http://stackoverflow.com/questions/24727709/i-dont-understand-python-manifest-in  # noqa
+    # - http://stackoverflow.com/questions/1612733/including-non-python-files-with-setup-py  # noqa
+    #
+    # or both?
+    # - http://stackoverflow.com/questions/3596979/manifest-in-ignored-on-python-setup-py-install-no-data-files-installed  # noqa
+    # ... MANIFEST gets the files into the distribution
+    # ... package_data gets them installed in the distribution
+    #
+    # data_files is from distutils, and we're using setuptools
+    # - https://docs.python.org/3.5/distutils/setupscript.html#installing-additional-files  # noqa
+
+
+
+See:
+
+- http://stackoverflow.com/questions/13307408/python-packaging-data-files-are-put-properly-in-tar-gz-file-but-are-not-install
+
+- http://danielsokolowski.blogspot.co.uk/2012/08/setuptools-includepackagedata-option.html
+
+  ... relates to an old problem?
+
+- https://stackoverflow.com/questions/779495/access-data-in-package-subdirectory
+
+- https://packaging.python.org/guides/distributing-packages-using-setuptools/
+
+- https://packaging.python.org/guides/using-manifest-in/#using-manifest-in
+
+- https://setuptools.readthedocs.io/en/latest/userguide/datafiles.html
+
+- https://stackoverflow.com/questions/29036937/how-can-i-include-package-data-without-a-manifest-in-file
+
+- http://stackoverflow.com/questions/24727709/i-dont-understand-python-manifest-in
+
+- http://stackoverflow.com/questions/1612733/including-non-python-files-with-setup-py
+
+  ... relevant
+
+- http://stackoverflow.com/questions/3596979/manifest-in-ignored-on-python-setup-py-install-no-data-files-installed
+  ... ``MANIFEST.in`` gets the files into the distribution;
+  ... ``package_data`` gets them installed in the distribution
+
+- https://ep2015.europython.eu/media/conference/slides/less-known-packaging-features-and-tricks.pdf
+
+  ... this one is very good.
+
+- http://blog.codekills.net/2011/07/15/lies,-more-lies-and-python-packaging-documentation-on--package_data-/
+
+... the last, in particular, suggesting that both ``MANIFEST.in`` (required for
+``sdist``) and ``package_data`` (used for ``install``) are necessary.
+However, it seems that you can use just ``MANIFEST.in`` if you specify
+``include_package_data=True``.
+
+For complex file specification, you could use Python and then write to
+``MANIFEST.in``, but actually the manifest syntax is quite good:
+
+- https://www.reddit.com/r/Python/comments/40s8qw/simplify_your_manifestin_commands/
+
+- https://docs.python.org/3/distutils/commandref.html
+
+So, the two realistic options are:
+
+1.  Have a ``setup.py`` that auto-writes ``MANIFEST.in`` when required.
+
+2.  Specify ``MANIFEST.in`` properly and use ``include_package_data=True``.
+    This is probably better. See in particular
+    https://ep2015.europython.eu/media/conference/slides/less-known-packaging-features-and-tricks.pdf
+
+
+Conclusion
+~~~~~~~~~~
+
+Use ``MANIFEST.in`` plus ``setup(..., include_package_data=True)``.
+Use the full syntax available for ``MANIFEST.in``.
+
+To find all extensions (for the ``global-exclude`` command), use:
+
+    .. code-block:: bash
+
+        find . -type f | perl -ne 'print $1 if m/\.([^.\/]+)$/' | sort -u
 
 
 Beware a nasty caching effect
 -----------------------------
 
-Always delete any old ``MY_PACKAGE_NAME.egg_info`` directory from ``setup.py``.
-See
+Consider deleting any old ``MY_PACKAGE_NAME.egg_info`` directory from within
+``setup.py``, **before** calling ``setup()``. This may be particularly
+applicable for packages that ship "data". See
 http://blog.codekills.net/2011/07/15/lies,-more-lies-and-python-packaging-documentation-on--package_data-/
 
 Like this, for example:
@@ -214,7 +296,17 @@ Like this, for example:
     import os
     import shutil
 
+    PACKAGE_NAME = "MY_PACKAGE_NAME"
     THIS_DIR = os.path.abspath(os.path.dirname(__file__))  # contains setup.py
-    EGG_DIR = os.path.join(THIS_DIR, "MY_PACKAGE_NAME.egg-info")
+    EGG_DIR = os.path.join(THIS_DIR, PACKAGE_NAME + ".egg-info")
 
     shutil.rmtree(EGG_DIR, ignore_errors=True)
+
+    setup(...)
+
+This is perhaps meant to be unnecessary, per
+https://stackoverflow.com/questions/3779915/why-does-python-setup-py-sdist-create-unwanted-project-egg-info-in-project-r,
+but maybe isn't.
+
+It appears to be unnecessary once you shift to ``MANIFEST.in`` and
+``include_package_data=True``.

@@ -22,9 +22,9 @@ from os import path
 
 from cardinal_pythonlib.version_string import VERSION_STRING
 
+PACKAGE_NAME = "cardinal_pythonlib"
 THIS_DIR = path.abspath(path.dirname(__file__))
 README_FILE = path.join(THIS_DIR, 'README.rst')  # read
-REQUIREMENTS_FILE = path.join(THIS_DIR, 'requirements.txt')  # written
 
 
 # =============================================================================
@@ -138,7 +138,7 @@ NOTES_RE_OTHER_REQUIREMENTS = """
 # =============================================================================
 
 setup(
-    name='cardinal_pythonlib',
+    name=PACKAGE_NAME,
 
     version=VERSION_STRING,
 
