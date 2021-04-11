@@ -12,7 +12,7 @@ r"""
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ For an example, see ``crate_anon/tools/winservice.py``
 
 *Details*
 
-- http://stackoverflow.com/questions/32404
+- https://stackoverflow.com/questions/32404
 - http://www.chrisumbel.com/article/windows_services_in_python
 - http://code.activestate.com/recipes/551780-win-services-helper/
 - http://docs.activestate.com/activepython/2.4/pywin32/PyWin32.HTML
@@ -87,7 +87,7 @@ For an example, see ``crate_anon/tools/winservice.py``
         -> win32service.CreateService()
         
   - So how, in the normal situation, does PythonService.exe find our script?
-  - At this point, see also http://stackoverflow.com/questions/34696815
+  - At this point, see also https://stackoverflow.com/questions/34696815
   - Source code is: 
     https://github.com/tjguk/pywin32/blob/master/win32/src/PythonService.cpp
     
@@ -220,8 +220,8 @@ processes orphaned.
 
 See in particular
 
-- http://stackoverflow.com/questions/7085604/sending-c-to-python-subprocess-objects-on-windows
-- http://stackoverflow.com/questions/140111/sending-an-arbitrary-signal-in-windows
+- https://stackoverflow.com/questions/7085604/sending-c-to-python-subprocess-objects-on-windows
+- https://stackoverflow.com/questions/140111/sending-an-arbitrary-signal-in-windows
 
 Python bug?
 
@@ -242,7 +242,7 @@ to clean up. Still, it works (usually at one of the two TASKKILL stages).
 
 *"The specified service is marked for deletion"*
 
-- http://stackoverflow.com/questions/20561990
+- https://stackoverflow.com/questions/20561990
 
 """  # noqa
 
@@ -653,7 +653,7 @@ class ProcessManager(object):
             args.append("/f")  # forcefully
         callname = " ".join(args)
         retcode = subprocess.call(args)
-        # http://stackoverflow.com/questions/18682681/what-are-exit-codes-from-the-taskkill-utility  # noqa
+        # https://stackoverflow.com/questions/18682681/what-are-exit-codes-from-the-taskkill-utility  # noqa
         # noinspection PyUnresolvedReferences
         if retcode == winerror.ERROR_SUCCESS:  # 0
             self.info("Killed with " + repr(callname))

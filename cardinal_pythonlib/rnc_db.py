@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -414,7 +414,7 @@ class Access(Flavour):
                     AND ((MSysObjects.Type) In (1,4,6)))
             ORDER BY MSysObjects.Name
         """)
-        # http://stackoverflow.com/questions/201282
+        # https://stackoverflow.com/questions/201282
 
     @classmethod
     def get_all_table_details(cls, db: DATABASE_SUPPORTER_FWD_REF) \
@@ -441,9 +441,9 @@ class Access(Flavour):
                            db: DATABASE_SUPPORTER_FWD_REF,
                            table: str) -> List[str]:
         # not possible in SQL:
-        #   http://stackoverflow.com/questions/2221250
+        #   https://stackoverflow.com/questions/2221250
         # can do this:
-        #   http://stackoverflow.com/questions/3343922/get-column-names
+        #   https://stackoverflow.com/questions/3343922/get-column-names
         # or can use pyodbc:
         db.ensure_db_open()
         cursor = db.db.cursor()
@@ -774,7 +774,7 @@ class SQLServer(Flavour):
             com.microsoft.sqlserver.jdbc.SQLServerDriver not found
     ... then, under Ubuntu/Debian, try:
     (1) Download the driver from
-        http://www.microsoft.com/en-us/download/details.aspx?id=11774
+        https://www.microsoft.com/en-us/download/details.aspx?id=11774
         ... it's sqljdbc_4.1.5605.100_enu.tar.gz
     (2) [sudo] tar xvzf sqljdbc_4.1.5605.100_enu.tar.gz [-C destdir]
     (3) export CLASSPATH=$CLASSPATH:/wherever/sqljdbc_4.1/enu/sqljdbc41.jar
@@ -793,7 +793,7 @@ class SQLServer(Flavour):
         return db.fetchall("SELECT * FROM information_schema.tables")
         # restricted to current database (in full:
         #   databasename.information_schema.tables)
-        # http://stackoverflow.com/questions/6568098
+        # https://stackoverflow.com/questions/6568098
 
     @classmethod
     def describe_table(cls,
@@ -820,7 +820,7 @@ class SQLServer(Flavour):
         # ISO standard for INFORMATION_SCHEMA, I think.
         # SQL Server carries a warning but the warning may be incorrect:
         # https://msdn.microsoft.com/en-us/library/ms188348.aspx
-        # http://stackoverflow.com/questions/917431
+        # https://stackoverflow.com/questions/917431
         # http://sqlblog.com/blogs/aaron_bertrand/archive/2011/11/03/the-case-against-information-schema-views.aspx  # noqa
         return db.fetchvalue(
             "SELECT data_type FROM information_schema.columns "
@@ -835,7 +835,7 @@ class SQLServer(Flavour):
         # ISO standard for INFORMATION_SCHEMA, I think.
         # SQL Server carries a warning but the warning may be incorrect:
         # https://msdn.microsoft.com/en-us/library/ms188348.aspx
-        # http://stackoverflow.com/questions/917431
+        # https://stackoverflow.com/questions/917431
         # http://sqlblog.com/blogs/aaron_bertrand/archive/2011/11/03/the-case-against-information-schema-views.aspx  # noqa
         sql = """
             SELECT {}
@@ -941,7 +941,7 @@ def get_sql_insert_or_update(table: str,
                              delims: Tuple[str, str] = ("", "")) -> str:
     """Returns ?-marked SQL for an INSERT-or-if-duplicate-key-UPDATE statement.
     """
-    # http://stackoverflow.com/questions/4205181
+    # https://stackoverflow.com/questions/4205181
     return """
         INSERT INTO {table} ({fields})
         VALUES ({placeholders})
@@ -999,7 +999,7 @@ def datetime2literal_rnc(d: datetime.datetime, c: Optional[Dict]) -> str:
     # ... can fail with e.g.
     #   ValueError: year=1850 is before 1900; the datetime strftime() methods
     #   require year >= 1900
-    # http://stackoverflow.com/questions/10263956
+    # https://stackoverflow.com/questions/10263956
     dt = d.isoformat(" ")
     # noinspection PyArgumentList,PyUnresolvedReferences
     return _mysql.string_literal(dt, c)
@@ -1107,10 +1107,10 @@ def debug_query_result(rows: Sequence[Any]) -> None:
 
 def _convert_java_binary(rs, col: int) -> Optional[bytes]:
     # https://github.com/originell/jpype/issues/71
-    # http://stackoverflow.com/questions/5088671
+    # https://stackoverflow.com/questions/5088671
     # https://github.com/baztian/jaydebeapi/blob/master/jaydebeapi/__init__.py
     # https://msdn.microsoft.com/en-us/library/ms378813(v=sql.110).aspx
-    # http://stackoverflow.com/questions/2920364/checking-for-a-null-int-value-from-a-java-resultset  # noqa
+    # https://stackoverflow.com/questions/2920364/checking-for-a-null-int-value-from-a-java-resultset  # noqa
     v = None
     log.debug("_convert_java_binary: converting...")
     time1 = time.time()
@@ -1165,7 +1165,7 @@ def _convert_java_bigstring(rs, col: int) -> Optional[str]:
 
 
 def _convert_java_bigint(rs, col: int) -> Optional[int]:
-    # http://stackoverflow.com/questions/26899595
+    # https://stackoverflow.com/questions/26899595
     # https://github.com/baztian/jaydebeapi/issues/6
     # https://github.com/baztian/jaydebeapi/blob/master/jaydebeapi/__init__.py
     # https://docs.oracle.com/javase/7/docs/api/java/math/BigInteger.html
@@ -1201,7 +1201,7 @@ def reconfigure_jaydebeapi() -> None:
     #       http://docs.oracle.com/javase/6/docs/api/java/sql/Types.html
     # In particular, note that DATETIME is not one of them!
     # The equivalent is TIMESTAMP.
-    #       http://stackoverflow.com/questions/6777810
+    #       https://stackoverflow.com/questions/6777810
     try:
         if hasattr(jaydebeapi, "_DEFAULT_CONVERTERS"):
             # Recent version of jaydebeapi, e.g. 0.2.0
@@ -1450,8 +1450,8 @@ class DatabaseSupporter:
         self.db_pythonlib = None
         self.schema = None
         self.autocommit = None
-        # http://stackoverflow.com/questions/2901453
-        # http://stackoverflow.com/questions/7311990
+        # https://stackoverflow.com/questions/2901453
+        # https://stackoverflow.com/questions/7311990
 
     # -------------------------------------------------------------------------
     # Generic connection method
@@ -1611,7 +1611,7 @@ class DatabaseSupporter:
             converters = mysql.converters.conversions.copy()
             converters[datetimetype] = datetime2literal_rnc
             # See also:
-            #   http://stackoverflow.com/questions/11053941
+            #   https://stackoverflow.com/questions/11053941
             log.info(
                 "{i} connect: host={h}, port={p}, user={u}, "
                 "database={d}".format(
@@ -1646,7 +1646,7 @@ class DatabaseSupporter:
             #
             # Python talking to MySQL in Unicode:
             # http://www.harelmalka.com/?p=81
-            # http://stackoverflow.com/questions/6001104
+            # https://stackoverflow.com/questions/6001104
 
         elif engine == ENGINE_MYSQL and interface == INTERFACE_ODBC:
             log.info(
@@ -1662,7 +1662,7 @@ class DatabaseSupporter:
             # noinspection PyUnresolvedReferences
             self.db = pyodbc.connect(dsn)
             self.db.autocommit = autocommit
-            # http://stackoverflow.com/questions/1063770
+            # https://stackoverflow.com/questions/1063770
 
         elif engine == ENGINE_MYSQL and interface == INTERFACE_JDBC:
             # https://help.ubuntu.com/community/JDBCAndMySQL
@@ -1707,7 +1707,7 @@ class DatabaseSupporter:
             # noinspection PyUnresolvedReferences
             self.db = pyodbc.connect(connectstring, unicode_results=True)
             self.db.autocommit = autocommit
-            # http://stackoverflow.com/questions/1063770
+            # https://stackoverflow.com/questions/1063770
 
         elif engine == ENGINE_SQLSERVER and interface == INTERFACE_JDBC:
             # jar tvf sqljdbc41.jar
@@ -1753,7 +1753,7 @@ class DatabaseSupporter:
             # noinspection PyUnresolvedReferences
             self.db = pyodbc.connect(dsn)
             self.db.autocommit = autocommit
-            # http://stackoverflow.com/questions/1063770
+            # https://stackoverflow.com/questions/1063770
 
         else:
             raise ValueError(
@@ -1895,7 +1895,7 @@ class DatabaseSupporter:
         # STR_TO_DATE().
         # If you get this wrong, you may see "not all arguments converted
         # during string formatting";
-        # http://stackoverflow.com/questions/9337134
+        # https://stackoverflow.com/questions/9337134
         if self.db_pythonlib in [PYTHONLIB_PYMYSQL, PYTHONLIB_MYSQLDB]:
             # These engines use %, so we need to convert ? to %, without
             # breaking literal % values.
@@ -2090,7 +2090,7 @@ class DatabaseSupporter:
         # if isinstance(query, unicode):
         #     query = query.encode(charset)
         # Don't get them double-encoded:
-        #   http://stackoverflow.com/questions/6202726/writing-utf-8-string-to-mysql-with-python  # noqa
+        #   https://stackoverflow.com/questions/6202726/writing-utf-8-string-to-mysql-with-python  # noqa
         if args is not None:
             query = query % self.db.literal(args)
         return query
@@ -2493,8 +2493,8 @@ class DatabaseSupporter:
         """Creates a FULLTEXT index (default name _idxft_FIELDNAME), unless it
         exists already. See:
 
-        http://dev.mysql.com/doc/refman/5.6/en/innodb-fulltext-index.html
-        http://dev.mysql.com/doc/refman/5.0/en/fulltext-search.html
+        https://dev.mysql.com/doc/refman/5.6/en/innodb-fulltext-index.html
+        https://dev.mysql.com/doc/refman/5.0/en/fulltext-search.html
         """
         if indexname is None:
             indexname = "_idxft_{}".format(field)
@@ -2788,7 +2788,7 @@ class DatabaseSupporter:
         sql = ("ALTER TABLE " + self.delimit(table) +
                drop_pk_if_exists +
                " ADD PRIMARY KEY(" + fieldlist + ")")
-        # http://stackoverflow.com/questions/8859353
+        # https://stackoverflow.com/questions/8859353
         return self.db_exec(sql)
 
     # =========================================================================
@@ -2841,7 +2841,7 @@ class DatabaseSupporter:
     # =========================================================================
 
     def java_garbage_collect(self) -> None:
-        # http://stackoverflow.com/questions/1903041
+        # https://stackoverflow.com/questions/1903041
         # http://docs.oracle.com/javase/7/docs/api/java/lang/Runtime.html
         if not jaydebeapi:
             return

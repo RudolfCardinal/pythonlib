@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,7 +65,7 @@ def is_false(x: Any) -> bool:
     """
     # beware: "0 is False" evaluates to False -- AVOID "is False"!
     # ... but "0 == False" evaluates to True
-    # http://stackoverflow.com/questions/3647692/
+    # https://stackoverflow.com/questions/3647692/
     # ... but comparisons to booleans with "==" fail PEP8:
     # http://legacy.python.org/dev/peps/pep-0008/
     # ... so use e.g. "bool(x)" or "x" or "not x"

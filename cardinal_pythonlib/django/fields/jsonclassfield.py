@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,10 +45,10 @@ database, so long as they are serializable to/from JSON.**
   https://docs.djangoproject.com/en/1.10/ref/contrib/postgres/fields/#django.contrib.postgres.fields.JSONField
   https://docs.djangoproject.com/en/1.10/ref/models/fields/
 
-- http://stackoverflow.com/questions/6578986/how-to-convert-json-data-into-a-python-object
-- http://stackoverflow.com/questions/31235771/is-parsing-a-json-naively-into-a-python-class-or-struct-secure
-- http://stackoverflow.com/questions/16405969/how-to-change-json-encoding-behaviour-for-serializable-python-object/16406798#16406798
-- http://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable
+- https://stackoverflow.com/questions/6578986/how-to-convert-json-data-into-a-python-object
+- https://stackoverflow.com/questions/31235771/is-parsing-a-json-naively-into-a-python-class-or-struct-secure
+- https://stackoverflow.com/questions/16405969/how-to-change-json-encoding-behaviour-for-serializable-python-object/16406798#16406798
+- https://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable
 
 e.g.:
 

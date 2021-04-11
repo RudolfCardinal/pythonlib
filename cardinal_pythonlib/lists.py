@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -112,7 +112,7 @@ def flatten_list(x: List[Any]) -> List[Any]:
         flat list
         
     As per
-    http://stackoverflow.com/questions/952914/making-a-flat-list-out-of-list-of-lists-in-python
+    https://stackoverflow.com/questions/952914/making-a-flat-list-out-of-list-of-lists-in-python
 
     """  # noqa
     return [item for sublist in x for item in sublist]
@@ -129,7 +129,7 @@ def unique_list(seq: Iterable[Any]) -> List[Any]:
         list of unique elements
 
     As per
-    http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-whilst-preserving-order
+    https://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-whilst-preserving-order
 
     """  # noqa
     seen = set()

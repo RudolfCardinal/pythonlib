@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -70,12 +70,12 @@ class MimeType(object):
 
     - CSV
     
-      - http://stackoverflow.com/questions/264256/what-is-the-best-mime-type-and-extension-to-use-when-exporting-tab-delimited
-      - http://www.iana.org/assignments/media-types/text/tab-separated-values
+      - https://stackoverflow.com/questions/264256/what-is-the-best-mime-type-and-extension-to-use-when-exporting-tab-delimited
+      - https://www.iana.org/assignments/media-types/text/tab-separated-values
     
     - ZIP
     
-      - http://stackoverflow.com/questions/4411757/zip-mime-types-when-to-pick-which-one
+      - https://stackoverflow.com/questions/4411757/zip-mime-types-when-to-pick-which-one
       
     - Microsoft Office
     

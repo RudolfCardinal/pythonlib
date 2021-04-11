@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -117,7 +117,7 @@ class GenericSaltedHasher(GenericHasher):
     Note that these are vulnerable to attack: if an attacker knows a
     ``(message, digest)`` pair, it may be able to calculate another.
     See https://benlog.com/2008/06/19/dont-hash-secrets/ and
-    http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.134.8430
+    https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.134.8430
 
     **You should use HMAC instead if the thing you are hashing is secret.**
     """
@@ -286,7 +286,7 @@ for i in range(MAX_PID_NUM):
 # and we want to test
 #   9,999,999,999
 # Anyway, other people have done the work:
-#   http://crypto.stackexchange.com/questions/15873
+#   https://crypto.stackexchange.com/questions/15873
 # ... and the value is expected to be at least 2^64, whereas an NHS number
 # is less than 2^34 -- from math.log(9999999, 2).
 
@@ -303,8 +303,8 @@ def to_bytes(data: Any) -> bytearray:
     
     See
     
-    - http://stackoverflow.com/questions/7585435/best-way-to-convert-string-to-bytes-in-python-3
-    - http://stackoverflow.com/questions/10459067/how-to-convert-my-bytearrayb-x9e-x18k-x9a-to-something-like-this-x9e-x1
+    - https://stackoverflow.com/questions/7585435/best-way-to-convert-string-to-bytes-in-python-3
+    - https://stackoverflow.com/questions/10459067/how-to-convert-my-bytearrayb-x9e-x18k-x9a-to-something-like-this-x9e-x11
     """  # noqa
     if isinstance(data, int):
         return bytearray([data])
@@ -330,7 +330,7 @@ def twos_comp_to_signed(val: int, n_bits: int) -> int:
     Returns:
         signed integer
 
-    See http://stackoverflow.com/questions/1604464/twos-complement-in-python
+    See https://stackoverflow.com/questions/1604464/twos-complement-in-python
 
     """
     assert n_bits % 8 == 0, "Must specify a whole number of bytes"
@@ -384,7 +384,7 @@ def bytes_to_long(bytesdata: bytes) -> int:
 def murmur3_x86_32(data: Union[bytes, bytearray], seed: int = 0) -> int:
     """
     Pure 32-bit Python implementation of MurmurHash3; see
-    http://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash.
+    https://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash.
      
     Args:
         data: data to hash 
@@ -447,7 +447,7 @@ def murmur3_x86_32(data: Union[bytes, bytearray], seed: int = 0) -> int:
 def murmur3_64(data: Union[bytes, bytearray], seed: int = 19820125) -> int:
     """
     Pure 64-bit Python implementation of MurmurHash3; see
-    http://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash
+    https://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash
     (plus RNC bugfixes).
      
     Args:

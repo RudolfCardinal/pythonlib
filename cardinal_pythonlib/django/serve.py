@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -81,7 +81,7 @@ def add_http_headers_for_attachment(
         as_attachment:
             If True, browsers will generally save to disk.
             If False, they may display it inline.
-            http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html
+            https://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html
         as_inline:
             attempt to force inline (only if not as_attachment)
         content_length:
@@ -144,14 +144,14 @@ def serve_file(path_to_file: str,
         as_attachment:
             If True, browsers will generally save to disk.
             If False, they may display it inline.
-            http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html
+            https://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html
         as_inline:
             attempt to force inline (only if not as_attachment)
         default_content_type:
             HTTP content type to use as default, if ``content_type`` is
             ``None``
     """
-    # http://stackoverflow.com/questions/1156246/having-django-serve-downloadable-files  # noqa
+    # https://stackoverflow.com/questions/1156246/having-django-serve-downloadable-files  # noqa
     # https://docs.djangoproject.com/en/dev/ref/request-response/#telling-the-browser-to-treat-the-response-as-a-file-attachment  # noqa
     # https://djangosnippets.org/snippets/365/
     if offered_filename is None:
@@ -175,7 +175,7 @@ def serve_file(path_to_file: str,
     # Note for debugging: Chrome may request a file more than once (e.g. with a
     # GET request that's then marked 'canceled' in the Network tab of the
     # developer console); this is normal:
-    #   http://stackoverflow.com/questions/4460661/what-to-do-with-chrome-sending-extra-requests  # noqa
+    #   https://stackoverflow.com/questions/4460661/what-to-do-with-chrome-sending-extra-requests  # noqa
 
 
 def serve_buffer(

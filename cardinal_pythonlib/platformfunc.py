@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,7 +41,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # =============================================================================
 # Fix UTF-8 output problems on Windows
 # =============================================================================
-# http://stackoverflow.com/questions/5419
+# https://stackoverflow.com/questions/5419
 
 def fix_windows_utf8_output() -> None:
     # Python 3 only now, so nothing to do

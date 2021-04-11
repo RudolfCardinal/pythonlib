@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,9 +27,9 @@
 - https://www.reddit.com/r/Python/comments/p5grh/sqlalchemy_whats_the_idiomatic_way_of_writing/
 - https://github.com/bedwards/sqlalchemy_mysql_ext/blob/master/duplicate.py
   ... modified
-- http://docs.sqlalchemy.org/en/rel_1_0/core/compiler.html
-- http://stackoverflow.com/questions/6611563/sqlalchemy-on-duplicate-key-update
-- http://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html
+- https://docs.sqlalchemy.org/en/rel_1_0/core/compiler.html
+- https://stackoverflow.com/questions/6611563/sqlalchemy-on-duplicate-key-update
+- https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html
 
 Once implemented, you can do
 
@@ -40,8 +40,8 @@ Once implemented, you can do
 
 **Note: superseded by SQLAlchemy v1.2:**
 
-- http://docs.sqlalchemy.org/en/latest/changelog/migration_12.html
-- http://docs.sqlalchemy.org/en/latest/dialects/mysql.html#mysql-insert-on-duplicate-key-update
+- https://docs.sqlalchemy.org/en/latest/changelog/migration_12.html
+- https://docs.sqlalchemy.org/en/latest/dialects/mysql.html#mysql-insert-on-duplicate-key-update
 
 """  # noqa
 
@@ -78,7 +78,7 @@ def insert_on_duplicate(tablename: str,
         tablename: name of the table
         values: values to ``INSERT``
         inline: as per 
-            http://docs.sqlalchemy.org/en/latest/core/dml.html#sqlalchemy.sql.expression.insert
+            https://docs.sqlalchemy.org/en/latest/core/dml.html#sqlalchemy.sql.expression.insert
         kwargs: additional parameters
 
     Returns:
@@ -135,7 +135,7 @@ def compile_insert_on_duplicate_key_update(insert: Insert,
       (https://github.com/bedwards/sqlalchemy_mysql_ext/blob/master/duplicate.py)... 
       but, like that, it will get outdated.
     - We could use a hack-in-by-hand method
-      (http://stackoverflow.com/questions/6611563/sqlalchemy-on-duplicate-key-update)
+      (https://stackoverflow.com/questions/6611563/sqlalchemy-on-duplicate-key-update)
       ... but a little automation would be nice.
     - So, regex to the rescue.
     - NOTE THAT COLUMNS ARE ALREADY QUOTED by this stage; no need to repeat.

@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +44,7 @@ def add_info_to_exception(err: Exception, info: Dict) -> None:
     Adds an information dictionary to an exception.
     
     See
-    http://stackoverflow.com/questions/9157210/how-do-i-raise-the-same-exception-with-a-custom-message-in-python
+    https://stackoverflow.com/questions/9157210/how-do-i-raise-the-same-exception-with-a-custom-message-in-python
     
     Args:
         err: the exception to be modified
@@ -75,7 +75,7 @@ def die(exc: Exception = None, exit_code: int = 1) -> NoReturn:
     produces the usual stack trace then dies with the specified exit code.
 
     See
-    http://stackoverflow.com/questions/9555133/e-printstacktrace-equivalent-in-python.
+    https://stackoverflow.com/questions/9555133/e-printstacktrace-equivalent-in-python.
 
     Test code:
     

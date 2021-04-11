@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ from typing import Any, Iterable
 # Making FileFields own their files (i.e. delete them afterwards)
 # =============================================================================
 
-# http://stackoverflow.com/questions/16041232/django-delete-filefield
+# https://stackoverflow.com/questions/16041232/django-delete-filefield
 # These two auto-delete files from filesystem when they are unneeded:
 # ... with a bit of modification to make them generic (RNC)
 # Attach them with signals; see e.g. Study model.

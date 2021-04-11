@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -182,7 +182,7 @@ class AutoStrEnum(str,
         print(Animal.horse.name, Animal.horse.value)
 
     See
-    http://stackoverflow.com/questions/32214614/automatically-setting-an-enum-members-value-to-its-name/32215467
+    https://stackoverflow.com/questions/32214614/automatically-setting-an-enum-members-value-to-its-name/32215467
     and then inherit from :class:`StrEnum` rather than :class:`Enum`.
 
     """  # noqa
@@ -406,7 +406,7 @@ class AutoStringObject(metaclass=AutoStringObjectMetaClass):
 # =============================================================================
 
 # def enum(**enums: Any) -> Enum:
-#     """Enum support, as at http://stackoverflow.com/questions/36932"""
+#     """Enum support, as at https://stackoverflow.com/questions/36932"""
 #     return type('Enum', (), enums)
 
 
@@ -417,7 +417,7 @@ class AutoStringObject(metaclass=AutoStringObjectMetaClass):
 class AttrDict(dict):
     """
     Dictionary with attribute access; see
-    http://stackoverflow.com/questions/4984647
+    https://stackoverflow.com/questions/4984647
     """
     def __init__(self, *args, **kwargs) -> None:
         super(AttrDict, self).__init__(*args, **kwargs)
@@ -431,7 +431,7 @@ class AttrDict(dict):
 
 class OrderedNamespace(object):
     """
-    As per http://stackoverflow.com/questions/455059, modified for
+    As per https://stackoverflow.com/questions/455059, modified for
     ``__init__``.
     """
     def __init__(self, *args):

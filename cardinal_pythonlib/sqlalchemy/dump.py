@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -92,7 +92,7 @@ def dump_ddl(metadata: MetaData,
             equivalent.
     """
     # http://docs.sqlalchemy.org/en/rel_0_8/faq.html#how-can-i-get-the-create-table-drop-table-output-as-a-string  # noqa
-    # http://stackoverflow.com/questions/870925/how-to-generate-a-file-with-ddl-in-the-engines-sql-dialect-in-sqlalchemy  # noqa
+    # https://stackoverflow.com/questions/870925/how-to-generate-a-file-with-ddl-in-the-engines-sql-dialect-in-sqlalchemy  # noqa
     # https://github.com/plq/scripts/blob/master/pg_dump.py
     # noinspection PyUnusedLocal
     def dump(querysql, *multiparams, **params):
@@ -137,7 +137,7 @@ class StringLiteral(String):
     """
     Teach SQLAlchemy how to literalize various things.
     See
-    http://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
+    https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
     """
     def literal_processor(self,
                           dialect: DefaultDialect) -> Callable[[Any], str]:
@@ -162,7 +162,7 @@ def make_literal_query_fn(dialect: DefaultDialect) -> Callable[[str], str]:
 
     # noinspection PyClassHasNoInit,PyAbstractClass
     class LiteralDialect(DialectClass):
-        # http://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
+        # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
         colspecs = {
             # prevent various encoding explosions
             String: StringLiteral,
@@ -177,7 +177,7 @@ def make_literal_query_fn(dialect: DefaultDialect) -> Callable[[str], str]:
         NOTE: This is entirely insecure. DO NOT execute the resulting
         strings.
         """
-        # http://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
+        # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
         if isinstance(statement, Query):
             statement = statement.statement
         return statement.compile(
@@ -196,7 +196,7 @@ def get_literal_query(statement: Union[Query, Executable],
     values filled in.
     
     As per
-    http://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
+    https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
     
     Notes:
     - for debugging purposes *only*
@@ -300,7 +300,7 @@ def dump_table_as_insert_sql(engine: Engine,
         include_ddl: if ``True``, include the DDL to create the table as well
         multirow: write multi-row ``INSERT`` statements
     """
-    # http://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
+    # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
     # http://docs.sqlalchemy.org/en/latest/faq/sqlexpressions.html
     # http://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/  # noqa
     # https://github.com/plq/scripts/blob/master/pg_dump.py
@@ -494,7 +494,7 @@ def dump_orm_tree_as_insert_sql(engine: Engine,
     
     - MySQL/InnoDB doesn't wait to the end of a transaction to check FK
       integrity (which it should):
-      http://stackoverflow.com/questions/5014700/in-mysql-can-i-defer-referential-integrity-checks-until-commit  # noqa
+      https://stackoverflow.com/questions/5014700/in-mysql-can-i-defer-referential-integrity-checks-until-commit  # noqa
     - PostgreSQL can.
     - Anyway, slightly ugly hacks...
       https://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html

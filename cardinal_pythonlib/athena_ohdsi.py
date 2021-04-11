@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 
 **Functions to assist with the Athena OHDSI vocabularies.**
 
-See http://athena.ohdsi.org/.
+See https://athena.ohdsi.org/.
 
 """
 
@@ -80,7 +80,7 @@ class AthenaRelationshipId(object):
 class AthenaConceptRow(object):
     """
     Simple information-holding class for ``CONCEPT.csv`` file from
-    http://athena.ohdsi.org/ vocabulary download.
+    https://athena.ohdsi.org/ vocabulary download.
     """
     HEADER = [
         "concept_id", "concept_name", "domain_id", "vocabulary_id",
@@ -197,7 +197,7 @@ class AthenaConceptRow(object):
         - https://radimrehurek.com/gensim/index.html
         - https://radimrehurek.com/gensim/tut3.html
         - https://scikit-learn.org/stable/
-        - http://www.nltk.org/
+        - https://www.nltk.org/
 
         BINNED. We will use human judgement.
         """  # noqa
@@ -224,7 +224,7 @@ class AthenaConceptRow(object):
 class AthenaConceptRelationshipRow(object):
     """
     Simple information-holding class for ``CONCEPT_RELATIONSHIP.csv`` file from
-    http://athena.ohdsi.org/ vocabulary download.
+    https://athena.ohdsi.org/ vocabulary download.
     """
     HEADER = [
         "concept_id_1", "concept_id_2", "relationship_id",

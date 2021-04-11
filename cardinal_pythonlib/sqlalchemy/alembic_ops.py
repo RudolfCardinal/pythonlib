@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@
 
 **Support functions for Alembic, specifically to support view creation.**
 
-From http://alembic.readthedocs.org/en/latest/cookbook.html.
+From https://alembic.readthedocs.org/en/latest/cookbook.html.
 
 HAS NO TYPE ANNOTATIONS - Alembic uses ``inspect.getargspec()``, which chokes
 on them.
@@ -43,7 +43,7 @@ class ReplaceableObject(object):
         Object that can be passed to the ``create_view()`` and similar
         functions that we will register within the ``alembic.op`` namespace.
         
-        See http://alembic.zzzcomputing.com/en/latest/cookbook.html#replaceable-objects
+        See https://alembic.zzzcomputing.com/en/latest/cookbook.html#replaceable-objects
 
         Args:
             name:

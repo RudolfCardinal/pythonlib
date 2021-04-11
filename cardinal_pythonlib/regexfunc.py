@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ from typing import Match, Optional, Pattern
 # =============================================================================
 # Class to store last match of compiled regex
 # =============================================================================
-# Based on http://stackoverflow.com/questions/597476/how-to-concisely-cascade-through-multiple-regex-statements-in-python  # noqa
+# Based on https://stackoverflow.com/questions/597476/how-to-concisely-cascade-through-multiple-regex-statements-in-python  # noqa
 
 class CompiledRegexMemory(object):
     """
@@ -43,7 +43,7 @@ class CompiledRegexMemory(object):
     *n*\ th group of that last match.
     
     Based on
-    http://stackoverflow.com/questions/597476/how-to-concisely-cascade-through-multiple-regex-statements-in-python.
+    https://stackoverflow.com/questions/597476/how-to-concisely-cascade-through-multiple-regex-statements-in-python.
     """  # noqa
     def __init__(self) -> None:
         self.last_match = None  # type: Optional[Match]

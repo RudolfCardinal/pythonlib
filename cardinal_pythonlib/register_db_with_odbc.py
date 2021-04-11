@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@
 
 See
 
-- http://support.microsoft.com/kb/126606/EN-US
+- https://support.microsoft.com/kb/126606/EN-US
 
   .. code-block:: none
   
@@ -37,7 +37,7 @@ See
     CREATE_DBV4=<path name> <sort order>
         (to create version 4 Jet engine mdb file, Access 2000)
         
-- http://code.activestate.com/recipes/414879-create-an-odbc-data-source/
+- https://code.activestate.com/recipes/414879-create-an-odbc-data-source/
 
 - view-source:http://www.experts-exchange.com/Programming/Languages/Pascal/Delphi/Q_22020226.html
 
@@ -46,9 +46,9 @@ See
 
 - http://vieka.com/esqldoc/esqlref/htm/odbcsqlconfigdatasource.htm
 
-- http://code.google.com/p/opendbviewer/source/browse/trunk/src/dbconnector/win32adodb.py?spec=svn45&r=45
+- https://code.google.com/p/opendbviewer/source/browse/trunk/src/dbconnector/win32adodb.py?spec=svn45&r=45
 
-- http://msdn.microsoft.com/en-us/library/aa140021(v=office.10).aspx
+- https://msdn.microsoft.com/en-us/library/aa140021(v=office.10).aspx
 
   - ... indicates that programmatic creation of queries/views (via ADO)
     leads to "invisible" queries

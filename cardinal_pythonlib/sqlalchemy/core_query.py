@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -73,7 +73,7 @@ def get_rows_fieldnames_from_raw_sql(
 # =============================================================================
 # SELECT COUNT(*) (SQLAlchemy Core)
 # =============================================================================
-# http://stackoverflow.com/questions/12941416
+# https://stackoverflow.com/questions/12941416
 
 def count_star(session: Union[Session, Engine, Connection],
                tablename: str,
@@ -133,7 +133,7 @@ def count_star_and_max(session: Union[Session, Engine, Connection],
 # =============================================================================
 # SELECT EXISTS (SQLAlchemy Core)
 # =============================================================================
-# http://stackoverflow.com/questions/15381604
+# https://stackoverflow.com/questions/15381604
 # http://docs.sqlalchemy.org/en/latest/orm/query.html
 
 def exists_in_table(session: Session, table_: Table, *criteria: Any) -> bool:
@@ -208,6 +208,7 @@ def exists_plain(session: Session, tablename: str, *criteria: Any) -> bool:
 
 def fetch_all_first_values(session: Session,
                            select_statement: Select) -> List[Any]:
+    # noinspection HttpUrlsUsage
     """
     Returns a list of the first values in each row returned by a ``SELECT``
     query.

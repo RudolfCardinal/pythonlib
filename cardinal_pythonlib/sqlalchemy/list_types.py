@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,7 @@ class StringListType(TypeDecorator):
     r"""
     Store a list of strings as CSV.
     (Rather less arbitrary in its encoding requirements than e.g.
-    http://sqlalchemy-utils.readthedocs.io/en/latest/_modules/sqlalchemy_utils/types/scalar_list.html#ScalarListType.)
+    https://sqlalchemy-utils.readthedocs.io/en/latest/_modules/sqlalchemy_utils/types/scalar_list.html#ScalarListType.)
     
     - 2019-01-01: removed trailing ``\r\n`` (via ``lineterminator=""``).
     

@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,7 +63,7 @@ def ip_addresses_from_xff(value: str) -> List[str]:
     See:
     - https://en.wikipedia.org/wiki/X-Forwarded-For
     - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For  # noqa
-    - NOT THIS: http://tools.ietf.org/html/rfc7239
+    - NOT THIS: https://tools.ietf.org/html/rfc7239
     """
     if not value:
         return []

@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ from typing import Generator, List, Type, TypeVar
 # =============================================================================
 
 """
-http://stackoverflow.com/questions/1776994
+https://stackoverflow.com/questions/1776994
 https://docs.python.org/3/library/inspect.html
 https://github.com/edoburu/django-fluent-contents/issues/43
 https://bytes.com/topic/python/answers/843424-python-2-6-3-0-determining-if-method-inherited  # noqa

@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,7 +49,7 @@ def merge_dicts(*dict_args: Dict) -> Dict:
     Given any number of dicts, shallow-copy them and merge into a new dict.
     Precedence goes to key/value pairs in dicts that are later in the list.
 
-    See http://stackoverflow.com/questions/38987.
+    See https://stackoverflow.com/questions/38987.
     """
     result = {}
     for dictionary in dict_args:
@@ -71,7 +71,7 @@ def merge_two_dicts(x: Dict, y: Dict) -> Dict:
 
         z = {**x, **y}
 
-    See http://stackoverflow.com/questions/38987.
+    See https://stackoverflow.com/questions/38987.
     """
     z = x.copy()
     z.update(y)

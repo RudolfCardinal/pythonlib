@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -119,10 +119,10 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Not in SQL Server (though in MySQL):
 #
 # don't think so: BINARY; http://gilfster.blogspot.co.uk/2005/08/case-sensitivity-in-mysql.html  # noqa
-# DISTINCTROW: no; http://stackoverflow.com/questions/8562136/distinctrow-equivalent-in-sql-server  # noqa
+# DISTINCTROW: no; https://stackoverflow.com/questions/8562136/distinctrow-equivalent-in-sql-server  # noqa
 # DIV/MOD: not in SQL Server; use / and % respectively; https://msdn.microsoft.com/en-us/library/ms190279.aspx  # noqa
 # PARTITION: not in SELECT? - https://msdn.microsoft.com/en-us/library/ms187802.aspx  # noqa
-# XOR: use ^ instead; http://stackoverflow.com/questions/5411619/t-sql-xor-operator  # noqa
+# XOR: use ^ instead; https://stackoverflow.com/questions/5411619/t-sql-xor-operator  # noqa
 
 # Definitely part of SQL Server:
 CHECKSUM_AGG = sql_keyword("CHECKSUM_AGG")
@@ -289,7 +289,7 @@ SOUNDEX
     ).setName("column_spec")
     # I'm unsure if SQL Server allows keywords in the parts after dots, like
     # MySQL does.
-    # - http://stackoverflow.com/questions/285775/how-to-deal-with-sql-column-names-that-look-like-sql-keywords  # noqa
+    # - https://stackoverflow.com/questions/285775/how-to-deal-with-sql-column-names-that-look-like-sql-keywords  # noqa
 
     bind_parameter = Literal('?')
 
@@ -301,7 +301,7 @@ SOUNDEX
     function_call = Combine(function_name + LPAR) + argument_list + RPAR
 
     # Not supported: index hints
-    # ... http://stackoverflow.com/questions/11016935/how-can-i-force-a-query-to-not-use-a-index-on-a-given-table  # noqa
+    # ... https://stackoverflow.com/questions/11016935/how-can-i-force-a-query-to-not-use-a-index-on-a-given-table  # noqa
 
     # -----------------------------------------------------------------------------
     # CASE

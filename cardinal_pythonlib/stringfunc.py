@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -76,7 +76,7 @@ def multiple_replace(text: str, rep: Dict[str, str]) -> str:
     been replaced by their values.
 
     As per
-    http://stackoverflow.com/questions/6116978/python-replace-multiple-strings.
+    https://stackoverflow.com/questions/6116978/python-replace-multiple-strings.
     """
     rep = dict((re.escape(k), v) for k, v in rep.items())
     pattern = re.compile("|".join(rep.keys()))
@@ -111,7 +111,7 @@ def mangle_unicode_to_ascii(s: Any) -> str:
     """
     Mangle unicode to ASCII, losing accents etc. in the process.
     """
-    # http://stackoverflow.com/questions/1207457
+    # https://stackoverflow.com/questions/1207457
     if s is None:
         return ""
     if not isinstance(s, str):

@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,19 +40,19 @@ See also:
 
 - Word
 
-  - http://stackoverflow.com/questions/125222
-  - http://stackoverflow.com/questions/42482
+  - https://stackoverflow.com/questions/125222
+  - https://stackoverflow.com/questions/424822
 
 - PDF
 
-  - http://stackoverflow.com/questions/25665
+  - https://stackoverflow.com/questions/25665
   - https://pypi.python.org/pypi/slate
-  - http://stackoverflow.com/questions/5725278
+  - https://stackoverflow.com/questions/5725278
 
 - RTF
 
   - unrtf
-  - http://superuser.com/questions/243084/rtf-to-txt-on-unix
+  - https://superuser.com/questions/243084/rtf-to-txt-on-unix
 
 - Multi-purpose:
 
@@ -61,7 +61,7 @@ See also:
 
 - DOCX
 
-  - http://etienned.github.io/posts/extract-text-from-word-docx-simply/
+  - https://etienned.github.io/posts/extract-text-from-word-docx-simply/
 
 """
 
@@ -433,7 +433,7 @@ def get_chardet_encoding(binary_contents: bytes) -> Optional[str]:
     #
     # METHOD 2: faster with large files
     # http://chardet.readthedocs.io/en/latest/
-    # http://stackoverflow.com/questions/13857856/split-byte-string-into-lines
+    # https://stackoverflow.com/questions/13857856/split-byte-string-into-lines
 
     # noinspection PyCallingNonCallable
     detector = UniversalDetector()
@@ -1109,7 +1109,7 @@ def convert_docx_to_text(
 
       - https://pypi.python.org/pypi/python-docx
       - https://python-docx.readthedocs.org/en/latest/
-      - http://stackoverflow.com/questions/25228106
+      - https://stackoverflow.com/questions/25228106
 
       However, it uses ``lxml``, which has C dependencies, so it doesn't always
       install properly on e.g. bare Windows machines.
@@ -1146,7 +1146,7 @@ def convert_docx_to_text(
     - Upshot: we need a DIY version.
 
     - See also this "compile lots of techniques" libraries, which has C
-      dependencies: http://textract.readthedocs.org/en/latest/
+      dependencies: https://textract.readthedocs.org/en/latest/
 
     """
 

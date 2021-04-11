@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,7 +60,7 @@ def import_submodules(package: Union[str, ModuleType],
         dict: mapping from full module name to module
 
     """
-    # http://stackoverflow.com/questions/3365740/how-to-import-all-submodules
+    # https://stackoverflow.com/questions/3365740/how-to-import-all-submodules
     if isinstance(package, str):
         package = importlib.import_module(package,
                                           base_package_for_relative_import)

@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -326,7 +326,7 @@ def make_pdf_from_html(
             # http://xhtml2pdf.appspot.com/static/pisa-en.html
             memfile.seek(0)
             return memfile.read()
-            # http://stackoverflow.com/questions/3310584
+            # https://stackoverflow.com/questions/3310584
 
     elif processor == Processors.WEASYPRINT:
 
@@ -358,9 +358,9 @@ def make_pdf_from_html(
                 config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_filename)
 
         # Temporary files that a subprocess can read:
-        #   http://stackoverflow.com/questions/15169101
+        #   https://stackoverflow.com/questions/15169101
         # wkhtmltopdf requires its HTML files to have ".html" extensions:
-        #   http://stackoverflow.com/questions/5776125
+        #   https://stackoverflow.com/questions/5776125
         h_filename = None
         f_filename = None
         try:
@@ -527,9 +527,9 @@ def serve_pdf_to_stdout(pdf: bytes) -> None:
 
     See:
 
-    - http://stackoverflow.com/questions/312230/proper-mime-type-for-pdf-files
+    - https://stackoverflow.com/questions/312230/proper-mime-type-for-pdf-files
     - http://www.askapache.com/htaccess/pdf-cookies-headers-rewrites.html
-    - http://stackoverflow.com/questions/2374427
+    - https://stackoverflow.com/questions/2374427
 
     """
     # print("Content-type: text/plain\n")  # for debugging
@@ -584,11 +584,11 @@ def append_pdf(input_pdf: bytes, output_writer: PdfFileWriter):
 #     serve the result (e.g. in one go), then delete the temporary file.
 #     This may be more memory-efficient.
 #     However, there can be problems:
-#       http://stackoverflow.com/questions/7543452/how-to-launch-a-pdftk-subprocess-while-in-wsgi  # noqa
+#       https://stackoverflow.com/questions/7543452/how-to-launch-a-pdftk-subprocess-while-in-wsgi  # noqa
 # Others' examples:
 #   https://gist.github.com/zyegfryed/918403
 #   https://gist.github.com/grantmcconnaughey/ce90a689050c07c61c96
-#   http://stackoverflow.com/questions/3582414/removing-tmp-file-after-return-httpresponse-in-django  # noqa
+#   https://stackoverflow.com/questions/3582414/removing-tmp-file-after-return-httpresponse-in-django  # noqa
 
 # def append_disk_pdf_to_writer(filename, writer):
 #     """Appends a PDF from disk to a pyPDF writer."""
@@ -614,7 +614,7 @@ def get_concatenated_pdf_from_disk(filenames: Iterable[str],
         concatenated PDF, as ``bytes``
 
     """
-    # http://stackoverflow.com/questions/17104926/pypdf-merging-multiple-pdf-files-into-one-pdf  # noqa
+    # https://stackoverflow.com/questions/17104926/pypdf-merging-multiple-pdf-files-into-one-pdf  # noqa
     # https://en.wikipedia.org/wiki/Recto_and_verso
     if start_recto:
         writer = PdfFileWriter()

@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -133,7 +133,7 @@ Modified according to: https://djangosnippets.org/snippets/2845/
 # -----------------------------------------------------------------------------
 # 2. Alternative!
 # -----------------------------------------------------------------------------
-# http://stackoverflow.com/questions/3214589/
+# https://stackoverflow.com/questions/3214589/
 
 # class LoginRequiredMiddleware(object):
 #     """
@@ -222,7 +222,7 @@ class LoginRequiredMiddleware(MiddlewareMixin):
 # =============================================================================
 # DisableClientSideCachingMiddleware
 # =============================================================================
-# http://stackoverflow.com/questions/2095520/fighting-client-side-caching-in-django  # noqa
+# https://stackoverflow.com/questions/2095520/fighting-client-side-caching-in-django  # noqa
 
 class DisableClientSideCachingMiddleware(MiddlewareMixin):
     """

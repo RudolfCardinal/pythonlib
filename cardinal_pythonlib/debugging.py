@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -79,7 +79,7 @@ def get_class_name_from_frame(fr: FrameType) -> Optional[str]:
     If the call was to a member function of a class, this function attempts
     to read the class's name. It returns ``None`` otherwise.
     """
-    # http://stackoverflow.com/questions/2203424/python-how-to-retrieve-class-information-from-a-frame-object  # noqa
+    # https://stackoverflow.com/questions/2203424/python-how-to-retrieve-class-information-from-a-frame-object  # noqa
     args, _, _, value_dict = inspect.getargvalues(fr)
     # we check the first parameter for the frame function is named 'self'
     if len(args) and args[0] == 'self':
@@ -137,7 +137,7 @@ def get_caller_name(back: int = 0) -> str:
         That was called by: f1
 
     """
-    # http://stackoverflow.com/questions/5067604/determine-function-name-from-within-that-function-without-using-traceback  # noqa
+    # https://stackoverflow.com/questions/5067604/determine-function-name-from-within-that-function-without-using-traceback  # noqa
     try:
         # noinspection PyProtectedMember
         frame = sys._getframe(back + 2)

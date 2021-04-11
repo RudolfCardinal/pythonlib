@@ -12,7 +12,7 @@ r"""
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +24,7 @@ r"""
 
 Convert SNOMED-CT codes, and their children, to OPCS4 procedure codes, given
 an appropriate SNOMED-and-OPCS download from Athena OHDSI; see See
-http://athena.ohdsi.org/. More generally, does this for any pair of
+https://athena.ohdsi.org/. More generally, does this for any pair of
 vocabularies.
 
 Example:

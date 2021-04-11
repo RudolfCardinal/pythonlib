@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -185,7 +185,7 @@ def hex_xformat_decode(s: str) -> Optional[bytes]:
       literals.
     - SQLite uses this notation: https://sqlite.org/lang_expr.html
     - Strip off the start and end and convert it to a byte array:
-      http://stackoverflow.com/questions/5649407
+      https://stackoverflow.com/questions/5649407
     """
     if len(s) < 3 or not s.startswith("X'") or not s.endswith("'"):
         return None
@@ -218,8 +218,8 @@ def base64_64format_decode(s: str) -> Optional[bytes]:
     - THIS IS ANOTHER WAY OF DOING BLOBS: base64 encoding, e.g. a string like
       ``64'cGxlYXN1cmUu'`` is a base-64-encoded BLOB (the ``64'...'`` bit is my
       representation).
-    - regex from http://stackoverflow.com/questions/475074
-    - better one from http://www.perlmonks.org/?node_id=775820
+    - regex from https://stackoverflow.com/questions/475074
+    - better one from https://www.perlmonks.org/?node_id=775820
 
     """
     if len(s) < 4 or not s.startswith("64'") or not s.endswith("'"):

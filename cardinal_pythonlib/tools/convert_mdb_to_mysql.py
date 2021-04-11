@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # cardinal_pythonlib/tools/convert_mdb_to_mysql.py
 
+# noinspection HttpUrlsUsage
 """
 ===============================================================================
 
@@ -12,7 +13,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -132,7 +133,7 @@ class PasswordPromptAction(argparse.Action):
             help="MySQL password")
      
     Modified from
-    http://stackoverflow.com/questions/27921629/python-using-getpass-with-argparse 
+    https://stackoverflow.com/questions/27921629/python-using-getpass-with-argparse 
     """  # noqa
     # noinspection PyShadowingBuiltins
     def __init__(self,

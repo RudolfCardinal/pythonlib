@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -88,7 +88,7 @@ def is_valid_nhs_number(n: int) -> bool:
         valid?
 
     Checksum details are at
-    http://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp
+    https://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp
     """  # noqa
     if not isinstance(n, int):
         log.debug("is_valid_nhs_number: parameter was not of integer type")
@@ -129,7 +129,9 @@ def generate_random_nhs_number() -> int:
 
 
 def test_nhs_rng(n: int = 100) -> None:
-    """Tests the NHS random number generator."""
+    """
+    Tests the NHS random number generator.
+    """
     for i in range(n):
         x = generate_random_nhs_number()
         assert is_valid_nhs_number(x), f"Invalid NHS number: {x}"
@@ -185,7 +187,7 @@ def nhs_number_from_text_or_none(s: str) -> Optional[int]:
     insufficient; use BIGINT. Python will handle large integers happily.
     
     NHS number rules:        
-    http://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp?shownav=0
+    https://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp?shownav=0
     """  # noqa
     # None in, None out.
     funcname = "nhs_number_from_text_or_none: "

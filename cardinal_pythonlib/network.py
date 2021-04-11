@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,8 +31,8 @@ NOTES:
   the setuid bit set)
 - For Linux, it's therefore best to use the system ``ping``.
 
-http://stackoverflow.com/questions/2953462/pinging-servers-in-python
-http://stackoverflow.com/questions/316866/ping-a-site-in-python
+https://stackoverflow.com/questions/2953462/pinging-servers-in-python
+https://stackoverflow.com/questions/316866/ping-a-site-in-python
 
 - Note that if you want a sub-second timeout, things get trickier.
   One option is ``fping``.

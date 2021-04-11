@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,8 +64,8 @@ def smart_open(filename: str, mode: str = 'Ur', buffering: int = -1,
     """
     # https://stackoverflow.com/questions/17602878/how-to-handle-both-with-open-and-sys-stdout-nicely  # noqa
     # https://stackoverflow.com/questions/1744989/read-from-file-or-stdin/29824059#29824059  # noqa
-    if filename == '-':
-        if mode is None or mode == '' or 'r' in mode:
+    if filename == "-":
+        if mode is None or mode == "" or "r" in mode:
             fh = sys.stdin
         else:
             fh = sys.stdout
@@ -76,7 +76,7 @@ def smart_open(filename: str, mode: str = 'Ur', buffering: int = -1,
     try:
         yield fh
     finally:
-        if filename is not '-':
+        if filename != "-":
             fh.close()
         # It does matter that you do NOT close sys.stdin or sys.stdout!
         # The close() calls will work, and after that, operations on
@@ -99,7 +99,7 @@ def writelines_nl(fileobj: TextIO, lines: Iterable[str]) -> None:
     Writes lines, plus terminating newline characters, to the file.
 
     (Since :func:`fileobj.writelines` doesn't add newlines...
-    http://stackoverflow.com/questions/13730107/writelines-writes-lines-without-newline-just-fills-the-file)
+    https://stackoverflow.com/questions/13730107/writelines-writes-lines-without-newline-just-fills-the-file)
     """  # noqa
     fileobj.write('\n'.join(lines) + '\n')
 
@@ -121,7 +121,7 @@ def write_gzipped_text(basefilename: str, text: str) -> None:
     This function exists primarily because Lintian wants non-timestamped gzip
     files, or it complains:
     - https://lintian.debian.org/tags/package-contains-timestamped-gzip.html
-    - See http://stackoverflow.com/questions/25728472/python-gzip-omit-the-original-filename-and-timestamp
+    - See https://stackoverflow.com/questions/25728472/python-gzip-omit-the-original-filename-and-timestamp
     """  # noqa
     zipfilename = basefilename + '.gz'
     compresslevel = 9

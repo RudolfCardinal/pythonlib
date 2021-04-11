@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -144,7 +144,7 @@ def round_sf(x: float, n: int = 2) -> float:
     """
     Round to a certain number of significant figures.
     
-    As per http://code.activestate.com/lists/python-tutor/70739/, linked to
+    As per https://code.activestate.com/lists/python-tutor/70739/, linked to
     from
     https://stackoverflow.com/questions/3410976/how-to-round-a-number-to-significant-figures-in-python
 

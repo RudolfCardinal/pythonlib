@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -373,7 +373,7 @@ def get_cgi_fieldstorage_from_wsgi_env(
     """
     Returns a :class:`cgi.FieldStorage` object from the WSGI environment.
     """
-    # http://stackoverflow.com/questions/530526/accessing-post-data-from-wsgi
+    # https://stackoverflow.com/questions/530526/accessing-post-data-from-wsgi
     post_env = env.copy()
     if not include_query_string:
         post_env['QUERY_STRING'] = ''
@@ -421,7 +421,7 @@ def get_png_img_html(blob: Union[bytes, memoryview],
 # =============================================================================
 
 # Also, filenames:
-#   http://stackoverflow.com/questions/151079
+#   https://stackoverflow.com/questions/151079
 #   http://greenbytes.de/tech/tc2231/#inlwithasciifilenamepdf
 
 def pdf_result(pdf_binary: bytes,
@@ -614,7 +614,7 @@ def websafe(value: str) -> str:
     Makes a string safe for inclusion in ASCII-encoded HTML.
     """
     return html.escape(value).encode('ascii', 'xmlcharrefreplace')
-    # http://stackoverflow.com/questions/1061697
+    # https://stackoverflow.com/questions/1061697
 
 
 def replace_nl_with_html_br(string: str) -> str:
@@ -639,7 +639,7 @@ def make_urls_hyperlinks(text: str) -> str:
 
     See
 
-    - http://stackoverflow.com/questions/1071191
+    - https://stackoverflow.com/questions/1071191
 
       - ... except that double-replaces everything; e.g. try with
         ``text = "me@somewhere.com me@somewhere.com"``

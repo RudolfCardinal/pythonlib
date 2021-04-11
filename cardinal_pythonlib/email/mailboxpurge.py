@@ -9,7 +9,7 @@ input, and outputs it again on standard output, with all binary attachments
 removed (with message/external-body).
 
 Written by Frédéric Brière <fbriere@fbriere.net>.  Copy at will.
-Adapted from <http://code.activestate.com/recipes/576553/>, originally
+Adapted from <https://code.activestate.com/recipes/576553/>, originally
 written by Romain Dartigues.
 
 From https://gist.github.com/fbriere/e86584a807449e3128c0
@@ -26,7 +26,7 @@ Then rewritten a fair bit, Rudolf Cardinal, 9 Oct 2018
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,

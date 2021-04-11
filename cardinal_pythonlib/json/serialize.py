@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -477,7 +477,7 @@ def register_for_json(*args, **kwargs) -> Any:
         print(f"register_for_json: args = {args!r}")
         print(f"register_for_json: kwargs = {kwargs!r}")
 
-    # http://stackoverflow.com/questions/653368/how-to-create-a-python-decorator-that-can-be-used-either-with-or-without-paramet  # noqa
+    # https://stackoverflow.com/questions/653368/how-to-create-a-python-decorator-that-can-be-used-either-with-or-without-paramet  # noqa
     # In brief,
     #   @decorator
     #   x

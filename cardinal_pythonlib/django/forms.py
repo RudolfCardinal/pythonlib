@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,7 +67,7 @@ class MultipleIntAreaField(forms.Field):
     """
     Django ``forms.Field`` to capture multiple integers.
     """
-    # See also http://stackoverflow.com/questions/29303902/django-form-with-list-of-integers  # noqa
+    # See also https://stackoverflow.com/questions/29303902/django-form-with-list-of-integers  # noqa
     widget = forms.Textarea
 
     def clean(self, value) -> List[int]:

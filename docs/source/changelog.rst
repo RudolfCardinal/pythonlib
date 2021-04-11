@@ -6,7 +6,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
     .
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
     .
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -609,3 +609,7 @@ Quick links:
 
 - :mod:`cardinal_pythonlib.sqlalchemy.semantic_version_coltype`
 - Minor tweaks to :mod:`cardinal_pythonlib.spreadsheets`.
+
+**1.1.4 (2021-04-11)**
+
+- Minor improvements to :mod:`cardinal_pythonlib.spreadsheets`.

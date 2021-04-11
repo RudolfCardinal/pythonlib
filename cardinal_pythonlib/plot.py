@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 # =============================================================================
 # xhtml2pdf (2013-04-11) supports PNG, but not SVG.
 # You can convert SVG to PNG for embedding:
-# http://stackoverflow.com/questions/787287
+# https://stackoverflow.com/questions/787287
 # You could make a PDF and append it, though that would (without further
 # effort) lack the patient headers.
 
@@ -98,7 +98,7 @@ def set_matplotlib_fontsize(matplotlib: ModuleType,
     alternative methods.
     """
     font = {
-        # http://stackoverflow.com/questions/3899980
+        # https://stackoverflow.com/questions/3899980
         # http://matplotlib.org/users/customizing.html
         'family': 'sans-serif',
         # ... serif, sans-serif, cursive, fantasy, monospace
@@ -112,7 +112,7 @@ def set_matplotlib_fontsize(matplotlib: ModuleType,
     # noinspection PyUnresolvedReferences
     matplotlib.rc('font', **font)
     legend = {
-        # http://stackoverflow.com/questions/7125009
+        # https://stackoverflow.com/questions/7125009
         'fontsize': fontsize
     }
     # noinspection PyUnresolvedReferences

@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -712,7 +712,7 @@ def coerce_to_datetime(x: Any) -> Optional[datetime.datetime]:
     """
     Ensure an object is a :class:`datetime.datetime`, or coerce to one, or
     raise :exc:`ValueError` or :exc:`OverflowError` (as per
-    http://dateutil.readthedocs.org/en/latest/parser.html).
+    https://dateutil.readthedocs.org/en/latest/parser.html).
     """
     if x is None:
         return None

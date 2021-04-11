@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,7 @@ except ImportError:
 # =============================================================================
 # Read single character, waiting for it
 # =============================================================================
-# http://stackoverflow.com/questions/510357/python-read-a-single-character-from-the-user  # noqa
+# https://stackoverflow.com/questions/510357/python-read-a-single-character-from-the-user  # noqa
 # http://home.wlu.edu/~levys/software/kbhit.py
 # ... modified a little
 
@@ -71,7 +71,7 @@ def _getch_unix() -> str:
 # Is a keystroke available?
 # =============================================================================
 # http://code.activestate.com/recipes/572182-how-to-implement-kbhit-on-linux/
-# http://stackoverflow.com/questions/2408560/python-nonblocking-console-input
+# https://stackoverflow.com/questions/2408560/python-nonblocking-console-input
 
 def _kbhit_windows() -> bool:
     """

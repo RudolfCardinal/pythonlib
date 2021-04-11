@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,7 +66,7 @@ DEFAULT_ALEMBIC_VERSION_TABLE = "alembic_version"
 # =============================================================================
 # Alembic revision/migration system
 # =============================================================================
-# http://stackoverflow.com/questions/24622170/using-alembic-api-from-inside-application-code  # noqa
+# https://stackoverflow.com/questions/24622170/using-alembic-api-from-inside-application-code  # noqa
 
 def get_head_revision_from_alembic(
         alembic_config_filename: str,
@@ -156,7 +156,7 @@ def upgrade_database(
     """
     Use Alembic to upgrade our database.
 
-    See http://alembic.readthedocs.org/en/latest/api/runtime.html
+    See https://alembic.readthedocs.org/en/latest/api/runtime.html
     but also, in particular, ``site-packages/alembic/command.py``
 
     Arguments:
@@ -178,7 +178,7 @@ def upgrade_database(
         as_sql:
             run in "offline" mode: print the migration SQL, rather than
             modifying the database. See
-            http://alembic.zzzcomputing.com/en/latest/offline.html
+            https://alembic.zzzcomputing.com/en/latest/offline.html
 
     """
 
@@ -220,7 +220,7 @@ def downgrade_database(
     Use Alembic to downgrade our database. USE WITH EXTREME CAUTION.
     "revision" is the destination revision.
 
-    See http://alembic.readthedocs.org/en/latest/api/runtime.html
+    See https://alembic.readthedocs.org/en/latest/api/runtime.html
     but also, in particular, ``site-packages/alembic/command.py``
 
     Arguments:
@@ -241,7 +241,7 @@ def downgrade_database(
         as_sql:
             run in "offline" mode: print the migration SQL, rather than
             modifying the database. See
-            http://alembic.zzzcomputing.com/en/latest/offline.html
+            https://alembic.zzzcomputing.com/en/latest/offline.html
 
     """
 
@@ -304,7 +304,7 @@ def create_database_migration_numbered_style(
         3. That script typically works out the database URL and calls further
            into the Alembic code.
 
-   See http://alembic.zzzcomputing.com/en/latest/autogenerate.html.
+   See https://alembic.zzzcomputing.com/en/latest/autogenerate.html.
 
     Regarding filenames: the default ``n_sequence_chars`` of 4 is like Django
     and gives files with names like
@@ -380,7 +380,7 @@ def stamp_allowing_unusual_version_table(
 
     This function is a clone of ``alembic.command.stamp()``, but allowing
     ``version_table`` to change. See
-    http://alembic.zzzcomputing.com/en/latest/api/commands.html#alembic.command.stamp
+    https://alembic.zzzcomputing.com/en/latest/api/commands.html#alembic.command.stamp
     """  # noqa
 
     script = ScriptDirectory.from_config(config)

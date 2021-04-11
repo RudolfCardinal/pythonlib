@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,7 @@ Two approaches:
 
   - How to do arithmetic recursive parsing:
   
-    http://stackoverflow.com/questions/1345039
+    https://stackoverflow.com/questions/1345039
 
   - Somebody else's MySQL parser:
   
@@ -99,7 +99,7 @@ def delim_list(expr_: Token,
                combine_adjacent: bool = False,
                suppress_delim: bool = False):
     # A better version of delimitedList
-    # BUT SEE ALSO ALTERNATIVE: http://stackoverflow.com/questions/37926516
+    # BUT SEE ALSO ALTERNATIVE: https://stackoverflow.com/questions/37926516
     name = str(expr_) + " [" + str(delim) + " " + str(expr_) + "]..."
     if combine:
         return Combine(expr_ + ZeroOrMore(delim + expr_),
@@ -113,7 +113,7 @@ def delim_list(expr_: Token,
 
 WORD_BOUNDARY = r"\b"
 # The meaning of \b:
-# http://stackoverflow.com/questions/4213800/is-there-something-like-a-counter-variable-in-regular-expression-replace/4214173#4214173  # noqa
+# https://stackoverflow.com/questions/4213800/is-there-something-like-a-counter-variable-in-regular-expression-replace/4214173#4214173  # noqa
 
 
 def word_regex_element(word: str) -> str:

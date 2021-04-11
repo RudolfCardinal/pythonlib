@@ -6,7 +6,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
     .
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
     .
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -201,11 +201,11 @@ Here's another tricky thing. In ``setup.py``, you have ``package_data`` and
 
     #
     # or MANIFEST.in ?
-    # - http://stackoverflow.com/questions/24727709/i-dont-understand-python-manifest-in  # noqa
-    # - http://stackoverflow.com/questions/1612733/including-non-python-files-with-setup-py  # noqa
+    # - https://stackoverflow.com/questions/24727709/i-dont-understand-python-manifest-in  # noqa
+    # - https://stackoverflow.com/questions/1612733/including-non-python-files-with-setup-py  # noqa
     #
     # or both?
-    # - http://stackoverflow.com/questions/3596979/manifest-in-ignored-on-python-setup-py-install-no-data-files-installed  # noqa
+    # - https://stackoverflow.com/questions/3596979/manifest-in-ignored-on-python-setup-py-install-no-data-files-installed  # noqa
     # ... MANIFEST gets the files into the distribution
     # ... package_data gets them installed in the distribution
     #
@@ -216,7 +216,7 @@ Here's another tricky thing. In ``setup.py``, you have ``package_data`` and
 
 See:
 
-- http://stackoverflow.com/questions/13307408/python-packaging-data-files-are-put-properly-in-tar-gz-file-but-are-not-install
+- https://stackoverflow.com/questions/13307408/python-packaging-data-files-are-put-properly-in-tar-gz-file-but-are-not-install
 
 - http://danielsokolowski.blogspot.co.uk/2012/08/setuptools-includepackagedata-option.html
 
@@ -232,13 +232,13 @@ See:
 
 - https://stackoverflow.com/questions/29036937/how-can-i-include-package-data-without-a-manifest-in-file
 
-- http://stackoverflow.com/questions/24727709/i-dont-understand-python-manifest-in
+- https://stackoverflow.com/questions/24727709/i-dont-understand-python-manifest-in
 
-- http://stackoverflow.com/questions/1612733/including-non-python-files-with-setup-py
+- https://stackoverflow.com/questions/1612733/including-non-python-files-with-setup-py
 
   ... relevant
 
-- http://stackoverflow.com/questions/3596979/manifest-in-ignored-on-python-setup-py-install-no-data-files-installed
+- https://stackoverflow.com/questions/3596979/manifest-in-ignored-on-python-setup-py-install-no-data-files-installed
   ... ``MANIFEST.in`` gets the files into the distribution;
   ... ``package_data`` gets them installed in the distribution
 

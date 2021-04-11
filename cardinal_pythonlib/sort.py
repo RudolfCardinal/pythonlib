@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ from typing import Any, List, Union
 # =============================================================================
 # Natural sorting, e.g. for COM ports
 # =============================================================================
-# http://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside  # noqa
+# https://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside  # noqa
 
 def atoi(text: str) -> Union[int, str]:
     """
@@ -49,7 +49,7 @@ def natural_keys(text: str) -> List[Union[int, str]]:
     """
     Sort key function.
     Returns text split into string/number parts, for natural sorting; as per
-    http://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside
+    https://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside
     
     Example (as per the source above):
         

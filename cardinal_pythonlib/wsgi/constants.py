@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,7 +68,7 @@ class WsgiEnvVar(object):
     """
     WSGI environment variable names.
 
-    For core ones, see http://wsgi.readthedocs.io/en/latest/definitions.html
+    For core ones, see https://wsgi.readthedocs.io/en/latest/definitions.html
     """
     CONTENT_LENGTH = "CONTENT_LENGTH"  # [1]
     CONTENT_TYPE = "CONTENT_TYPE"  # [1]
@@ -105,11 +105,11 @@ class WsgiEnvVar(object):
     WSGI_VERSION = "wsgi.version"  # [3]
 
     # [1] Standard WSGI and standard CGI; must always be present;
-    #     http://wsgi.readthedocs.io/en/latest/definitions.html
+    #     https://wsgi.readthedocs.io/en/latest/definitions.html
     #     https://www.python.org/dev/peps/pep-0333/
     #     https://en.wikipedia.org/wiki/Common_Gateway_Interface
     # [2] Standard WSGI as copies of standard HTTP request fields (thus,
-    #     optional); http://wsgi.readthedocs.io/en/latest/definitions.html
+    #     optional); https://wsgi.readthedocs.io/en/latest/definitions.html
     # [3] Also standard WSGI, but not CGI; must always be present.
     # [4] From non-standard but common HTTP request fields;
     #     https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Common_non-standard_request_fields  # noqa
@@ -118,4 +118,4 @@ class WsgiEnvVar(object):
     #     WSGI should follow the HTTP request headers.
     # [6] Protocols (i.e. http versus https):
     #     https://stackoverflow.com/questions/16042647/whats-the-de-facto-standard-for-a-reverse-proxy-to-tell-the-backend-ssl-is-used  # noqa
-    # [7] http://modwsgi.readthedocs.io/en/develop/release-notes/version-4.4.9.html  # noqa
+    # [7] https://modwsgi.readthedocs.io/en/develop/release-notes/version-4.4.9.html  # noqa

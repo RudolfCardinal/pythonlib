@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -101,8 +101,8 @@ class SqlAlchemyAttrDictMixin(object):
       rather than ``x['y']``) from an SQLAlchemy ORM object
     - make a nice ``repr()`` default, maintaining field order
 
-    See http://stackoverflow.com/questions/2537471 and in particular
-    http://stackoverflow.com/questions/2441796.
+    See https://stackoverflow.com/questions/2537471 and in particular
+    https://stackoverflow.com/questions/2441796.
     """
 
     def get_attrdict(self) -> OrderedNamespace:

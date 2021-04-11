@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -147,7 +147,7 @@ def preserve_cwd(func: Callable) -> Callable:
         myfunc()
         assert os.getcwd() == "/home"
     """
-    # http://stackoverflow.com/questions/169070/python-how-do-i-write-a-decorator-that-restores-the-cwd  # noqa
+    # https://stackoverflow.com/questions/169070/python-how-do-i-write-a-decorator-that-restores-the-cwd  # noqa
     def decorator(*args_, **kwargs) -> Any:
         cwd = os.getcwd()
         result = func(*args_, **kwargs)
@@ -160,7 +160,7 @@ def root_path() -> str:
     """
     Returns the system root directory.
     """
-    # http://stackoverflow.com/questions/12041525
+    # https://stackoverflow.com/questions/12041525
     return os.path.abspath(os.sep)
 
 
@@ -369,7 +369,7 @@ def chown_r(path: str, user: str, group: str) -> None:
         user: user name or ID
         group: group name or ID
 
-    As per http://stackoverflow.com/questions/2853723
+    As per https://stackoverflow.com/questions/2853723
     """
     for root, dirs, files in os.walk(path):
         for x in dirs:

@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ from typing import Union
 def sizeof_fmt(num: float, suffix: str = 'B') -> str:
     """
     Formats a number of bytes in a human-readable binary format (e.g. ``2048``
-    becomes ``'2 KiB'``); from http://stackoverflow.com/questions/1094841.
+    becomes ``'2 KiB'``); from https://stackoverflow.com/questions/1094841.
     """
     for unit in ('', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi'):
         if abs(num) < 1024.0:
@@ -54,13 +54,13 @@ def bytes2human(n: Union[int, float],
                 symbols: str = 'customary') -> str:
     """
     Converts a number of bytes into a human-readable format.
-    From http://code.activestate.com/recipes/578019-bytes-to-human-human-to-bytes-converter/.
+    From https://code.activestate.com/recipes/578019-bytes-to-human-human-to-bytes-converter/.
     
     Args:
         n: number of bytes
         format: a format specification string
         symbols: can be one of ``"customary"``, ``"customary_ext"``, ``"iec"``
-            or ``"iec_ext"``; see http://goo.gl/kTQMs
+            or ``"iec_ext"``; see https://goo.gl/kTQMs
 
     Returns:
         the formatted number
@@ -116,7 +116,7 @@ def bytes2human(n: Union[int, float],
 def human2bytes(s: str) -> int:
     """
     Modified from
-    http://code.activestate.com/recipes/578019-bytes-to-human-human-to-bytes-converter/.
+    https://code.activestate.com/recipes/578019-bytes-to-human-human-to-bytes-converter/.
     
     Attempts to guess the string format based on default symbols
     set and return the corresponding bytes as an integer.

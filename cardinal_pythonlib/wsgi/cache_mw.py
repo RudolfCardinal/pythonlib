@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,8 +45,8 @@ log = get_brace_style_log_with_null_handler(__name__)
 # =============================================================================
 # DisableClientSideCachingMiddleware
 # =============================================================================
-# http://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers  # noqa
-# http://stackoverflow.com/questions/3859097/how-to-add-http-headers-in-wsgi-middleware  # noqa
+# https://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers  # noqa
+# https://stackoverflow.com/questions/3859097/how-to-add-http-headers-in-wsgi-middleware  # noqa
 
 def add_never_cache_headers(headers: TYPE_WSGI_RESPONSE_HEADERS) -> None:
     """

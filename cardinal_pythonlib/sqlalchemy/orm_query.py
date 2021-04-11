@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -87,7 +87,7 @@ def bool_from_exists_clause(session: Session,
     See:
     
     - https://bitbucket.org/zzzeek/sqlalchemy/issues/3212/misleading-documentation-for-queryexists
-    - http://docs.sqlalchemy.org/en/latest/orm/query.html#sqlalchemy.orm.query.Query.exists
+    - https://docs.sqlalchemy.org/en/latest/orm/query.html#sqlalchemy.orm.query.Query.exists
     
     Specifically, we want this:
     
@@ -160,7 +160,7 @@ def get_or_create(session: Session,
     Returns:
         a tuple ``(instance, newly_created)``
 
-    See http://stackoverflow.com/questions/2546207 (this function is a
+    See https://stackoverflow.com/questions/2546207 (this function is a
     composite of several suggestions).
     """
     instance = session.query(model).filter_by(**kwargs).first()

@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,7 +67,7 @@ LIBRARY CODE should use the following general methods.
     # ... and if you want to suppress output unless the user configures logs:
     log.addHandler(logging.NullHandler())
     # ... which only needs to be done in the __init__.py for the package
-    #     http://stackoverflow.com/questions/12296214
+    #     https://stackoverflow.com/questions/12296214
 
     # LIBRARY CODE SHOULD NOT ADD ANY OTHER HANDLERS; see above.
 
@@ -197,7 +197,7 @@ def configure_logger_for_colour(logger: logging.Logger,
         with_thread_id: include the thread ID in the logger's name?
     """
     if remove_existing:
-        logger.handlers = []  # http://stackoverflow.com/questions/7484454
+        logger.handlers = []  # https://stackoverflow.com/questions/7484454
     handler = get_colour_handler(extranames,
                                  with_process_id=with_process_id,
                                  with_thread_id=with_thread_id)
@@ -346,7 +346,7 @@ def apply_handler_to_all_logs(handler: logging.Handler,
     # noinspection PyUnresolvedReferences
     for name, obj in logging.Logger.manager.loggerDict.items():
         if remove_existing:
-            obj.handlers = []  # http://stackoverflow.com/questions/7484454
+            obj.handlers = []  # https://stackoverflow.com/questions/7484454
         obj.addHandler(handler)
 
 

@@ -12,7 +12,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,6 +34,7 @@ from typing import Dict
 # =============================================================================
 
 class BetweenDict(dict):
+    # noinspection HttpUrlsUsage
     """
     Range dictionary for comparisons.
     
@@ -69,7 +70,7 @@ class BetweenDict(dict):
     - http://joshuakugler.com/archives/30-BetweenDict,-a-Python-dict-for-value-ranges.html
       ... NB has initialization default argument bug
     - https://pypi.python.org/pypi/rangedict/0.1.5
-    - http://stackoverflow.com/questions/30254739/is-there-a-library-implemented-rangedict-in-python
+    - https://stackoverflow.com/questions/30254739/is-there-a-library-implemented-rangedict-in-python
     """  # noqa
     INVALID_MSG_TYPE = "Key must be an iterable with length 2"
     INVALID_MSG_VALUE = "First element of key must be less than second element"
