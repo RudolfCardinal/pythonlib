@@ -557,7 +557,19 @@ class SheetHolder(object):
         if none_or_blank_string(v):
             return default
         try:
-            return int(v)
+            # - Now, the danger is that e.g. v == 7.6, which will cheerfully
+            #   give int(v) == 7.
+            # - [Note that int("7.6") will raise ValueError, whereas
+            #   int(7.6) will succeed.]
+            # - However, we want it to be an error to read a float/decimal as
+            #   an integer accidentally, because otherwise we may lose data.
+            # - Finally, sometimes str(v) is e.g. "92.0" when v is a perfectly
+            #   valid integer, so we can't use 'if "." in str(v)' as a test.
+            # - But comparing int(v) to float(v) works.
+            iv = int(v)  # may raise
+            if iv != float(v):  # this picks up non-integer values
+                raise ValueError
+            return iv
         except (TypeError, ValueError):
             raise ValueError(f"Bad int: {v!r}" + self._locinfo(row, col))
 
