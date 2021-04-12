@@ -37,6 +37,7 @@ import decimal
 from decimal import Decimal
 import logging
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
+import unittest
 
 from cardinal_pythonlib.progress import ActivityCounter
 from cardinal_pythonlib.reprfunc import simple_repr
@@ -68,6 +69,33 @@ def all_same(items: Iterable[Any]) -> bool:
     return len(set(items)) <= 1
 
 
+def values_by_attr(items: Sequence[Any], attr: str) -> List[Any]:
+    """
+    Returns the values of a given attribute for each of the ``items``.
+
+    Args:
+        items:
+            Items to check
+        attr:
+            Name of attribute whose value should be taken across items.
+    """
+    return [getattr(item, attr) for item in items]
+
+
+def attr_all_same(items: Sequence[Any], attr: str) -> bool:
+    """
+    Returns whether the value of an attribute is the same across a collection
+    of items.
+
+    Args:
+        items:
+            Items to check
+        attr:
+            Name of attribute whose value should be compared across items.
+    """
+    return all_same(values_by_attr(items, attr))
+
+
 def check_attr_all_same(items: Sequence[Any],
                         attr: str,
                         id_attr: str = None,
@@ -89,9 +117,10 @@ def check_attr_all_same(items: Sequence[Any],
             If true, raises ``ValueError`` on failure; otherwise, prints a
             warning to the log.
     """
-    values = [getattr(item, attr) for item in items]
+    values = values_by_attr(items, attr)
     if all_same(values):
         return
+    # The rest of this function is about producing an error or a warning.
     first_item = items[0]
     if id_attr:
         identity = f"For {id_attr}={getattr(first_item, id_attr)!r}, "
@@ -180,6 +209,43 @@ def none_or_blank_string(x: Any) -> bool:
         return True
     else:
         return False
+
+
+def column_lettering(colnum: int) -> str:
+    """
+    Converts a zero-based column index into a spreadsheet-style column name
+    (A[0] to Z[25], then AA[26] to AZ[51], etc). Basically, it's almost base
+    26, but without a proper sense of zero (in that A is zero, but AA is 26).
+    """
+    assert colnum >= 0
+    base = 26
+    zero_char = ord("A")
+    reversed_chars = ""
+    while True:
+        big, small = divmod(colnum, base)
+        reversed_chars += chr(zero_char + small)
+        if big == 0:
+            break
+        colnum = big - 1
+    return reversed_chars[::-1]  # reverse again to get the final answer
+
+
+def colnum_zb_from_alphacol(alphacol: str) -> int:
+    """
+    Reverses :func:`column_lettering`, generating a zero-based column index
+    from an alphabetical name (A to Z, AA to AZ, etc.).
+    """
+    base = 26
+    zero_char = ord("A")
+    total = 0
+    reversed_chars = alphacol[::-1]
+    for pos, char in enumerate(reversed_chars):
+        digit_value = ord(char) - zero_char  # e.g. 0 for A, 25 for Z
+        assert 0 <= digit_value < base
+        if pos > 0:
+            digit_value += 1
+        total += digit_value * pow(base, pos)
+    return total
 
 
 # =============================================================================
@@ -387,12 +453,16 @@ class SheetHolder(object):
             col: zero-based column index
         """
         return (f" [sheet_name={self.sheet_name!r}, "
-                f"row(1-based)={row+1}, column(1-based)={col+1}")
+                f"row(1-based)={row+1}, "
+                f"column(1-based)={col+1} ({column_lettering(col)})]")
 
     def ensure_header(self, col: int,
                       header: Union[str, Sequence[str]]) -> None:
         """
         Ensures that the header is correct for a specified column.
+
+        You can specify a single correct heading or a sequence (e.g. list)
+        of them.
         """
         if col in self._checked_headers:
             # Already checked.
@@ -430,6 +500,9 @@ class SheetHolder(object):
                    check_header: Union[str, Sequence[str]] = None) -> Any:
         """
         Retrieves a value from a cell of a spreadsheet.
+
+        Optionally, check that the heading for this column is correct (see
+        :meth:`ensure_header`).
         """
         if check_header is not None:
             self.ensure_header(col, check_header)
@@ -705,11 +778,14 @@ class RowHolder(object):
             "_next_col",
         ]
         user_attrs = [k for k in self.__dict__.keys() if k not in avoid]
-        attrs = ["sheet_name", "row"] + sorted(user_attrs)
+        attrs = ["sheet_name", "row"] + user_attrs
         return attrs
 
     def __str__(self) -> str:
         return simple_repr(self, self._get_relevant_attrs())
+
+    def __repr__(self) -> str:
+        return simple_repr(self, ["sheetholder", "row"])
 
     # -------------------------------------------------------------------------
     # Read operations, given a column number
@@ -944,3 +1020,28 @@ class RowHolder(object):
         )
         self.inc_next_col()
         return v
+
+
+# =============================================================================
+# Self-testing
+# =============================================================================
+
+class TestRoundingAndReversal(unittest.TestCase):
+
+    def test_column_lettering(self) -> None:
+        assert column_lettering(0) == "A"
+        assert column_lettering(25) == "Z"
+        assert column_lettering(26) == "AA"
+        assert column_lettering(51) == "AZ"
+        assert column_lettering(52) == "BA"
+        for col_zb in range(200):
+            alphacol = column_lettering(col_zb)
+            assert colnum_zb_from_alphacol(alphacol) == col_zb
+
+
+# =============================================================================
+# Command-line entry point
+# =============================================================================
+
+if __name__ == "__main__":
+    unittest.main()
