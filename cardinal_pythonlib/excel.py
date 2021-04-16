@@ -26,10 +26,12 @@
 
 """
 
+import datetime
 import io
 from typing import Any
 import uuid
 
+from numpy import float64
 from openpyxl import Workbook
 from pendulum.datetime import DateTime
 from semantic_version import Version
@@ -66,5 +68,37 @@ def convert_for_openpyxl(x: Any) -> Any:
         return pendulum_to_datetime(x)
     elif isinstance(x, (Version, uuid.UUID)):
         return str(x)
+    else:
+        return x
+
+
+def convert_for_pyexcel_ods3(x: Any) -> Any:
+    """
+    Converts known "unusual" data types to formats suitable for
+    ``pyexcel-ods3``. Specifically, handles:
+
+    - :class:`pendulum.datetime.DateTime`
+    - :class:`datetime.datetime`
+    - :class:`semantic_version.Version`
+    - ``None``
+    - :class:`numpy.float64`
+    - :class:`uuid.UUID`
+
+    Args:
+        x: a data value
+
+    Returns:
+        the same thing, or a more suitable value!
+    """
+
+    if isinstance(x, (DateTime, datetime.datetime)):
+        # ISO 8601, e.g. 2013-07-24T20:04:07+0100)
+        return x.strftime("%Y-%m-%dT%H:%M:%S%z")
+    elif x is None:
+        return ""
+    elif isinstance(x, (Version, uuid.UUID)):
+        return str(x)
+    elif isinstance(x, float64):
+        return float(x)
     else:
         return x
