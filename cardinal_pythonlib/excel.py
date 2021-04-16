@@ -28,6 +28,7 @@
 
 import io
 from typing import Any
+import uuid
 
 from openpyxl import Workbook
 from pendulum.datetime import DateTime
@@ -53,6 +54,7 @@ def convert_for_openpyxl(x: Any) -> Any:
 
     - :class:`pendulum.datetime.DateTime`
     - :class:`semantic_version.Version`
+    - :class:`uuid.UUID`
 
     Args:
         x: a data value
@@ -62,7 +64,7 @@ def convert_for_openpyxl(x: Any) -> Any:
     """
     if isinstance(x, DateTime):
         return pendulum_to_datetime(x)
-    elif isinstance(x, Version):
+    elif isinstance(x, (Version, uuid.UUID)):
         return str(x)
     else:
         return x
