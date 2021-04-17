@@ -3,3 +3,4 @@ dist/*
 cardinal_pythonlib.egg-info/*
 .idea/*
 *~
+.dir-locals.el
