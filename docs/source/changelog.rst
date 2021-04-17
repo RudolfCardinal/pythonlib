@@ -613,3 +613,4 @@ Quick links:
 **1.1.4 (2021-04-11)**
 
 - Minor improvements to :mod:`cardinal_pythonlib.spreadsheets`.
+- Fix UUID export in :mod:`cardinal_pythonlib.excel` and a related function.
