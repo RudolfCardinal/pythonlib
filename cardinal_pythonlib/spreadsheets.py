@@ -643,6 +643,34 @@ class SheetHolder(object):
             return default
         return str(v_int)
 
+    def read_str_nonfloat(self, row: int, col: int,
+                          default: str = None,
+                          check_header: Union[str, Sequence[str]] = None) \
+            -> Optional[str]:
+        """
+        Reads something that may be a string or numeric, but if it's numeric,
+        it's integer (not float). (This prevents e.g. "2" being read as a
+        floating-point value of "2.0" then converted to a string.)
+        """
+        v = self.read_value(row, col, check_header=check_header)
+        if none_or_blank_string(v):
+            return default
+        # See read_int() for more on the logic used here.
+        try:
+            fv = float(v)  # may raise
+        except (TypeError, ValueError):
+            # Not numeric
+            return v  # return the string version
+        # If we get here, v is numeric (e.g. "7" or "6.5" or 3.5).
+        try:
+            iv = int(v)
+        except (TypeError, ValueError):
+            # Numeric, but not integer
+            raise ValueError
+        if iv != fv:  # this picks up non-integer values
+            raise ValueError
+        return str(iv)  # string version of int
+
     def read_bool(self,
                   row: int,
                   col: int,
@@ -677,6 +705,19 @@ class SheetHolder(object):
             return default
         else:
             raise ValueError(f"Bad bool: {raw_v!r}" + self._locinfo(row, col))
+
+    def read_none(self, row: int, col: int,
+                  check_header: Union[str, Sequence[str]] = None) -> None:
+        """
+        Reads a value, and checks that it is a none/null value
+        """
+        v = self.read_value(row, col, check_header=check_header)
+        if v is not None:
+            raise ValueError(
+                f"Value should be none/null but is {v!r}" +
+                self._locinfo(row, col)
+            )
+        return None
 
     # -------------------------------------------------------------------------
     # Row generators
@@ -868,6 +909,13 @@ class RowHolder(object):
         return self.sheetholder.read_str_int(
             self.row, col, default, check_header=check_header)
 
+    def read_str_nonfloat(self, col: int,
+                          default: str = None,
+                          check_header: Union[str, Sequence[str]] = None) \
+            -> Optional[str]:
+        return self.sheetholder.read_str_nonfloat(
+            self.row, col, default, check_header=check_header)
+
     def read_bool(self,
                   col: int,
                   default: bool = None,
@@ -883,6 +931,15 @@ class RowHolder(object):
             true_values_lowercase=true_values_lowercase,
             false_values_lowercase=false_values_lowercase,
             unknown_values_lowercase=unknown_values_lowercase,
+            check_header=check_header
+        )
+
+    def read_none(self,
+                  col: int,
+                  check_header: Union[str, Sequence[str]] = None) -> None:
+        return self.sheetholder.read_none(
+            row=self.row,
+            col=col,
             check_header=check_header
         )
 
@@ -1011,6 +1068,20 @@ class RowHolder(object):
         self.inc_next_col()
         return v
 
+    def str_nonfloat_pp(self,
+                        default: str = None,
+                        check_header: Union[str, Sequence[str]] = None) \
+            -> Optional[str]:
+        """
+        Reads something that may be a string or numeric, but if it's numeric,
+        it's integer (not float). Then increments the "current" column.
+        Optionally, checks that the header for this column is as expected.
+        """
+        v = self.read_str_nonfloat(
+            self._next_col, default, check_header=check_header)
+        self.inc_next_col()
+        return v
+
     def bool_pp(
             self,
             default: bool = None,
@@ -1032,6 +1103,16 @@ class RowHolder(object):
         )
         self.inc_next_col()
         return v
+
+    def none_pp(self, check_header: Union[str, Sequence[str]] = None) -> None:
+        """
+        Reads a null value, and ensures that it is null; then increments the
+        "current" column. Optionally, checks that the header for this column is
+        as expected.
+        """
+        self.read_none(col=self._next_col, check_header=check_header)
+        self.inc_next_col()
+        return None
 
 
 # =============================================================================
