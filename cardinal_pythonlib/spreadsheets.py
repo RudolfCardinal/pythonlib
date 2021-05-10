@@ -114,7 +114,7 @@ def check_attr_all_same(items: Sequence[Any],
             attribute from the first item to give some identifying context
             to the failure message.
         fail_if_different:
-            If true, raises ``ValueError`` on failure; otherwise, prints a
+            If true, raises :exc:`ValueError` on failure; otherwise, prints a
             warning to the log.
     """
     values = values_by_attr(items, attr)
@@ -459,7 +459,8 @@ class SheetHolder(object):
     def ensure_header(self, col: int,
                       header: Union[str, Sequence[str]]) -> None:
         """
-        Ensures that the header is correct for a specified column.
+        Ensures that the header is correct for a specified column, or raise
+        :exc:`ValueError`.
 
         You can specify a single correct heading or a sequence (e.g. list)
         of them.
@@ -469,8 +470,11 @@ class SheetHolder(object):
             return
         headers = self.headers
         if col < 0 or col >= len(headers):
+            max_col_idx = len(headers) - 1
             raise ValueError(
-                f"Bad column {col}; possible range is 0-{len(headers) - 1}"
+                f"Bad column index {col} ({column_lettering(col)}); "
+                f"possible range is 0-{max_col_idx} (columns "
+                f"{column_lettering(0)}-{column_lettering(max_col_idx)})"
             )
         v = headers[col]  # observed value
         self._checked_headers[col] = v  # cache for subsquent check
@@ -505,7 +509,11 @@ class SheetHolder(object):
         :meth:`ensure_header`).
         """
         if check_header is not None:
-            self.ensure_header(col, check_header)
+            try:
+                self.ensure_header(col, check_header)
+            except ValueError as e:
+                raise ValueError(
+                    f"When reading row with zero-based index {row}: {e}")
         v = self.sheet.cell_value(row, col)
         if v in self.null_values:
             return None
@@ -841,6 +849,26 @@ class RowHolder(object):
         return simple_repr(self, ["sheetholder", "row"])
 
     # -------------------------------------------------------------------------
+    # Checks
+    # -------------------------------------------------------------------------
+    # More commonly, this is done via the "read...()" functions.
+
+    def ensure_header(self, col: int,
+                      header: Union[str, Sequence[str]]) -> None:
+        """
+        Ensures the column has an appropriate heading value, or raises
+        :exc:`ValueError`.
+        """
+        self.sheetholder.ensure_header(col, header)
+
+    def ensure_heading(self, col: int,
+                       header: Union[str, Sequence[str]]) -> None:
+        """
+        Synonym for :meth:`ensure_header`.
+        """
+        self.ensure_header(col, header)
+
+    # -------------------------------------------------------------------------
     # Read operations, given a column number
     # -------------------------------------------------------------------------
     # Compare equivalents in SheetHolder.
@@ -942,6 +970,25 @@ class RowHolder(object):
             col=col,
             check_header=check_header
         )
+
+    # -------------------------------------------------------------------------
+    # Check the next column
+    # -------------------------------------------------------------------------
+
+    def ensure_next_col_header(self,
+                               header: Union[str, Sequence[str]]) -> None:
+        """
+        Ensures the next column has an appropriate heading value, or raises
+        :exc:`ValueError`.
+        """
+        self.ensure_header(self._next_col, header)
+
+    def ensure_next_col_heading(self,
+                                header: Union[str, Sequence[str]]) -> None:
+        """
+        Synonym for :meth:`ensure_next_col_header`.
+        """
+        self.ensure_next_col_header(header)
 
     # -------------------------------------------------------------------------
     # Read operations, incrementing the next column number automatically.
