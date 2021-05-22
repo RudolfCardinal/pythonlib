@@ -528,7 +528,7 @@ def serve_pdf_to_stdout(pdf: bytes) -> None:
     See:
 
     - https://stackoverflow.com/questions/312230/proper-mime-type-for-pdf-files
-    - http://www.askapache.com/htaccess/pdf-cookies-headers-rewrites.html
+    - https://www.askapache.com/htaccess/pdf-cookies-headers-rewrites.html
     - https://stackoverflow.com/questions/2374427
 
     """

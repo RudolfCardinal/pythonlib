@@ -232,7 +232,7 @@ class EnumDict(dict):
                 setattr(self, '_generate_next_value', value)
             elif key == '_ignore_':
                 if isinstance(value, str):
-                    value = value.replace(',',' ').split()
+                    value = value.replace(',', ' ').split()
                 else:
                     value = list(value)
                 self._ignore = value

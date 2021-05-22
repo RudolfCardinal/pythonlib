@@ -704,7 +704,7 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
       - ``get_columns``: takes a table name, inspects the database
 
     - example of the dangers of ``eval``:
-      http://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
+      https://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
 
     - An example of a function doing the reflection/inspection within
       SQLAlchemy is

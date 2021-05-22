@@ -144,7 +144,7 @@ class Pep249DatabaseCursorType(object):
 
     See also:
 
-    - http://initd.org/psycopg/docs/cursor.html
+    - https://www.psycopg.org/docs/cursor.html
 
     """
 

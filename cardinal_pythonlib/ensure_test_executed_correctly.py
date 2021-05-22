@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/module_version.py
 
 """
 ===============================================================================
@@ -22,14 +22,18 @@
 
 ===============================================================================
 
-**Current version number of this library.**
-
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
+**Ensure that a library module is executed properly, and not via a way that
+breaks imports.**
 
 """
 
-VERSION_STRING = '1.1.6'
-# Use semantic versioning: http://semver.org/
+try:
+    from email import message_from_string  # we want the stdlib email package!
+except ImportError:
+    raise ImportError(
+        "A test of importing 'email' has found "
+        "cardinal_pythonlib/email/__init__.py, not the email package from "
+        "stdlib. You are probably running a cardinal_pythonlib file directly, "
+        "e.g. with 'python somefile.py' or '/path/somefile.py'. Instead, use "
+        "'python -m cardinal_pythonlib.somefile'."
+    )

@@ -379,7 +379,7 @@ def send_email(from_addr: str,
 
     - https://tools.ietf.org/html/rfc2822
     - https://tools.ietf.org/html/rfc5322
-    - http://segfault.in/2010/12/sending-gmail-from-python/
+    - https://segfault.in/2010/12/sending-gmail-from-python/
     - https://stackoverflow.com/questions/64505
     - https://stackoverflow.com/questions/3362600
 

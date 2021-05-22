@@ -86,7 +86,7 @@ class extract_year(FunctionElement):
 
     ``YEAR``, or ``func.year()``, is specific to some DBs, e.g. MySQL.
     So is ``EXTRACT``, or ``func.extract()``;
-    http://modern-sql.com/feature/extract.
+    https://modern-sql.com/feature/extract.
 
     This function therefore implements an ``extract_year`` function across
     multiple databases.

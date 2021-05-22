@@ -73,7 +73,7 @@ JDBC types:
 
 .. code-block:: none
 
-    # http://webcache.googleusercontent.com/search?q=cache:WoMF0RGkqwgJ:www.tagwith.com/question_439319_jpype-and-jaydebeapi-returns-jpype-jclass-java-lang-long  # noqa
+    # https://webcache.googleusercontent.com/search?q=cache:WoMF0RGkqwgJ:www.tagwith.com/question_439319_jpype-and-jaydebeapi-returns-jpype-jclass-java-lang-long  # noqa
 
     The object returned by JPype is a Python version of Java's java.lang.Long
     class. To get the value out of it, use the value attribute:

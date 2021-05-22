@@ -27,7 +27,7 @@
 - From: https://dev.mysql.com/doc/refman/5.0/en/memory-use.html
 
 - However, ``innodb_additional_mem_pool_size`` deprecated in 5.6.3 and removed
-  in 5.7.4; http://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html
+  in 5.7.4; https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html
 
 """
 

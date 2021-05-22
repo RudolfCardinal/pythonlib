@@ -56,7 +56,7 @@ REQUIREMENTS = [
     "numpy",
     "openpyxl",
     "pandas",
-    "pendulum>=2.0.0",
+    "pendulum>=2.1.1",
     "prettytable",
     "psutil",
     "pygments",

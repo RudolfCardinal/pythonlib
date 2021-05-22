@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # cardinal_pythonlib/register_db_with_odbc.py
 
+# noinspection HttpUrlsUsage
 """
 ===============================================================================
 
@@ -39,7 +40,7 @@ See
         
 - https://code.activestate.com/recipes/414879-create-an-odbc-data-source/
 
-- view-source:http://www.experts-exchange.com/Programming/Languages/Pascal/Delphi/Q_22020226.html
+- view-source:https://www.experts-exchange.com/Programming/Languages/Pascal/Delphi/Q_22020226.html
 
   - this instead suggests CREATE_DBV3 for Access 95, CREATE_DBV4 for Access 97,
     and CREATE_DB for Access 2000, but that's probably wrong
@@ -53,7 +54,7 @@ See
   - ... indicates that programmatic creation of queries/views (via ADO)
     leads to "invisible" queries
     
-- http://msaccessmemento.hubpages.com/hub/Stored_Procedure_in_MS_Access
+- https://msaccessmemento.hubpages.com/hub/Stored_Procedure_in_MS_Access
 
   - ... additionally, stored procedures have no user interface
 

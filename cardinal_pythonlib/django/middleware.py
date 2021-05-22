@@ -92,7 +92,7 @@ Middleware to require login for all pages.
 
 Copyright (C) 2008 Ryan Witt
 Licensed under the Creative Commons Attribution 3.0 United States License
-http://onecreativeblog.com/post/59051248/django-login-required-middleware
+https://onecreativeblog.com/post/59051248/django-login-required-middleware
 
 Modified according to: https://djangosnippets.org/snippets/2845/
 """

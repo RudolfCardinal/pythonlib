@@ -634,6 +634,7 @@ def bold_if_not_blank(x: Optional[str]) -> str:
 
 
 def make_urls_hyperlinks(text: str) -> str:
+    # noinspection HttpUrlsUsage
     """
     Adds hyperlinks to text that appears to contain URLs.
 

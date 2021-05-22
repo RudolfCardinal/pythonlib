@@ -250,7 +250,7 @@ class AsynchronousFileReader(Thread):
     be consumed in another thread.
 
     Modified from
-    http://stefaanlippens.net/python-asynchronous-subprocess-pipe-reading/.
+    https://stefaanlippens.net/python-asynchronous-subprocess-pipe-reading/.
     """
 
     def __init__(self,

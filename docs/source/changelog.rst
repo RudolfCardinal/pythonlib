@@ -615,6 +615,19 @@ Quick links:
 - Minor improvements to :mod:`cardinal_pythonlib.spreadsheets`.
 - Fix UUID export in :mod:`cardinal_pythonlib.excel` and a related function.
 
-**1.1.5 (2021-04-23)**
+**1.1.5 (2021-04-23 to 2021-05-22)**
 
 - Minor improvements to :mod:`cardinal_pythonlib.spreadsheets`.
+- fix ``enumlike.py`` to work with Python 3.9
+
+**1.1.6 (2021-05-22)**
+
+- Bump Pendulum to 2.1.1 or higher because earlier versions have a sort-of bug
+  relating to durations: https://github.com/sdispater/pendulum/pull/482.
+  I am not entirely convinced Pendulum has done this the right way. However, we
+  can detect its behaviour and do sensible things with ISO duration
+  conversions. Corresponding changes to ``datetimefunc.py``, plus better
+  self-tests.
+
+- Note, in general, the use of ``export PYTHONDEVMODE=1`` to ensure no
+  additional ``DeprecationWarning`` messages come up.

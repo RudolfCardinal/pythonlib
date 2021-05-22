@@ -32,12 +32,12 @@ database, so long as they are serializable to/from JSON.**
   input).
   
 - JSON is better.
-  http://www.benfrederickson.com/dont-pickle-your-data/
+  https://www.benfrederickson.com/dont-pickle-your-data/
 
 - JSON fields in Django:
   https://djangopackages.org/grids/g/json-fields/
 
-- http://paltman.com/how-to-store-arbitrary-data-in-a-django-model/
+- https://paltman.com/how-to-store-arbitrary-data-in-a-django-model/
 
 - Native Django JSONField requires PostgreSQL, and is not part of the core set
   of fields:

@@ -114,7 +114,7 @@ def quick_mapper(table: Table) -> Type[DeclarativeMeta]:
     """
     Makes a new SQLAlchemy mapper for an existing table.
     See
-    http://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/
+    https://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/
     
     Args:
         table: SQLAlchemy :class:`Table` object

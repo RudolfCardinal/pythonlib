@@ -24,7 +24,7 @@
 
 **Functions to assist with SNOMED-CT.**
 
-See http://snomed.org/.
+See https://www.snomed.org/.
 
 Note that the licensing arrangements for SNOMED-CT mean that the actual codes
 must be separate (and not part of this code).
@@ -46,7 +46,7 @@ include:
 
 Note grammar:
 
-- http://snomed.org/scg
+- https://www.snomed.org/scg
 - https://confluence.ihtsdotools.org/display/DOCSCG
 - https://confluence.ihtsdotools.org/download/attachments/33494865/SnomedCtExpo_Expressions_20161028_s2_20161101.pdf  # noqa
 - https://confluence.ihtsdotools.org/display/SLPG/SNOMED+CT+Expression+Constraint+Language
@@ -61,8 +61,8 @@ Test basic expressions:
     main_only_quicksetup_rootlogger(level=logging.DEBUG)
     
     # ---------------------------------------------------------------------
-    # From the SNOMED-CT examples (http://snomed.org/scg), with some values
-    # fixed from the term browser:
+    # From the SNOMED-CT examples (https://www.snomed.org/scg), with some
+    # values fixed from the term browser:
     # ---------------------------------------------------------------------
     
     diabetes = SnomedConcept(73211009, "Diabetes mellitus (disorder)")
@@ -154,7 +154,7 @@ def double_quoted(s: str) -> str:
 
     See:
 
-    - http://code.activestate.com/lists/python-list/272714/ -- does not work
+    - https://code.activestate.com/lists/python-list/272714/ -- does not work
       as null values get escaped in different ways in modern Python, and in a
       slightly unpredictable way
     - https://mail.python.org/pipermail/python-list/2003-April/236940.html --

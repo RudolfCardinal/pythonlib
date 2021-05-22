@@ -96,6 +96,7 @@ def first_from_xff(value: str) -> str:
 # reverse proxy.
 # =============================================================================
 
+# noinspection HttpUrlsUsage
 EXAMPLE_APACHE_REVERSE_PROXY_CONFIG = """
 
     # =========================================================================
@@ -421,6 +422,7 @@ class ReverseProxiedMiddleware(object):
                  environ: TYPE_WSGI_ENVIRON,
                  start_response: TYPE_WSGI_START_RESPONSE) \
             -> TYPE_WSGI_APP_RESULT:
+        # noinspection HttpUrlsUsage
         """
         -----------------------------------------------------------------------
         REWRITING THE HOST (setting HTTP_HOST):

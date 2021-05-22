@@ -1138,7 +1138,7 @@ def convert_docx_to_text(
       - table formatting is lost.
 
     - Other manual methods (not yet implemented):
-      http://etienned.github.io/posts/extract-text-from-word-docx-simply/.
+      https://etienned.github.io/posts/extract-text-from-word-docx-simply/.
 
       Looks like it won't deal with header stuff (etc.) that ``docx2txt``
       handles.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # cardinal_pythonlib/sql/sql_grammar.py
 
+# noinspection HttpUrlsUsage
 """
 ===============================================================================
 
@@ -33,7 +34,7 @@ Two approaches:
   - https://pyparsing.wikispaces.com/file/view/select_parser.py
   - http://pyparsing.wikispaces.com/file/view/simpleSQL.py
   - http://sacharya.com/parsing-sql-with-pyparsing/
-  - http://bazaar.launchpad.net/~eleybourn/temporal-proxy/devel/view/head:/parser.py
+  - https://bazaar.launchpad.net/~eleybourn/temporal-proxy/devel/view/head:/parser.py
   - http://pyparsing.wikispaces.com/file/view/select_parser.py/158651233/select_parser.py
 
   - Maximum recursion depth exceeded:
@@ -58,7 +59,7 @@ Two approaches:
 
 ANSI SQL syntax:
 
-- http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
+- https://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
     ... particularly the formal specifications in chapter 5 on words
 """  # noqa
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # cardinal_pythonlib/winservice.py
 
+# noinspection HttpUrlsUsage
 r"""
 ===============================================================================
 
@@ -30,13 +31,13 @@ For an example, see ``crate_anon/tools/winservice.py``
 
 - https://stackoverflow.com/questions/32404
 - http://www.chrisumbel.com/article/windows_services_in_python
-- http://code.activestate.com/recipes/551780-win-services-helper/
-- http://docs.activestate.com/activepython/2.4/pywin32/PyWin32.HTML
+- https://code.activestate.com/recipes/551780-win-services-helper/
+- https://docs.activestate.com/activepython/2.4/pywin32/PyWin32.HTML
 
-  - http://docs.activestate.com/activepython/2.4/pywin32/modules.html
+  - https://docs.activestate.com/activepython/2.4/pywin32/modules.html
   - source: ``...venv.../Lib/site-packages/win32/lib/win32serviceutil.py``
 
-- http://docs.activestate.com/activepython/3.3/pywin32/servicemanager.html
+- https://docs.activestate.com/activepython/3.3/pywin32/servicemanager.html
 - http://timgolden.me.uk/pywin32-docs/contents.html
 
 *Synopsis, applied to a service named CRATE*
@@ -225,8 +226,8 @@ See in particular
 
 Python bug?
 
-- http://bugs.python.org/issue3905
-- http://bugs.python.org/issue13368
+- https://bugs.python.org/issue3905
+- https://bugs.python.org/issue13368
 
 Maybe a subprocess bug. Better luck with
 ``ctypes.windll.kernel32.GenerateConsoleCtrlEvent``.
