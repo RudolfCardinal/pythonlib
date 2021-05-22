@@ -39,6 +39,10 @@ import logging
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 import unittest
 
+from cardinal_pythonlib.datetimefunc import (
+    coerce_to_pendulum,
+    pendulum_to_datetime_stripping_tz,
+)
 from cardinal_pythonlib.progress import ActivityCounter
 from cardinal_pythonlib.reprfunc import simple_repr
 try:
@@ -532,9 +536,19 @@ class SheetHolder(object):
         if none_or_blank_string(v):
             return default
         try:
-            return datetime.datetime(
-                *xlrd.xldate_as_tuple(v, self.book.datemode)
-            )
+            if isinstance(v, str):
+                # Sometimes we get strings, like "1800-01-01". These are
+                # outside the Excel range (1900 or 1904 onwards).
+                p_datetime = coerce_to_pendulum(v)
+                if p_datetime is None:
+                    raise ValueError
+                return pendulum_to_datetime_stripping_tz(p_datetime)
+            else:
+                # xlrd.xldate_as_tuple() converts an Excel number into a
+                # tuple: (year, month, day, hour, minute, nearest_second)
+                return datetime.datetime(
+                    *xlrd.xldate_as_tuple(v, self.book.datemode)
+                )
         except (TypeError, ValueError):
             raise ValueError(f"Bad date/time: {v!r}" + self._locinfo(row, col))
 
@@ -818,7 +832,7 @@ class RowHolder(object):
     def __init__(self, sheetholder: SheetHolder, row: int) -> None:
         self.sheetholder = sheetholder
         self.row = row  # zero-based index of our row
-        self._next_col = 0  # zero-based column index of the next column to read
+        self._next_col = 0  # zero-based column index of the next column to read  # noqa
 
     # -------------------------------------------------------------------------
     # Information

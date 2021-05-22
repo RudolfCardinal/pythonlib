@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-**Functions for dealing with lists.**
+**Functions for dealing with lists (and generators/iterables).**
 
 """
 
@@ -135,6 +135,18 @@ def unique_list(seq: Iterable[Any]) -> List[Any]:
     seen = set()
     seen_add = seen.add
     return [x for x in seq if not (x in seen or seen_add(x))]
+
+
+def filter_unique(seq: Iterable[Any]) -> Iterable[Any]:
+    """
+    Filters the input sequence, yielding only unique values.
+    """
+    seen = set()
+    seen_add = seen.add  # fractionally faster to look it up once
+    for x in seq:
+        if x not in seen:
+            seen_add(x)
+            yield x
 
 
 def chunks(x: List[Any], n: int) -> Iterable[List[Any]]:
