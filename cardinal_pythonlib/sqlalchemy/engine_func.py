@@ -39,6 +39,18 @@ if TYPE_CHECKING:
 
 
 # =============================================================================
+# Helper functions for MySQL
+# =============================================================================
+
+def is_mysql(engine: "Engine") -> bool:
+    """
+    Is the SQLAlchemy :class:`Engine` a MySQL/MariaDB database?
+    """
+    dialect_name = get_dialect_name(engine)
+    return dialect_name == SqlaDialectName.MYSQL
+
+
+# =============================================================================
 # Helper functions for SQL Server
 # =============================================================================
 

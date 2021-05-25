@@ -862,6 +862,20 @@ class RowHolder(object):
     def __repr__(self) -> str:
         return simple_repr(self, ["sheetholder", "row"])
 
+    @property
+    def row_zero_based(self) -> int:
+        """
+        Zero-based row number.
+        """
+        return self.row
+
+    @property
+    def row_one_based(self) -> int:
+        """
+        One-based row number.
+        """
+        return self.row + 1
+
     # -------------------------------------------------------------------------
     # Checks
     # -------------------------------------------------------------------------
@@ -1034,8 +1048,10 @@ class RowHolder(object):
         Reads a value, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
-        v = self.read_value(self._next_col, check_header=check_header)
-        self.inc_next_col()
+        try:
+            v = self.read_value(self._next_col, check_header=check_header)
+        finally:
+            self.inc_next_col()
         return v
 
     def datetime_pp(self,
@@ -1046,9 +1062,11 @@ class RowHolder(object):
         Reads a datetime, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
-        v = self.read_datetime(
-            self._next_col, default, check_header=check_header)
-        self.inc_next_col()
+        try:
+            v = self.read_datetime(
+                self._next_col, default, check_header=check_header)
+        finally:
+            self.inc_next_col()
         return v
 
     def date_pp(self,
@@ -1059,8 +1077,11 @@ class RowHolder(object):
         Reads a date, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
-        v = self.read_date(self._next_col, default, check_header=check_header)
-        self.inc_next_col()
+        try:
+            v = self.read_date(self._next_col, default,
+                               check_header=check_header)
+        finally:
+            self.inc_next_col()
         return v
 
     def int_pp(self,
@@ -1070,8 +1091,11 @@ class RowHolder(object):
         Reads an int, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
-        v = self.read_int(self._next_col, default, check_header=check_header)
-        self.inc_next_col()
+        try:
+            v = self.read_int(self._next_col, default,
+                              check_header=check_header)
+        finally:
+            self.inc_next_col()
         return v
 
     def float_pp(self,
@@ -1082,8 +1106,11 @@ class RowHolder(object):
         Reads a float, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
-        v = self.read_float(self._next_col, default, check_header=check_header)
-        self.inc_next_col()
+        try:
+            v = self.read_float(self._next_col, default,
+                                check_header=check_header)
+        finally:
+            self.inc_next_col()
         return v
 
     def decimal_pp(self,
@@ -1095,14 +1122,16 @@ class RowHolder(object):
         Reads a Decimal, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
-        v = self.read_decimal(
-            self._next_col,
-            default=default,
-            check_header=check_header,
-            dp=dp,
-            rounding=rounding
-        )
-        self.inc_next_col()
+        try:
+            v = self.read_decimal(
+                self._next_col,
+                default=default,
+                check_header=check_header,
+                dp=dp,
+                rounding=rounding
+            )
+        finally:
+            self.inc_next_col()
         return v
 
     def str_pp(self,
@@ -1112,8 +1141,11 @@ class RowHolder(object):
         Reads a string, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
-        v = self.read_str(self._next_col, default, check_header=check_header)
-        self.inc_next_col()
+        try:
+            v = self.read_str(self._next_col, default,
+                              check_header=check_header)
+        finally:
+            self.inc_next_col()
         return v
 
     def str_int_pp(self,
@@ -1124,9 +1156,11 @@ class RowHolder(object):
         Reads an integer as a string, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
-        v = self.read_str_int(
-            self._next_col, default, check_header=check_header)
-        self.inc_next_col()
+        try:
+            v = self.read_str_int(
+                self._next_col, default, check_header=check_header)
+        finally:
+            self.inc_next_col()
         return v
 
     def str_nonfloat_pp(self,
@@ -1138,9 +1172,11 @@ class RowHolder(object):
         it's integer (not float). Then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
-        v = self.read_str_nonfloat(
-            self._next_col, default, check_header=check_header)
-        self.inc_next_col()
+        try:
+            v = self.read_str_nonfloat(
+                self._next_col, default, check_header=check_header)
+        finally:
+            self.inc_next_col()
         return v
 
     def bool_pp(
@@ -1154,15 +1190,17 @@ class RowHolder(object):
         Reads a boolean value, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
-        v = self.read_bool(
-            col=self._next_col,
-            default=default,
-            true_values_lowercase=true_values_lowercase,
-            false_values_lowercase=false_values_lowercase,
-            unknown_values_lowercase=unknown_values_lowercase,
-            check_header=check_header
-        )
-        self.inc_next_col()
+        try:
+            v = self.read_bool(
+                col=self._next_col,
+                default=default,
+                true_values_lowercase=true_values_lowercase,
+                false_values_lowercase=false_values_lowercase,
+                unknown_values_lowercase=unknown_values_lowercase,
+                check_header=check_header
+            )
+        finally:
+            self.inc_next_col()
         return v
 
     def none_pp(self, check_header: Union[str, Sequence[str]] = None) -> None:
@@ -1171,8 +1209,10 @@ class RowHolder(object):
         "current" column. Optionally, checks that the header for this column is
         as expected.
         """
-        self.read_none(col=self._next_col, check_header=check_header)
-        self.inc_next_col()
+        try:
+            self.read_none(col=self._next_col, check_header=check_header)
+        finally:
+            self.inc_next_col()
         return None
 
 

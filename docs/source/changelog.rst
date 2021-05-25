@@ -631,3 +631,7 @@ Quick links:
 
 - Note, in general, the use of ``export PYTHONDEVMODE=1`` to ensure no
   additional ``DeprecationWarning`` messages come up.
+
+**1.1.7 (2021-05-24)**
+
+- Minor spreadsheet tweaks.
