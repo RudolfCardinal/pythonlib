@@ -281,7 +281,11 @@ def send_msg(from_addr: str,
     # Connect
     try:
         session = smtplib.SMTP(host, port)
-    except smtplib.SMTPException as e:
+    except OSError as e:
+        # https://bugs.python.org/issue2118
+        # Not all errors from smtplib are raised as SMTPException
+        # e.g. ConnectionRefusedError when creating the socket
+        # SMTPException is a subclass of OSError since 3.4
         raise RuntimeError(
             f"send_msg: Failed to connect to host {host}, port {port}: {e}")
     try:
