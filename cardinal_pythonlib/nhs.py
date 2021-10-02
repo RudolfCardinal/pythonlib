@@ -113,14 +113,27 @@ def is_valid_nhs_number(n: int) -> bool:
     return True
 
 
-def generate_random_nhs_number() -> int:
+def generate_random_nhs_number(official_test_range: bool = True) -> int:
     """
     Returns a random valid NHS number, as an ``int``.
-    """
+
+    Args:
+        official_test_range:
+            Make it start with "999", the official NHS test range. See
+            https://digital.nhs.uk/services/e-referral-service/document-library/synthetic-data-in-live-environments,
+            saved at
+            https://web.archive.org/web/20210116183039/https://digital.nhs.uk/services/e-referral-service/document-library/synthetic-data-in-live-environments.
+    """  # noqa
     check_digit = 10  # NHS numbers with this check digit are all invalid
     while check_digit == 10:
-        digits = [random.randint(1, 9)]  # don't start with a zero
-        digits.extend([random.randint(0, 9) for _ in range(8)])
+        if official_test_range:
+            # Make it start with 999.
+            digits = [9, 9, 9]  # don't start with a zero
+            digits.extend([random.randint(0, 9) for _ in range(6)])
+        else:
+            # Any NHS number. Could potentially be a real one.
+            digits = [random.randint(1, 9)]  # don't start with a zero
+            digits.extend([random.randint(0, 9) for _ in range(8)])
         # ... length now 9
         check_digit = nhs_check_digit(digits)
     # noinspection PyUnboundLocalVariable
@@ -150,6 +163,9 @@ def generate_nhs_number_from_first_9_digits(first9digits: str) -> Optional[int]:
         123456789_ : no; checksum 10
         987654321_ : yes, valid if completed to 9876543210
         999999999_ : yes, valid if completed to 9999999999
+
+    But see also :func:`generate_random_nhs_number` with its option to use the
+    official NHS test range.
     """
     if len(first9digits) != 9:
         log.warning("Not 9 digits")

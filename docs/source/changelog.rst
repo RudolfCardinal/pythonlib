@@ -635,3 +635,8 @@ Quick links:
 **1.1.7 (2021-05-24)**
 
 - Minor spreadsheet tweaks.
+
+**1.1.8 (2021-10-02, in progress)**
+
+- ``official_test_range`` option (also now the default) to
+  :func:`cardinal_pythonlib.nhs.generate_random_nhs_number`
