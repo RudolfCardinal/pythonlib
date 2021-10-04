@@ -641,3 +641,7 @@ Quick links:
 - ``official_test_range`` option (also now the default) to
   :func:`cardinal_pythonlib.nhs.generate_random_nhs_number`
 - ``MimeType.HTML``.
+
+**1.1.9 (2021-10-04)**
+
+- More helper functions in :mod:`cardinal_pythonlib.classes`.

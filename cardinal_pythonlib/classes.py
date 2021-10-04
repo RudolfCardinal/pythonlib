@@ -26,7 +26,7 @@
 
 """
 
-from typing import Generator, List, Type, TypeVar
+from typing import Any, Dict, Generator, List, Type, TypeVar
 
 
 # =============================================================================
@@ -175,3 +175,61 @@ class classproperty(object):
 
     def __get__(self, owner_self, owner_cls):
         return self.fget(owner_cls)
+
+
+# =============================================================================
+# Class attributes and their values
+# =============================================================================
+
+def class_attribute_dict(
+        cls: Type,
+        exclude_underscore: bool = True,
+        exclude_double_underscore: bool = True) -> Dict[str, Any]:
+    """
+    When given a class, returns a dictionary of all its attributes, by default
+    excluding those starting with single and double underscores.
+
+    This is just a filtered versio of cls.__dict__.
+    """
+    d = {}  # type: Dict[str, Any]
+    for k, v in cls.__dict__.items():
+        if exclude_underscore and k.startswith("_"):
+            continue
+        if exclude_double_underscore and k.startswith("__"):
+            continue
+        d[k] = v
+    return d
+
+
+def class_attribute_names(cls: Type,
+                          exclude_underscore: bool = True,
+                          exclude_double_underscore: bool = True) -> List[str]:
+    """
+    When given a class, returns the NAMES of all its attributes, by default
+    excluding those starting with single and double underscores.
+
+    Used in particular to enumerate constants provided within a class.
+    """
+    d = class_attribute_dict(
+        cls,
+        exclude_underscore=exclude_underscore,
+        exclude_double_underscore=exclude_double_underscore
+    )
+    return list(d.keys())
+
+
+def class_attribute_values(cls: Type,
+                           exclude_underscore: bool = True,
+                           exclude_double_underscore: bool = True) -> List[str]:
+    """
+    When given a class, returns the VALUES of all its attributes, by default
+    excluding those starting with single and double underscores.
+
+    Used in particular to enumerate constants provided within a class.
+    """
+    d = class_attribute_dict(
+        cls,
+        exclude_underscore=exclude_underscore,
+        exclude_double_underscore=exclude_double_underscore
+    )
+    return list(d.values())
