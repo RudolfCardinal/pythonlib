@@ -185,6 +185,7 @@ class ReverseProxiedConfig(object):
                  server_port: int = None,
                  url_scheme: str = None,
                  rewrite_path_info: bool = False) -> None:
+        # noinspection HttpUrlsUsage
         """
         Args:
             trusted_proxy_headers:
@@ -257,21 +258,23 @@ class ReverseProxiedConfig(object):
 
 
 class ReverseProxiedMiddleware(object):
+    # noinspection HttpUrlsUsage
     """
     WSGI middleware to set the ``SCRIPT_NAME`` and ``PATH_INFO`` WSGI
     environment variables (etc.) correctly when behind a reverse proxy.
-    
+
     Note that the WSGI environment variables ``HTTP_*`` are clones of HTTP
     headers; for example, ``X-Forwarded-For`` in HTTP becomes
     ``HTTP_X_FORWARDED_FOR`` in WSGI.
 
     See also:
-        
+
     - http://flask.pocoo.org/snippets/35/
     - http://blog.macuyiko.com/post/2016/fixing-flask-url_for-when-behind-mod_proxy.html
     - http://alex.eftimie.ro/2013/03/21/how-to-run-flask-application-in-a-subpath-using-apache-mod_proxy/
     - http://modwsgi.readthedocs.io/en/develop/release-notes/version-4.4.9.html
     - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
+
     """  # noqa
 
     CANDIDATES_HTTP_HOST = [

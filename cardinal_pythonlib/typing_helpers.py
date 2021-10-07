@@ -22,13 +22,75 @@
 
 ===============================================================================
 
-**Unusual types for type hints.**
+**Methods and unusual types for type hints.**
 
 """
 
 from abc import abstractmethod
 import csv
-from typing import Any, Iterator, List, Optional, Sequence, Tuple, Type, Union
+from typing import (
+    Any,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
+)
+
+
+# =============================================================================
+# Constants
+# =============================================================================
+
+T = TypeVar('T')
+
+
+# =============================================================================
+# with_typehint
+# =============================================================================
+
+def with_typehint(baseclass: Type[T]) -> Type[T]:
+    """
+    Useful function to make mixins with type hints from a base class.
+
+    From
+    https://stackoverflow.com/questions/51930339/how-do-i-correctly-add-type-hints-to-mixin-classes.
+
+    Specimen usage:
+
+    .. code-block:: python
+
+        class MyMixin1(with_typehint(SomeBaseClass))):
+            # ...
+
+    """  # noqa
+    if TYPE_CHECKING:
+        return baseclass
+    return object
+
+
+def with_typehints(*baseclasses: Type[T]) -> Type[T]:
+    """
+    Useful function to make mixins with type hints from multiple base classes.
+
+    From
+    https://stackoverflow.com/questions/51930339/how-do-i-correctly-add-type-hints-to-mixin-classes.
+
+    Specimen usage:
+
+    .. code-block:: python
+
+        class MyMixin2(*with_typehints(SomeBaseClass, AnotherBaseClass))):
+            # ...
+
+    """  # noqa
+    if TYPE_CHECKING:
+        return baseclasses
+    return object
 
 
 # =============================================================================

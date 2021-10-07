@@ -645,3 +645,8 @@ Quick links:
 **1.1.9 (2021-10-04)**
 
 - More helper functions in :mod:`cardinal_pythonlib.classes`.
+
+**1.1.10 (2021-10-05)**
+
+- :func:`cardinal_pythonlib.typing_helpers.with_typehint`
+- :class:`cardinal_pythonlib.httpconst.HttpStatus`
