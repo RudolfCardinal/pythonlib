@@ -199,6 +199,7 @@ setup(
 
             # tools
             'cardinalpythonlib_backup_mysql_database=cardinal_pythonlib.tools.backup_mysql_database:main',  # noqa
+            'cardinalpythonlib_bulk_email=cardinal_pythonlib.bulk_email.main:main',  # noqa
             'cardinalpythonlib_convert_athena_ohdsi_codes=cardinal_pythonlib.tools.convert_athena_ohdsi_codes:main',  # noqa
             'cardinalpythonlib_convert_mdb_to_mysql=cardinal_pythonlib.tools.convert_mdb_to_mysql:main',  # noqa
             'cardinalpythonlib_estimate_mysql_memory_usage=cardinal_pythonlib.tools.estimate_mysql_memory_usage:main',  # noqa

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/bulk_email/__init__.py
 
 """
 ===============================================================================
@@ -22,14 +22,7 @@
 
 ===============================================================================
 
-**Current version number of this library.**
-
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
+The mere existence of this file makes Python treat the directory as a
+package.
 
 """
-
-VERSION_STRING = '1.1.11'
-# Use semantic versioning: http://semver.org/

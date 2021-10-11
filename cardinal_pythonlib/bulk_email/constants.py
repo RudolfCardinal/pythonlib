@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/bulk_email/constants.py
 
 """
 ===============================================================================
@@ -22,14 +22,31 @@
 
 ===============================================================================
 
-**Current version number of this library.**
-
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
+Constants for the simple bulk e-mail tool.
 
 """
 
-VERSION_STRING = '1.1.11'
-# Use semantic versioning: http://semver.org/
+DB_URL_ENVVAR = "CARDINAL_PYTHONLIB_BULK_EMAIL_DB_URL"
+
+CONTENT_TYPE_MAX_LENGTH = 255
+# Can be quite long; see cardinal_pythonlib.httpconst.MimeType
+# 255 is the formal limit:
+# https://stackoverflow.com/questions/643690/maximum-mimetype-length-when-storing-type-in-db  # noqa
+
+DEFAULT_TIME_BETWEEN_EMAILS_S = 0.5
+
+ENCODING_NAME_MAX_LENGTH = 20  # a guess!
+# https://en.wikipedia.org/wiki/Character_encoding
+
+HOSTNAME_MAX_LENGTH = 255
+
+PASSWORD_MAX_LENGTH = 255
+
+RFC_2822_DATETIME_MAX_LENGTH = 40  # approximately!
+# https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
+# e.g.
+# Wed, 31 Sep 2000 11:29:05 +01:00 (CET)
+# 0123456789012345678901234567890123456789
+#           1         2         3
+
+USERNAME_MAX_LENGTH = 255

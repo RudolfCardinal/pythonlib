@@ -1,6 +1,8 @@
-*.pyc
-dist/*
-cardinal_pythonlib.egg-info/*
 .idea/*
+cardinal_pythonlib.egg-info/*
+dist/*
+private_testing/*
+
 *~
+*.pyc
 .dir-locals.el

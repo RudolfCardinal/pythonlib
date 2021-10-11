@@ -52,6 +52,8 @@ log = get_brace_style_log_with_null_handler(__name__)
 CONTENT_TYPE_TEXT = "text/plain"
 CONTENT_TYPE_HTML = "text/html"
 
+UTF8 = "utf8"
+
 COMMA = ","
 COMMASPACE = ", "
 
@@ -73,7 +75,7 @@ def make_email(from_addr: str,
                subject: str = "",
                body: str = "",
                content_type: str = CONTENT_TYPE_TEXT,
-               charset: str = "utf8",
+               charset: str = UTF8,
                attachment_filenames: Sequence[str] = None,
                attachment_binaries: Sequence[bytes] = None,
                attachment_binary_filenames: Sequence[str] = None,
@@ -86,24 +88,37 @@ def make_email(from_addr: str,
     address), or (c) a comma-separated list of multiple e-mail addresses.
 
     Args:
-        from_addr: name of the sender for the "From:" field
-        date: e-mail date in RFC 2822 format, or ``None`` for "now"
-        sender: name of the sender for the "Sender:" field
-        reply_to: name of the sender for the "Reply-To:" field
+        from_addr:
+            name of the sender for the "From:" field
+        date:
+            e-mail date in RFC 2822 format, or ``None`` for "now"
+        sender:
+            name of the sender for the "Sender:" field
+        reply_to:
+            name of the sender for the "Reply-To:" field
 
-        to: e-mail address(es) of the recipients for "To:" field
-        cc: e-mail address(es) of the recipients for "Cc:" field
-        bcc: e-mail address(es) of the recipients for "Bcc:" field
+        to:
+            e-mail address(es) of the recipients for "To:" field
+        cc:
+            e-mail address(es) of the recipients for "Cc:" field
+        bcc:
+            e-mail address(es) of the recipients for "Bcc:" field
 
-        subject: e-mail subject
-        body: e-mail body
-        content_type: MIME type for body content, default ``text/plain``
-        charset: character set for body; default ``utf8``
+        subject:
+            e-mail subject
+        body:
+            e-mail body
+        content_type:
+            MIME type for body content, default ``text/plain``
+        charset:
+            character set for body; default ``utf8``
 
-        attachment_filenames: filenames of attachments to add
-        attachment_binaries: binary objects to add as attachments
-        attachment_binary_filenames: filenames corresponding to
-            ``attachment_binaries``
+        attachment_filenames:
+            filenames of attachments to add
+        attachment_binaries:
+            binary objects to add as attachments
+        attachment_binary_filenames:
+            filenames corresponding to ``attachment_binaries``
         verbose: be verbose?
 
     Returns:
@@ -340,7 +355,7 @@ def send_email(from_addr: str,
                subject: str = "",
                body: str = "",
                content_type: str = CONTENT_TYPE_TEXT,
-               charset: str = "utf8",
+               charset: str = UTF8,
                attachment_filenames: Sequence[str] = None,
                attachment_binaries: Sequence[bytes] = None,
                attachment_binary_filenames: Sequence[str] = None,
@@ -349,32 +364,51 @@ def send_email(from_addr: str,
     Sends an e-mail in text/html format using SMTP via TLS.
 
     Args:
-        host: mail server host
-        user: username on mail server
-        password: password for username on mail server
-        port: port to use, or ``None`` for protocol default
-        use_tls: use TLS, rather than plain SMTP?
+        host:
+            mail server host
+        user:
+            username on mail server
+        password:
+            password for username on mail server
+        port:
+            port to use, or ``None`` for protocol default
+        use_tls:
+            use TLS, rather than plain SMTP?
         
-        date: e-mail date in RFC 2822 format, or ``None`` for "now"
+        date:
+            e-mail date in RFC 2822 format, or ``None`` for "now"
         
-        from_addr: name of the sender for the "From:" field
-        sender: name of the sender for the "Sender:" field
-        reply_to: name of the sender for the "Reply-To:" field
+        from_addr:
+            name of the sender for the "From:" field
+        sender:
+            name of the sender for the "Sender:" field
+        reply_to:
+            name of the sender for the "Reply-To:" field
         
-        to: e-mail address(es) of the recipients for "To:" field
-        cc: e-mail address(es) of the recipients for "Cc:" field
-        bcc: e-mail address(es) of the recipients for "Bcc:" field
+        to:
+            e-mail address(es) of the recipients for "To:" field
+        cc:
+            e-mail address(es) of the recipients for "Cc:" field
+        bcc:
+            e-mail address(es) of the recipients for "Bcc:" field
         
-        subject: e-mail subject
-        body: e-mail body
-        content_type: MIME type for body content, default ``text/plain``
-        charset: character set for body; default ``utf8``
+        subject:
+            e-mail subject
+        body:
+            e-mail body
+        content_type:
+            MIME type for body content, default ``text/plain``
+        charset:    
+            character set for body; default ``utf8``
         
-        attachment_filenames: filenames of attachments to add
-        attachment_binaries: binary objects to add as attachments
-        attachment_binary_filenames: filenames corresponding to
-            ``attachment_binaries``
-        verbose: be verbose?
+        attachment_filenames:
+            filenames of attachments to add
+        attachment_binaries:
+            binary objects to add as attachments
+        attachment_binary_filenames:
+            filenames corresponding to ``attachment_binaries``
+        verbose:
+            be verbose?
 
     Returns:
          tuple: ``(success, error_or_success_message)``
