@@ -31,6 +31,7 @@ Command-line entry point for the simple bulk e-mail tool.
 # =============================================================================
 
 import argparse
+from copy import deepcopy
 from datetime import datetime
 from email.utils import format_datetime as format_email_datetime
 import logging
@@ -46,6 +47,7 @@ from sqlalchemy.orm.session import Session
 from cardinal_pythonlib.bulk_email.constants import (
     DB_URL_ENVVAR,
     DEFAULT_TIME_BETWEEN_EMAILS_S,
+    PASSWORD_OBSCURING_STRING,
 )
 from cardinal_pythonlib.bulk_email.models import (
     Base,
@@ -221,7 +223,8 @@ def add_job(session: Session,
 # Send pending emails
 # =============================================================================
 
-def work(session: Session) -> None:
+def work(session: Session,
+         stop_on_error: bool) -> None:
     """
     Processes outstanding jobs until there are no more.
     """
@@ -270,6 +273,13 @@ def work(session: Session) -> None:
             details=details
         )
         session.add(attempt)
+        if success:
+            log.info("... success")
+        else:
+            log.error(f"... failed: {details}")
+            if stop_on_error:
+                log.error("Stopping because of errors.")
+                return
     log.info("Done.")
 
 
@@ -447,10 +457,18 @@ def main() -> None:
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Subcommand: work
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    _ = subparsers.add_parser(
+    parser_work = subparsers.add_parser(
         Command.WORK,
         help="Does work that is pending.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser_work.add_argument(
+        "--stop_on_error", action="store_true", default=True,
+        help="Stop if an error occurs. (The default.)"
+    )
+    parser_work.add_argument(
+        "--continue_on_error", dest="stop_on_error", action="store_false",
+        help="Continue if an error occors."
     )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -481,7 +499,12 @@ def main() -> None:
     # -------------------------------------------------------------------------
     main_only_quicksetup_rootlogger(level=logging.DEBUG if args.verbose
                                     else logging.INFO)
-    log.debug(f"Arguments: {args}")
+    if args.verbose:
+        # Show arguments, but obscuring any password.
+        safe_args = deepcopy(args)
+        if hasattr(safe_args, "password"):
+            safe_args.password = PASSWORD_OBSCURING_STRING
+        log.debug(f"Arguments: {safe_args}")
 
     # -------------------------------------------------------------------------
     # Database (always required)
@@ -528,7 +551,10 @@ def main() -> None:
         )
 
     elif command == Command.WORK:
-        work(session)
+        work(
+            session=session,
+            stop_on_error=args.stop_on_error
+        )
 
     elif command == Command.INFO:
         info(session)

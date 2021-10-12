@@ -32,7 +32,8 @@ SQLAlchemy models for the simple bulk e-mail tool.
 
 import datetime
 import logging
-from typing import Any, Iterable, Optional, Tuple
+import sys
+from typing import Any, Iterable, Tuple
 
 from sqlalchemy.event import listens_for
 from sqlalchemy.orm.attributes import instance_state
@@ -55,18 +56,27 @@ from sqlalchemy.sql.expression import and_, exists
 from cardinal_pythonlib.bulk_email.constants import (
     CONTENT_TYPE_MAX_LENGTH,
     ENCODING_NAME_MAX_LENGTH,
+    FERNET_KEY_BASE64_LENGTH,
     HOSTNAME_MAX_LENGTH,
     PASSWORD_MAX_LENGTH,
     USERNAME_MAX_LENGTH,
 )
 from cardinal_pythonlib.colander_utils import EMAIL_ADDRESS_MAX_LEN
 from cardinal_pythonlib.email.sendmail import (
+    ASCII,
     CONTENT_TYPE_TEXT,
     is_email_valid,
     UTF8,
 )
 from cardinal_pythonlib.sqlalchemy.orm_query import CountStarSpecializedQuery
+from cardinal_pythonlib.sysops import EXIT_FAILURE
 
+try:
+    from cryptography.fernet import Fernet
+except ImportError:
+    print("First, please install the 'cryptography' module with "
+          "'pip install cryptography'.")
+    sys.exit(EXIT_FAILURE)
 
 log = logging.getLogger(__name__)
 
@@ -168,10 +178,15 @@ class Config(Base):
         nullable=False,
         comment="Mail (SMTP) server username"
     )
-    password = Column(
+    password_encrypted = Column(
         String(length=PASSWORD_MAX_LENGTH),
         nullable=False,
-        comment="Mail (SMTP) server password (BEWARE: PLAIN TEXT)"
+        comment="Mail (SMTP) server password (reversibly encrypted)"
+    )
+    encryption_key = Column(
+        String(length=FERNET_KEY_BASE64_LENGTH),
+        nullable=False,
+        comment="Encryption key for password"
     )
     time_between_emails = Column(
         Float,
@@ -232,6 +247,38 @@ class Config(Base):
 
         # Set PK to None. A new PK will be generated on INSERT.
         self.config_id = None
+
+    # -------------------------------------------------------------------------
+    # Obscuring passwords
+    # -------------------------------------------------------------------------
+
+    @property
+    def password(self) -> str:
+        """
+        Returns the plaintext password.
+        """
+        # Key
+        key_b64_bytes = self.encryption_key.encode(ASCII)
+        # Engine
+        f = Fernet(key_b64_bytes)
+        # Decryption
+        encrypted_password_b64_bytes = self.password_encrypted.encode(ASCII)
+        return f.decrypt(encrypted_password_b64_bytes).decode(UTF8)
+
+    @password.setter
+    def password(self, password: str) -> None:
+        """
+        Store the password using reversible encryption.
+        """
+        # Key
+        key_b64_bytes = Fernet.generate_key()  # base64-encoded 32-byte key
+        self.encryption_key = key_b64_bytes.decode(ASCII)  # str version
+        # Engine
+        f = Fernet(key_b64_bytes)
+        # Encryption
+        password_bytes = password.encode(UTF8)
+        encrypted_b64_bytes = f.encrypt(password_bytes)  # base64-encoded
+        self.password_encrypted = encrypted_b64_bytes.decode(ASCII)
 
 
 # =============================================================================
@@ -421,14 +468,13 @@ class Job(Base):
 
     @staticmethod
     def _pending_job_query(session: Session) -> CountStarSpecializedQuery:
-        # noinspection PyPep8
         return (
             CountStarSpecializedQuery([Job], session=session)
             .filter(
                 ~exists().select_from(SendAttempt).where(
                     and_(
                         SendAttempt.job_id == Job.job_id,
-                        SendAttempt.success == True
+                        SendAttempt.success == True  # noqa
                     )
                 )
             )
@@ -446,7 +492,7 @@ class Job(Base):
         query = (
             CountStarSpecializedQuery([Job], session=session)
             .join(SendAttempt)
-            .filter(SendAttempt.success == True)
+            .filter(SendAttempt.success == True)  # noqa
         )
         return query.count_star()
 

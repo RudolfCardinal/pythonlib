@@ -52,6 +52,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 CONTENT_TYPE_TEXT = "text/plain"
 CONTENT_TYPE_HTML = "text/html"
 
+ASCII = "ascii"
 UTF8 = "utf8"
 
 COMMA = ","

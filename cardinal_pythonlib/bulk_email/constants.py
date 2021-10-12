@@ -38,9 +38,15 @@ DEFAULT_TIME_BETWEEN_EMAILS_S = 0.5
 ENCODING_NAME_MAX_LENGTH = 20  # a guess!
 # https://en.wikipedia.org/wiki/Character_encoding
 
+FERNET_KEY_BASE64_LENGTH = 44
+# The cryptography.Fernet key is 32 bytes, encrypted via base 64.
+# Base 64 encoding: produces 4n/3 characters, so 4 * 32 / 3 = 42.67
+# ... padded to multiples of 4, giving 44.
+
 HOSTNAME_MAX_LENGTH = 255
 
 PASSWORD_MAX_LENGTH = 255
+PASSWORD_OBSCURING_STRING = "*" * 8
 
 RFC_2822_DATETIME_MAX_LENGTH = 40  # approximately!
 # https://datatracker.ietf.org/doc/html/rfc2822#section-3.3

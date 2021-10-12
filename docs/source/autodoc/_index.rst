@@ -30,6 +30,9 @@ Automatic documentation of source code
     athena_ohdsi.py.rst
     betweendict.py.rst
     buildfunc.py.rst
+    bulk_email/constants.py.rst
+    bulk_email/main.py.rst
+    bulk_email/models.py.rst
     chebi.py.rst
     classes.py.rst
     cmdline.py.rst
@@ -65,6 +68,7 @@ Automatic documentation of source code
     dsp.py.rst
     email/mailboxpurge.py.rst
     email/sendmail.py.rst
+    ensure_test_executed_correctly.py.rst
     enumlike.py.rst
     excel.py.rst
     exceptions.py.rst
@@ -85,6 +89,7 @@ Automatic documentation of source code
     maths_numpy.py.rst
     maths_py.py.rst
     metaclasses.py.rst
+    module_version.py.rst
     modules.py.rst
     network.py.rst
     nhs.py.rst
@@ -117,6 +122,7 @@ Automatic documentation of source code
     rnc_text.py.rst
     rnc_web.py.rst
     rounding.py.rst
+    run_all_tests.py.rst
     signalfunc.py.rst
     sizeformatter.py.rst
     slurm.py.rst
