@@ -651,6 +651,7 @@ Quick links:
 - :func:`cardinal_pythonlib.typing_helpers.with_typehint`
 - :class:`cardinal_pythonlib.httpconst.HttpStatus`
 
-**1.1.11 (2021-10-11, in progress)**
+**1.1.11 (2021-10-11 to 2012-10-13)**
 
 - Simple bulk e-mail tool, ``cardinalpythonlib_bulk_email``.
+- :mod:`cardinal_pythonlib.rpm`

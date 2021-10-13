@@ -53,7 +53,7 @@ REQUIREMENTS = [
     "beautifulsoup4",  # "import bs4" or "from bs4 import ..."
     "colorlog",
     "isodate>=0.5.4",
-    "numpy",
+    "numpy>=1.20.0",  # 1.20.0 required for numpy.typing
     "openpyxl",
     "pandas",
     "pendulum>=2.1.1",
