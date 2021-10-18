@@ -655,3 +655,7 @@ Quick links:
 
 - Simple bulk e-mail tool, ``cardinalpythonlib_bulk_email``.
 - :mod:`cardinal_pythonlib.rpm`
+
+**1.1.12 (2021-10-18, IN PROGRESS)**
+
+- Improved :func:`cardinal_pythonlib.email.sendmail.is_email_valid`

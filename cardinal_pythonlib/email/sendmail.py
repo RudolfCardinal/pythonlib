@@ -39,6 +39,7 @@ import re
 import smtplib
 import sys
 from typing import List, NoReturn, Sequence, Tuple, Union
+import unittest
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
@@ -512,10 +513,55 @@ _SIMPLE_EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
 
 def is_email_valid(email_: str) -> bool:
     """
-    Performs a very basic check that a string appears to be an e-mail address.
-    """
+    Performs some basic checks that a string appears to be an e-mail address.
+
+    See 
+    https://stackoverflow.com/questions/8022530/how-to-check-for-valid-email-address.
+    """  # noqa
     # Very basic checks!
-    return _SIMPLE_EMAIL_REGEX.match(email_) is not None
+    if not email_:
+        return False
+    if _SIMPLE_EMAIL_REGEX.match(email_) is None:
+        return False
+    # The other things that can get through:
+    # Exclude e.g. two @ symbols
+    if email_.count("@") != 1:
+        return False
+    # Commas are not allowed
+    if email_.count(",") != 0:
+        return False
+    # Can't end in a full stop:
+    if email_.endswith("."):
+        return False
+    return True
+
+
+class TestIsEmailValid(unittest.TestCase):
+    """
+    Run with e.g. ``pytest sendmail.py::TestIsEmailValid``
+    """
+    def test_is_email_valid(self) -> None:
+        good_addresses = [
+            "x@somewhere.com",
+            "a+b@somewhere.else",
+            "fish123@blah.com",
+        ]
+        bad_addresses = [
+            "xyz",
+            "thing@blah.com@blah.com",
+            "thing,with_comma@somewhere.co.uk",
+            "person@place.fullstop.",
+        ]
+        for good in good_addresses:
+            self.assertTrue(
+                is_email_valid(good),
+                f"Good e-mail being flagged as bad: {good!r}"
+            )
+        for bad in bad_addresses:
+            self.assertFalse(
+                is_email_valid(bad),
+                f"Bad e-mail being flagged as good: {bad!r}"
+            )
 
 
 def get_email_domain(email_: str) -> str:
