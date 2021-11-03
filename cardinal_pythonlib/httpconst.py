@@ -53,6 +53,30 @@ https://docs.python.org/3.6/library/mimetypes.html.
 
 
 # =============================================================================
+# HTTP methods
+# =============================================================================
+
+class HttpMethod(object):
+    """
+    HTTP request methods, as upper-case constants.
+
+    - https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+    - https://datatracker.ietf.org/doc/html/rfc7231
+    - https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods
+    https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+    """
+    CONNECT = "CONNECT"  # HTTP/1.1
+    DELETE = "DELETE"  # HTTP/1.1
+    GET = "GET"  # HTTP/1.0
+    HEAD = "HEAD"  # HTTP/1.0
+    OPTIONS = "OPTIONS"  # HTTP/1.1
+    PATCH = "PATCH"  # HTTP/1.1
+    POST = "POST"  # HTTP/1.0
+    PUT = "PUT"  # HTTP/1.1
+    TRACE = "TRACE"  # HTTP/1.1
+
+
+# =============================================================================
 # HTTP status codes
 # =============================================================================
 

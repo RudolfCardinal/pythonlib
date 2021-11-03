@@ -28,6 +28,7 @@ Quick links:
 - :ref:`2018 <changelog_2018>`
 - :ref:`2019 <changelog_2019>`
 - :ref:`2020 <changelog_2020>`
+- :ref:`2021 <changelog_2021>`
 
 
 .. _changelog_2017:
@@ -599,6 +600,12 @@ Quick links:
 - :mod:`cardinal_pythonlib.spreadsheets`
 - :func:`cardinal_pythonlib.randomness.generate_random_string`
 
+
+.. _changelog_2021:
+
+2021
+~~~~
+
 **1.1.1 to 1.1.2 (2021-02-21)**
 
 - :mod:`cardinal_pythonlib.rounding`
@@ -651,11 +658,14 @@ Quick links:
 - :func:`cardinal_pythonlib.typing_helpers.with_typehint`
 - :class:`cardinal_pythonlib.httpconst.HttpStatus`
 
-**1.1.11 (2021-10-11 to 2012-10-13)**
+**1.1.11 (2021-10-11 to 2021-10-13)**
 
 - Simple bulk e-mail tool, ``cardinalpythonlib_bulk_email``.
 - :mod:`cardinal_pythonlib.rpm`
 
-**1.1.12 (2021-10-18, IN PROGRESS)**
+**1.1.12 (2021-10-18 to 2021-11-03)**
 
 - Improved :func:`cardinal_pythonlib.email.sendmail.is_email_valid`
+- Improved :mod:`cardinal_pythonlib.httpconst`
+- :mod:`cardinal_pythonlib.tcpipconst`
+- :mod:`cardinal_pythonlib.uriconst`
