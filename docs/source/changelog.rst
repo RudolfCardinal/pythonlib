@@ -662,6 +662,7 @@ Quick links:
 
 - Simple bulk e-mail tool, ``cardinalpythonlib_bulk_email``.
 - :mod:`cardinal_pythonlib.rpm`
+- numpy to 1.20.0, mandating Python 3.7+
 
 **1.1.12 (2021-10-18 to 2021-11-03)**
 
