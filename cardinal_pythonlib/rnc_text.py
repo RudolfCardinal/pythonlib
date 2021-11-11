@@ -428,7 +428,7 @@ def csv_to_list_of_fields(lines: List[str],
     """
     Extracts data from a list of CSV lines (starting with a defined header
     line) embedded in a longer text block but ending with a blank line.
-    
+
     Used for processing e.g. MonkeyCantab rescue text output.
 
     Args:
@@ -446,7 +446,7 @@ def csv_to_list_of_fields(lines: List[str],
         import logging
         from cardinal_pythonlib.rnc_text import *
         logging.basicConfig(level=logging.DEBUG)
-        
+
         myheader = "field1,field2,field3"
         mycsvlines = [
             "irrelevant line",

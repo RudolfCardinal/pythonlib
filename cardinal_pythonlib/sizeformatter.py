@@ -55,7 +55,7 @@ def bytes2human(n: Union[int, float],
     """
     Converts a number of bytes into a human-readable format.
     From https://code.activestate.com/recipes/578019-bytes-to-human-human-to-bytes-converter/.
-    
+
     Args:
         n: number of bytes
         format: a format specification string
@@ -64,7 +64,7 @@ def bytes2human(n: Union[int, float],
 
     Returns:
         the formatted number
-        
+
     Examples:
 
       >>> bytes2human(0)
@@ -117,7 +117,7 @@ def human2bytes(s: str) -> int:
     """
     Modified from
     https://code.activestate.com/recipes/578019-bytes-to-human-human-to-bytes-converter/.
-    
+
     Attempts to guess the string format based on default symbols
     set and return the corresponding bytes as an integer.
     When unable to recognize the format, :exc:`ValueError` is raised.

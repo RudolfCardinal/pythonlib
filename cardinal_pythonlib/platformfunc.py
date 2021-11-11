@@ -217,8 +217,8 @@ def windows_get_environment_from_batch_command(
     PURPOSE: under Windows, ``VCVARSALL.BAT`` sets up a lot of environment
     variables to compile for a specific target architecture. We want to be able
     to read them, not to replicate its work.
-    
-    METHOD: create a composite command that executes the specified command, 
+
+    METHOD: create a composite command that executes the specified command,
     then echoes an unusual string tag, then prints the environment via ``SET``;
     capture the output, work out what came from ``SET``.
 

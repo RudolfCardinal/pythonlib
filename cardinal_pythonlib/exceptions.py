@@ -42,10 +42,10 @@ log = get_brace_style_log_with_null_handler(__name__)
 def add_info_to_exception(err: Exception, info: Dict) -> None:
     """
     Adds an information dictionary to an exception.
-    
+
     See
     https://stackoverflow.com/questions/9157210/how-do-i-raise-the-same-exception-with-a-custom-message-in-python
-    
+
     Args:
         err: the exception to be modified
         info: the information to add
@@ -78,7 +78,7 @@ def die(exc: Exception = None, exit_code: int = 1) -> NoReturn:
     https://stackoverflow.com/questions/9555133/e-printstacktrace-equivalent-in-python.
 
     Test code:
-    
+
     .. code-block:: python
 
         import logging
@@ -86,7 +86,7 @@ def die(exc: Exception = None, exit_code: int = 1) -> NoReturn:
         import traceback
         logging.basicConfig(level=logging.DEBUG)
         log = logging.getLogger()
-        
+
         def fail():
             try:
                 x = 1/0
@@ -94,15 +94,15 @@ def die(exc: Exception = None, exit_code: int = 1) -> NoReturn:
                 die(exc)
 
     Then call
-    
+
     .. code-block:: python
-    
+
         fail()
-        
+
     ... which should exit Python; then from Linux (for example):
-    
+
     .. code-block:: bash
-    
+
         echo $?  # show exit code
 
     """  # noqa

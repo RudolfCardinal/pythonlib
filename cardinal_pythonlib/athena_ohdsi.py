@@ -320,28 +320,28 @@ def get_athena_concepts(
         import logging
         import timeit
         logging.basicConfig(level=logging.DEBUG)
-        
+
         from cardinal_pythonlib.athena_ohdsi import (
             get_athena_concepts,
             get_athena_concept_relationships,
         )
-        
+
         concept_filename = "CONCEPT.csv"
         cr_filename = "CONCEPT_RELATIONSHIP.csv"
         testcode = "175898006"
         testid = 46067884
-        
+
         concept_testcode = '''
         get_athena_concepts(concept_filename, concept_codes=[testcode])
         '''
         cr_testcode = '''
         get_athena_concept_relationships(cr_filename, concept_id_1_values=[testid])
         '''
-        
+
         timeit.timeit(cr_testcode, number=1, globals=globals())
         # Initial method: 33.6 s (for 9.9m rows on a Windows laptop).
         # Chain of generators: 21.5 s. Better.
-        
+
         timeit.timeit(concept_testcode, number=1, globals=globals())
         # After speedup: 3.9 s for 1.1m rows.
 

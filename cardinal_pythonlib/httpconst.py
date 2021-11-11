@@ -34,7 +34,7 @@ Many of these can be extracted:
     mimetypes.init()
     mimetypes.types_map['.xlsx']  # application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
     # ... must read some local thing...
-    
+
 Something's changed -- in Python 3.6.8, there's no need for the init() call.
 There is also a guessing function, :func:`mimetypes.guess_type`; see
 https://docs.python.org/3.6/library/mimetypes.html.
@@ -181,7 +181,7 @@ class MimeType(object):
 
         import mimetypes
         mimetypes.types_map['.pdf']  # 'application/pdf'
-        
+
     See:
 
     - Binary:
@@ -189,20 +189,20 @@ class MimeType(object):
       - https://stackoverflow.com/questions/6783921/which-mime-type-to-use-for-a-binary-file-thats-specific-to-my-program
 
     - CSV
-    
+
       - https://stackoverflow.com/questions/264256/what-is-the-best-mime-type-and-extension-to-use-when-exporting-tab-delimited
       - https://www.iana.org/assignments/media-types/text/tab-separated-values
-    
+
     - ZIP
-    
+
       - https://stackoverflow.com/questions/4411757/zip-mime-types-when-to-pick-which-one
-      
+
     - Microsoft Office
-    
+
       - https://filext.com/faq/office_mime_types.html
-      
+
     - OpenOffice
-    
+
       - https://www.openoffice.org/framework/documentation/mimetypes/mimetypes.html
       - https://stackoverflow.com/questions/31489757/what-is-correct-mimetype-with-apache-openoffice-files-like-odt-ods-odp
 

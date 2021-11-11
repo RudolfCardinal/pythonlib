@@ -319,10 +319,10 @@ def log_likelihood_ratio_from_p(p_d_given_h: float,
                                 p_d_given_not_h: float) -> float:
     r"""
     Returns
-    
+
     .. math::
-    
-        \ln \frac{ P(D | H) }{ P(D | \neg H) } = 
+
+        \ln \frac{ P(D | H) }{ P(D | \neg H) } =
             \ln P(D | H) - \ln P(D | \neg H)
 
     Args:

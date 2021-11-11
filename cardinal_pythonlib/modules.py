@@ -103,7 +103,7 @@ def is_c_extension(module: ModuleType) -> bool:
     """
     Modified from
     https://stackoverflow.com/questions/20339053/in-python-how-can-one-tell-if-a-module-comes-from-a-c-extension.
-    
+
     ``True`` only if the passed module is a C extension implemented as a
     dynamically linked shared library specific to the current platform.
 
@@ -112,9 +112,9 @@ def is_c_extension(module: ModuleType) -> bool:
 
     Returns:
         bool: ``True`` only if this module is a C extension.
-        
+
     Examples:
-        
+
     .. code-block:: python
     
         from cardinal_pythonlib.modules import is_c_extension

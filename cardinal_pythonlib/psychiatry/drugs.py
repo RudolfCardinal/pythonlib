@@ -22,7 +22,7 @@
 
 ===============================================================================
 
-**Drug information, with an emphasis on psychotropic drugs, including 
+**Drug information, with an emphasis on psychotropic drugs, including
 translating specific to generic names.**
 
 **Examples**
@@ -32,7 +32,7 @@ Test within Python:
 .. code-block:: python
 
     from cardinal_pythonlib.psychiatry.drugs import *
-    
+
     drug_name_to_generic("UNKNOWN")
     drug_name_to_generic("UNKNOWN", unknown_to_default=True)
     drug_names_to_generic([
@@ -109,7 +109,7 @@ Test within R:
     # -------------------------------------------------------------------------
     # Load libraries
     # -------------------------------------------------------------------------
-    
+
     RUN_ONCE_ONLY <- '
         library(devtools)
         devtools::install_github("rstudio/reticulate")  # get latest version
@@ -130,7 +130,7 @@ Test within R:
     )
     reticulate::use_python(PYTHON_EXECUTABLE, required=TRUE)
     # ... it is CRITICAL to use required=TRUE, or it might fail silently
-    
+
     # Unnecessary now reticulate::use_python() works:
     # 
     # PYTHON_VERSION <- "python3.5"

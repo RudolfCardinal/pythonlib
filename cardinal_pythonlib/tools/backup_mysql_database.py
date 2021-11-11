@@ -102,7 +102,8 @@ def main() -> None:
         Back up a specific MySQL database. The resulting filename has the
         format '<DATABASENAME>_<DATETIME><SUFFIX>.sql', where <DATETIME> is of
         the ISO-8601 format {timeformat!r} and <SUFFIX> is either blank or
-        {wdcd_suffix!r}. 
+        {wdcd_suffix!r}.
+
         A typical filename is therefore 'mydb_20190415T205524.sql'.
         """,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)

@@ -338,39 +338,39 @@ def mimic_user_input(
     Run an external command. Pretend to be a human by sending text to the
     subcommand (responses) when the external command sends us triggers
     (challenges).
-    
+
     This is a bit nasty.
-    
+
     Args:
         args: command-line arguments
         source_challenge_response: list of tuples of the format ``(challsrc,
             challenge, response)``; see below
         line_terminators: valid line terminators
-        print_stdout: 
-        print_stderr: 
-        print_stdin: 
-        stdin_encoding: 
-        stdout_encoding: 
+        print_stdout:
+        print_stderr:
+        print_stdin:
+        stdin_encoding:
+        stdout_encoding:
         suppress_decoding_errors: trap any ``UnicodeDecodeError``?
         sleep_time_s:
-        
+
     The ``(challsrc, challenge, response)`` tuples have this meaning:
-    
+
     - ``challsrc``: where is the challenge coming from? Must be one of the
       objects :data:`SOURCE_STDOUT` or :data:`SOURCE_STDERR`;
     - ``challenge``: text of challenge
     - ``response``: text of response (send to the subcommand's ``stdin``).
-    
+
     Example (modified from :class:`CorruptedZipReader`):
 
     .. code-block:: python
-    
+
         from cardinal_pythonlib.subproc import *
-        
+
         SOURCE_FILENAME = "corrupt.zip"
         TMP_DIR = "/tmp"
         OUTPUT_FILENAME = "rescued.zip"
-    
+
         cmdargs = [
             "zip",  # Linux zip tool
             "-FF",  # or "--fixfix": "fix very broken things"

@@ -126,9 +126,9 @@ class Pep249DatabaseConnectionType(object):
     """
     Type hint for a database connection compliant with PEP 249. See
     https://www.python.org/dev/peps/pep-0249/.
-    
+
     Not supported:
-    
+
     - https://www.python.org/dev/peps/pep-0249/#optional-error-handling-extensions
     - https://www.python.org/dev/peps/pep-0249/#optional-two-phase-commit-extensions
     """  # noqa

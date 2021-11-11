@@ -104,13 +104,13 @@ def sort_list_by_index_list(x: List[Any], indexes: List[int]) -> None:
 def flatten_list(x: List[Any]) -> List[Any]:
     """
     Converts a list of lists into a flat list.
-    
+
     Args:
-        x: list of lists 
+        x: list of lists
 
     Returns:
         flat list
-        
+
     As per
     https://stackoverflow.com/questions/952914/making-a-flat-list-out-of-list-of-lists-in-python
 

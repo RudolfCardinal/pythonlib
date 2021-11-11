@@ -101,21 +101,21 @@ class RawDescriptionArgumentDefaultsHelpFormatter(
 def str2bool(v: str) -> bool:
     """
     ``argparse`` type that maps strings in case-insensitive fashion like this:
-    
+
     .. code-block:: none
-    
+
         argument strings                value
         ------------------------------- -----
         'yes', 'true', 't', 'y', '1'    True
         'no', 'false', 'f', 'n', '0'    False
-     
+
     From
     https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
 
     Specimen usage:
-    
+
     .. code-block:: python
-    
+
         parser.add_argument(
             "--nice", type=str2bool, nargs='?',
             const=True,  # if --nice is present with no parameter

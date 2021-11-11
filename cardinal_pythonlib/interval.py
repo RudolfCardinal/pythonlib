@@ -1207,14 +1207,14 @@ class IntervalList(object):
                   datetime.timedelta]:
         """
         For a given time, ``when``, returns the cumulative time
-        
+
         - after ``start`` but before ``self`` begins, prior to ``when``;
         - after ``start`` and during intervals represented by ``self``, prior
           to ``when``;
         - after ``start`` and after at least one interval represented by
           ``self`` has finished, and not within any intervals represented by
           ``self``, and prior to ``when``.
-          
+
         Args:
             start: the start time of interest (e.g. before ``self`` begins)
             when: the time of interest

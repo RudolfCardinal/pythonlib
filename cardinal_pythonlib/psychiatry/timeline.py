@@ -70,7 +70,7 @@ Usage from R:
 
     testdata_drug_events <- data.table(
         patient_id=c(
-            rep("Alice", 3), 
+            rep("Alice", 3),
             rep("Bob", 3)
         ),
         drug_event_datetime=as.Date(c(

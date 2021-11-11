@@ -52,9 +52,9 @@ def normalized_frequency(f: float, sampling_freq: float) -> float:
             .. math::
 
                 f_n = f / (f_s / 2)
-                
+
     Principles:
-    
+
     - if maximum frequency of interest is :math:`f`, then you should sample at
       the Nyquist rate of :math:`2f`;
     - if you sample at :math:`f_s`, then the maximum frequency is

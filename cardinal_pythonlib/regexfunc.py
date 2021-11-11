@@ -37,11 +37,11 @@ from typing import Match, Optional, Pattern
 class CompiledRegexMemory(object):
     """
     Class to store last match of compiled regex.
-    
+
     Once you have called :func:`match` or :func:`search`, the attribute
     :attr:`last_match` contains the last match, and ``group(n)`` returns the
     *n*\ th group of that last match.
-    
+
     Based on
     https://stackoverflow.com/questions/597476/how-to-concisely-cascade-through-multiple-regex-statements-in-python.
     """  # noqa

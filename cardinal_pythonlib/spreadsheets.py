@@ -103,7 +103,8 @@ def attr_all_same(items: Sequence[Any], attr: str) -> bool:
 def check_attr_all_same(items: Sequence[Any],
                         attr: str,
                         id_attr: str = None,
-                        fail_if_different: bool = True) -> None:
+                        fail_if_different: bool = True,
+                        ignore_none: bool = False) -> None:
     """
     Checks if the value of an attribute is the same across a collection of
     items, and takes some action if not.
@@ -120,8 +121,12 @@ def check_attr_all_same(items: Sequence[Any],
         fail_if_different:
             If true, raises :exc:`ValueError` on failure; otherwise, prints a
             warning to the log.
+        ignore_none:
+            Ignore ``None`` values?
     """
     values = values_by_attr(items, attr)
+    if ignore_none:
+        values = [v for v in values if v is not None]
     if all_same(values):
         return
     # The rest of this function is about producing an error or a warning.
@@ -139,22 +144,26 @@ def check_attr_all_same(items: Sequence[Any],
 
 def require_attr_all_same(items: Sequence[Any],
                           attr: str,
-                          id_attr: str) -> None:
+                          id_attr: str,
+                          ignore_none: bool = False) -> None:
     """
     Raise if the ``attr`` attribute of each item in ``items`` is not the same.
     See :func:`check_attr_all_same`.
     """
-    check_attr_all_same(items, attr, id_attr, fail_if_different=True)
+    check_attr_all_same(items, attr, id_attr,
+                        fail_if_different=True, ignore_none=ignore_none)
 
 
 def prefer_attr_all_same(items: Sequence[Any],
                          attr: str,
-                         id_attr: str) -> None:
+                         id_attr: str,
+                         ignore_none: bool = False) -> None:
     """
     Warn if the ``attr`` attribute of each item in ``items`` is not the same.
     See :func:`check_attr_all_same`.
     """
-    check_attr_all_same(items, attr, id_attr, fail_if_different=False)
+    check_attr_all_same(items, attr, id_attr,
+                        fail_if_different=False, ignore_none=ignore_none)
 
 
 # =============================================================================
@@ -901,7 +910,7 @@ class RowHolder(object):
     # -------------------------------------------------------------------------
     # Compare equivalents in SheetHolder.
 
-    def read_value(self, col: int, 
+    def read_value(self, col: int,
                    check_header: Union[str, Sequence[str]] = None) -> Any:
         return self.sheetholder.read_value(
             self.row, col, check_header=check_header)

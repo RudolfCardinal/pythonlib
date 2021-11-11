@@ -85,28 +85,28 @@ def bool_from_exists_clause(session: Session,
     converted to a boolean answer. This function manages the inconsistencies.
 
     See:
-    
+
     - https://bitbucket.org/zzzeek/sqlalchemy/issues/3212/misleading-documentation-for-queryexists
     - https://docs.sqlalchemy.org/en/latest/orm/query.html#sqlalchemy.orm.query.Query.exists
-    
+
     Specifically, we want this:
-    
+
     *SQL Server*
-    
+
     .. code-block:: sql
-    
+
         SELECT 1 WHERE EXISTS (SELECT 1 FROM table WHERE ...)
         -- ... giving 1 or None (no rows)
         -- ... fine for SQL Server, but invalid for MySQL (no FROM clause)
-        
+
     *Others, including MySQL*
-    
+
     .. code-block:: sql
-    
+
         SELECT EXISTS (SELECT 1 FROM table WHERE ...)
         -- ... giving 1 or 0
         -- ... fine for MySQL, but invalid syntax for SQL Server
-    
+
     """  # noqa
     if session.get_bind().dialect.name == SqlaDialectName.MSSQL:
         # SQL Server

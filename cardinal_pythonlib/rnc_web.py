@@ -323,7 +323,7 @@ def checkbox_checked(b: Any) -> str:
     Returns ``' checked="checked"'`` if ``b`` is true; otherwise ``''``.
 
     Use this code to fill the ``{}`` in e.g.:
-    
+
     .. code-block:: none
 
         <label>

@@ -41,9 +41,9 @@ def find_nth(s: str, x: str, n: int = 0, overlap: bool = False) -> int:
       second...).
     - If ``overlap`` is true, allows fragments to overlap. If not, they must be
       distinct.
-      
+
     As per
-    https://stackoverflow.com/questions/1883980/find-the-nth-occurrence-of-substring-in-a-string 
+    https://stackoverflow.com/questions/1883980/find-the-nth-occurrence-of-substring-in-a-string
     """  # noqa
     length_of_fragment = 1 if overlap else len(x)
     i = -length_of_fragment

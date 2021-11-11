@@ -61,7 +61,7 @@ Briefly:
     # -------------------------------------------------------------------------
     # Try other things
     # -------------------------------------------------------------------------
-    
+
     repl_python()  # start an interactive Python session
 
 """  # noqa
@@ -77,11 +77,11 @@ from typing import Any, Dict
 def get_python_repr(x: Any) -> str:
     r"""
     A few notes:
-    
+
     **data.table()**
-    
+
     Data tables are converted to a Python dictionary:
-    
+
     .. code-block:: r
 
         dt <- data.table(

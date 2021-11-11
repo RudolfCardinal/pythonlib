@@ -35,16 +35,16 @@ Examples:
 .. code-block:: python
 
     cardinalpythonlib_chebi test
-    
+
     cardinalpythonlib_chebi search citalopram
     cardinalpythonlib_chebi search citalopram --exact_search
     cardinalpythonlib_chebi search zopiclone
     cardinalpythonlib_chebi search zopiclone --exact_search
     cardinalpythonlib_chebi search zopiclone --exact_match
     cardinalpythonlib_chebi search salicylic --inexact_search
-    
+
     cardinalpythonlib_chebi describe citalopram simvastatin --exact_match
-    
+
     cardinalpythonlib_chebi ancestors citalopram simvastatin
 
 Then try this syntax:
@@ -65,7 +65,7 @@ using files like these:
 
     # entities.txt
     # Things to classify.
-    
+
     agomelatine
     aspirin
     citalopram

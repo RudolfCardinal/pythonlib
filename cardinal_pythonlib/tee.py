@@ -28,7 +28,7 @@ DEVELOPMENT NOTES
 
 Initial failure:
 
-- We can copy the Python logging output to a file; that's part of the 
+- We can copy the Python logging output to a file; that's part of the
   standard logging facility.
 - We can also redirect our own stdout/stderr to a file and/or print a copy;
   that's pretty easy to.
@@ -38,13 +38,13 @@ Initial failure:
   https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
 - However, that file descriptor duplication method needs our file-like object
   to behave properly like a C-level file. That precludes the simpler kinds of
-  "tee" behaviour in which a Python class pretends to be a file by 
+  "tee" behaviour in which a Python class pretends to be a file by
   implementing write(), close(), flush() methods.
 
 So:
 
 - redirect plain Python stderr/stdout
-- handle subprocess stuff 
+- handle subprocess stuff
 
 See
 
@@ -53,7 +53,7 @@ See
 - https://www.python.org/dev/peps/pep-0343/
 
 - https://stackoverflow.com/questions/4675728/redirect-stdout-to-a-file-in-python
-- https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/ 
+- https://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/
 
 - https://stackoverflow.com/questions/2996887/how-to-replicate-tee-behavior-in-python-when-using-subprocess
 
@@ -83,25 +83,25 @@ def tee(infile: IO, *files: IO) -> Thread:
     r"""
     Print the file-like object ``infile`` to the file-like object(s) ``files``
     in a separate thread.
-    
+
     Starts and returns that thread.
-    
+
     The type (text, binary) must MATCH across all files.
 
-    From 
+    From
     https://stackoverflow.com/questions/4984428/python-subprocess-get-childrens-output-to-file-and-terminal
 
     A note on text versus binary IO:
 
     TEXT files include:
-    
+
     - files opened in text mode (``"r"``, ``"rt"``, ``"w"``, ``"wt"``)
     - ``sys.stdin``, ``sys.stdout``
     - ``io.StringIO()``; see
       https://docs.python.org/3/glossary.html#term-text-file
 
     BINARY files include:
-    
+
     - files opened in binary mode (``"rb"``, ``"wb"``, ``"rb+"``...)
     - ``sys.stdin.buffer``, ``sys.stdout.buffer``
     - ``io.BytesIO()``
@@ -109,7 +109,7 @@ def tee(infile: IO, *files: IO) -> Thread:
       https://docs.python.org/3/glossary.html#term-binary-file
 
     .. code-block:: bash
- 
+
         $ python3  # don't get confused and use Python 2 by mistake!
         
     .. code-block:: python

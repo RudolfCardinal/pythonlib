@@ -80,7 +80,7 @@ def nhs_check_digit(ninedigits: Union[str, List[Union[str, int]]]) -> int:
 def is_valid_nhs_number(n: int) -> bool:
     """
     Validates an integer as an NHS number.
-    
+
     Args:
         n: NHS number
 
@@ -198,11 +198,11 @@ def nhs_number_from_text_or_none(s: str) -> Optional[int]:
     """
     Returns a validated NHS number (as an integer) from a string, or ``None``
     if it is not valid.
-    
+
     It's a 10-digit number, so note that database 32-bit INT values are
     insufficient; use BIGINT. Python will handle large integers happily.
-    
-    NHS number rules:        
+
+    NHS number rules:
     https://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp?shownav=0
     """  # noqa
     # None in, None out.

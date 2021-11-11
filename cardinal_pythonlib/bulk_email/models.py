@@ -128,9 +128,9 @@ def before_flush(session: Session, flush_context, instances) -> None:
 class Config(Base):
     """
     Stores records of configuration information.
-    
+
     Maintains history (so the config for previous send jobs is visible), per:
-    
+
     - https://docs.sqlalchemy.org/en/14/_modules/examples/versioned_rows/versioned_rows.html
     - https://docs.sqlalchemy.org/en/14/orm/examples.html#module-examples.versioned_rows
     """  # noqa

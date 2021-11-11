@@ -103,7 +103,7 @@ EXAMPLE_APACHE_REVERSE_PROXY_CONFIG = """
     # Mount a WSGI application, using CamCOPS as an example
     # =========================================================================
     # This WSGI application is served by a SEPARATE web server (e.g. CherryPy);
-    # Apache just needs to pass information to and fro, and handle the HTTPS 
+    # Apache just needs to pass information to and fro, and handle the HTTPS
     # aspects.
 
         # ---------------------------------------------------------------------
@@ -124,9 +124,9 @@ EXAMPLE_APACHE_REVERSE_PROXY_CONFIG = """
         #     value of "b''", not an empty bytestring.
         # - Ensure that you put the CORRECT PROTOCOL (e.g. https) in the rules
         #   below.
-    
-        # (a) Proxy    
-    
+
+        # (a) Proxy
+
         # ... via a port
         # Note the use of "http" (reflecting the backend), not https (like the
         # front end).
@@ -142,7 +142,7 @@ EXAMPLE_APACHE_REVERSE_PROXY_CONFIG = """
         #   ... SSL Proxy requested for wombat:443 but not enabled [Hint: SSLProxyEngine]
         #   ... failed to enable ssl support for 0.0.0.0:0 (httpd-UDS)
     SSLProxyEngine on
-    
+
     <Location /camcops>
             # (c) Allow access
         Require all granted
@@ -460,7 +460,7 @@ class ReverseProxiedMiddleware(object):
         REWRITING THE PROTOCOL
         -----------------------------------------------------------------------
         Consider how we get here. For example, we may have this sequence:
-        
+
         .. code-block:: none
 
             user's web browser

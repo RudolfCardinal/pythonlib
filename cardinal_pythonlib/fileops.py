@@ -335,7 +335,7 @@ def shutil_rmtree_onerror(func: Callable[[str], None],
     If the error is for another reason it re-raises the error.
 
     Usage: ``shutil.rmtree(path, onerror=shutil_rmtree_onerror)``
-    
+
     See
     https://stackoverflow.com/questions/2656322/shutil-rmtree-fails-on-windows-with-access-is-denied
     """  # noqa

@@ -922,7 +922,7 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
       per row, e.g.
 
       .. code-block:: none
-      
+
             +---+---+---+
             | 1 | 2 | 3 |
             +---+---+---+

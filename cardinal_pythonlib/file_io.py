@@ -117,7 +117,7 @@ def write_gzipped_text(basefilename: str, text: str) -> None:
     Writes text to a file compressed with ``gzip`` (a ``.gz`` file).
     The filename is used directly for the "inner" file and the extension
     ``.gz`` is appended to the "outer" (zipped) file's name.
-    
+
     This function exists primarily because Lintian wants non-timestamped gzip
     files, or it complains:
     - https://lintian.debian.org/tags/package-contains-timestamped-gzip.html

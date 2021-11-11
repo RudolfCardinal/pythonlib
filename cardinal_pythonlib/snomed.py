@@ -59,25 +59,25 @@ Test basic expressions:
     from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
     from cardinal_pythonlib.snomed import *
     main_only_quicksetup_rootlogger(level=logging.DEBUG)
-    
+
     # ---------------------------------------------------------------------
     # From the SNOMED-CT examples (https://www.snomed.org/scg), with some
     # values fixed from the term browser:
     # ---------------------------------------------------------------------
-    
+
     diabetes = SnomedConcept(73211009, "Diabetes mellitus (disorder)")
     diabetes_expr = SnomedExpression(diabetes)
     print(diabetes_expr.longform)
     print(diabetes_expr.shortform)
-    
+
     pain = SnomedConcept(22253000, "Pain (finding)")
     finding_site = SnomedConcept(36369800, "Finding site")
     foot = SnomedConcept(56459004, "Foot")
-    
+
     pain_in_foot = SnomedExpression(pain, {finding_site: foot})
     print(pain_in_foot.longform)
     print(pain_in_foot.shortform)
-    
+
     amoxicillin_medicine = SnomedConcept(27658006, "Product containing amoxicillin (medicinal product)")
     amoxicillin_substance = SnomedConcept(372687004, "Amoxicillin (substance)")
     has_dose_form = SnomedConcept(411116001, "Has manufactured dose form (attribute)")
@@ -87,7 +87,7 @@ Test basic expressions:
     mass = SnomedConcept(118538004, "Mass, a measure of quantity of matter (property) (qualifier value)")
     unit_of_measure = SnomedConcept(767524001, "Unit of measure (qualifier value)")
     milligrams = SnomedConcept(258684004, "milligram (qualifier value)")
-    
+
     amoxicillin_500mg_capsule = SnomedExpression(
         amoxicillin_medicine, [
             SnomedAttributeSet({has_dose_form: capsule}),
@@ -167,11 +167,11 @@ def double_quoted(s: str) -> str:
     .. code-block:: python
 
         from cardinal_pythonlib.snomed import double_quoted
-        
+
         def test(s):
             print(f"double_quoted({s!r}) -> {double_quoted(s)}")
-        
-        
+
+
         test("ab'cd")
         test("ab'c\"d")
         test('ab"cd')

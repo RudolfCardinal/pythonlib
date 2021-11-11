@@ -42,13 +42,13 @@ Performance notes:
 
   - https://stackoverflow.com/questions/28757389/loc-vs-iloc-vs-ix-vs-at-vs-iat
   - https://medium.com/dunder-data/selecting-subsets-of-data-in-pandas-39e811c81a0c
-  
-- Switching from tp.loc[conditions] to tp[conditions] didn't make much 
+
+- Switching from tp.loc[conditions] to tp[conditions] didn't make much
   difference, but the code is a bit cleaner
-  
+
 - Anyway, we should profile (see the PROFILE flag). That shows the main time
   is spent in my algorithmic code, not in DataFrame operations.
-- Not creating unnecessary results DataFrame objects shaved things down from 
+- Not creating unnecessary results DataFrame objects shaved things down from
   5.7 to 3.9 s in the profiler.
 - Still slower in parallel. Time is spent in thread locking.
 - Adjust A loop condition: 3.9 to 3.6s.

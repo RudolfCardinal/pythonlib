@@ -50,11 +50,11 @@ def natural_keys(text: str) -> List[Union[int, str]]:
     Sort key function.
     Returns text split into string/number parts, for natural sorting; as per
     https://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside
-    
+
     Example (as per the source above):
-        
+
     .. code-block:: python
-    
+
         >>> from cardinal_pythonlib.sort import natural_keys
         >>> alist=[
         ...     "something1",
@@ -67,7 +67,7 @@ def natural_keys(text: str) -> List[Union[int, str]]:
         >>> alist.sort(key=natural_keys)
         >>> alist
         ['something1', 'something2', 'something12', 'something17', 'something25', 'something29']
-        
+
     """  # noqa
     return [atoi(c) for c in re.split(r'(\d+)', text)]
 

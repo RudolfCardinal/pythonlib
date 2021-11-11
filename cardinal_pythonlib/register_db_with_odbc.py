@@ -30,14 +30,14 @@ See
 - https://support.microsoft.com/kb/126606/EN-US
 
   .. code-block:: none
-  
+
     CREATE_DBV2=<path name> <sort order>
         (to create version 2 Jet engine mdb file, Access 2, 16bit)
     CREATE_DBV3=<path name> <sort order>
         (to create version 3 Jet engine mdb file, Access 95, Access 97)
     CREATE_DBV4=<path name> <sort order>
         (to create version 4 Jet engine mdb file, Access 2000)
-        
+
 - https://code.activestate.com/recipes/414879-create-an-odbc-data-source/
 
 - view-source:https://www.experts-exchange.com/Programming/Languages/Pascal/Delphi/Q_22020226.html
@@ -53,7 +53,7 @@ See
 
   - ... indicates that programmatic creation of queries/views (via ADO)
     leads to "invisible" queries
-    
+
 - https://msaccessmemento.hubpages.com/hub/Stored_Procedure_in_MS_Access
 
   - ... additionally, stored procedures have no user interface

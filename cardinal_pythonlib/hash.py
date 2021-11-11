@@ -300,9 +300,9 @@ for i in range(MAX_PID_NUM):
 def to_bytes(data: Any) -> bytearray:
     """
     Convert anything to a ``bytearray``.
-    
+
     See
-    
+
     - https://stackoverflow.com/questions/7585435/best-way-to-convert-string-to-bytes-in-python-3
     - https://stackoverflow.com/questions/10459067/how-to-convert-my-bytearrayb-x9e-x18k-x9a-to-something-like-this-x9e-x11
     """  # noqa
@@ -385,9 +385,9 @@ def murmur3_x86_32(data: Union[bytes, bytearray], seed: int = 0) -> int:
     """
     Pure 32-bit Python implementation of MurmurHash3; see
     https://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash.
-     
+
     Args:
-        data: data to hash 
+        data: data to hash
         seed: seed
 
     Returns:
@@ -449,9 +449,9 @@ def murmur3_64(data: Union[bytes, bytearray], seed: int = 19820125) -> int:
     Pure 64-bit Python implementation of MurmurHash3; see
     https://stackoverflow.com/questions/13305290/is-there-a-pure-python-implementation-of-murmurhash
     (plus RNC bugfixes).
-     
+
     Args:
-        data: data to hash 
+        data: data to hash
         seed: seed
 
     Returns:

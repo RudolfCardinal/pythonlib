@@ -53,7 +53,7 @@ def gzip_string(text: str, encoding: str = "utf-8") -> bytes:
       https://stackoverflow.com/questions/8506897/how-do-i-gzip-compress-a-string-in-python
     - All we need is conversion of the string to bytes (via the appropriate
       encoding) and then :func:`gzip.compress`.
-    - The requestor should also set HTTP ``Accept-Encoding`` if it wants 
+    - The requestor should also set HTTP ``Accept-Encoding`` if it wants
       compressed data back. See RFC2616 again (as above).
 
     Args:

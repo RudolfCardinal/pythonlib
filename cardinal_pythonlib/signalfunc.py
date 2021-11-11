@@ -67,15 +67,15 @@ def trap_ctrl_c_ctrl_break() -> None:
     """
     Prevent ``CTRL-C``, ``CTRL-BREAK``, and similar signals from doing
     anything.
-    
+
     See
-    
+
     - https://docs.python.org/3/library/signal.html#signal.SIG_IGN
     - https://msdn.microsoft.com/en-us/library/xdkz3x12.aspx
     - https://msdn.microsoft.com/en-us/library/windows/desktop/ms682541(v=vs.85).aspx
 
     Under Windows, the only options are:
-    
+
       =========== ======================= =====================================
       Signal      Meaning                 Comment
       =========== ======================= =====================================
@@ -97,11 +97,11 @@ def trap_ctrl_c_ctrl_break() -> None:
       =========== =============================
 
     To ignore, can do:
-    
+
     .. code-block:: python
-    
+
       signal.signal(signal.SIGINT, signal.SIG_IGN)  # SIG_IGN = "ignore me"
-      
+
     or pass a specified handler, as in the code here.
     """  # noqa
 

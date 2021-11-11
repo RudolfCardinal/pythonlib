@@ -36,7 +36,7 @@ class CooperativeMeta(type):
     not of the same type.
 
     This should avoid the error:
-    
+
     .. code-block:: none
 
         TypeError: metaclass conflict: the metaclass of a derived class must
@@ -130,10 +130,10 @@ class MetaB(type):
 
 class A(metaclass=MetaA):
     pass
-    
+
 class B(metaclass=MetaB):
     pass
-    
+
 class Fixed(A, B):
     pass
 
@@ -151,10 +151,10 @@ class MetaB(type):
 
 class A(metaclass=MetaA):
     pass
-    
+
 class B(metaclass=MetaB):
     pass
-    
+
 class Fixed(A, B, metaclass=CooperativeMeta):
     pass
 

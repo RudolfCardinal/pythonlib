@@ -148,7 +148,7 @@ def kill_proc_tree(pid: int,
     """
     Kills a tree of processes, starting with the parent. Slightly modified from
     https://stackoverflow.com/questions/1230669/subprocess-deleting-child-processes-in-windows.
-    
+
     Args:
         pid: process ID of the parent
         including_parent: kill the parent too?
@@ -178,7 +178,7 @@ def nice_call(*popenargs, timeout: float = None,
     """
     Like :func:`subprocess.call`, but give the child process time to
     clean up and communicate if a :exc:`KeyboardInterrupt` is raised.
-    
+
     Modified from
     https://stackoverflow.com/questions/34458583/python-subprocess-call-doesnt-handle-signal-correctly
     """  # noqa

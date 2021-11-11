@@ -27,13 +27,13 @@
 1.  The basic cache objects.
 
 2.  FIX FOR DOGPILE.CACHE FOR DECORATED FUNCTIONS, 2017-07-28 (PLUS SOME OTHER
-    IMPROVEMENTS). SEE 
-   
+    IMPROVEMENTS). SEE
+
         https://bitbucket.org/zzzeek/dogpile.cache/issues/96/error-in-python-35-with-use-of-deprecated
 
-    This fixes a crash using type-hinted functions under Python 3.5 with 
+    This fixes a crash using type-hinted functions under Python 3.5 with
     ``dogpile.cache==0.6.4``:
-    
+
     .. code-block:: none
 
         Traceback (most recent call last):
@@ -56,17 +56,17 @@
 3.  Other improvements include:
 
     - the cache decorators operate as:
-        - PER-INSTANCE caches for class instances, provided the first parameter 
-          is named "self"; 
-        - PER-CLASS caches for classmethods, provided the first parameter is 
+        - PER-INSTANCE caches for class instances, provided the first parameter
+          is named "self";
+        - PER-CLASS caches for classmethods, provided the first parameter is
           named "cls";
         - PER-FUNCTION caches for staticmethods and plain functions
-        
+
     - keyword arguments are supported
-    
+
     - properties are supported (the @property decorator must be ABOVE the
       cache decorator)
-    
+
     - Note that this sort of cache relies on the generation of a STRING KEY
       from the function arguments. It uses the ``hex(id())`` function for
       ``self``/``cls`` arguments, and the ``to_str()`` function, passed as a

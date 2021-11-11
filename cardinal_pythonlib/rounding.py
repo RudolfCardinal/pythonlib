@@ -126,14 +126,14 @@ def range_roundable_up_to(y: Union[int, float, Decimal],
     Suppose some value ``x`` was rounded to ``y`` with ``dp`` decimal places,
     using the "round half up" rounding method (see implementation in
     :func:`round_half_up`).
-    
+
     Given ``y`` and ``dp``, this function finds the range ``[a, b)``, such that
     ``a <= b``, within which ``x`` must have lain. The tuple returned is ``a,
     b``.
 
     If ``with_description`` is true, the tuple returned is ``a, b,
     range_description``.
-    
+
     There are a large variety of rounding methods; see
     https://en.wikipedia.org/wiki/Rounding.
     Watch out -- Python's :func:`round` and Numpy's :func:`np.around` don't do

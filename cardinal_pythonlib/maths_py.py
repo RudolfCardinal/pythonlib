@@ -143,7 +143,7 @@ def normal_round_int(x: float) -> int:
 def round_sf(x: float, n: int = 2) -> float:
     """
     Round to a certain number of significant figures.
-    
+
     As per https://code.activestate.com/lists/python-tutor/70739/, linked to
     from
     https://stackoverflow.com/questions/3410976/how-to-round-a-number-to-significant-figures-in-python
@@ -154,19 +154,19 @@ def round_sf(x: float, n: int = 2) -> float:
 
     Returns:
         float: x, rounded to n significant figures
-        
+
     This does proper rounding:
-    
+
     .. code-block:: none
 
         round_sf(0.55, 1)  # 0.6
         round_sf(0.549, 1)  # 0.5
         round_sf(-0.55, 1)  # -0.6
         round_sf(-0.549, 1)  # -0.5
-        
+
         round_sf(0.000123456, 3)  # 0.000123
         round_sf(1234567890000, 3)  # 1230000000000
-        round_sf(9876543210000, 3)  # 9880000000000  
+        round_sf(9876543210000, 3)  # 9880000000000
 
     """  # noqa
     y = abs(x)

@@ -42,7 +42,7 @@ class ReplaceableObject(object):
         """
         Object that can be passed to the ``create_view()`` and similar
         functions that we will register within the ``alembic.op`` namespace.
-        
+
         See https://alembic.zzzcomputing.com/en/latest/cookbook.html#replaceable-objects
 
         Args:

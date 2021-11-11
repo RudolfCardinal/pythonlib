@@ -629,21 +629,21 @@ class BraceStyleAdapter(logging.LoggerAdapter):
                 If we're passing special arguments to the logger, should we
                 remove them from the argments passed to the string formatter?
                 There is no obvious cost to saying no.
-                
+
         Specimen use:
-        
+
         .. code-block:: python
-        
+
             import logging
-            from cardinal_pythonlib.logs import BraceStyleAdapter, main_only_quicksetup_rootlogger 
-            
+            from cardinal_pythonlib.logs import BraceStyleAdapter, main_only_quicksetup_rootlogger
+
             log = BraceStyleAdapter(logging.getLogger(__name__))
-            
+
             main_only_quicksetup_rootlogger(level=logging.DEBUG)
-            
-            log.info("Hello {}, {title} {surname}!", "world", title="Mr", surname="Smith") 
+
+            log.info("Hello {}, {title} {surname}!", "world", title="Mr", surname="Smith")
             # 2018-09-17 16:13:50.404 __main__:INFO: Hello world, Mr Smith!
-        
+
         """  # noqa
         # noinspection PyTypeChecker
         super().__init__(logger=logger, extra=None)

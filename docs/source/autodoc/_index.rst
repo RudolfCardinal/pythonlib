@@ -122,6 +122,7 @@ Automatic documentation of source code
     rnc_text.py.rst
     rnc_web.py.rst
     rounding.py.rst
+    rpm.py.rst
     run_all_tests.py.rst
     signalfunc.py.rst
     sizeformatter.py.rst
@@ -161,6 +162,7 @@ Automatic documentation of source code
     stringfunc.py.rst
     subproc.py.rst
     sysops.py.rst
+    tcpipconst.py.rst
     tee.py.rst
     text.py.rst
     timing.py.rst
@@ -177,6 +179,7 @@ Automatic documentation of source code
     typing_helpers.py.rst
     ui.py.rst
     ui_commandline.py.rst
+    uriconst.py.rst
     version.py.rst
     version_string.py.rst
     winservice.py.rst

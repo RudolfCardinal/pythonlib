@@ -670,3 +670,11 @@ Quick links:
 - Improved :mod:`cardinal_pythonlib.httpconst`
 - :mod:`cardinal_pythonlib.tcpipconst`
 - :mod:`cardinal_pythonlib.uriconst`
+
+**1.1.13 (2021-11-09, IN PROGRESS)**
+
+- ``ignore_none`` parameter to
+  :func:`cardinal_pythonlib.spreadsheets.check_attr_all_same`,
+  :func:`cardinal_pythonlib.spreadsheets.require_attr_all_same`,
+  :func:`cardinal_pythonlib.spreadsheets.prefer_attr_all_same`. Default is
+  ``False`` so no change required to existing code.

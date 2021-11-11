@@ -115,7 +115,7 @@ def quick_mapper(table: Table) -> Type[DeclarativeMeta]:
     Makes a new SQLAlchemy mapper for an existing table.
     See
     https://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/
-    
+
     Args:
         table: SQLAlchemy :class:`Table` object
 
@@ -194,19 +194,19 @@ def get_literal_query(statement: Union[Query, Executable],
     """
     Takes an SQLAlchemy statement and produces a literal SQL version, with
     values filled in.
-    
+
     As per
     https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
-    
+
     Notes:
     - for debugging purposes *only*
     - insecure; you should always separate queries from their values
-    - please also note that this function is quite slow 
-    
+    - please also note that this function is quite slow
+
     Args:
         statement: the SQL statement (a SQLAlchemy object) to use
         bind: if the statement is unbound, you will need to specify an object
-            here that supports SQL execution 
+            here that supports SQL execution
 
     Returns:
         a string literal version of the query.

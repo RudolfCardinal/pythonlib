@@ -57,27 +57,27 @@ For an example, see ``crate_anon/tools/winservice.py``
   - Right-click it and inspect its properties. You'll see the name of the
     actual program being run, e.g.
     ``D:\venvs\crate\Lib\site-packages\win32\pythonservice.exe``
-  - Try running this from the command line (outside any virtual 
+  - Try running this from the command line (outside any virtual
     environment).
-     
+
   - In my case this failed with:
-  
+
     .. code-block:: none
-    
+
         pythonservice.exe - Unable to Locate Component
         This application has failed to start because pywintypes34.dll was not
         found. Re-installing the application may fix this problem.
-        
+
   - That DLL was in: ``D:\venvs\crate\Lib\site-packages\pypiwin32_system32``
     ... so add that to the system PATH... and reboot... and then it's happy.
-    
+
   - However, that's not ideal for a virtual environment!
   - Looking at win32serviceutil.py, it seems we could do better by
     specifying _exe_name_ (to replace the default PythonService.exe) and
     _exe_args_. The sequence
-    
+
     .. code-block:: none
-     
+
         myscript.py install
         -> win32serviceutil.HandleCommandLine()
             ... fishes things out of cls._exe_name_, etc.
@@ -86,30 +86,30 @@ For an example, see ``crate_anon/tools/winservice.py``
             ... by default:
             "d:\venvs\crate\lib\site-packages\win32\PythonService.exe"
         -> win32service.CreateService()
-        
+
   - So how, in the normal situation, does PythonService.exe find our script?
   - At this point, see also https://stackoverflow.com/questions/34696815
-  - Source code is: 
+  - Source code is:
     https://github.com/tjguk/pywin32/blob/master/win32/src/PythonService.cpp
-    
+
   - Starting a service directly with PrepareToHostSingle:
-  
+
     - https://mail.python.org/pipermail/python-win32/2008-April/007299.html
     - https://mail.python.org/pipermail/python-win32/2010-May/010487.html
-      
+
   - SUCCESS! Method is:
-    
+
     - In service class:
-    
+
       .. code-block:: python
-      
+
         _exe_name_ = sys.executable  # python.exe in the virtualenv
         _exe_args_ = '"{}"'.format(os.path.realpath(__file__))  # this script
 
     -- In main:
 
       .. code-block:: python
-      
+
         if len(sys.argv) == 1:
             try:
                 print("Trying to start service directly...")
@@ -125,8 +125,8 @@ For an example, see ``crate_anon/tools/winservice.py``
                     win32serviceutil.usage()
         else:
             win32serviceutil.HandleCommandLine(CratewebService)  # CLASS
-            
-  - Now, if you run it directly with no arguments, from a command prompt, 
+
+  - Now, if you run it directly with no arguments, from a command prompt,
     it will fail and print the usage message, but if you run it from the
     service manager (with no arguments), it'll start the service. Everything
     else seems to work. Continues to work when the PATH doesn't include the
@@ -237,7 +237,7 @@ Current method tries a variety of things under Windows:
 .. code-block:: none
 
     CTRL-C -> CTRL-BREAK -> TASKKILL /T -> TASKKILL /T /F -> kill()
-    
+
 ... which are progressively less graceful in terms of child processes getting
 to clean up. Still, it works (usually at one of the two TASKKILL stages).
 
@@ -643,7 +643,7 @@ class ProcessManager(object):
             echo %errorlevel%
             REM ... 0 for success (Windows 10), e.g.
             REM 'SUCCESS: The process with PID 11892 has been terminated.'
-            
+
         """  # noqa
         args = [
             "taskkill",  # built in to Windows XP and higher
@@ -683,7 +683,7 @@ class ProcessManager(object):
     def _kill(self) -> None:
         """
         Hard kill.
-        
+
         - PROBLEM: originally, via ``self.process.kill()``, could leave orphans
           under Windows.
         - SOLUTION: see
