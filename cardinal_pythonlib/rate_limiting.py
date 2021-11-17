@@ -27,7 +27,7 @@
 """
 
 import logging
-import time
+from time import perf_counter, sleep
 from typing import Any, Callable, Optional, Union
 
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
@@ -91,12 +91,12 @@ def rate_limited(max_per_second: Optional[Union[int, float]]) \
 
         def rate_limited_function(*args, **kwargs) -> Any:
             nonlocal last_time_called
-            elapsed = time.clock() - last_time_called
+            elapsed = perf_counter() - last_time_called
             left_to_wait = min_interval - elapsed
             if left_to_wait > 0:
-                time.sleep(left_to_wait)
+                sleep(left_to_wait)
             retval = func(*args, **kwargs)
-            last_time_called = time.clock()
+            last_time_called = perf_counter()
             return retval
 
         return rate_limited_function

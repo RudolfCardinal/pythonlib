@@ -603,7 +603,7 @@ class ProcessManager(object):
             trap_ctrl_c_ctrl_break()
 
             while True:
-                print("Process ID is {}; time is {} s".format(os.getpid(), time.clock()))
+                print("Process ID is {}; time is {} s".format(os.getpid(), time.perf_counter()))
                 time.sleep(1)
 
         Now run that with ``python nokill.py``. It should resist CTRL-C and

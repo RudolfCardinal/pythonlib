@@ -132,14 +132,14 @@ def get_current_and_head_revision(
         alembic_base_dir=alembic_base_dir,
         version_table=version_table
     )
-    log.info("Intended database version: {}", head_revision)
+    log.debug("Intended database version: {}", head_revision)
 
     # Where we want to be
     current_revision = get_current_revision(
         database_url=database_url,
         version_table=version_table
     )
-    log.info("Current database version: {}", current_revision)
+    log.debug("Current database version: {}", current_revision)
 
     # Are we where we want to be?
     return current_revision, head_revision

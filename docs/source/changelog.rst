@@ -678,3 +678,6 @@ Quick links:
   :func:`cardinal_pythonlib.spreadsheets.require_attr_all_same`,
   :func:`cardinal_pythonlib.spreadsheets.prefer_attr_all_same`. Default is
   ``False`` so no change required to existing code.
+
+- use of ``time.clock()`` replaced by ``time.perf_counter()``. See
+  https://www.webucator.com/article/python-clocks-explained/
