@@ -34,6 +34,13 @@ from cardinal_pythonlib.httpconst import MimeType
 
 
 # =============================================================================
+# Character sets
+# =============================================================================
+
+UTF8 = "UTF-8"
+
+
+# =============================================================================
 # Responses
 # =============================================================================
 
@@ -59,6 +66,36 @@ class BinaryResponse(Response):
             content_encoding="binary",
             content_length=len(body),
             body=body,
+            **kwargs
+        )
+
+
+class JsonAttachmentResponse(Response):
+    """
+    Response class for returning a JSON file to the user as an attachment.
+    """
+    def __init__(self, body: str, filename: str, **kwargs) -> None:
+        super().__init__(
+            content_type=MimeType.JSON,
+            content_disposition=f"attachment; filename={filename}",
+            body=body,
+            charset=UTF8,
+            **kwargs
+        )
+
+
+class JsonResponse(Response):
+    """
+    Response class for showing JSON in the browser.
+    """
+    def __init__(self, body: str, **kwargs) -> None:
+        # Watch out here.
+        # TypeError: You cannot set the body to a text value without a charset
+        # https://github.com/Pylons/webob/issues/298
+        super().__init__(
+            content_type=MimeType.JSON,
+            body=body,
+            charset=UTF8,
             **kwargs
         )
 

@@ -193,6 +193,10 @@ class MimeType(object):
       - https://stackoverflow.com/questions/264256/what-is-the-best-mime-type-and-extension-to-use-when-exporting-tab-delimited
       - https://www.iana.org/assignments/media-types/text/tab-separated-values
 
+    - JSON:
+
+      - https://stackoverflow.com/questions/477816/what-is-the-correct-json-content-type
+
     - ZIP
 
       - https://stackoverflow.com/questions/4411757/zip-mime-types-when-to-pick-which-one
@@ -215,6 +219,7 @@ class MimeType(object):
     DOTX = "application/vnd.openxmlformats-officedocument.wordprocessingml.template"  # noqa
     FORCE_DOWNLOAD = "application/force-download"
     HTML = "text/html"
+    JSON = "application/json"
     ODP = "application/vnd.oasis.opendocument.presentation"
     ODS = "application/vnd.oasis.opendocument.spreadsheet"
     ODT = "application/vnd.oasis.opendocument.text"

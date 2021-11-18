@@ -671,7 +671,7 @@ Quick links:
 - :mod:`cardinal_pythonlib.tcpipconst`
 - :mod:`cardinal_pythonlib.uriconst`
 
-**1.1.13 (2021-11-09, IN PROGRESS)**
+**1.1.13 (2021-11-09 to 2021-11-17)**
 
 - ``ignore_none`` parameter to
   :func:`cardinal_pythonlib.spreadsheets.check_attr_all_same`,
@@ -681,3 +681,8 @@ Quick links:
 
 - use of ``time.clock()`` replaced by ``time.perf_counter()``. See
   https://www.webucator.com/article/python-clocks-explained/
+
+**1.1.14 (2021-11-17 to 2021-11-18)**
+
+- Extra MIME type constants.
+- HTTP response objects for JSON.
