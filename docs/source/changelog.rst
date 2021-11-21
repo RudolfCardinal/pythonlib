@@ -686,3 +686,7 @@ Quick links:
 
 - Extra MIME type constants.
 - HTTP response objects for JSON.
+
+**1.1.15 (2021-11-21)**
+
+- :func:`cardinal_pythonlib.sqlalchemy.dialect.get_dialect_from_name`.

@@ -101,8 +101,8 @@ def dump_ddl(metadata: MetaData,
 
     writeline_nl(fileobj,
                  sql_comment(f"Schema (for dialect {dialect_name}):"))
-    engine = create_engine(f'{dialect_name}://',
-                           strategy='mock', executor=dump)
+    engine = create_engine(f"{dialect_name}://",
+                           strategy="mock", executor=dump)
     metadata.create_all(engine, checkfirst=checkfirst)
     # ... checkfirst doesn't seem to be working for the mock strategy...
     # http://docs.sqlalchemy.org/en/latest/core/metadata.html

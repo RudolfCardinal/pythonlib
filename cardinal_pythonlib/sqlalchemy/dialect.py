@@ -29,7 +29,7 @@
 from typing import Union
 
 # noinspection PyProtectedMember
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import create_engine, Engine
 from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.sql.compiler import IdentifierPreparer, SQLCompiler
 
@@ -133,3 +133,17 @@ def quote_identifier(identifier: str,
     """
     # See also http://sqlalchemy-utils.readthedocs.io/en/latest/_modules/sqlalchemy_utils/functions/orm.html  # noqa
     return get_preparer(mixed).quote(identifier)
+
+
+def get_dialect_from_name(dialect_name: str) -> Dialect:
+    """
+    Creates a Dialect. Not very elegant.
+    """
+
+    # noinspection PyUnusedLocal
+    def null_executor(querysql, *multiparams, **params):
+        pass
+
+    engine = create_engine(f"{dialect_name}://", strategy="mock",
+                           executor=null_executor)
+    return engine.dialect
