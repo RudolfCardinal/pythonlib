@@ -376,33 +376,33 @@ def send_email(from_addr: str,
             port to use, or ``None`` for protocol default
         use_tls:
             use TLS, rather than plain SMTP?
-        
+
         date:
             e-mail date in RFC 2822 format, or ``None`` for "now"
-        
+
         from_addr:
             name of the sender for the "From:" field
         sender:
             name of the sender for the "Sender:" field
         reply_to:
             name of the sender for the "Reply-To:" field
-        
+
         to:
             e-mail address(es) of the recipients for "To:" field
         cc:
             e-mail address(es) of the recipients for "Cc:" field
         bcc:
             e-mail address(es) of the recipients for "Bcc:" field
-        
+
         subject:
             e-mail subject
         body:
             e-mail body
         content_type:
             MIME type for body content, default ``text/plain``
-        charset:    
+        charset:
             character set for body; default ``utf8``
-        
+
         attachment_filenames:
             filenames of attachments to add
         attachment_binaries:
@@ -427,19 +427,19 @@ def send_email(from_addr: str,
 
     - TLS supersedes SSL:
       https://en.wikipedia.org/wiki/Transport_Layer_Security
-      
+
     - https://en.wikipedia.org/wiki/Email_encryption
-    
+
     - SMTP connections on ports 25 and 587 are commonly secured via TLS using
       the ``STARTTLS`` command:
       https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol
-      
+
     - https://tools.ietf.org/html/rfc8314
-    
+
     - "STARTTLS on port 587" is one common method. Django refers to this as
       "explicit TLS" (its ``E_MAIL_USE_TLS`` setting; see
       https://docs.djangoproject.com/en/2.1/ref/settings/#std:setting-EMAIL_USE_TLS).
-      
+
     - Port 465 is also used for "implicit TLS" (3.3 in
       https://tools.ietf.org/html/rfc8314). Django refers to this as "implicit
       TLS" too, or SSL; see its ``EMAIL_USE_SSL`` setting at
@@ -515,7 +515,7 @@ def is_email_valid(email_: str) -> bool:
     """
     Performs some basic checks that a string appears to be an e-mail address.
 
-    See 
+    See
     https://stackoverflow.com/questions/8022530/how-to-check-for-valid-email-address.
     """  # noqa
     # Very basic checks!

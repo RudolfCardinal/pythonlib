@@ -116,14 +116,14 @@ def is_c_extension(module: ModuleType) -> bool:
     Examples:
 
     .. code-block:: python
-    
+
         from cardinal_pythonlib.modules import is_c_extension
-        
+
         import os
         import _elementtree as et
         import numpy
         import numpy.core.multiarray as numpy_multiarray
-        
+
         is_c_extension(os)  # False
         is_c_extension(numpy)  # False
         is_c_extension(et)  # False on my system (Python 3.5.6). True in the original example.
@@ -181,34 +181,34 @@ def contains_c_extension(module: ModuleType,
         import logging
         from cardinal_pythonlib.modules import contains_c_extension
         from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
-        
+
         import _elementtree as et
         import os
-        
+
         import arrow
         import alembic
         import django
         import numpy
         import numpy.core.multiarray as numpy_multiarray
-        
+
         log = logging.getLogger(__name__)
         # logging.basicConfig(level=logging.DEBUG)  # be verbose
         main_only_quicksetup_rootlogger(level=logging.DEBUG)
-        
+
         contains_c_extension(os)  # False
         contains_c_extension(et)  # False
-        
+
         contains_c_extension(numpy)  # True -- different from is_c_extension()
         contains_c_extension(numpy_multiarray)  # True
-        
+
         contains_c_extension(arrow)  # False
-        
+
         contains_c_extension(alembic)  # False
         contains_c_extension(alembic, include_external_imports=True)  # True
         # ... this example shows that Alembic imports hashlib, which can import
         #     _hashlib, which is a C extension; however, that doesn't stop us (for
         #     example) installing Alembic on a machine with no C compiler
-        
+
         contains_c_extension(django)
 
     """  # noqa

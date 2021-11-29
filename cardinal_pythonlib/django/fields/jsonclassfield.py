@@ -30,7 +30,7 @@ database, so long as they are serializable to/from JSON.**
 - However, this fails in a nasty way if you add new attributes to a class
   that has been pickled, and anyway pickle is insecure (as it trusts its
   input).
-  
+
 - JSON is better.
   https://www.benfrederickson.com/dont-pickle-your-data/
 
@@ -53,11 +53,11 @@ database, so long as they are serializable to/from JSON.**
 e.g.:
 
 .. code-block:: python
-    
+
     import inspect
     import json
     from typing import Any, Dict, Union
-    
+
     class Thing(object):
         def __init__(self, a: int = 1, b: str = ''):
             self.a = a
@@ -65,13 +65,13 @@ e.g.:
         def __repr__(self) -> str:
             return "<Thing(a={}, b={}) at {}>".format(
                 repr(self.a), repr(self.b), hex(id(self)))
-    
-    
+
+
     MY_JSON_TYPES = {
         'Thing': Thing,
     }
     TYPE_LABEL = '__type__'
-    
+
     class MyEncoder(json.JSONEncoder):
         def default(self, obj: Any) -> Any:
             typename = type(obj).__name__
@@ -80,8 +80,8 @@ e.g.:
                 d[TYPE_LABEL] = typename
                 return d
             return super().default(obj)
-    
-    
+
+
     class MyDecoder(json.JSONDecoder):  # INADEQUATE for nested things
         def decode(self, s: str) -> Any:
             o = super().decode(s)
@@ -92,8 +92,8 @@ e.g.:
                     o.pop(TYPE_LABEL)
                     return classtype(**o)
             return o
-    
-    
+
+
     def my_decoder_hook(d: Dict) -> Any:
         if TYPE_LABEL in d:
             typename = d.get(TYPE_LABEL, '')
@@ -102,23 +102,23 @@ e.g.:
                 d.pop(TYPE_LABEL)
                 return classtype(**d)
         return d
-    
-    
+
+
     x = Thing(a=5, b="hello")
     y = [1, x, 2]
-    
+
     # Encoding:
     j = MyEncoder().encode(x)  # OK
     j2 = json.dumps(x, cls=MyEncoder)  # OK; same result
-    
+
     k = MyEncoder().encode(y)  # OK
     k2 = json.dumps(y, cls=MyEncoder)  # OK; same result
-    
+
     # Decoding
     x2 = MyDecoder().decode(j)  # OK, but simple structure
     y2 = MyDecoder().decode(k)  # FAILS
     y3 = json.JSONDecoder(object_hook=my_decoder_hook).decode(k)  # SUCCEEDS
-    
+
     print(repr(x))
     print(repr(x2))
 

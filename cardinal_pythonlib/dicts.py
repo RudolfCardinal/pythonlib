@@ -112,11 +112,11 @@ def rename_keys_in_dict(d: Dict[str, Any], renames: Dict[str, str]) -> None:
     """
     Renames, IN PLACE, the keys in ``d`` according to the mapping in
     ``renames``.
-    
+
     Args:
-        d: a dictionary to modify 
+        d: a dictionary to modify
         renames: a dictionary of the format ``{old_key_name: new_key_name}``
-        
+
     See
     https://stackoverflow.com/questions/4406501/change-the-name-of-a-key-in-dictionary.
     """  # noqa
@@ -243,10 +243,10 @@ class LazyDict(dict):
     """
     A dictionary that only evaluates the argument to :func:`setdefault` or
     :func:`get` if it needs to.
-    
+
     See
     https://stackoverflow.com/questions/17532929/how-to-implement-a-lazy-setdefault.
-    
+
     The ``*args``/``**kwargs`` parts are useful, but we don't want to have to
     name 'thunk' explicitly.
     """  # noqa
@@ -320,22 +320,22 @@ class CaseInsensitiveDict(dict):
     A case-insensitive dictionary, as per
     https://stackoverflow.com/questions/2082152/case-insensitive-dictionary/32888599#32888599,
     with updates for Python 3 and type hinting.
-    
+
     See also
-    
+
     - https://docs.python.org/3/tutorial/datastructures.html#dictionaries
     - https://docs.python.org/3/library/stdtypes.html#mapping-types-dict
-    
+
     Test code:
-    
+
     .. code-block:: python
-    
+
         from cardinal_pythonlib.dicts import CaseInsensitiveDict
-        
+
         d1 = CaseInsensitiveDict()  # d1 is now: {}
         d2 = CaseInsensitiveDict({'A': 1, 'b': 2})  # d2 is now: {'a': 1, 'b': 2}
         d3 = CaseInsensitiveDict(C=3, d=4)  # d3 is now: {'c': 3, 'd': 4}
-        
+
         d1.update({'E': 5, 'f': 6})  # d1 is now: {'e': 5, 'f': 6}
         d1.update(G=7, h=8)  # d1 is now: {'e': 5, 'f': 6, 'g': 7, 'h': 8}
         'H' in d1  # True

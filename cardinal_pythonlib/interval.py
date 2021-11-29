@@ -1218,20 +1218,20 @@ class IntervalList(object):
         Args:
             start: the start time of interest (e.g. before ``self`` begins)
             when: the time of interest
-            
+
         Returns:
             tuple: ``before, during, after``
 
         Illustration
-        
+
         .. code-block:: none
-        
-        
+
+
             start:      S
             self:           X---X       X---X       X---X       X---X
-            
+
             when:                                           W
-            
+
             before:     ----
             during:         -----       -----       -----
             after:               -------     -------     ----

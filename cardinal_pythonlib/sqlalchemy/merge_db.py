@@ -1006,7 +1006,7 @@ class MergeTestMixin(object):
 class MergeTestPlain(MergeTestMixin, unittest.TestCase):
     """
     Unit tests for a simple merge operation.
-    
+
     *Notes re unit testing:*
 
     - tests are found by virtue of the fact that their names start with
@@ -1015,7 +1015,7 @@ class MergeTestPlain(MergeTestMixin, unittest.TestCase):
 
     - A separate instance of the class is created for each test, and in each
       case is called with:
-      
+
       .. code-block:: python
 
         setUp()

@@ -119,7 +119,7 @@ class SqlaColumnInspectionInfo(object):
         Args:
             sqla_info_dict:
                 see
-        
+
                 - https://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns
                 - https://bitbucket.org/zzzeek/sqlalchemy/issues/4051/sqlalchemyenginereflectioninspectorget_col
         """  # noqa
@@ -561,7 +561,7 @@ def column_creation_ddl(sqla_column: Column, dialect: Dialect) -> str:
     dialect requires this for DDL generation).
 
     Manual testing:
-    
+
     .. code-block:: python
 
         from sqlalchemy.schema import Column, CreateColumn, MetaData, Sequence, Table
@@ -582,7 +582,7 @@ def column_creation_ddl(sqla_column: Column, dialect: Dialect) -> str:
 
     If you don't append the column to a Table object, the DDL generation step
     gives:
-    
+
     .. code-block:: none
 
         sqlalchemy.exc.CompileError: mssql requires Table-bound columns in order to generate DDL
@@ -1070,12 +1070,12 @@ def does_sqlatype_require_index_len(
 def hack_in_mssql_xml_type():
     r"""
     Modifies SQLAlchemy's type map for Microsoft SQL Server to support XML.
-    
+
     SQLAlchemy does not support the XML type in SQL Server (mssql).
     Upon reflection, we get:
-    
+
     .. code-block:: none
-    
+
        sqlalchemy\dialects\mssql\base.py:1921: SAWarning: Did not recognize type 'xml' of column '...'
 
     We will convert anything of type ``XML`` into type ``TEXT``.
@@ -1097,10 +1097,10 @@ def column_types_equal(a_coltype: TypeEngine, b_coltype: TypeEngine) -> bool:
     """
     Checks that two SQLAlchemy column types are equal (by comparing ``str()``
     versions of them).
-    
+
     See https://stackoverflow.com/questions/34787794/sqlalchemy-column-type-comparison.
-    
-    IMPERFECT. 
+
+    IMPERFECT.
     """  # noqa
     return str(a_coltype) == str(b_coltype)
 

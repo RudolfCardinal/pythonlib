@@ -690,3 +690,9 @@ Quick links:
 **1.1.15 (2021-11-21)**
 
 - :func:`cardinal_pythonlib.sqlalchemy.dialect.get_dialect_from_name`.
+
+**1.1.16 (in progress)**
+
+- Improved error message for
+  :func:`cardinal_pythonlib.enumlike.keys_descriptions_from_enum` when used
+  with key case conversions but a case-insensitive Enum.

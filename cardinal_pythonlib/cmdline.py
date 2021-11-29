@@ -40,7 +40,7 @@ def cmdline_split(s: str, platform: Union[int, str] = 'this') -> List[str]:
 
     Multi-platform variant of ``shlex.split()`` for command-line splitting.
     For use with ``subprocess``, for ``argv`` injection etc. Using fast REGEX.
-    
+
     Args:
         s:
             string to split

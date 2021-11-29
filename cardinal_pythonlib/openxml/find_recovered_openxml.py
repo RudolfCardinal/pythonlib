@@ -345,19 +345,19 @@ def main() -> None:
         formatter_class=RawDescriptionHelpFormatter,
         description=f"""
 Tool to recognize and rescue Microsoft Office OpenXML files, even if they have
-garbage appended to them.        
+garbage appended to them.
 
 - Rationale: when you have accidentally deleted files from an NTFS disk, and
   they really matter, you should (a) stop what you're doing; (b) clone the disk
-  to an image file using "dd" under Linux; (c) perform all subsequent 
-  operations on the cloned image (in read-only mode). Those steps might 
+  to an image file using "dd" under Linux; (c) perform all subsequent
+  operations on the cloned image (in read-only mode). Those steps might
   include:
     - ntfsundelete, to find files that the filesystem is still aware of;
     - scalpel, to find files based on their contents.
 
 - Scalpel is great at finding stuff efficiently, but it works best when files
   can be defined by both a start (header) signature and an end (footer)
-  signature. However, the Microsoft Office OpenXML file format has a 
+  signature. However, the Microsoft Office OpenXML file format has a
   recognizable header, but no standard footer. In these circumstances, Scalpel
   reads up to a certain limit that you specify in its configuration file. (To
   retrieve large Powerpoint files, this limit needs to be substantial, e.g.
@@ -368,26 +368,26 @@ garbage appended to them.
     - false positives, having nothing to do with Office;
     - clean Office files (the least likely category!);
     - Office files with garbage stuck on the end.
-    
+
 - The OpenXML file format is just a zip file. If you stick too much garbage on
-  the end of a zip file, zip readers will see it as corrupt.  
-        
-- THIS TOOL detects (and optionally moves) potentially corrupted zipfiles based 
+  the end of a zip file, zip readers will see it as corrupt.
+
+- THIS TOOL detects (and optionally moves) potentially corrupted zipfiles based
   on file contents, by unzipping the file and checking for "inner" files with
   names like:
 
         File type       Contents filename signature (regular expression)
         ----------------------------------------------------------------
-        DOCX            {DOCX_CONTENTS_REGEX_STR}  
+        DOCX            {DOCX_CONTENTS_REGEX_STR}
         PPTX            {PPTX_CONTENTS_REGEX_STR}
         XLSX            {XLSX_CONTENTS_REGEX_STR}
 
 - WARNING: it's possible for an OpenXML file to contain more than one of these.
   If so, they may be mis-classified.
 
-- If a file is not immediately readable as a zip, it uses Linux's "zip -FF" to 
+- If a file is not immediately readable as a zip, it uses Linux's "zip -FF" to
   repair zip files with corrupted ends, and tries again.
-  
+
 - Having found valid-looking files, you can elect to move them elsewhere.
 
 - As an additional and VERY DANGEROUS operation, you can elect to delete files
@@ -395,7 +395,7 @@ garbage appended to them.
   well in excess of 1.7Tb of candidate files; many will be false positives and
   even the true positives will all be expanded to your file size limit, e.g.
   50 Mb. You may have a problem with available disk space, so running this tool
-  regularly allows you to clear up the junk. Use the --run_every option to help 
+  regularly allows you to clear up the junk. Use the --run_every option to help
   with this.)
 
         """

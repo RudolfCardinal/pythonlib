@@ -111,23 +111,23 @@ def tee(infile: IO, *files: IO) -> Thread:
     .. code-block:: bash
 
         $ python3  # don't get confused and use Python 2 by mistake!
-        
+
     .. code-block:: python
- 
+
         t = open("/tmp/text.txt", "r+t")  # text mode is default
         b = open("/tmp/bin.bin", "r+b")
-        
+
         t.write("hello\n")  # OK
         # b.write("hello\n")  # raises TypeError
-        
+
         # t.write(b"world\n")  # raises TypeError
         b.write(b"world\n")  # OK
-        
+
         t.flush()
         b.flush()
         t.seek(0)
         b.seek(0)
-        
+
         x = t.readline()  # "hello\n"
         y = b.readline()  # b"world\n"
 
@@ -151,9 +151,9 @@ def teed_call(cmd_args,
               encoding: str = sys.getdefaultencoding(),
               **kwargs):
     """
-    Runs a command and captures its output via :func:`tee` to one or more 
-    destinations. The output is always captured (otherwise we would lose 
-    control of the output and ability to ``tee`` it); if no destination is 
+    Runs a command and captures its output via :func:`tee` to one or more
+    destinations. The output is always captured (otherwise we would lose
+    control of the output and ability to ``tee`` it); if no destination is
     specified, we add a null handler.
 
     We insist on ``TextIO`` output files to match ``sys.stdout`` (etc.).
@@ -164,10 +164,10 @@ def teed_call(cmd_args,
     Args:
         cmd_args: arguments for the command to run
         stdout_targets: file-like objects to write ``stdout`` to
-        stderr_targets: file-like objects to write ``stderr`` to 
+        stderr_targets: file-like objects to write ``stderr`` to
         encoding: encoding to apply to ``stdout`` and ``stderr``
         kwargs: additional arguments for :class:`subprocess.Popen`
-        
+
     """  # noqa
     # Make a copy so we can append without damaging the original:
     stdout_targets = stdout_targets.copy() if stdout_targets else []  # type: List[TextIO]  # noqa

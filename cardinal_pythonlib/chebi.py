@@ -76,14 +76,14 @@ using files like these:
     # entity_synonyms.txt
     # Renaming of entities prior to lookup.
     # Find these via "cardinalpythonlib_chebi search ..." or Google with "CHEBI".
-    
+
     aspirin, acetylsalicylic acid
 
 .. code-block:: none
 
     # categories.txt
     # Categories to detect, in order of priority (high to low).
-    
+
     serotonin reuptake inhibitor
     antidepressant
 
@@ -94,15 +94,15 @@ using files like these:
 .. code-block:: none
 
     # category_synonyms.txt
-    # Categories that are equivalent but ChEBI doesn't know. 
-    
+    # Categories that are equivalent but ChEBI doesn't know.
+
     glucagon-like peptide-1 receptor agonist, hypoglycemic agent
 
 .. code-block:: none
 
     # manual_categories.txt
-    # Categorizations that ChEBI doesn't know. 
-    
+    # Categorizations that ChEBI doesn't know.
+
     agomelatine, antidepressant
 
 """  # noqa

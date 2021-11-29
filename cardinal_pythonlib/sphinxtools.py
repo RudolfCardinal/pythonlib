@@ -140,14 +140,14 @@ class FileToAutodocument(object):
     Class representing a file to document automatically via Sphinx autodoc.
 
     Example:
-        
+
     .. code-block:: python
 
         import logging
         from cardinal_pythonlib.logs import *
         from cardinal_pythonlib.sphinxtools import *
         main_only_quicksetup_rootlogger(level=logging.DEBUG)
-        
+
         f = FileToAutodocument(
             source_filename="~/Documents/code/cardinal_pythonlib/cardinal_pythonlib/sphinxtools.py",
             project_root_dir="~/Documents/code/cardinal_pythonlib",
@@ -456,9 +456,9 @@ class AutodocIndex(object):
         from cardinal_pythonlib.logs import *
         from cardinal_pythonlib.sphinxtools import *
         main_only_quicksetup_rootlogger(level=logging.INFO)
-        
+
         # Example where one index contains another:
-        
+
         subidx = AutodocIndex(
             index_filename="~/Documents/code/cardinal_pythonlib/docs/source/autodoc/_index2.rst",
             highest_code_dir="~/Documents/code/cardinal_pythonlib",
@@ -476,9 +476,9 @@ class AutodocIndex(object):
         idx.add_index(subidx)
         print(idx.index_content())
         idx.write_index_and_rst_files(overwrite=True, mock=True)
-        
+
         # Example with a flat index:
-        
+
         flatidx = AutodocIndex(
             index_filename="~/Documents/code/cardinal_pythonlib/docs/source/autodoc/_index.rst",
             highest_code_dir="~/Documents/code/cardinal_pythonlib/cardinal_pythonlib",

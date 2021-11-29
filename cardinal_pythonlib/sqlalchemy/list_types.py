@@ -47,18 +47,18 @@ class StringListType(TypeDecorator):
     Store a list of strings as CSV.
     (Rather less arbitrary in its encoding requirements than e.g.
     https://sqlalchemy-utils.readthedocs.io/en/latest/_modules/sqlalchemy_utils/types/scalar_list.html#ScalarListType.)
-    
+
     - 2019-01-01: removed trailing ``\r\n`` (via ``lineterminator=""``).
-    
+
       Some related test code:
-    
+
       .. code-block:: python
 
         import csv
         from io import StringIO
-        
+
         pythonlist = [None, 1, "string", "commas, within string", "line 1\nline2"]
-        
+
         output_1 = StringIO()
         wr_1 = csv.writer(output_1, quoting=csv.QUOTE_ALL)  # appends '\r\n'
         wr_1.writerow(pythonlist)
@@ -66,7 +66,7 @@ class StringListType(TypeDecorator):
         print(repr(csvstring_1))
         backtopython_1 = list(csv.reader([csvstring_1]))[0]
         print(repr(backtopython_1))
-        
+
         output_2 = StringIO()
         wr_2 = csv.writer(output_2, quoting=csv.QUOTE_ALL, lineterminator="")
         wr_2.writerow(pythonlist)
@@ -74,64 +74,64 @@ class StringListType(TypeDecorator):
         print(repr(csvstring_2))
         backtopython_2 = list(csv.reader([csvstring_2]))[0]
         print(repr(backtopython_2))
-        
+
         assert len(csvstring_1) > len(csvstring_2)
         assert backtopython_1 == backtopython_2
 
       So:
-    
+
       - The newline terminator is obviously unnecessary for something that will
         always be a single CSV line.
       - Eliminating it saves two bytes and adds clarity in the database
         representation.
       - Eliminating it keeps the system back-compatible, since the reader
         happily reads things without the line terminator.
-        
+
     - **NOTE** in particular that this does not behave completely like a plain
       Python list on the Python side, as follows.
-      
+
     - When an ORM object is created, the default value on the Python side is
       ``None``.
-      
+
       - The SQLAlchemy ``default`` option is invoked at ``INSERT``, not at ORM
         object creation; see
         https://docs.sqlalchemy.org/en/latest/core/metadata.html#sqlalchemy.schema.Column.params.default.
-        
+
       - The SQLAlchemy ``server_default`` is the DDL ``DEFAULT`` value, not a
         Python default.
-        
+
       - On database load, everything is fine (as ``process_result_value`` will
         be called, which can translate a database ``NULL`` to a Python ``[]``).
-        
+
       - So that means that **if you want the field to be a list rather than
         None from the outset,** you must set it to ``[]`` from ``__init__()``.
-        
+
     - Secondly, SQLAlchemy makes its columns behave in a special way **upon
       assignment**. So, in particular, ``mylist.append(value)`` will not itself
       mark the field as "dirty" and in need of writing to the database.
-      
+
       - Internally, support we define (on the class) ``mycol =
         Column(Integer)``, and then create an instance via ``instance =
         cls()``.
-        
+
       - Then ``cls.mycol`` will actually be of type
         :class:`sqlalchemy.orm.attributes.InstrumentedAttribute`, and
         ``instance.mycol`` will be of type ``int`` (or ``NoneType`` if it's
         ``None``).
-        
+
         .. code-block:: python
-        
+
             from sqlalchemy.ext.declarative import declarative_base
             from sqlalchemy.sql.schema import Column
             from sqlalchemy.sql.sqltypes import Integer
-            
+
             Base = declarative_base()
-            
+
             class MyClass(Base):
                 __tablename__ = "mytable"
                 pk = Column(Integer, primary_key=True)
                 mycol = Column(Integer)
-                
+
             instance = MyClass()
             type(MyClass.pk)  # <class 'sqlalchemy.orm.attributes.InstrumentedAttribute'>
             type(instance.pk)  # <class 'NoneType'>
@@ -141,42 +141,42 @@ class StringListType(TypeDecorator):
         This means that when you write ``instance.mycol = 5``, it calls the
         ``__set__()`` function; see
         https://docs.python.org/3.7/howto/descriptor.html.
-      
+
       - So, for a list (e.g. ``mylist = Column(StringListType)``, if you write
         ``mylist = [value1, value2]``, it will call the appropriate
         ``__set__()`` function and mark the field as "dirty" (see e.g.
         :meth:`sqlalchemy.orm.attributes.ScalarAttributeImpl.set`). **But** if
         ``mylist`` is already a list and you write ``mylist.append(value)``,
         the ``__set__()`` function won't be called.
-      
+
       - If you haven't yet written the instance to the database, this doesn't
         matter; "new" values are considered dirty and are written to the
         database fine. But if you (a) create, (b) save, and then (c) append to
         a list, the change won't be noticed. Since SQLAlchemy can save objects
         for you as soon as another object needs to know it's PK, the fact that
         (b) has happened may not be obvious.
-      
+
       - Therefore, in short, **beware append() and use assignment** for these
         sorts of lists, if this might apply; e.g. ``mylist = mylist +
         [value]``.
-        
+
       - Don't use ``+=``, either; that calls ``list.__iadd__()`` and modifies
         the existing list, rather than calling
         ``InstrumentedAttribute.__set__()``.
-        
+
     - So one method is to ignore ``__init__()`` (meaning new instances will
       have the list-type field set to ``None``) and then using this sort of
       access function:
-      
+
       .. code-block:: python
-        
+
         def add_to_mylist(self, text: str) -> None:
             if self.mylist is None:
                 self.mylist = [text]
             else:
                 # noinspection PyAugmentAssignment
                 self.mylist = self.mylist + [text]  # not "append()", not "+="
-    
+
     """  # noqa
     impl = UnicodeText()
 

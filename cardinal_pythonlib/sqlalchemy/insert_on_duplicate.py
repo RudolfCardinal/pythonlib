@@ -77,7 +77,7 @@ def insert_on_duplicate(tablename: str,
     Args:
         tablename: name of the table
         values: values to ``INSERT``
-        inline: as per 
+        inline: as per
             https://docs.sqlalchemy.org/en/latest/core/dml.html#sqlalchemy.sql.expression.insert
         kwargs: additional parameters
 
@@ -129,10 +129,10 @@ def compile_insert_on_duplicate_key_update(insert: Insert,
     ON DUPLICATE KEY UPDATE`` statement.
 
     Notes:
- 
+
     - We can't get the fieldnames directly from ``insert`` or ``compiler``.
     - We could rewrite the innards of the visit_insert statement
-      (https://github.com/bedwards/sqlalchemy_mysql_ext/blob/master/duplicate.py)... 
+      (https://github.com/bedwards/sqlalchemy_mysql_ext/blob/master/duplicate.py)...
       but, like that, it will get outdated.
     - We could use a hack-in-by-hand method
       (https://stackoverflow.com/questions/6611563/sqlalchemy-on-duplicate-key-update)
@@ -187,7 +187,7 @@ session.execute(insert_2)
 session.execute(insert_1)  # raises sqlalchemy.exc.IntegrityError
 
 
-# ... recommended cross-platform way is SELECT then INSERT or UPDATE 
+# ... recommended cross-platform way is SELECT then INSERT or UPDATE
 # accordingly; see
 # https://groups.google.com/forum/#!topic/sqlalchemy/aQLqeHmLPQY
 

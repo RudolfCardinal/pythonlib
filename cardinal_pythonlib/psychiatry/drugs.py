@@ -132,7 +132,7 @@ Test within R:
     # ... it is CRITICAL to use required=TRUE, or it might fail silently
 
     # Unnecessary now reticulate::use_python() works:
-    # 
+    #
     # PYTHON_VERSION <- "python3.5"
     # CARDINAL_PYTHONLIB_BASEDIR <- ifelse(
     #     .Platform$OS.type == "windows",
@@ -171,20 +171,20 @@ Test within R:
     )
     dt[, drug_generic := cpl_drugs$drug_names_to_generic(drug)]
     dt[, is_antidepressant := cpl_drugs$drug_names_match_criteria(
-            drug_generic, 
+            drug_generic,
             names_are_generic=TRUE,
             antidepressant=TRUE)]
     dt[, is_antidepressant_not_ssri := cpl_drugs$drug_names_match_criteria(
-            drug_generic, 
+            drug_generic,
             names_are_generic=TRUE,
             antidepressant=TRUE,
             ssri=FALSE)]
     dt[, is_conventional_antidepressant := cpl_drugs$drug_names_match_criteria(
-            drug_generic, 
+            drug_generic,
             names_are_generic=TRUE,
             conventional_antidepressant=TRUE)]
     dt[, slam_antidepressant_finder := cpl_drugs$drug_names_match_criteria(
-            drug_generic, 
+            drug_generic,
             names_are_generic=TRUE,
             slam_antidepressant_finder=TRUE,
             include_categories=TRUE)]
@@ -195,21 +195,21 @@ Test within R:
 
     from typing import List
     from cardinal_pythonlib.psychiatry.drugs import *
-    
+
     colname = "somecol"
-    
+
     antidepressants = all_drugs_where(conventional_antidepressant=True)  # type: List[Drug]
     antidep_sql_parts = [drug.sql_column_like_drug(colname) for drug in antidepressants]
     antidep_sql = " OR ".join(antidep_sql_parts)
-    
+
     antipsychotics = all_drugs_where(antipsychotic=True)  # type: List[Drug]
     antipsy_sql_parts = [drug.sql_column_like_drug(colname) for drug in antipsychotics]
     antipsy_sql = " OR ".join(antipsy_sql_parts)
-    
+
     alldrugs = all_drugs_where()
     alldrug_sql_parts = [drug.sql_column_like_drug(colname) for drug in alldrugs]
     alldrug_sql = " OR ".join(alldrug_sql_parts)
-    
+
     lithium = get_drug("lithium")
     lithium_sql = lithium.sql_column_like_drug(colname)
     # HOWEVER, NOTE THAT LITHIUM IS CURRENTLY OVER-INCLUSIVE and will include
@@ -1178,7 +1178,7 @@ DRUGS = [
     Drug(["sitagliptin", "metformin"], ["Janumet"],
          dpp4_inhibitor=True, biguanide=True),
     Drug("vildagliptin", ["Galvus"], dpp4_inhibitor=True),
-    Drug(["vildagliptin", "metformin"], ["Eucreas"], 
+    Drug(["vildagliptin", "metformin"], ["Eucreas"],
          dpp4_inhibitor=True, biguanide=True),
     Drug(
         "insulin",
@@ -1202,7 +1202,7 @@ DRUGS = [
             ".*Actrapid.*", ".*Humulin.*", ".*Insuman.*", ".*Novorapid.*",
             ".*Apidra.*", ".*Humalog.*", ".*Tresiba.*", ".*Levemir.*",
             ".*Lantus.*", ".*Insulatard.*", ".*NovoMix.*",
-        ], 
+        ],
         antidiabetic=True
     ),
 

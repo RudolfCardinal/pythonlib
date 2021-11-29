@@ -33,7 +33,7 @@ Under Ubuntu, the following packages are required:
 .. code-block: bash
 
     sudo apt-get install mdbtools mysql-server mysql-client mysql-admin
-    
+
 though you may also want these, if you're planning to use Python/ODBC with
 MySQL:
 
@@ -123,17 +123,17 @@ class PasswordPromptAction(argparse.Action):
     """
     This provides a command-line option to provide a password or read it
     interactively.
-    
+
     Use it like this:
-    
+
     .. code-block:: python
-    
+
         parser.add_argument(
             '--password', type=str, action=PasswordPromptAction,
             help="MySQL password")
-     
+
     Modified from
-    https://stackoverflow.com/questions/27921629/python-using-getpass-with-argparse 
+    https://stackoverflow.com/questions/27921629/python-using-getpass-with-argparse
     """  # noqa
     # noinspection PyShadowingBuiltins
     def __init__(self,

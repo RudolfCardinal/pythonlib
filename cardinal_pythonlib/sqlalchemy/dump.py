@@ -491,7 +491,7 @@ def dump_orm_tree_as_insert_sql(engine: Engine,
         fileobj: file-like object to write to
 
     Problem: foreign key constraints.
-    
+
     - MySQL/InnoDB doesn't wait to the end of a transaction to check FK
       integrity (which it should):
       https://stackoverflow.com/questions/5014700/in-mysql-can-i-defer-referential-integrity-checks-until-commit  # noqa

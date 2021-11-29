@@ -31,5 +31,5 @@ For changelog, see changelog.rst
 
 """
 
-VERSION_STRING = '1.1.15'
+VERSION_STRING = '1.1.16'
 # Use semantic versioning: http://semver.org/

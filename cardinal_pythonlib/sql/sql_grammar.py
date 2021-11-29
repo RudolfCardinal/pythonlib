@@ -38,23 +38,23 @@ Two approaches:
   - http://pyparsing.wikispaces.com/file/view/select_parser.py/158651233/select_parser.py
 
   - Maximum recursion depth exceeded:
-  
+
     http://pyparsing.wikispaces.com/share/view/11262229
 
   - Match-first (|) versus match-longest (^):
-  
+
     http://pyparsing.wikispaces.com/HowToUsePyparsing
 
   - How to do arithmetic recursive parsing:
-  
+
     https://stackoverflow.com/questions/1345039
 
   - Somebody else's MySQL parser:
-  
+
     https://github.com/gburns/mysql_pyparsing/blob/master/src/sqlparser.py
 
   - ... or generic SQL:
-  
+
     http://pyparsing.wikispaces.com/file/view/select_parser.py/158651233/select_parser.py
 
 ANSI SQL syntax:

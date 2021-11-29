@@ -172,7 +172,7 @@ def _is_dunder(name):
     """
     A copy of enum._is_dunder from Python 3.6.
 
-    Returns True if a __dunder__ name, False otherwise.
+    Returns True if a __dunder__ (double underscore) name, False otherwise.
     """
     return (len(name) > 4 and
             name[:2] == name[-2:] == '__' and
@@ -184,7 +184,7 @@ def _is_sunder(name):
     """
     A copy of enum._is_sunder from Python 3.6.
 
-    Returns True if a _sunder_ name, False otherwise.
+    Returns True if a _sunder_ (single underscore) name, False otherwise.
     """
     return (len(name) > 2 and
             name[0] == name[-1] == '_' and
@@ -290,16 +290,16 @@ class AutoStrEnum(str,
                   metaclass=AutoStrEnumMeta):
     """
     Base class for ``name=value`` ``str`` enums.
-    
+
     Example:
-        
+
     .. code-block:: python
-    
+
         class Animal(AutoStrEnum):
             horse = ()
             dog = ()
             whale = ()
-        
+
         print(Animal.horse)
         print(Animal.horse == 'horse')
         print(Animal.horse.name, Animal.horse.value)
@@ -406,7 +406,7 @@ class AutoNumberObjectMetaClass(type):
         Called when AutoEnum (below) is defined, with:
 
         .. code-block:: python
-        
+
             name = 'AutoEnum'
             bases = ()
             classdict = defaultdict(<method-wrapper '__next__' of itertools.count
@@ -615,10 +615,17 @@ def keys_descriptions_from_enum(
         keys = [k.upper() for k in keys]
     if sort_keys:
         keys.sort()
-    descriptions = [
-        f"{k}{key_to_description}{enum[k].value}"
-        for k in keys
-    ]
+    try:
+        descriptions = [
+            f"{k}{key_to_description}{enum[k].value}"
+            for k in keys
+        ]
+    except KeyError:
+        raise KeyError(
+            "You are trying to do case-insensitive lookup with a "
+            "case-sensitive Enum. Use a metaclass like "
+            "cardinal_pythonlib.enumlike.CaseInsensitiveEnumMeta"
+        )
     description_str = joiner.join(descriptions)
     return keys, description_str
 
@@ -630,21 +637,21 @@ def keys_descriptions_from_enum(
 class CaseInsensitiveEnumMeta(EnumMeta):
     """
     An Enum that permits lookup by a lower-case version of its keys.
-    
+
     https://stackoverflow.com/questions/42658609/how-to-construct-a-case-insensitive-enum
-    
+
     Example:
-        
+
     .. code-block:: python
 
-        from enum import Enum    
+        from enum import Enum
         from cardinal_pythonlib.enumlike import CaseInsensitiveEnumMeta
-        
+
         class TestEnum(Enum, metaclass=CaseInsensitiveEnumMeta):
             REDAPPLE = 1
             greenapple = 2
             PineApple = 3
-            
+
         TestEnum["REDAPPLE"]  # <TestEnum.REDAPPLE: 1>
         TestEnum["redapple"]  # <TestEnum.REDAPPLE: 1>
         TestEnum["greenapple"]  # <TestEnum.greenapple: 2>

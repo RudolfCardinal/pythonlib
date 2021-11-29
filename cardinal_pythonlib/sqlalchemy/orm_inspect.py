@@ -254,7 +254,7 @@ def copy_sqla_object(obj: object,
         omit_pk: omit primary keys (PKs)?
         omit_attrs: attributes (by name) not to copy
         debug: be verbose
-        
+
     Returns:
         a new copy of the object
     """
@@ -588,9 +588,9 @@ def gen_columns_for_uninstrumented_class(cls: Type) \
     of that kind.
 
     SUBOPTIMAL. May produce warnings like:
-    
+
     .. code-block:: none
-    
+
         SAWarning: Unmanaged access of declarative attribute id from non-mapped class GenericTabletRecordMixin
 
     Try to use :func:`gen_columns` instead.
