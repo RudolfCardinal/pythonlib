@@ -60,6 +60,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Constants
 # =============================================================================
 
+MIN_TEXT_LENGTH_FOR_FREETEXT_INDEX = 1000
 MSSQL_DEFAULT_SCHEMA = 'dbo'
 POSTGRES_DEFAULT_SCHEMA = 'public'
 
@@ -1011,7 +1012,7 @@ def is_sqlatype_string(coltype: Union[TypeEngine, VisitableType]) -> bool:
 
 def is_sqlatype_text_of_length_at_least(
         coltype: Union[TypeEngine, VisitableType],
-        min_length: int = 1000) -> bool:
+        min_length: int = MIN_TEXT_LENGTH_FOR_FREETEXT_INDEX) -> bool:
     """
     Is the SQLAlchemy column type a string type that's at least the specified
     length?
@@ -1036,7 +1037,7 @@ def is_sqlatype_text_over_one_char(
 
 def does_sqlatype_merit_fulltext_index(
         coltype: Union[TypeEngine, VisitableType],
-        min_length: int = 1000) -> bool:
+        min_length: int = MIN_TEXT_LENGTH_FOR_FREETEXT_INDEX) -> bool:
     """
     Is the SQLAlchemy column type a type that might merit a ``FULLTEXT``
     index (meaning a string type of at least ``min_length``)?

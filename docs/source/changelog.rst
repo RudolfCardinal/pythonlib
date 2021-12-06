@@ -696,3 +696,6 @@ Quick links:
 - Improved error message for
   :func:`cardinal_pythonlib.enumlike.keys_descriptions_from_enum` when used
   with key case conversions but a case-insensitive Enum.
+
+- ``REAL`` recognized as an SQL floating-point data type, as well as ``DOUBLE``
+  and ``FLOAT``.
