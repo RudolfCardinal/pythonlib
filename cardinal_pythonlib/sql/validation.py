@@ -42,7 +42,9 @@ REGEX_INVALID_TABLE_FIELD_CHARS = re.compile("[^\x20-\x7E]")
 
 
 # - ANSI: http://jakewheat.github.io/sql-overview/sql-2011-foundation-grammar.html#predefined-type  # noqa
-# - SQL Server: https://support.microsoft.com/en-us/office/equivalent-ansi-sql-data-types-7a0a6bef-ef25-45f9-8a9a-3c5f21b5c65d  # noqa
+# - SQL Server:
+#   - https://support.microsoft.com/en-us/office/equivalent-ansi-sql-data-types-7a0a6bef-ef25-45f9-8a9a-3c5f21b5c65d  # noqa
+#   - https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql?view=sql-server-ver15  # noqa
 #   - Note that ANSI "BIT" is SQL Server "BINARY".
 # - MySQL: https://dev.mysql.com/doc/refman/8.0/en/data-types.html
 # - PostgreSQL: https://www.postgresql.org/docs/9.5/datatype.html
@@ -92,6 +94,7 @@ SQLTYPES_OTHER_NUMERIC = (
     "LOGICAL",  # SQL Server
     "LOGICAL1",  # SQL Server
     "NUMERIC",  # ANSI; synonym for DECIMAL
+    "ROWVERSION",  # SQL Server
     "VARBIT",  # PostgreSQL synonym for BIT VARYING
     "YESNO",  # SQL Server
 )
@@ -145,6 +148,9 @@ SQLTYPES_BINARY = (
 SQLTYPES_WITH_DATE = (
     "DATE",  # ANSI
     "DATETIME",  # SQL Server, MySQL
+    "DATETIME2",  # SQL Server
+    "DATETIMEOFFSET",  # SQL Server (date + time + time zone)
+    "SMALLDATETIME",  # SQL Server
     "TIMESTAMP",  # ANSI
 )
 SQLTYPES_DATETIME_OTHER = (
@@ -157,7 +163,10 @@ SQLTYPES_OTHER = (
     "CIDR",  # PostgreSQL
     "CIRCLE",  # PostgreSQL
     "CURRENCY",  # SQL Server
+    "GEOGRAPHY",  # SQL Server
+    "GEOMETRY",  # SQL Server
     "GUID",  # SQL Server
+    "HIERARCHYID",  # SQL Server
     "INET",  # PostgreSQL
     "JSON",  # MySQL, PostgreSQL
     "JSONB",  # PostgreSQL
@@ -169,12 +178,17 @@ SQLTYPES_OTHER = (
     "PG_LSN",  # PostgreSQL
     "POINT",  # PostgreSQL
     "POLYGON",  # PostgreSQL
+    "SMALLMONEY",  # SQL Server
+    "SQL_VARIANT",  # SQL Server
     "TSQUERY",  # PostgreSQL
     "TSVECTOR",  # PostgreSQL
     "TXID_SNAPSHOT",  # PostgreSQL
     "UNIQUEIDENTIFIER",  # SQL Server
     "UUID",  # PostgreSQL
-    "XML",  # PostgreSQL
+    "XML",  # PostgreSQL, SQL Server
+
+    # "CURSOR",  # SQL Server, but not a *column* data type
+    # "TABLE": SQL Server, but not a *column* data type
 )
 
 SQLTYPES_DATETIME_ALL = SQLTYPES_WITH_DATE + SQLTYPES_DATETIME_OTHER
