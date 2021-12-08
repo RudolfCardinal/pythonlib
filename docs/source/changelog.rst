@@ -691,7 +691,7 @@ Quick links:
 
 - :func:`cardinal_pythonlib.sqlalchemy.dialect.get_dialect_from_name`.
 
-**1.1.16 (in progress)**
+**1.1.16 (2021-12-08)**
 
 - Improved error message for
   :func:`cardinal_pythonlib.enumlike.keys_descriptions_from_enum` when used
