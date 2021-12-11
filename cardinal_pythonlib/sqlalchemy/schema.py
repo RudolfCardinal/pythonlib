@@ -414,7 +414,7 @@ def add_index(engine: Engine,
         raise ValueError(
             f"add_index: Use either sqla_column or multiple_sqla_columns, "
             f"not both (sqla_column = {sqla_column!r}, "
-            f"multiple_sqla_columns = {multiple_sqla_columns!r}"
+            f"multiple_sqla_columns = {multiple_sqla_columns!r})"
         )
     if sqla_column is not None:
         colnames = [sqla_column.name]
@@ -488,7 +488,7 @@ def add_index(engine: Engine,
                 raise ValueError(
                     f"To make a FULLTEXT index under SQL Server, we need to "
                     f"know the name of the PK index, but couldn't find one "
-                    f"from get_pk_index_name() for table {tablename!r}")
+                    f"via mssql_get_pk_index_name() for table {tablename!r}")
             # We don't name the FULLTEXT index itself, but it has to relate
             # to an existing unique index.
             sql = (
