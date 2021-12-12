@@ -24,6 +24,7 @@
 """
 
 import atexit
+from concurrent.futures import as_completed, Future, ThreadPoolExecutor
 import logging
 from multiprocessing.dummy import Pool  # thread pool
 import os
@@ -37,75 +38,15 @@ from subprocess import (
 import sys
 from threading import Thread
 from time import sleep
-from typing import Any, BinaryIO, List, NoReturn, Optional, Tuple, Union
+from typing import Any, BinaryIO, Dict, List, NoReturn, Optional, Tuple, Union
 
-from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.cmdline import cmdline_quote
 
-log = get_brace_style_log_with_null_handler(__name__)
+log = logging.getLogger(__name__)
 
 
 # =============================================================================
-# Constants and constant-like singletons
-# =============================================================================
-
-class SubprocSource(object):
-    pass
-
-
-SOURCE_STDOUT = SubprocSource()
-SOURCE_STDERR = SubprocSource()
-
-
-class SubprocCommand(object):
-    pass
-
-
-TERMINATE_SUBPROCESS = SubprocCommand()
-
-
-# =============================================================================
-# Processes that we're running
-# =============================================================================
-
-processes = []  # type: List[Popen]
-proc_args_list = []  # type: List[List[str]]
-# ... to report back which process failed, if any did
-
-
-# =============================================================================
-# Exiting
-# =============================================================================
-
-@atexit.register
-def kill_child_processes() -> None:
-    """
-    Kills children of this process that were registered in the
-    :data:`processes` variable.
-
-    Use with ``@atexit.register``.
-    """
-    timeout_sec = 5
-    for p in processes:
-        try:
-            p.wait(timeout_sec)
-        except TimeoutExpired:
-            # failed to close
-            p.kill()  # you're dead
-
-
-def fail() -> NoReturn:
-    """
-    Call when a child process has failed, and this will print an error
-    message to ``stdout`` and execute ``sys.exit(1)`` (which will, in turn,
-    call any ``atexit`` handler to kill children of this process).
-    """
-    print("\nPROCESS FAILED; EXITING ALL\n")
-    sys.exit(1)  # will call the atexit handler and kill everything else
-
-
-# =============================================================================
-# Subprocess handling
+# Subprocess handling: single child process
 # =============================================================================
 
 def check_call_process(args: List[str]) -> None:
@@ -113,7 +54,7 @@ def check_call_process(args: List[str]) -> None:
     Logs the command arguments, then executes the command via
     :func:`subprocess.check_call`.
     """
-    log.debug("{!r}", args)
+    log.debug(f"{args!r}")
     check_call(args)
 
 
@@ -137,10 +78,58 @@ def check_call_verbose(args: List[str],
     check_call(args, **kwargs)
 
 
-def start_process(args: List[str],
-                  stdin: Any = None,
-                  stdout: Any = None,
-                  stderr: Any = None) -> Popen:
+# =============================================================================
+# Subprocess handling: multiple child processes
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Method 1: Processes that we're running
+# -----------------------------------------------------------------------------
+
+_g_processes = []  # type: List[Popen]
+_g_proc_args_list = []  # type: List[List[str]]
+# ... to report back which process failed, if any did
+
+
+# -----------------------------------------------------------------------------
+# Method 1: Exiting
+# -----------------------------------------------------------------------------
+
+@atexit.register
+def kill_child_processes() -> None:
+    """
+    Kills children of this process that were registered in the
+    :data:`processes` variable.
+
+    Use with ``@atexit.register``.
+    """
+    timeout_sec = 5
+    for p in _g_processes:
+        try:
+            p.wait(timeout_sec)
+        except TimeoutExpired:
+            # failed to close
+            p.kill()  # you're dead
+
+
+def fail() -> NoReturn:
+    """
+    Call when a child process has failed, and this will print an error
+    message to ``stdout`` and execute ``sys.exit(1)`` (which will, in turn,
+    call any ``atexit`` handler to kill children of this process).
+    """
+    print("\nPROCESS FAILED; EXITING ALL\n")
+    sys.exit(1)  # will call the atexit handler and kill everything else
+
+
+# -----------------------------------------------------------------------------
+# Method 1: Helper functions
+# -----------------------------------------------------------------------------
+
+def _start_process(args: List[str],
+                   stdin: Any = None,
+                   stdout: Any = None,
+                   stderr: Any = None) -> Popen:
     """
     Launch a child process and record it in our :data:`processes` variable.
 
@@ -157,20 +146,20 @@ def start_process(args: List[str],
     Returns:
         The process object (which is also stored in :data:`processes`).
     """
-    log.debug("{!r}", args)
-    global processes
-    global proc_args_list
+    log.debug(f"{args!r}")
+    global _g_processes
+    global _g_proc_args_list
     proc = Popen(args, stdin=stdin, stdout=stdout, stderr=stderr)
     # proc = Popen(args, stdin=None, stdout=PIPE, stderr=STDOUT)
     # proc = Popen(args, stdin=None, stdout=PIPE, stderr=PIPE)
     # Can't preserve colour: https://stackoverflow.com/questions/13299550/preserve-colored-output-from-python-os-popen  # noqa
-    processes.append(proc)
-    proc_args_list.append(args)
+    _g_processes.append(proc)
+    _g_proc_args_list.append(args)
     return proc
 
 
-def wait_for_processes(die_on_failure: bool = True,
-                       timeout_sec: float = 1) -> None:
+def _wait_for_processes(die_on_failure: bool = True,
+                        timeout_sec: float = 1) -> None:
     """
     Wait for child processes (catalogued in :data:`processes`) to finish.
 
@@ -187,34 +176,34 @@ def wait_for_processes(die_on_failure: bool = True,
     if it doesn't, we try the next. That is much more responsive.
 
     """
-    global processes
-    global proc_args_list
-    n = len(processes)
-    Pool(n).map(print_lines, processes)  # in case of PIPE
+    global _g_processes
+    global _g_proc_args_list
+    n = len(_g_processes)
+    Pool(n).map(_print_lines, _g_processes)  # in case of PIPE
     something_running = True
     while something_running:
         something_running = False
-        for i, p in enumerate(processes):
+        for i, p in enumerate(_g_processes):
             try:
                 retcode = p.wait(timeout=timeout_sec)
                 if retcode == 0:
-                    log.info("Process #{} (of {}) exited cleanly", i, n)
+                    log.info(f"Process #{i} (of {n}) exited cleanly")
                 if retcode != 0:
                     log.critical(
-                        "Process #{} (of {}) exited with return code {} "
-                        "(indicating failure); its args were: {!r}",
-                        i, n, retcode, proc_args_list[i])
+                        f"Process #{i} (of {n}) exited with return code "
+                        f"{retcode} (indicating failure); its args were: "
+                        f"{_g_proc_args_list[i]!r}")
                     if die_on_failure:
                         log.critical("Exiting top-level process (will kill "
                                      "all other children)")
                         fail()  # exit this process, therefore kill its children  # noqa
             except TimeoutExpired:
                 something_running = True
-    processes.clear()
-    proc_args_list.clear()
+    _g_processes.clear()
+    _g_proc_args_list.clear()
 
 
-def print_lines(process: Popen) -> None:
+def _print_lines(process: Popen) -> None:
     """
     Let a subprocess :func:`communicate`, then write both its ``stdout`` and
     its ``stderr`` to our ``stdout``.
@@ -228,20 +217,125 @@ def print_lines(process: Popen) -> None:
             print(line)
 
 
+# -----------------------------------------------------------------------------
+# Method 1: Helper functions
+# -----------------------------------------------------------------------------
+
+def _process_worker(args: List[str],
+                    stdin: Any = None,
+                    stdout: Any = None,
+                    stderr: Any = None) -> int:
+    p = Popen(args, stdin=stdin, stdout=stdout, stderr=stderr)
+    # At this point, the subprocess has started.
+    # We can check it with poll(), wait(), communicate(), etc.
+    out, err = p.communicate()  # waits for it to terminate
+    # Now it's finished, and has provided its return code.
+    if out:
+        for line in out.decode("utf-8").splitlines():
+            print(line)
+    if err:
+        for line in err.decode("utf-8").splitlines():
+            print(line)
+    return p.returncode
+
+
+# -----------------------------------------------------------------------------
+# Main user function
+# -----------------------------------------------------------------------------
+
 def run_multiple_processes(args_list: List[List[str]],
-                           die_on_failure: bool = True) -> None:
+                           die_on_failure: bool = True,
+                           max_workers: int = None) -> None:
     """
-    Fire up multiple processes, and wait for them to finihs.
+    Fire up multiple processes, and wait for them to finish.
 
     Args:
-        args_list: command arguments for each process
-        die_on_failure: see :func:`wait_for_processes`
+        args_list:
+            command arguments for each process
+        die_on_failure:
+            see :func:`wait_for_processes`
+        max_workers:
+            Maximum simultaneous number of worker processes. Defaults to the
+            total number of processes requested.
     """
-    for procargs in args_list:
-        start_process(procargs)
-    # Wait for them all to finish
-    wait_for_processes(die_on_failure=die_on_failure)
+    if not args_list:
+        # Nothing to do.
+        return
 
+    # METHOD 1:
+    for procargs in args_list:
+        _start_process(procargs)
+    # Wait for them all to finish
+    _wait_for_processes(die_on_failure=die_on_failure)
+
+    # METHOD 2:
+    # https://stackoverflow.com/questions/26774781
+
+    # n_total = len(args_list)
+    # max_workers = max_workers or n_total
+    # with ThreadPoolExecutor(max_workers=max_workers) as executor:
+    #     future_to_procidx = {
+    #         executor.submit(
+    #             _process_worker,
+    #             procargs
+    #         ): procidx
+    #         for procidx, procargs in enumerate(args_list)
+    #     }  # type: Dict[Future, int]
+    #     for future in as_completed(future_to_procidx):
+    #         procidx = future_to_procidx[future]  # zero-based
+    #         procnum = procidx + 1  # one-based
+    #         retcode = future.result()
+    #         if retcode == 0:
+    #             log.info(f"Process #{procnum} (of {n_total}) exited cleanly")
+    #         else:
+    #             procidx = procnum - 1  # zero-based
+    #             log.critical(
+    #                 f"Process #{procnum} (of {n_total}) "
+    #                 f"exited with return code {retcode} "
+    #                 f"(indicating failure); its args were: "
+    #                 f"{args_list[procidx]!r}")
+    #             if die_on_failure:
+    #                 # https://stackoverflow.com/questions/29177490/how-do-you-kill-futures-once-they-have-started  # noqa
+    #                 for f2 in future_to_procidx.keys():
+    #                     f2.cancel()
+    #                     # ... prevents more jobs being scheduled, except the
+    #                     # one that likely got launched immediately as the
+    #                     # failing one exited.
+    #                 log.critical("SHUTDOWN ATTEMPTED")
+    #                 # todo: I've not yet succeeded in killing the children.
+    #                 # Exiting here with sys.exit(1) doesn't work immediately.
+    #                 raise RuntimeError(
+    #                     "Exiting top-level process "
+    #                     "(will kill all other children)"
+    #                 )
+
+
+# =============================================================================
+# Subprocess handling: mimicking user input
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Constants and constant-like singletons
+# -----------------------------------------------------------------------------
+
+class SubprocSource(object):
+    pass
+
+
+SOURCE_STDOUT = SubprocSource()
+SOURCE_STDERR = SubprocSource()
+
+
+class SubprocCommand(object):
+    pass
+
+
+TERMINATE_SUBPROCESS = SubprocCommand()
+
+
+# -----------------------------------------------------------------------------
+# Helper class
+# -----------------------------------------------------------------------------
 
 class AsynchronousFileReader(Thread):
     """
@@ -320,6 +414,10 @@ class AsynchronousFileReader(Thread):
         """
         return not self.is_alive() and self._queue.empty()
 
+
+# -----------------------------------------------------------------------------
+# Command to mimic user input to a subprocess, reacting to its output.
+# -----------------------------------------------------------------------------
 
 def mimic_user_input(
         args: List[str],

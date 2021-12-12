@@ -164,6 +164,7 @@ Automatic documentation of source code
     sysops.py.rst
     tcpipconst.py.rst
     tee.py.rst
+    tests/subprocess_tests.py.rst
     text.py.rst
     timing.py.rst
     tools/backup_mysql_database.py.rst
