@@ -469,7 +469,7 @@ def test_succeed(parser: ParserElement,
                  skip_target: bool = False,
                  show_raw: bool = False,
                  verbose: bool = False) -> None:
-    log.critical("Testing to succeed: " + text)
+    log.info("Testing to succeed: " + text)
     if target is None:
         target = text
     try:
@@ -502,7 +502,7 @@ def test_succeed(parser: ParserElement,
 
 def test_fail(parser: ParserElement, text: str, verbose: bool = True) -> None:
     if verbose:
-        log.critical("Testing to fail: {}", text)
+        log.info("Testing to fail: {}", text)
     try:
         p = parser.parseString(text, parseAll=True)
         raise ValueError(

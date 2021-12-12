@@ -123,17 +123,17 @@ def test_rate_limiter() -> None:
     Test the rate-limiting functions.
     """
     n = 10
-    log.warning("Via decorator, 2 Hz")
+    log.info("Via decorator, 2 Hz")
     for i in range(1, n + 1):
         _test_print_2hz(i)
-    log.warning("Via decorator, 5 Hz")
+    log.info("Via decorator, 5 Hz")
     for i in range(1, n + 1):
         _test_print_5hz(i)
-    log.warning("Created dynamically, 10 Hz")
+    log.info("Created dynamically, 10 Hz")
     tenhz = rate_limited(10)(_test_print)
     for i in range(1, n + 1):
         tenhz(i)
-    log.warning("Created dynamically, unlimited")
+    log.info("Created dynamically, unlimited")
     unlimited = rate_limited(None)(_test_print)
     for i in range(1, n + 1):
         unlimited(i)

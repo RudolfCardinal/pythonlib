@@ -492,25 +492,25 @@ def testfunc1() -> None:
     """
     Test ChEBI interface.
     """
-    log.warning("Testing: describe beta-D-glucose")
+    log.info("Testing: describe beta-D-glucose")
     beta_d_glucose = get_entity(15903)
     describe_entity(beta_d_glucose)
     # Cross-check:
     # https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:15903
     # ... correct.
 
-    log.warning("Testing: describe things like 'citalopram'")
+    log.info("Testing: describe things like 'citalopram'")
     search_and_describe("citalopram", exact_search=False)
 
-    log.warning("Testing: show ancestors of citalopram")
+    log.info("Testing: show ancestors of citalopram")
     citalopram = get_entity(3723)
     report_ancestors(citalopram)
     # https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:3723
 
     sri = "serotonin uptake inhibitor"
-    log.warning(f"Testing: search/list {sri!r}")
+    log.info(f"Testing: search/list {sri!r}")
     search_and_list(sri)
-    log.warning(f"Testing: search/describe {sri!r}")
+    log.info(f"Testing: search/describe {sri!r}")
     search_and_describe(sri)
 
 
