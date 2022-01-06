@@ -24,7 +24,7 @@
 """
 
 import atexit
-from concurrent.futures import as_completed, Future, ThreadPoolExecutor
+# from concurrent.futures import as_completed, Future, ThreadPoolExecutor
 import logging
 from multiprocessing.dummy import Pool  # thread pool
 import os
@@ -38,7 +38,7 @@ from subprocess import (
 import sys
 from threading import Thread
 from time import sleep
-from typing import Any, BinaryIO, Dict, List, NoReturn, Optional, Tuple, Union
+from typing import Any, BinaryIO, List, NoReturn, Optional, Tuple, Union
 
 from cardinal_pythonlib.cmdline import cmdline_quote
 
