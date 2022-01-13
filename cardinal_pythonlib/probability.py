@@ -188,7 +188,7 @@ def log_probability_from_log_odds(log_odds: float) -> float:
 
 def log_odds_from_probability(p: float) -> float:
     """
-    Returns log ods from a probability.
+    Returns log odds from a probability.
 
     Args:
         p: probability
