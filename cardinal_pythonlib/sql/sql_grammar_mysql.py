@@ -49,7 +49,6 @@ from pyparsing import (
 
 from cardinal_pythonlib.logs import (
     get_brace_style_log_with_null_handler,
-    main_only_quicksetup_rootlogger,
 )
 from cardinal_pythonlib.sql.sql_grammar import (
     ALL,
@@ -109,8 +108,8 @@ from cardinal_pythonlib.sql.sql_grammar import (
     SUM,
     sql_keyword,
     SqlGrammar,
-    test_fail,
-    test_succeed,
+    _test_fail,
+    _test_succeed,
     THEN,
     time_unit,
     UNION,
@@ -122,6 +121,11 @@ from cardinal_pythonlib.sql.sql_grammar import (
 )
 
 log = get_brace_style_log_with_null_handler(__name__)
+
+
+# =============================================================================
+# Constants
+# =============================================================================
 
 AGAINST = sql_keyword("AGAINST")
 BIT_AND = sql_keyword("BIT_AND")
@@ -715,12 +719,12 @@ YEAR
     @classmethod
     def test_dialect_specific_1(cls):
         log.info("Testing MySQL-specific aspects (1/2)...")
-        test_fail(cls.case_expr, "one two three four")
-        test_fail(cls.match_expr, "one two three four")
-        test_fail(cls.bind_parameter, "one two three four")
-        test_fail(cls.variable, "one two three four")
-        test_fail(cls.function_call, "one two three four")
-        test_fail(literal_value, "one two three four")
+        _test_fail(cls.case_expr, "one two three four")
+        _test_fail(cls.match_expr, "one two three four")
+        _test_fail(cls.bind_parameter, "one two three four")
+        _test_fail(cls.variable, "one two three four")
+        _test_fail(cls.function_call, "one two three four")
+        _test_fail(literal_value, "one two three four")
         # test_fail(cls.column_spec, "one two three four")  # matches "one"
 
     @classmethod
@@ -728,41 +732,41 @@ YEAR
         log.info("Testing MySQL-specific aspects (2/2)...")
 
         log.info("Testing expr")
-        test_succeed(cls.expr, "a DIV b")
-        test_succeed(cls.expr, "a MOD b")
+        _test_succeed(cls.expr, "a DIV b")
+        _test_succeed(cls.expr, "a MOD b")
 
         log.info("Testing quoted identifiers")
-        test_succeed(cls.identifier, "`a`")
-        test_succeed(cls.identifier, "`FROM`")
-        test_succeed(cls.identifier, "`SELECT FROM`")
+        _test_succeed(cls.identifier, "`a`")
+        _test_succeed(cls.identifier, "`FROM`")
+        _test_succeed(cls.identifier, "`SELECT FROM`")
         # MySQL uses up to: schema.table.column
-        test_succeed(cls.table_spec, "mydb.`my silly table`")
-        test_succeed(cls.table_spec, "myschema.mytable")
-        test_fail(cls.table_spec, "mydb.myschema.mytable")
+        _test_succeed(cls.table_spec, "mydb.`my silly table`")
+        _test_succeed(cls.table_spec, "myschema.mytable")
+        _test_fail(cls.table_spec, "mydb.myschema.mytable")
         # ... but not 4:
-        test_succeed(cls.column_spec, "`my silly table`.`my silly column`")
-        test_succeed(cls.column_spec, "myschema.mytable.mycol")
-        test_succeed(cls.column_spec, "starfeeder.mass_event.thing")
-        test_succeed(cls.column_spec, "starfeeder.mass_event.at")
-        test_fail(cls.column_spec, "mydb.myschema.mytable.mycol")
+        _test_succeed(cls.column_spec, "`my silly table`.`my silly column`")
+        _test_succeed(cls.column_spec, "myschema.mytable.mycol")
+        _test_succeed(cls.column_spec, "starfeeder.mass_event.thing")
+        _test_succeed(cls.column_spec, "starfeeder.mass_event.at")
+        _test_fail(cls.column_spec, "mydb.myschema.mytable.mycol")
 
         log.info("Testing variable")
-        test_succeed(cls.variable, "@myvar")
+        _test_succeed(cls.variable, "@myvar")
 
         log.info("Testing argument_list")
-        test_succeed(cls.argument_list, "@myvar, 5")
+        _test_succeed(cls.argument_list, "@myvar, 5")
 
         log.info("Testing function_call")
-        test_succeed(cls.function_call, "myfunc(@myvar, 5)")
+        _test_succeed(cls.function_call, "myfunc(@myvar, 5)")
 
         log.info("Testing index_list")
-        test_succeed(cls.index_list, "idx1, idx2")
+        _test_succeed(cls.index_list, "idx1, idx2")
 
         log.info("Testing index_hint")
-        test_succeed(cls.index_hint, "USE INDEX FOR JOIN (idx1, idx2)")
+        _test_succeed(cls.index_hint, "USE INDEX FOR JOIN (idx1, idx2)")
 
         log.info("Testing case_expr")
-        test_succeed(cls.case_expr, """
+        _test_succeed(cls.case_expr, """
             CASE v
               WHEN 2 THEN x
               WHEN 3 THEN y
@@ -771,27 +775,11 @@ YEAR
         """)
 
         log.info("Testing match_expr")
-        test_succeed(cls.match_expr, """
+        _test_succeed(cls.match_expr, """
              MATCH (content_field)
              AGAINST('+keyword1 +keyword2')
         """)
-        test_succeed(cls.match_expr, """
+        _test_succeed(cls.match_expr, """
              MATCH (content_field)
              AGAINST('+keyword1 +keyword2' IN BOOLEAN MODE)
         """)
-
-
-# =============================================================================
-# main
-# =============================================================================
-
-def main() -> None:
-    log.info("TESTING MYSQL DIALECT")
-    mysql = SqlGrammarMySQL()
-    mysql.test()
-    log.info("ALL TESTS SUCCESSFUL")
-
-
-if __name__ == '__main__':
-    main_only_quicksetup_rootlogger()
-    main()

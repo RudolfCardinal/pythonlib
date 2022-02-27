@@ -37,7 +37,6 @@ import decimal
 from decimal import Decimal
 import logging
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
-import unittest
 
 from cardinal_pythonlib.datetimefunc import (
     coerce_to_pendulum,
@@ -1223,28 +1222,3 @@ class RowHolder(object):
         finally:
             self.inc_next_col()
         return None
-
-
-# =============================================================================
-# Self-testing
-# =============================================================================
-
-class TestRoundingAndReversal(unittest.TestCase):
-
-    def test_column_lettering(self) -> None:
-        assert column_lettering(0) == "A"
-        assert column_lettering(25) == "Z"
-        assert column_lettering(26) == "AA"
-        assert column_lettering(51) == "AZ"
-        assert column_lettering(52) == "BA"
-        for col_zb in range(200):
-            alphacol = column_lettering(col_zb)
-            assert colnum_zb_from_alphacol(alphacol) == col_zb
-
-
-# =============================================================================
-# Command-line entry point
-# =============================================================================
-
-if __name__ == "__main__":
-    unittest.main()

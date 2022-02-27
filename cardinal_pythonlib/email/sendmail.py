@@ -39,7 +39,6 @@ import re
 import smtplib
 import sys
 from typing import List, NoReturn, Sequence, Tuple, Union
-import unittest
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
@@ -534,34 +533,6 @@ def is_email_valid(email_: str) -> bool:
     if email_.endswith("."):
         return False
     return True
-
-
-class TestIsEmailValid(unittest.TestCase):
-    """
-    Run with e.g. ``pytest sendmail.py::TestIsEmailValid``
-    """
-    def test_is_email_valid(self) -> None:
-        good_addresses = [
-            "x@somewhere.com",
-            "a+b@somewhere.else",
-            "fish123@blah.com",
-        ]
-        bad_addresses = [
-            "xyz",
-            "thing@blah.com@blah.com",
-            "thing,with_comma@somewhere.co.uk",
-            "person@place.fullstop.",
-        ]
-        for good in good_addresses:
-            self.assertTrue(
-                is_email_valid(good),
-                f"Good e-mail being flagged as bad: {good!r}"
-            )
-        for bad in bad_addresses:
-            self.assertFalse(
-                is_email_valid(bad),
-                f"Bad e-mail being flagged as good: {bad!r}"
-            )
 
 
 def get_email_domain(email_: str) -> str:

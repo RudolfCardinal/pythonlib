@@ -225,29 +225,56 @@ dates passed from R to Python:
 
 """
 
+# =============================================================================
+# Imports
+# =============================================================================
+
 from collections import defaultdict
 import datetime
 import logging
-import sys
-from typing import Any, Dict, List
-import unittest
+from typing import Any, Dict
 
 from numpy import array
 from pandas import DataFrame
 
 from cardinal_pythonlib.interval import Interval, IntervalList
-from cardinal_pythonlib.logs import (
-    BraceStyleAdapter,
-    main_only_quicksetup_rootlogger,
-)
+from cardinal_pythonlib.logs import BraceStyleAdapter
 
 log = BraceStyleAdapter(logging.getLogger(__name__))
+
+
+# =============================================================================
+# Constants
+# =============================================================================
 
 DEFAULT_PATIENT_COLNAME = "patient_id"
 DEFAULT_DRUG_EVENT_DATETIME_COLNAME = "drug_event_datetime"
 DEFAULT_START_DATETIME_COLNAME = "start"
 DEFAULT_QUERY_DATETIME_COLNAME = "when"
 
+DTYPE_STRING = "<U255"
+# ... see treatment_resistant_depression.py
+DTYPE_DATETIME = "datetime64[s]"
+# ... https://docs.scipy.org/doc/numpy/reference/arrays.datetime.html
+DTYPE_FLOAT = "float64"
+# ... https://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html
+# ... previously "Float64" but that no longer works
+DTYPE_TIMEDELTA = "timedelta64"
+
+RCN_PATIENT_ID = "patient_id"  # RCN: "result column name"
+RCN_START = "start"
+RCN_TIME = "t"
+RCN_BEFORE_TIMEDELTA = "before_timedelta"
+RCN_DURING_TIMEDELTA = "during_timedelta"
+RCN_AFTER_TIMEDELTA = "after_timedelta"
+RCN_BEFORE_DAYS = "before_days"
+RCN_DURING_DAYS = "during_days"
+RCN_AFTER_DAYS = "after_days"
+
+
+# =============================================================================
+# Timelines
+# =============================================================================
 
 def drug_timelines(
         drug_events_df: DataFrame,
@@ -291,25 +318,6 @@ def drug_timelines(
         ivlist = timelines[patient_id]  # will create if unknown
         ivlist.add(interval)
     return timelines
-
-
-DTYPE_STRING = "<U255"
-# ... see treatment_resistant_depression.py
-DTYPE_DATETIME = "datetime64[s]"
-# ... https://docs.scipy.org/doc/numpy/reference/arrays.datetime.html
-DTYPE_FLOAT = "Float64"
-# ... https://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html
-DTYPE_TIMEDELTA = "timedelta64"
-
-RCN_PATIENT_ID = "patient_id"  # RCN: "result column name"
-RCN_START = "start"
-RCN_TIME = "t"
-RCN_BEFORE_TIMEDELTA = "before_timedelta"
-RCN_DURING_TIMEDELTA = "during_timedelta"
-RCN_AFTER_TIMEDELTA = "after_timedelta"
-RCN_BEFORE_DAYS = "before_days"
-RCN_DURING_DAYS = "during_days"
-RCN_AFTER_DAYS = "after_days"
 
 
 def cumulative_time_on_drug(
@@ -449,105 +457,3 @@ def cumulative_time_on_drug(
             cumulative_times.iat[rowidx, dest_colnum_during_dt] = during
             cumulative_times.iat[rowidx, dest_colnum_after_dt] = after
     return cumulative_times
-
-
-# =============================================================================
-# Unit testing
-# =============================================================================
-
-class TestTimeline(unittest.TestCase):
-    """
-    Unit tests.
-    """
-    DATEFORMAT = "%Y-%m-%d"
-    DATETIMEFORMAT = "%Y-%m-%d %H:%M"
-
-    DRUG_EVENT_TIME = " 00:00"  # " 09:00"
-    QUERY_EVENT_TIME = " 00:00"  # " 12:00"
-
-    @classmethod
-    def dateseq(cls, first: str, last: str,
-                time_suffix: str = "") -> List[datetime.datetime]:
-        fmt = cls.DATETIMEFORMAT if time_suffix else cls.DATEFORMAT
-        if time_suffix:
-            first += time_suffix
-            last += time_suffix
-        dfirst = datetime.datetime.strptime(first, fmt)
-        dlast = datetime.datetime.strptime(last, fmt)
-        assert dfirst <= dlast
-        dates = []  # type: List[datetime.datetime]
-        d = dfirst
-        while d <= dlast:
-            dates.append(d)
-            d += datetime.timedelta(days=1)
-        return dates
-
-    def test_timeline(self) -> None:
-        event_lasts_for = datetime.timedelta(weeks=4)
-        # event_lasts_for = datetime.timedelta(days=3)
-        log.debug("event_lasts_for: {!r}", event_lasts_for)
-
-        alice = "Alice"
-        drug_events_arr = array(
-            [
-                # Alice
-                (alice, "2018-01-05" + self.DRUG_EVENT_TIME),
-                (alice, "2018-01-20" + self.DRUG_EVENT_TIME),
-                (alice, "2018-04-01" + self.DRUG_EVENT_TIME),
-            ],
-            dtype=[
-                (DEFAULT_PATIENT_COLNAME, DTYPE_STRING),
-                (DEFAULT_DRUG_EVENT_DATETIME_COLNAME, DTYPE_DATETIME),
-            ]
-        )
-        drug_events_df = DataFrame.from_records(drug_events_arr)
-        log.debug("drug_events_df:\n{!r}", drug_events_df)
-
-        start = datetime.datetime.strptime("2017-01-01" + self.DRUG_EVENT_TIME,
-                                           self.DATETIMEFORMAT)
-        log.debug("start: {!r}", start)
-
-        qdata_rows = []
-        for dt in self.dateseq("2018-01-01", "2018-05-30",
-                               time_suffix=self.QUERY_EVENT_TIME):
-            qdata_rows.append((alice, start, dt))
-        query_times_arr = array(
-            qdata_rows,
-            dtype=[
-                (DEFAULT_PATIENT_COLNAME, DTYPE_STRING),
-                (DEFAULT_START_DATETIME_COLNAME, DTYPE_DATETIME),
-                (DEFAULT_QUERY_DATETIME_COLNAME, DTYPE_DATETIME),
-            ]
-        )
-        query_times_df = DataFrame.from_records(query_times_arr)
-        log.debug("query_times_df:\n{!r}", query_times_df)
-
-        timelines = drug_timelines(
-            drug_events_df=drug_events_df,
-            event_lasts_for=event_lasts_for,
-            patient_colname=DEFAULT_PATIENT_COLNAME,
-            event_datetime_colname=DEFAULT_DRUG_EVENT_DATETIME_COLNAME
-        )
-        log.debug("timelines: {!r}", timelines)
-
-        cumulative = cumulative_time_on_drug(
-            drug_events_df=drug_events_df,
-            event_lasts_for_timedelta=event_lasts_for,
-            query_times_df=query_times_df,
-            patient_colname=DEFAULT_PATIENT_COLNAME,
-            event_datetime_colname=DEFAULT_DRUG_EVENT_DATETIME_COLNAME,
-            start_colname=DEFAULT_START_DATETIME_COLNAME,
-            when_colname=DEFAULT_QUERY_DATETIME_COLNAME
-        )
-        log.debug("cumulative:\n{}", cumulative)
-
-
-# =============================================================================
-# main
-# =============================================================================
-
-if __name__ == "__main__":
-    main_only_quicksetup_rootlogger(level=logging.DEBUG)
-    log.info("Running unit tests")
-    unittest.main(argv=[sys.argv[0]])
-    sys.exit(0)

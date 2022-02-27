@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/tests/spreadsheets_tests.py
 
 """
 ===============================================================================
@@ -22,14 +22,30 @@
 
 ===============================================================================
 
-**Current version number of this library.**
-
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
+**Unit tests.**
 
 """
 
-VERSION_STRING = '1.1.17'
-# Use semantic versioning: http://semver.org/
+import unittest
+
+from cardinal_pythonlib.spreadsheets import (
+    column_lettering,
+    colnum_zb_from_alphacol,
+)
+
+
+# =============================================================================
+# Self-testing
+# =============================================================================
+
+class TestRoundingAndReversal(unittest.TestCase):
+
+    def test_column_lettering(self) -> None:
+        assert column_lettering(0) == "A"
+        assert column_lettering(25) == "Z"
+        assert column_lettering(26) == "AA"
+        assert column_lettering(51) == "AZ"
+        assert column_lettering(52) == "BA"
+        for col_zb in range(200):
+            alphacol = column_lettering(col_zb)
+            assert colnum_zb_from_alphacol(alphacol) == col_zb

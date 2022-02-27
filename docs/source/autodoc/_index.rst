@@ -68,6 +68,7 @@ Automatic documentation of source code
     dsp.py.rst
     email/mailboxpurge.py.rst
     email/sendmail.py.rst
+    email/tests/sendmail_tests.py.rst
     ensure_test_executed_correctly.py.rst
     enumlike.py.rst
     excel.py.rst
@@ -107,6 +108,7 @@ Automatic documentation of source code
     progress.py.rst
     psychiatry/drugs.py.rst
     psychiatry/rfunc.py.rst
+    psychiatry/tests/timeline_tests.py.rst
     psychiatry/timeline.py.rst
     psychiatry/treatment_resistant_depression.py.rst
     pyramid/compression.py.rst
@@ -137,6 +139,7 @@ Automatic documentation of source code
     sql/sql_grammar_factory.py.rst
     sql/sql_grammar_mssql.py.rst
     sql/sql_grammar_mysql.py.rst
+    sql/tests/sql_grammar_tests.py.rst
     sql/validation.py.rst
     sqlalchemy/alembic_func.py.rst
     sqlalchemy/alembic_ops.py.rst
@@ -159,11 +162,20 @@ Automatic documentation of source code
     sqlalchemy/sqlfunc.py.rst
     sqlalchemy/sqlserver.py.rst
     sqlalchemy/table_identity.py.rst
+    sqlalchemy/tests/merge_db_tests.py.rst
+    sqlalchemy/tests/schema_tests.py.rst
     stringfunc.py.rst
     subproc.py.rst
     sysops.py.rst
     tcpipconst.py.rst
     tee.py.rst
+    tests/datetimefunc_tests.py.rst
+    tests/interval_tests.py.rst
+    tests/lists_tests.py.rst
+    tests/rate_limiting_tests.py.rst
+    tests/rounding_tests.py.rst
+    tests/rpm_tests.py.rst
+    tests/spreadsheets_tests.py.rst
     tests/subprocess_tests.py.rst
     text.py.rst
     timing.py.rst
@@ -175,6 +187,7 @@ Automatic documentation of source code
     tools/merge_csv.py.rst
     tools/pdf_to_booklet.py.rst
     tools/remove_duplicate_files.py.rst
+    tools/tests/pdf_to_booklet_tests.py.rst
     tsv.py.rst
     typetests.py.rst
     typing_helpers.py.rst

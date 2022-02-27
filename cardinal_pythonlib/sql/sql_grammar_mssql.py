@@ -48,10 +48,7 @@ from pyparsing import (
     Word,
 )
 
-from cardinal_pythonlib.logs import (
-    get_brace_style_log_with_null_handler,
-    main_only_quicksetup_rootlogger,
-)
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sql.sql_grammar import (
     ALL,
     AND,
@@ -102,8 +99,8 @@ from cardinal_pythonlib.sql.sql_grammar import (
     SUM,
     sql_keyword,
     SqlGrammar,
-    test_fail,
-    test_succeed,
+    _test_fail,
+    _test_succeed,
     THEN,
     time_unit,
     UNION,
@@ -115,6 +112,10 @@ from cardinal_pythonlib.sql.sql_grammar import (
 
 log = get_brace_style_log_with_null_handler(__name__)
 
+
+# =============================================================================
+# Constants
+# =============================================================================
 
 # Not in SQL Server (though in MySQL):
 #
@@ -542,43 +543,43 @@ SOUNDEX
         log.info("Testing Microsoft SQL Server-specific aspects...")
 
         log.info("Testing quoted identifiers")
-        test_succeed(cls.identifier, "[FROM]")
-        test_succeed(cls.identifier, "[SELECT FROM]")
+        _test_succeed(cls.identifier, "[FROM]")
+        _test_succeed(cls.identifier, "[SELECT FROM]")
 
         log.info("Testing table_spec")
         # SQL Server uses up to: db.schema.table.column
-        test_succeed(cls.table_spec, "mytable")
-        test_succeed(cls.table_spec, "mydb.mytable")
-        test_succeed(cls.table_spec, "mydb.[my silly table]")
-        test_succeed(cls.table_spec, "mydb.myschema.mytable")
-        test_fail(cls.table_spec, "mydb . mytable")
-        test_fail(cls.table_spec, "mydb.myschema.mytable.mycol")
+        _test_succeed(cls.table_spec, "mytable")
+        _test_succeed(cls.table_spec, "mydb.mytable")
+        _test_succeed(cls.table_spec, "mydb.[my silly table]")
+        _test_succeed(cls.table_spec, "mydb.myschema.mytable")
+        _test_fail(cls.table_spec, "mydb . mytable")
+        _test_fail(cls.table_spec, "mydb.myschema.mytable.mycol")
 
         log.info("Testing column_spec")
-        test_succeed(cls.column_spec, "mycol")
-        test_succeed(cls.column_spec, "forename")
-        test_succeed(cls.column_spec, "mytable.mycol")
-        test_succeed(cls.column_spec, "t1.a")
-        test_succeed(cls.column_spec, "[my silly table].[my silly column]")
-        test_succeed(cls.column_spec, "mydb.myschema.mytable.mycol")
-        test_succeed(cls.column_spec, "myschema.mytable.mycol")
-        test_fail(cls.column_spec, "myschema . mytable . mycol")
+        _test_succeed(cls.column_spec, "mycol")
+        _test_succeed(cls.column_spec, "forename")
+        _test_succeed(cls.column_spec, "mytable.mycol")
+        _test_succeed(cls.column_spec, "t1.a")
+        _test_succeed(cls.column_spec, "[my silly table].[my silly column]")
+        _test_succeed(cls.column_spec, "mydb.myschema.mytable.mycol")
+        _test_succeed(cls.column_spec, "myschema.mytable.mycol")
+        _test_fail(cls.column_spec, "myschema . mytable . mycol")
 
         log.info("Testing variable")
-        test_succeed(cls.variable, "@myvar")
+        _test_succeed(cls.variable, "@myvar")
 
         log.info("Testing argument_list")
-        test_succeed(cls.argument_list, "@myvar, 5")
+        _test_succeed(cls.argument_list, "@myvar, 5")
 
         log.info("Testing function_call")
-        test_succeed(cls.function_call, "myfunc(@myvar, 5)")
+        _test_succeed(cls.function_call, "myfunc(@myvar, 5)")
 
         # ---------------------------------------------------------------------
         # Expressions
         # ---------------------------------------------------------------------
 
         log.info("Testing case_expr")
-        test_succeed(cls.case_expr, """
+        _test_succeed(cls.case_expr, """
             CASE v
               WHEN 2 THEN x
               WHEN 3 THEN y
@@ -603,19 +604,3 @@ def pyparsing_bugtest_delimited_list_combine(fix_problem: bool = True) -> None:
     print(word_list_no_combine.parseString('one,two', parseAll=True))  # ['one', 'two']  # noqa
     print(word_list_combine.parseString('one, two', parseAll=True))  # ['one']: ODD ONE OUT  # noqa
     print(word_list_combine.parseString('one,two', parseAll=True))  # ['one,two']  # noqa
-
-
-# =============================================================================
-# main
-# =============================================================================
-
-def main() -> None:
-    log.info("TESTING MICROSOFT SQL SERVER DIALECT")
-    mssql = SqlGrammarMSSQLServer()
-    mssql.test()
-    log.info("ALL TESTS SUCCESSFUL")
-
-
-if __name__ == '__main__':
-    main_only_quicksetup_rootlogger()
-    main()

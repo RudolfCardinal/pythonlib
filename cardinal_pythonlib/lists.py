@@ -28,7 +28,7 @@
 
 from collections import Counter
 from operator import itemgetter
-from typing import Any, Callable, Iterable, List, Tuple
+from typing import Any, Callable, Iterable, List, Sequence, Tuple
 
 
 # =============================================================================
@@ -177,3 +177,27 @@ def count_bool(blist: Iterable[Any]) -> int:
 
     """
     return sum([1 if x else 0 for x in blist])
+
+
+def delete_elements_by_index(x: List[Any],
+                             indices: Sequence[int]) -> None:
+    """
+    Deletes (in place) objects from a list, by (zero-based) index values.
+    
+    Args:
+        x:
+            list to modify
+        indices:
+            zero-based index values at which to delete elements of x
+            
+    Note:
+    - If you pass duplicate values, unexpected results will occur.
+    - If you pass out-of-bound indices, :exc:`IndexError` will be raised.
+
+    After:
+    - https://thispointer.com/python-remove-elements-from-list-by-index/
+    - https://stackoverflow.com/questions/11520492/difference-between-del-remove-and-pop-on-lists
+    - https://stackoverflow.com/questions/627435/how-to-remove-an-element-from-a-list-by-index
+    """  # noqa
+    for i in sorted(indices, reverse=True):  # work from high to low
+        del x[i]

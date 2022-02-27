@@ -35,9 +35,10 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
 def run_all_unit_tests() -> None:
     cmdargs = [
-        "python", "-m", "unittest", "discover", "-s", THIS_DIR, "-p", "*.py"
+        # "python", "-m", "unittest", "discover", "-s", THIS_DIR, "-p", "*.py"
+        "pytest", THIS_DIR
     ]
-    subprocess.check_output(cmdargs)
+    subprocess.check_call(cmdargs)
 
 
 if __name__ == "__main__":

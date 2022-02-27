@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/tests/interval_tests.py
 
 """
 ===============================================================================
@@ -22,14 +22,35 @@
 
 ===============================================================================
 
-**Current version number of this library.**
-
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
+**Unit tests.**
 
 """
 
-VERSION_STRING = '1.1.17'
-# Use semantic versioning: http://semver.org/
+import datetime
+import logging
+import unittest
+
+from cardinal_pythonlib.interval import Interval
+
+log = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Unit testing
+# =============================================================================
+
+class TestInterval(unittest.TestCase):
+    """
+    Unit tests.
+    """
+    def test_interval(self) -> None:
+        a = datetime.datetime(2015, 1, 1)
+        log.debug(f"a = {a!r}")
+        b = datetime.datetime(2015, 1, 6)
+        log.debug(f"b = {b!r}")
+        i = Interval(a, b)
+        log.debug(f"i = {i!r}")
+        j = i + datetime.timedelta(hours=3)
+        log.debug(f"j = {j!r}")
+        cut = i.cut(datetime.datetime(2015, 1, 3))
+        log.debug(f"cut = {cut!r}")

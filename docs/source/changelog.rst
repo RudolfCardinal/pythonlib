@@ -699,3 +699,8 @@ Quick links:
 
 - ``REAL`` recognized as an SQL floating-point data type, as well as ``DOUBLE``
   and ``FLOAT``.
+
+**1.1.17 (2022-02-26)**
+
+- :func:`cardinal_pythonlib.lists.delete_elements_by_index`
+- Restructure internal tests (to separate code and use ``pytest``).

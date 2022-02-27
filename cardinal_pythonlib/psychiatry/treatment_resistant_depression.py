@@ -554,7 +554,7 @@ def test_two_antidepressant_episodes(
     date_colname = "Document_Date"  # DEFAULT_SOURCE_DATE_COLNAME
     first_episode_only = True
 
-    log.warning("Testing two_antidepressant_episodes()")
+    log.info("Testing two_antidepressant_episodes()")
     testdata = _make_example(suffixes=[] if n_sets == 1 else range(n_sets))
     # log.info("Data array:\n" + repr(arr))
     log.info("Data:\n" + repr(testdata))
@@ -572,7 +572,7 @@ def test_two_antidepressant_episodes(
     log.info("Result:\n" + result.to_string())
     if n_sets == 1:
         # Proper validation
-        log.warning("Test complete; will now validate.")
+        log.info("Test complete; will now validate.")
         _validate(result, alice, 1 if first_episode_only else 2, cital, fluox)
         _validate(result, bob, 1, mirtaz, sert)
         _validate(result, chloe, 0)
@@ -585,9 +585,9 @@ def test_two_antidepressant_episodes(
         _validate(result, fred, 1, cital, mirtaz)
 
         _validate(result, grace, 1, cital, fluox)
-        log.warning("Validation successful.")
+        log.info("Validation successful.")
     else:
-        log.warning("Speed test complete.")
+        log.info("Speed test complete.")
     flush_stdout_stderr()
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/version_string.py
+# cardinal_pythonlib/tests/lists_tests.py
 
 """
 ===============================================================================
@@ -22,14 +22,24 @@
 
 ===============================================================================
 
-**Current version number of this library.**
-
-NOTE: this file must be importable by setup.py during package installation and
-must therefore have NO DEPENDENCIES (e.g. semantic_version).
-
-For changelog, see changelog.rst
+**Unit tests.**
 
 """
 
-VERSION_STRING = '1.1.17'
-# Use semantic versioning: http://semver.org/
+import unittest
+
+from cardinal_pythonlib.lists import delete_elements_by_index
+
+
+class TestListDelete(unittest.TestCase):
+    def test_list_del(self) -> None:
+        original_x = [0, 1, 2, 3]
+
+        x = original_x.copy()
+        self.assertRaises(IndexError, delete_elements_by_index, x, [4])
+        delete_elements_by_index(x, [3, 1])
+        self.assertEqual(x, [0, 2])
+
+        x = original_x.copy()
+        delete_elements_by_index(x, [3])
+        self.assertEqual(x, [0, 1, 2])

@@ -32,13 +32,10 @@
 
 import datetime
 import logging
-import sys
 from typing import List, Optional, Set, Tuple, Union
-import unittest
-
-from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 
 log = logging.getLogger(__name__)
+
 
 # =============================================================================
 # Constants
@@ -1269,35 +1266,3 @@ class IntervalList(object):
         )
 
         return before, during, after
-
-
-# =============================================================================
-# Unit testing
-# =============================================================================
-
-class TestInterval(unittest.TestCase):
-    """
-    Unit tests.
-    """
-    def test_interval(self) -> None:
-        a = datetime.datetime(2015, 1, 1)
-        log.debug(f"a = {a!r}")
-        b = datetime.datetime(2015, 1, 6)
-        log.debug(f"b = {b!r}")
-        i = Interval(a, b)
-        log.debug(f"i = {i!r}")
-        j = i + datetime.timedelta(hours=3)
-        log.debug(f"j = {j!r}")
-        cut = i.cut(datetime.datetime(2015, 1, 3))
-        log.debug(f"cut = {cut!r}")
-
-
-# =============================================================================
-# main
-# =============================================================================
-
-if __name__ == "__main__":
-    main_only_quicksetup_rootlogger(level=logging.DEBUG)
-    log.info("Running unit tests")
-    unittest.main(argv=[sys.argv[0]])
-    sys.exit(0)

@@ -109,7 +109,6 @@ import subprocess
 import sys
 import tempfile
 from typing import List, NoReturn, Tuple
-import unittest
 
 from cardinal_pythonlib.cmdline import cmdline_quote
 from cardinal_pythonlib.logs import BraceStyleAdapter, main_only_quicksetup_rootlogger  # noqa
@@ -378,19 +377,6 @@ def convert_to_foldable(input_filename: str,
 
 
 # =============================================================================
-# Unit testing
-# =============================================================================
-
-class TestPdfToBooklet(unittest.TestCase):
-    """
-    Unit tests.
-    """
-    def test_sequence(self) -> None:
-        for n_sheets in range(1, 8 + 1):
-            log.info("{!r}", page_sequence(n_sheets=n_sheets, one_based=True))
-
-
-# =============================================================================
 # main
 # =============================================================================
 
@@ -421,22 +407,7 @@ def main() -> NoReturn:
     parser.add_argument(
         "--overwrite", action="store_true",
         help="Allow overwriting of an existing output file")
-    parser.add_argument(
-        "--unittest", action="store_true",
-        help="Run unit tests and exit (you must pass dummy values for "
-             "input/output files to use these tests)")
-    # ... because requiring dummy input/output filenames for unit testing
-    # is less confusing for the majority of users than showing syntax in
-    # which they are optional!
     args = parser.parse_args()
-
-    if args.unittest:
-        log.warning("Performing unit tests")
-        # unittest.main() doesn't play nicely with argparse; they both
-        # use sys.argv by default (and we end up with what looks like garbage
-        # from the argparse help facility); but this works:
-        unittest.main(argv=[sys.argv[0]])
-        sys.exit(EXIT_SUCCESS)
 
     success = convert_to_foldable(
         input_filename=os.path.abspath(args.input_file),
