@@ -704,3 +704,8 @@ Quick links:
 
 - :func:`cardinal_pythonlib.lists.delete_elements_by_index`
 - Restructure internal tests (to separate code and use ``pytest``).
+
+**1.1.18 (2022-03-02)**
+
+- :func:`cardinal_pythonlib.datetimefunc.coerce_to_date`, and some more unit
+  tests.

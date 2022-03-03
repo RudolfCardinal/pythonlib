@@ -32,10 +32,13 @@ import unittest
 
 import isodate.isoerror
 from isodate.isoduration import Duration as IsodateDuration
-from pendulum import DateTime, Duration
+from pendulum import Date, DateTime, Duration
 
 from cardinal_pythonlib.datetimefunc import (
+    coerce_to_date,
+    coerce_to_datetime,
     coerce_to_pendulum,
+    coerce_to_pendulum_date,
     duration_from_iso,
     duration_to_iso,
     get_pendulum_duration_nonyear_nonmonth_seconds,
@@ -383,4 +386,81 @@ class TestDurations(unittest.TestCase):
         self.assertEqual(
             basedate2 + Duration(months=1, days=1),
             DateTime(year=2004, month=3, day=2)
+        )
+
+
+class TestCoerceToDateTime(unittest.TestCase):
+    def test_coerce_to_datetime(self) -> None:
+        # No timezone:
+        d1 = datetime.datetime(2022, 2, 28, 1, 0, 0)  # 1 a.m. on 28 Feb
+        # With timezone:
+        d2 = datetime.datetime(
+            # 11pm on 27 Feb in New York, which is 4am on 28 Feb in UTC.
+            2022, 2, 27, 23, 0, 0,
+            tzinfo=datetime.timezone(datetime.timedelta(hours=-5))
+        )
+        correct_from_to_tuples = (
+            # No timezone:
+            # ... from Pendulum DateTime:
+            (DateTime(2022, 2, 28, 1, 0, 0), d1),
+            # ... from string:
+            ("2022-02-28T01:00", d1),
+
+            # With timezone:
+            # ... from Pendulum DateTime:
+            (DateTime(2022, 2, 27, 23, 0, 0,
+                      tzinfo=datetime.timezone(datetime.timedelta(hours=-5))),
+             d2),
+            # ... from string:
+            ("2022-02-27T23:00-05:00", d2),
+        )
+        wrong_from_to_tuples = (
+            # Some things that should fail:
+            ("2022-02-28T01:00-05:00", d1),
+            ("2022-02-28T01:00+05:00", d1),
+        )
+        for from_, to_ in correct_from_to_tuples:
+            self.assertEqual(
+                coerce_to_datetime(from_),
+                to_,
+                f"Should convert {from_!r} -> {to_!r}"
+            )
+        for from_, to_ in wrong_from_to_tuples:
+            self.assertNotEqual(
+                coerce_to_datetime(from_),
+                to_,
+                f"Should NOT convert {from_!r} -> {to_!r}"
+            )
+
+
+class TestCoerceToDate(unittest.TestCase):
+    # Indirectly tests coerce_to_pendulum_date too.
+    def test_coerce_to_date(self) -> None:
+        # Simple:
+        d1 = datetime.date(2022, 2, 28)
+        correct_from_to_tuples = (
+            # ... from Pendulum Date:
+            (Date(2022, 2, 28), d1),
+            # ... from Pendulum DateTime:
+            (DateTime(2022, 2, 28, 23, 59, 59), d1),
+            (DateTime(2022, 2, 28, 23, 59, 59,
+                      tzinfo=datetime.timezone(datetime.timedelta(hours=-5))),
+             d1),
+            # ... from string:
+            ("2022-02-28", d1),
+            ("2022-02-28T01:00", d1),
+            ("2022-02-28T01:00+05:00", d1),
+            ("2022-02-28T01:00-05:00", d1),
+        )
+        for from_, to_ in correct_from_to_tuples:
+            self.assertEqual(coerce_to_date(from_), to_)
+
+        # to_utc:
+        self.assertEqual(
+            coerce_to_date("2022-02-27T23:00-05:00", to_utc=False),
+            datetime.date(2022, 2, 27),
+        )
+        self.assertEqual(
+            coerce_to_date("2022-02-27T23:00-05:00", to_utc=True),
+            datetime.date(2022, 2, 28),
         )

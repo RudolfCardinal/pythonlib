@@ -90,9 +90,12 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
     Converts something to a :class:`pendulum.DateTime`.
 
     Args:
-        x: something that may be coercible to a datetime
-        assume_local: if ``True``, assume local timezone; if ``False``, assume
-            UTC
+        x:
+            Something that may be coercible to a datetime.
+        assume_local:
+            Governs what happens if no timezone information is present in the
+            source object. If ``True``, assume local timezone; if ``False``,
+            assume UTC.
 
     Returns:
         a :class:`pendulum.DateTime`, or ``None``.
@@ -105,10 +108,10 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
         return None
     if isinstance(x, DateTime):
         return x
-    tz = get_tz_local() if assume_local else get_tz_utc()
+    tz_if_none_specified = get_tz_local() if assume_local else get_tz_utc()
     if isinstance(x, datetime.datetime):
         # noinspection PyTypeChecker
-        return pendulum.instance(x, tz=tz)  # (*)
+        return pendulum.instance(x, tz=tz_if_none_specified)  # (*)
     elif isinstance(x, datetime.date):
         # BEWARE: datetime subclasses date. The order is crucial here.
         # Can also use: type(x) is datetime.date
@@ -119,10 +122,10 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
         # pendulum.instance
         dt = datetime.datetime.combine(x, midnight)
         # noinspection PyTypeChecker
-        return pendulum.instance(dt, tz=tz)  # (*)
+        return pendulum.instance(dt, tz=tz_if_none_specified)  # (*)
     elif isinstance(x, str):
         # noinspection PyTypeChecker
-        return pendulum.parse(x, tz=tz)  # (*)  # may raise
+        return pendulum.parse(x, tz=tz_if_none_specified)  # (*)  # may raise
     else:
         raise ValueError(f"Don't know how to convert to DateTime: {x!r}")
     # (*) If x already knew its timezone, it will not
@@ -130,14 +133,24 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
 
 
 def coerce_to_pendulum_date(x: PotentialDatetimeType,
-                            assume_local: bool = False) -> Optional[Date]:
+                            assume_local: bool = False,
+                            to_utc: bool = False) -> Optional[Date]:
     """
     Converts something to a :class:`pendulum.Date`.
 
     Args:
-        x: something that may be coercible to a date
-        assume_local: if ``True``, assume local timezone; if ``False``, assume
-            UTC
+        x:
+            Something that may be coercible to a date.
+        assume_local:
+            Governs what happens if no timezone information is present in the
+            source object. If ``True``, assume local timezone; if ``False``,
+            assume UTC.
+        to_utc:
+            Should we return the date in UTC (e.g. London) (``True``), or the
+            date in the timezone of the source (``False``)? For example,
+            2022-02-27T23:00-05:00 (11pm in New York) is 2022-02-28T04:00Z (4am
+            in London). Do you want the return value to be 27 Feb
+            (``to_utc=False``) or 28 Feb (``to_utc=True``)?
 
     Returns:
         a :class:`pendulum.Date`, or ``None``.
@@ -147,7 +160,12 @@ def coerce_to_pendulum_date(x: PotentialDatetimeType,
         ValueError: if no conversion possible
     """
     p = coerce_to_pendulum(x, assume_local=assume_local)
-    return None if p is None else p.date()
+    if p is None:
+        return None
+    elif to_utc:
+        return pendulum.UTC.convert(p).date()
+    else:
+        return p.date()
 
 
 def pendulum_to_datetime(x: DateTime) -> datetime.datetime:
@@ -671,3 +689,22 @@ def coerce_to_datetime(x: Any) -> Optional[datetime.datetime]:
         return datetime.datetime(x.year, x.month, x.day)
     else:
         return dateutil.parser.parse(x)  # may raise
+
+
+def coerce_to_date(x: Any,
+                   assume_local: bool = False,
+                   to_utc: bool = False) -> Optional[datetime.date]:
+    """
+    Ensure an object is a :class:`datetime.date`, or coerce to one, or
+    raise :exc:`ValueError` or :exc:`OverflowError` (as per
+    https://dateutil.readthedocs.org/en/latest/parser.html).
+
+    See also :func:`coerce_to_pendulum_date`, noting that
+    :class:`pendulum.Date` is a subclass of :class:`datetime.date`.
+    """
+    pd = coerce_to_pendulum_date(x,
+                                 assume_local=assume_local,
+                                 to_utc=to_utc)
+    if pd is None:
+        return None
+    return pendulum_date_to_datetime_date(pd)
