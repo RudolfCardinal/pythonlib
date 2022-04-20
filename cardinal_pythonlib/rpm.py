@@ -52,9 +52,10 @@ log = logging.getLogger(__name__)
 # RPM
 # =============================================================================
 
+
 def rpm_probabilities_successes_failures(
-        n_successes: npt.ArrayLike,
-        n_failures: npt.ArrayLike) -> np.ndarray:
+    n_successes: npt.ArrayLike, n_failures: npt.ArrayLike
+) -> np.ndarray:
     """
     Calculate the optimal choice probabilities.
 
@@ -81,8 +82,9 @@ def rpm_probabilities_successes_failures(
             # distribution for a random variable with parameters a and b.
             # The R equivalent is dbeta(x, a, b).
             for j in other_actions:
-                r *= beta(n_successes_plus_one[j],
-                          n_failures_plus_one[j]).cdf(x)
+                r *= beta(n_successes_plus_one[j], n_failures_plus_one[j]).cdf(
+                    x
+                )
                 # ... for the other actions... beta(a, b).cdf(x) is the
                 # cumulative distribution function of the beta distribution
                 # with parameters a and b (the probability that a random
@@ -99,8 +101,8 @@ def rpm_probabilities_successes_failures(
 
 
 def rpm_probabilities_successes_totals(
-        n_successes: npt.ArrayLike,
-        n_total: npt.ArrayLike) -> np.ndarray:
+    n_successes: npt.ArrayLike, n_total: npt.ArrayLike
+) -> np.ndarray:
     """
     Randomized probability matching (RPM).
 

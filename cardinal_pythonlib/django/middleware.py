@@ -34,18 +34,25 @@ from typing import Optional
 
 # noinspection PyUnresolvedReferences
 from django.core.exceptions import ImproperlyConfigured
+
 # noinspection PyUnresolvedReferences
 from django.conf import settings
+
 # noinspection PyUnresolvedReferences
 from django.contrib.auth import REDIRECT_FIELD_NAME
+
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, HttpRequest
+
 # noinspection PyUnresolvedReferences
 from django.views.debug import technical_500_response
+
 # noinspection PyUnresolvedReferences
 from django.urls import reverse
+
 # noinspection PyUnresolvedReferences
 from django.utils.cache import add_never_cache_headers
+
 # noinspection PyUnresolvedReferences
 from django.utils.deprecation import MiddlewareMixin
 
@@ -66,15 +73,18 @@ log = BraceStyleAdapter(logging.getLogger(__name__))
 # From p436 of Greenfield & Greenfield (2015), "Two Scoops of Django:
 # Best Practices for Django 1.8".
 
+
 class UserBasedExceptionMiddleware(MiddlewareMixin):
     """
     Django middleware to report debugging information upon an exception, if
     the user is a superuser.
     """
+
     # noinspection PyUnusedLocal
     @staticmethod
-    def process_exception(request: HttpRequest,
-                          exception: Exception) -> HttpResponse:
+    def process_exception(
+        request: HttpRequest, exception: Exception
+    ) -> HttpResponse:
         # noinspection PyUnresolvedReferences
         if request.user.is_superuser:
             return technical_500_response(request, *sys.exc_info())
@@ -156,10 +166,11 @@ Modified according to: https://djangosnippets.org/snippets/2845/
 # 3. RNC; composite of those patterns.
 # -----------------------------------------------------------------------------
 
-EXEMPT_URLS = [compile(settings.LOGIN_URL.lstrip('/'))]
-if hasattr(settings, 'LOGIN_EXEMPT_URLS'):
-    EXEMPT_URLS += [compile(expr.lstrip('/'))
-                    for expr in settings.LOGIN_EXEMPT_URLS]
+EXEMPT_URLS = [compile(settings.LOGIN_URL.lstrip("/"))]
+if hasattr(settings, "LOGIN_EXEMPT_URLS"):
+    EXEMPT_URLS += [
+        compile(expr.lstrip("/")) for expr in settings.LOGIN_EXEMPT_URLS
+    ]
 
 
 # noinspection PyClassHasNoInit
@@ -188,12 +199,11 @@ class LoginRequiredMiddleware(MiddlewareMixin):
 
     # noinspection PyUnusedLocal
     @staticmethod
-    def process_view(request: HttpRequest,
-                     view_func,
-                     view_args,
-                     view_kwargs) -> Optional[HttpResponse]:
+    def process_view(
+        request: HttpRequest, view_func, view_args, view_kwargs
+    ) -> Optional[HttpResponse]:
         # log.critical("LoginRequiredMiddleware.process_view")
-        if not hasattr(request, 'user'):
+        if not hasattr(request, "user"):
             raise ImproperlyConfigured(
                 "The Login Required middleware requires authentication "
                 "middleware to be installed. Edit your MIDDLEWARE_CLASSES "
@@ -201,22 +211,24 @@ class LoginRequiredMiddleware(MiddlewareMixin):
                 "'django.contrib.auth.middleware.AuthenticationMiddleware'. "
                 "If that doesn't work, ensure your "
                 "TEMPLATE_CONTEXT_PROCESSORS setting includes "
-                "'django.core.context_processors.auth'.")
+                "'django.core.context_processors.auth'."
+            )
         # noinspection PyUnresolvedReferences
         if request.user.is_authenticated:
             # log.critical("is_authenticated")
             return None  # OK
-        if not getattr(view_func, 'login_required', True):
+        if not getattr(view_func, "login_required", True):
             # log.critical("function exempt from login_requred")
             return None  # OK, exempt
-        path = request.path_info.lstrip('/')
+        path = request.path_info.lstrip("/")
         # Path might look like 'login/' regardless of Django mount point
         if any(m.match(path) for m in EXEMPT_URLS):
             # log.critical("URL exempt from login_requred")
             return None  # OK, exempt
         fullpath = request.get_full_path()
-        return redirect_to_login(fullpath, reverse(settings.LOGIN_VIEW_NAME),
-                                 REDIRECT_FIELD_NAME)
+        return redirect_to_login(
+            fullpath, reverse(settings.LOGIN_VIEW_NAME), REDIRECT_FIELD_NAME
+        )
 
 
 # =============================================================================
@@ -224,13 +236,16 @@ class LoginRequiredMiddleware(MiddlewareMixin):
 # =============================================================================
 # https://stackoverflow.com/questions/2095520/fighting-client-side-caching-in-django  # noqa
 
+
 class DisableClientSideCachingMiddleware(MiddlewareMixin):
     """
     Django middleware to ask the client never to cache headers for this page.
     """
+
     # noinspection PyUnusedLocal
     @staticmethod
-    def process_response(request: HttpRequest,
-                         response: HttpResponse) -> HttpResponse:
+    def process_response(
+        request: HttpRequest, response: HttpResponse
+    ) -> HttpResponse:
         add_never_cache_headers(response)
         return response

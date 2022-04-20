@@ -45,6 +45,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Debugging
 # =============================================================================
 
+
 def pdb_run(func: Callable, *args: Any, **kwargs: Any) -> Any:
     """
     Calls ``func(*args, **kwargs)``; if it raises an exception, break into
@@ -71,6 +72,7 @@ def cause_segfault() -> None:
 # Name of calling class/function, for status messages
 # =============================================================================
 
+
 def get_class_name_from_frame(fr: FrameType) -> Optional[str]:
     """
     A frame contains information about a specific call in the Python call
@@ -82,12 +84,12 @@ def get_class_name_from_frame(fr: FrameType) -> Optional[str]:
     # https://stackoverflow.com/questions/2203424/python-how-to-retrieve-class-information-from-a-frame-object  # noqa
     args, _, _, value_dict = inspect.getargvalues(fr)
     # we check the first parameter for the frame function is named 'self'
-    if len(args) and args[0] == 'self':
+    if len(args) and args[0] == "self":
         # in that case, 'self' will be referenced in value_dict
-        instance = value_dict.get('self', None)
+        instance = value_dict.get("self", None)
         if instance:
             # return its class
-            cls = getattr(instance, '__class__', None)
+            cls = getattr(instance, "__class__", None)
             if cls:
                 return cls.__name__
             return None
@@ -143,7 +145,7 @@ def get_caller_name(back: int = 0) -> str:
         frame = sys._getframe(back + 2)
     except ValueError:
         # Stack isn't deep enough.
-        return '?'
+        return "?"
     function_name = frame.f_code.co_name
     class_name = get_class_name_from_frame(frame)
     if class_name:
@@ -154,6 +156,7 @@ def get_caller_name(back: int = 0) -> str:
 # =============================================================================
 # Who called us?
 # =============================================================================
+
 
 def get_caller_stack_info(start_back: int = 1) -> List[str]:
     r"""
@@ -244,20 +247,17 @@ def get_caller_stack_info(start_back: int = 1) -> List[str]:
     for frameinfo in frameinfolist:
         frame = frameinfo.frame
         function_defined_at = "... defined at {filename}:{line}".format(
-            filename=frame.f_code.co_filename,
-            line=frame.f_code.co_firstlineno,
+            filename=frame.f_code.co_filename, line=frame.f_code.co_firstlineno
         )
         argvalues = inspect.getargvalues(frame)
         formatted_argvalues = inspect.formatargvalues(*argvalues)
         function_call = "{funcname}{argvals}".format(
-            funcname=frame.f_code.co_name,
-            argvals=formatted_argvalues,
+            funcname=frame.f_code.co_name, argvals=formatted_argvalues
         )
         code_context = frameinfo.code_context
         code = "".join(code_context) if code_context else ""
         onwards = "... line {line} calls next in stack; code is:\n{c}".format(
-            line=frame.f_lineno,
-            c=code,
+            line=frame.f_lineno, c=code
         )
         description = "\n".join([function_call, function_defined_at, onwards])
         callers.append(description)
@@ -267,6 +267,7 @@ def get_caller_stack_info(start_back: int = 1) -> List[str]:
 # =============================================================================
 # Show the structure of an object in detail
 # =============================================================================
+
 
 def debug_object(obj, log_level: int = logging.DEBUG) -> None:
     """
@@ -281,5 +282,6 @@ def debug_object(obj, log_level: int = logging.DEBUG) -> None:
     for attrname in dir(obj):
         attribute = getattr(obj, attrname)
         msgs.append(
-            f"- {attrname!r}: {attribute!r}, of type {type(attribute)!r}")
+            f"- {attrname!r}: {attribute!r}, of type {type(attribute)!r}"
+        )
     log.log(log_level, "{}", "\n".join(msgs))

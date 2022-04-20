@@ -66,10 +66,10 @@ def nhs_check_digit(ninedigits: Union[str, List[Union[str, int]]]) -> int:
     """
     if len(ninedigits) != 9 or not all(str(x).isdigit() for x in ninedigits):
         raise ValueError("bad string to nhs_check_digit")
-    check_digit = 11 - (sum([
-        int(d) * f
-        for (d, f) in zip(ninedigits, NHS_DIGIT_WEIGHTINGS)
-    ]) % 11)
+    check_digit = 11 - (
+        sum([int(d) * f for (d, f) in zip(ninedigits, NHS_DIGIT_WEIGHTINGS)])
+        % 11
+    )
     # ... % 11 yields something in the range 0-10
     # ... 11 - that yields something in the range 1-11
     if check_digit == 11:
@@ -150,7 +150,9 @@ def test_nhs_rng(n: int = 100) -> None:
         assert is_valid_nhs_number(x), f"Invalid NHS number: {x}"
 
 
-def generate_nhs_number_from_first_9_digits(first9digits: str) -> Optional[int]:
+def generate_nhs_number_from_first_9_digits(
+    first9digits: str
+) -> Optional[int]:
     """
     Returns a valid NHS number, as an ``int``, given the first 9 digits.
     The particular purpose is to make NHS numbers that *look* fake (rather
@@ -190,7 +192,7 @@ def generate_nhs_number_from_first_9_digits(first9digits: str) -> Optional[int]:
 # Get an NHS number out of text
 # =============================================================================
 
-WHITESPACE_REGEX = re.compile(r'\s')
+WHITESPACE_REGEX = re.compile(r"\s")
 NON_NUMERIC_REGEX = re.compile("[^0-9]")  # or "\D"
 
 

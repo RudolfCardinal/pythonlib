@@ -35,8 +35,17 @@ from fnmatch import fnmatch
 import glob
 import logging
 from os.path import (
-    abspath, basename, dirname, exists, expanduser, isdir, isfile, join,
-    relpath, sep, splitext
+    abspath,
+    basename,
+    dirname,
+    exists,
+    expanduser,
+    isdir,
+    isfile,
+    join,
+    relpath,
+    sep,
+    splitext,
 )
 from typing import Dict, Iterable, List, NoReturn, Union
 
@@ -66,6 +75,7 @@ class AutodocMethod(Enum):
     """
     Enum to specify the method of autodocumenting a file.
     """
+
     BEST = 0
     CONTENTS = 1
     AUTOMODULE = 2
@@ -74,6 +84,7 @@ class AutodocMethod(Enum):
 # =============================================================================
 # Helper functions
 # =============================================================================
+
 
 def rst_underline(heading: str, underline_char: str) -> str:
     """
@@ -97,10 +108,9 @@ def fail(msg: str) -> NoReturn:
     raise RuntimeError(msg)
 
 
-def write_if_allowed(filename: str,
-                     content: str,
-                     overwrite: bool = False,
-                     mock: bool = False) -> None:
+def write_if_allowed(
+    filename: str, content: str, overwrite: bool = False, mock: bool = False
+) -> None:
     """
     Writes the contents to a file, if permitted.
 
@@ -134,6 +144,7 @@ def write_if_allowed(filename: str,
 # =============================================================================
 # FileToAutodocument
 # =============================================================================
+
 
 class FileToAutodocument(object):
     """
@@ -170,14 +181,16 @@ class FileToAutodocument(object):
 
     """  # noqa
 
-    def __init__(self,
-                 source_filename: str,
-                 project_root_dir: str,
-                 target_rst_filename: str,
-                 method: AutodocMethod = AutodocMethod.BEST,
-                 python_package_root_dir: str = None,
-                 source_rst_title_style_python: bool = True,
-                 pygments_language_override: Dict[str, str] = None) -> None:
+    def __init__(
+        self,
+        source_filename: str,
+        project_root_dir: str,
+        target_rst_filename: str,
+        method: AutodocMethod = AutodocMethod.BEST,
+        python_package_root_dir: str = None,
+        source_rst_title_style_python: bool = True,
+        pygments_language_override: Dict[str, str] = None,
+    ) -> None:
         """
         Args:
             source_filename: source file (e.g. Python, C++, XML file) to
@@ -207,23 +220,27 @@ class FileToAutodocument(object):
         self.source_rst_title_style_python = source_rst_title_style_python
         self.python_package_root_dir = (
             abspath(expanduser(python_package_root_dir))
-            if python_package_root_dir else self.project_root_dir
+            if python_package_root_dir
+            else self.project_root_dir
         )
-        self.pygments_language_override = pygments_language_override or {}  # type: Dict[str, str]  # noqa
-        assert isfile(self.source_filename), (
-            f"Not a file: source_filename={self.source_filename!r}")
-        assert isdir(self.project_root_dir), (
-            f"Not a directory: project_root_dir={self.project_root_dir!r}")
+        self.pygments_language_override = (
+            pygments_language_override or {}
+        )  # type: Dict[str, str]  # noqa
+        assert isfile(
+            self.source_filename
+        ), f"Not a file: source_filename={self.source_filename!r}"
+        assert isdir(
+            self.project_root_dir
+        ), f"Not a directory: project_root_dir={self.project_root_dir!r}"
         assert relative_filename_within_dir(
-            filename=self.source_filename,
-            directory=self.project_root_dir
+            filename=self.source_filename, directory=self.project_root_dir
         ), (
             f"Source file {self.source_filename!r} is not within "
             f"project directory {self.project_root_dir!r}"
         )
         assert relative_filename_within_dir(
             filename=self.python_package_root_dir,
-            directory=self.project_root_dir
+            directory=self.project_root_dir,
         ), (
             f"Python root {self.python_package_root_dir!r} is not within "
             f"project directory {self.project_root_dir!r}"
@@ -261,8 +278,9 @@ class FileToAutodocument(object):
         Returns the name of the source filename, relative to the Python package
         root. Used to calculate the name of Python modules.
         """
-        return relpath(self.source_filename,
-                       start=self.python_package_root_dir)
+        return relpath(
+            self.source_filename, start=self.python_package_root_dir
+        )
 
     @property
     def rst_dir(self) -> str:
@@ -321,15 +339,19 @@ class FileToAutodocument(object):
             lexer = get_lexer_for_filename(self.source_filename)  # type: Lexer
             return lexer.name
         except ClassNotFound:
-            log.warning("Don't know Pygments code type for extension {!r}",
-                        self.source_extension)
+            log.warning(
+                "Don't know Pygments code type for extension {!r}",
+                self.source_extension,
+            )
             return CODE_TYPE_NONE
 
-    def rst_content(self,
-                    prefix: str = "",
-                    suffix: str = "",
-                    heading_underline_char: str = "=",
-                    method: AutodocMethod = None) -> str:
+    def rst_content(
+        self,
+        prefix: str = "",
+        suffix: str = "",
+        heading_underline_char: str = "=",
+        method: AutodocMethod = None,
+    ) -> str:
         """
         Returns the text contents of an RST file that will automatically
         document our source file.
@@ -366,8 +388,7 @@ class FileToAutodocument(object):
             else:
                 title = self.source_filename_rel_project_root
             instruction = (
-                f".. automodule:: {self.python_module_name}\n"
-                f"    :members:"
+                f".. automodule:: {self.python_module_name}\n" f"    :members:"
             )
         elif method == AutodocMethod.CONTENTS:
             title = self.source_filename_rel_project_root
@@ -381,14 +402,15 @@ class FileToAutodocument(object):
                 "{spacer}:language: {language}".format(
                     filename=self.source_filename_rel_rst_file,
                     spacer=spacer,
-                    language=self.pygments_language
+                    language=self.pygments_language,
                 )
             )
         else:
             raise ValueError("Bad method!")
 
         # Create the whole file
-        content = """
+        content = (
+            """
 .. {filename}
 
 {AUTOGENERATED_COMMENT}
@@ -401,23 +423,28 @@ class FileToAutodocument(object):
 
 {suffix}
         """.format(
-            filename=self.rst_filename_rel_project_root,
-            AUTOGENERATED_COMMENT=AUTOGENERATED_COMMENT,
-            prefix=prefix,
-            underlined_title=rst_underline(
-                title, underline_char=heading_underline_char),
-            instruction=instruction,
-            suffix=suffix,
-        ).strip() + "\n"
+                filename=self.rst_filename_rel_project_root,
+                AUTOGENERATED_COMMENT=AUTOGENERATED_COMMENT,
+                prefix=prefix,
+                underlined_title=rst_underline(
+                    title, underline_char=heading_underline_char
+                ),
+                instruction=instruction,
+                suffix=suffix,
+            ).strip()
+            + "\n"
+        )
         return content
 
-    def write_rst(self,
-                  prefix: str = "",
-                  suffix: str = "",
-                  heading_underline_char: str = "=",
-                  method: AutodocMethod = None,
-                  overwrite: bool = False,
-                  mock: bool = False) -> None:
+    def write_rst(
+        self,
+        prefix: str = "",
+        suffix: str = "",
+        heading_underline_char: str = "=",
+        method: AutodocMethod = None,
+        overwrite: bool = False,
+        mock: bool = False,
+    ) -> None:
         """
         Writes the RST file to our destination RST filename, making any
         necessary directories.
@@ -434,15 +461,17 @@ class FileToAutodocument(object):
             prefix=prefix,
             suffix=suffix,
             heading_underline_char=heading_underline_char,
-            method=method
+            method=method,
         )
-        write_if_allowed(self.target_rst_filename, content,
-                         overwrite=overwrite, mock=mock)
+        write_if_allowed(
+            self.target_rst_filename, content, overwrite=overwrite, mock=mock
+        )
 
 
 # =============================================================================
 # AutodocIndex
 # =============================================================================
+
 
 class AutodocIndex(object):
     """
@@ -490,25 +519,28 @@ class AutodocIndex(object):
         flatidx.write_index_and_rst_files(overwrite=True, mock=True)
 
     """  # noqa
-    def __init__(self,
-                 index_filename: str,
-                 project_root_dir: str,
-                 autodoc_rst_root_dir: str,
-                 highest_code_dir: str,
-                 python_package_root_dir: str = None,
-                 source_filenames_or_globs: Union[str, Iterable[str]] = None,
-                 index_heading_underline_char: str = "-",
-                 source_rst_heading_underline_char: str = "~",
-                 title: str = DEFAULT_INDEX_TITLE,
-                 introductory_rst: str = "",
-                 recursive: bool = True,
-                 skip_globs: List[str] = None,
-                 toctree_maxdepth: int = 1,
-                 method: AutodocMethod = AutodocMethod.BEST,
-                 rst_prefix: str = "",
-                 rst_suffix: str = "",
-                 source_rst_title_style_python: bool = True,
-                 pygments_language_override: Dict[str, str] = None) -> None:
+
+    def __init__(
+        self,
+        index_filename: str,
+        project_root_dir: str,
+        autodoc_rst_root_dir: str,
+        highest_code_dir: str,
+        python_package_root_dir: str = None,
+        source_filenames_or_globs: Union[str, Iterable[str]] = None,
+        index_heading_underline_char: str = "-",
+        source_rst_heading_underline_char: str = "~",
+        title: str = DEFAULT_INDEX_TITLE,
+        introductory_rst: str = "",
+        recursive: bool = True,
+        skip_globs: List[str] = None,
+        toctree_maxdepth: int = 1,
+        method: AutodocMethod = AutodocMethod.BEST,
+        rst_prefix: str = "",
+        rst_suffix: str = "",
+        source_rst_title_style_python: bool = True,
+        pygments_language_override: Dict[str, str] = None,
+    ) -> None:
         """
         Args:
             index_filename:
@@ -603,38 +635,43 @@ class AutodocIndex(object):
         self.highest_code_dir = abspath(expanduser(highest_code_dir))
         self.python_package_root_dir = (
             abspath(expanduser(python_package_root_dir))
-            if python_package_root_dir else self.project_root_dir
+            if python_package_root_dir
+            else self.project_root_dir
         )
         self.index_heading_underline_char = index_heading_underline_char
-        self.source_rst_heading_underline_char = source_rst_heading_underline_char  # noqa
+        self.source_rst_heading_underline_char = (
+            source_rst_heading_underline_char
+        )  # noqa
         self.recursive = recursive
-        self.skip_globs = skip_globs if skip_globs is not None else DEFAULT_SKIP_GLOBS  # noqa
+        self.skip_globs = (
+            skip_globs if skip_globs is not None else DEFAULT_SKIP_GLOBS
+        )  # noqa
         self.toctree_maxdepth = toctree_maxdepth
         self.method = method
         self.rst_prefix = rst_prefix
         self.rst_suffix = rst_suffix
         self.source_rst_title_style_python = source_rst_title_style_python
-        self.pygments_language_override = pygments_language_override or {}  # type: Dict[str, str]  # noqa
+        self.pygments_language_override = (
+            pygments_language_override or {}
+        )  # type: Dict[str, str]  # noqa
 
-        assert isdir(self.project_root_dir), (
-            f"Not a directory: project_root_dir={self.project_root_dir!r}")
+        assert isdir(
+            self.project_root_dir
+        ), f"Not a directory: project_root_dir={self.project_root_dir!r}"
         assert relative_filename_within_dir(
-            filename=self.index_filename,
-            directory=self.project_root_dir
+            filename=self.index_filename, directory=self.project_root_dir
         ), (
             f"Index file {self.index_filename!r} is not within "
             f"project directory {self.project_root_dir!r}"
         )
         assert relative_filename_within_dir(
-            filename=self.highest_code_dir,
-            directory=self.project_root_dir
+            filename=self.highest_code_dir, directory=self.project_root_dir
         ), (
             f"Highest code directory {self.highest_code_dir!r} is not within "
             f"project directory {self.project_root_dir!r}"
         )
         assert relative_filename_within_dir(
-            filename=self.autodoc_rst_root_dir,
-            directory=self.project_root_dir
+            filename=self.autodoc_rst_root_dir, directory=self.project_root_dir
         ), (
             f"Autodoc RST root directory {self.autodoc_rst_root_dir!r} is not "
             f"within project directory {self.project_root_dir!r}"
@@ -642,7 +679,9 @@ class AutodocIndex(object):
         assert isinstance(method, AutodocMethod)
         assert isinstance(recursive, bool)
 
-        self.files_to_index = []  # type: List[Union[FileToAutodocument, AutodocIndex]]  # noqa
+        self.files_to_index = (
+            []
+        )  # type: List[Union[FileToAutodocument, AutodocIndex]]  # noqa
         if source_filenames_or_globs:
             self.add_source_files(source_filenames_or_globs)
 
@@ -650,12 +689,13 @@ class AutodocIndex(object):
         return auto_repr(self)
 
     def add_source_files(
-            self,
-            source_filenames_or_globs: Union[str, List[str]],
-            method: AutodocMethod = None,
-            recursive: bool = None,
-            source_rst_title_style_python: bool = None,
-            pygments_language_override: Dict[str, str] = None) -> None:
+        self,
+        source_filenames_or_globs: Union[str, List[str]],
+        method: AutodocMethod = None,
+        recursive: bool = None,
+        source_rst_title_style_python: bool = None,
+        pygments_language_override: Dict[str, str] = None,
+    ) -> None:
         """
         Adds source files to the index.
 
@@ -686,28 +726,30 @@ class AutodocIndex(object):
 
         # Get a sorted list of filenames
         final_filenames = self.get_sorted_source_files(
-            source_filenames_or_globs,
-            recursive=recursive
+            source_filenames_or_globs, recursive=recursive
         )
 
         # Process that sorted list
         for source_filename in final_filenames:
-            self.files_to_index.append(FileToAutodocument(
-                source_filename=source_filename,
-                project_root_dir=self.project_root_dir,
-                python_package_root_dir=self.python_package_root_dir,
-                target_rst_filename=self.specific_file_rst_filename(
-                    source_filename
-                ),
-                method=method,
-                source_rst_title_style_python=source_rst_title_style_python,
-                pygments_language_override=pygments_language_override,
-            ))
+            self.files_to_index.append(
+                FileToAutodocument(
+                    source_filename=source_filename,
+                    project_root_dir=self.project_root_dir,
+                    python_package_root_dir=self.python_package_root_dir,
+                    target_rst_filename=self.specific_file_rst_filename(
+                        source_filename
+                    ),
+                    method=method,
+                    source_rst_title_style_python=source_rst_title_style_python,
+                    pygments_language_override=pygments_language_override,
+                )
+            )
 
     def get_sorted_source_files(
-            self,
-            source_filenames_or_globs: Union[str, List[str]],
-            recursive: bool = True) -> List[str]:
+        self,
+        source_filenames_or_globs: Union[str, List[str]],
+        recursive: bool = True,
+    ) -> List[str]:
         """
         Returns a sorted list of filenames to process, from a filename,
         a glob string, or a list of filenames/globs.
@@ -812,16 +854,20 @@ class AutodocIndex(object):
         must not generate the same RST filename. So we just add ``.rst``.
         """
         highest_code_to_target = relative_filename_within_dir(
-            source_filename, self.highest_code_dir)
+            source_filename, self.highest_code_dir
+        )
         bname = basename(source_filename)
-        result = join(self.autodoc_rst_root_dir,
-                      dirname(highest_code_to_target),
-                      bname + EXT_RST)
+        result = join(
+            self.autodoc_rst_root_dir,
+            dirname(highest_code_to_target),
+            bname + EXT_RST,
+        )
         log.debug("Source {!r} -> RST {!r}", source_filename, result)
         return result
 
-    def write_index_and_rst_files(self, overwrite: bool = False,
-                                  mock: bool = False) -> None:
+    def write_index_and_rst_files(
+        self, overwrite: bool = False, mock: bool = False
+    ) -> None:
         """
         Writes both the individual RST files and the index.
 
@@ -875,15 +921,16 @@ class AutodocIndex(object):
         toctree_lines = [
             "..  toctree::",
             spacer + f":maxdepth: {self.toctree_maxdepth}",
-            ""
+            "",
         ]
         for f in self.files_to_index:
             if isinstance(f, FileToAutodocument):
                 rst_filename = spacer + f.rst_filename_rel_autodoc_index(
-                    index_filename)
+                    index_filename
+                )
             elif isinstance(f, AutodocIndex):
-                rst_filename = (
-                    spacer + f.index_filename_rel_other_index(index_filename)
+                rst_filename = spacer + f.index_filename_rel_other_index(
+                    index_filename
                 )
             else:
                 fail(f"Unknown thing in files_to_index: {f!r}")
@@ -892,7 +939,8 @@ class AutodocIndex(object):
         toctree = "\n".join(toctree_lines)
 
         # Create the whole file
-        content = """
+        content = (
+            """
 .. {filename}
 
 {AUTOGENERATED_COMMENT}
@@ -907,15 +955,19 @@ class AutodocIndex(object):
 
 {suffix}
                 """.format(
-            filename=self.index_filename_rel_project_root,
-            AUTOGENERATED_COMMENT=AUTOGENERATED_COMMENT,
-            prefix=self.rst_prefix,
-            underlined_title=rst_underline(
-                self.title, underline_char=self.index_heading_underline_char),
-            introductory_rst=self.introductory_rst,
-            toctree=toctree,
-            suffix=self.rst_suffix,
-        ).strip() + "\n"
+                filename=self.index_filename_rel_project_root,
+                AUTOGENERATED_COMMENT=AUTOGENERATED_COMMENT,
+                prefix=self.rst_prefix,
+                underlined_title=rst_underline(
+                    self.title,
+                    underline_char=self.index_heading_underline_char,
+                ),
+                introductory_rst=self.introductory_rst,
+                toctree=toctree,
+                suffix=self.rst_suffix,
+            ).strip()
+            + "\n"
+        )
         return content
 
     def write_index(self, overwrite: bool = False, mock: bool = False) -> None:
@@ -926,5 +978,9 @@ class AutodocIndex(object):
             overwrite: allow existing files to be overwritten?
             mock: pretend to write, but don't
         """
-        write_if_allowed(self.index_filename, self.index_content(),
-                         overwrite=overwrite, mock=mock)
+        write_if_allowed(
+            self.index_filename,
+            self.index_content(),
+            overwrite=overwrite,
+            mock=mock,
+        )

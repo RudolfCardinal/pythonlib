@@ -78,31 +78,40 @@ log = logging.getLogger(__name__)
 
 
 def get_command_output(
-        arglist: List[str],
-        encoding: str = sys.getdefaultencoding()) -> Optional[str]:
+    arglist: List[str], encoding: str = sys.getdefaultencoding()
+) -> Optional[str]:
     log.debug("Executing command: {}".format(arglist))
     result = subprocess.check_output(arglist)
     return result.decode(encoding) if result else None
 
 
 def get_pipe_series_output(
-        commands: List[List[str]],
-        inputstr: str = None,
-        encoding: str = sys.getdefaultencoding()) -> Optional[str]:
+    commands: List[List[str]],
+    inputstr: str = None,
+    encoding: str = sys.getdefaultencoding(),
+) -> Optional[str]:
     processes = []
-    log.debug("Executing commands: {}".format(
-        " -> ".join(" ".join(arglist) for arglist in commands))
+    log.debug(
+        "Executing commands: {}".format(
+            " -> ".join(" ".join(arglist) for arglist in commands)
+        )
     )
     for i in range(len(commands)):
         arglist = commands[i]
         if i == 0:  # first processes
-            processes.append(subprocess.Popen(arglist,
-                                              stdin=subprocess.PIPE,
-                                              stdout=subprocess.PIPE))
+            processes.append(
+                subprocess.Popen(
+                    arglist, stdin=subprocess.PIPE, stdout=subprocess.PIPE
+                )
+            )
         else:  # subsequent ones
-            processes.append(subprocess.Popen(arglist,
-                                              stdin=processes[i - 1].stdout,
-                                              stdout=subprocess.PIPE))
+            processes.append(
+                subprocess.Popen(
+                    arglist,
+                    stdin=processes[i - 1].stdout,
+                    stdout=subprocess.PIPE,
+                )
+            )
     stdout_bytes = processes[-1].communicate(inputstr.encode(encoding))[0]
     # communicate() returns a tuple; 0=stdout, 1=stderr; so this returns stdout
     return stdout_bytes.decode(encoding) if stdout_bytes else None
@@ -113,10 +122,13 @@ def replace_type_in_sql(sql: str, fromstr: str, tostr: str) -> str:
     whitespaceorcommaregroup = r"([\ \t\),\n]+)"
     rg1 = r"\g<1>"
     rg2 = r"\g<2>"
-    return re.sub(whitespaceregroup + fromstr + whitespaceorcommaregroup,
-                  rg1 + tostr + rg2, sql,
-                  0,
-                  re.MULTILINE | re.IGNORECASE)
+    return re.sub(
+        whitespaceregroup + fromstr + whitespaceorcommaregroup,
+        rg1 + tostr + rg2,
+        sql,
+        0,
+        re.MULTILINE | re.IGNORECASE,
+    )
 
 
 class PasswordPromptAction(argparse.Action):
@@ -135,16 +147,19 @@ class PasswordPromptAction(argparse.Action):
     Modified from
     https://stackoverflow.com/questions/27921629/python-using-getpass-with-argparse
     """  # noqa
+
     # noinspection PyShadowingBuiltins
-    def __init__(self,
-                 option_strings: List[str],
-                 dest: str = None,
-                 nargs: Union[int, str] = "?",  # 0 or 1
-                 default: Any = None,
-                 required: bool = False,
-                 type: Callable[[str], Any] = None,
-                 metavar: str = None,
-                 help: str = None) -> None:
+    def __init__(
+        self,
+        option_strings: List[str],
+        dest: str = None,
+        nargs: Union[int, str] = "?",  # 0 or 1
+        default: Any = None,
+        required: bool = False,
+        type: Callable[[str], Any] = None,
+        metavar: str = None,
+        help: str = None,
+    ) -> None:
         super(PasswordPromptAction, self).__init__(
             option_strings=option_strings,
             dest=dest,
@@ -153,13 +168,16 @@ class PasswordPromptAction(argparse.Action):
             required=required,
             metavar=metavar,
             type=type,
-            help=help)
+            help=help,
+        )
 
-    def __call__(self,
-                 parser: argparse.ArgumentParser,
-                 args: argparse.Namespace,
-                 values: Union[None, str, List[str]],
-                 option_string: str = None) -> None:
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        args: argparse.Namespace,
+        values: Union[None, str, List[str]],
+        option_string: str = None,
+    ) -> None:
         if isinstance(values, list) and len(values) == 1:
             password = values[0]
         else:
@@ -171,32 +189,39 @@ class PasswordPromptAction(argparse.Action):
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument(
-        'mdbfile', type=str,
-        help="Microsoft Access .MDB file to read")
+        "mdbfile", type=str, help="Microsoft Access .MDB file to read"
+    )
     parser.add_argument(
-        '--schemaonly', action='store_true',
+        "--schemaonly",
+        action="store_true",
         help="Print schema SQL only (otherwise: will create MySQL database and"
-             " write schema and data)")
+        " write schema and data)",
+    )
     parser.add_argument(
-        '--host', type=str, default='127.0.0.1',  # not "localhost"
-        help="MySQL hostname or IP address")
+        "--host",
+        type=str,
+        default="127.0.0.1",  # not "localhost"
+        help="MySQL hostname or IP address",
+    )
     parser.add_argument(
-        '--port', type=int, default=3306,
-        help="MySQL port number")
+        "--port", type=int, default=3306, help="MySQL port number"
+    )
     parser.add_argument(
-        '--user', type=str, default='root',
-        help="MySQL username")
+        "--user", type=str, default="root", help="MySQL username"
+    )
     parser.add_argument(
-        '--password', type=str, action=PasswordPromptAction,
-        help="MySQL password")
+        "--password",
+        type=str,
+        action=PasswordPromptAction,
+        help="MySQL password",
+    )
+    parser.add_argument("--mysqldb", type=str, help="MySQL database to use")
     parser.add_argument(
-        '--mysqldb', type=str,
-        help="MySQL database to use")
-    parser.add_argument(
-        '--create', action="store_true",
-        help="Create database?")
+        "--create", action="store_true", help="Create database?"
+    )
     args = parser.parse_args()
 
     if not args.schemaonly and not args.mysqldb:
@@ -235,8 +260,9 @@ def main() -> None:
     # much better. So, not much to do here.
 
     # "COMMENT ON COLUMN" produced by mdb-schema and rejected by MySQL:
-    schemasyntax = re.sub("^COMMENT ON COLUMN.*$", "", schemasyntax, 0,
-                          re.MULTILINE)
+    schemasyntax = re.sub(
+        "^COMMENT ON COLUMN.*$", "", schemasyntax, 0, re.MULTILINE
+    )
 
     log.info("Schema syntax:")
     print(schemasyntax)
@@ -252,11 +278,12 @@ def main() -> None:
     # -------------------------------------------------------------------------
     createmysqldbcmd = [
         "mysqladmin",
-        "create", args.mysqldb,
+        "create",
+        args.mysqldb,
         "--host={}".format(args.host),
         "--port={}".format(args.port),
         "--user={}".format(args.user),
-        "--password={}".format(args.password)
+        "--password={}".format(args.password),
     ]
     # We could omit the actual password and the user would be prompted, but we
     # need to send it this way later (see below), so this is not a huge
@@ -273,7 +300,7 @@ def main() -> None:
         "--port={}".format(args.port),
         "--database={}".format(args.mysqldb),
         "--user={}".format(args.user),
-        "--password={}".format(args.password)
+        "--password={}".format(args.password),
     ]
     # Regrettably, we need the password here, as stdin will come from a pipe
     print(get_pipe_series_output([mysqlcmd], schemasyntax))
@@ -301,20 +328,20 @@ def main() -> None:
     for t in tables:
         log.info("Processing table {}".format(t))
         exportcmd = [
-            'mdb-export',
-            '-I', 'mysql',  # -I backend: INSERT statements, not CSV
-
+            "mdb-export",
+            "-I",
+            "mysql",  # -I backend: INSERT statements, not CSV
             # MySQL's DATETIME field has this format: "YYYY-MM-DD HH:mm:SS"
             # so we want this from the export:
-            '-D', '%Y-%m-%d %H:%M:%S',  # -D: date format
+            "-D",
+            "%Y-%m-%d %H:%M:%S",  # -D: date format
             # ... don't put any extra quotes around it.
-
             args.mdbfile,  # database
-            t  # table
+            t,  # table
         ]
         with tempfile.NamedTemporaryFile(
-                mode="wt",
-                encoding=sys.getdefaultencoding()) as outfile:
+            mode="wt", encoding=sys.getdefaultencoding()
+        ) as outfile:
             print("SET autocommit=0;", file=outfile)
             subprocess.call(exportcmd, stdout=outfile)
             print("\nCOMMIT;", file=outfile)
@@ -325,5 +352,5 @@ def main() -> None:
     log.info("Finished.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

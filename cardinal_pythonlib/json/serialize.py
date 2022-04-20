@@ -66,6 +66,7 @@ from typing import Any, Callable, Dict, List, TextIO, Tuple, Type
 
 import pendulum
 from pendulum import Date, DateTime
+
 # from pendulum.tz.timezone import Timezone
 # from pendulum.tz.timezone_info import TimezoneInfo
 # from pendulum.tz.transition import Transition
@@ -95,11 +96,11 @@ InstanceToInitDictFnType = Callable[[Instance], InitDict]
 # Constants for external use
 # =============================================================================
 
-METHOD_NO_ARGS = 'no_args'
-METHOD_SIMPLE = 'simple'
-METHOD_STRIP_UNDERSCORE = 'strip_underscore'
-METHOD_PROVIDES_INIT_ARGS_KWARGS = 'provides_init_args_kwargs'
-METHOD_PROVIDES_INIT_KWARGS = 'provides_init_kwargs'
+METHOD_NO_ARGS = "no_args"
+METHOD_SIMPLE = "simple"
+METHOD_STRIP_UNDERSCORE = "strip_underscore"
+METHOD_PROVIDES_INIT_ARGS_KWARGS = "provides_init_args_kwargs"
+METHOD_PROVIDES_INIT_KWARGS = "provides_init_kwargs"
 
 # =============================================================================
 # Constants for internal use
@@ -107,32 +108,31 @@ METHOD_PROVIDES_INIT_KWARGS = 'provides_init_kwargs'
 
 DEBUG = False
 
-ARGS_LABEL = 'args'
-KWARGS_LABEL = 'kwargs'
-TYPE_LABEL = '__type__'
+ARGS_LABEL = "args"
+KWARGS_LABEL = "kwargs"
+TYPE_LABEL = "__type__"
 
-INIT_ARGS_KWARGS_FN_NAME = 'init_args_kwargs'
-INIT_KWARGS_FN_NAME = 'init_kwargs'
+INIT_ARGS_KWARGS_FN_NAME = "init_args_kwargs"
+INIT_KWARGS_FN_NAME = "init_kwargs"
 
 
 # =============================================================================
 # Simple dictionary manipulation
 # =============================================================================
 
+
 def args_kwargs_to_initdict(args: ArgsList, kwargs: KwargsDict) -> InitDict:
     """
     Converts a set of ``args`` and ``kwargs`` to an ``InitDict``.
     """
-    return {ARGS_LABEL: args,
-            KWARGS_LABEL: kwargs}
+    return {ARGS_LABEL: args, KWARGS_LABEL: kwargs}
 
 
 def kwargs_to_initdict(kwargs: KwargsDict) -> InitDict:
     """
     Converts a set of ``kwargs`` to an ``InitDict``.
     """
-    return {ARGS_LABEL: [],
-            KWARGS_LABEL: kwargs}
+    return {ARGS_LABEL: [], KWARGS_LABEL: kwargs}
 
 
 # noinspection PyUnusedLocal
@@ -142,8 +142,7 @@ def obj_with_no_args_to_init_dict(obj: Any) -> InitDict:
     arguments at creation.
     """
 
-    return {ARGS_LABEL: [],
-            KWARGS_LABEL: {}}
+    return {ARGS_LABEL: [], KWARGS_LABEL: {}}
 
 
 def strip_leading_underscores_from_keys(d: Dict) -> Dict:
@@ -153,7 +152,7 @@ def strip_leading_underscores_from_keys(d: Dict) -> Dict:
     """
     newdict = {}
     for k, v in d.items():
-        if k.startswith('_'):
+        if k.startswith("_"):
             k = k[1:]
             if k in newdict:
                 raise ValueError(f"Attribute conflict: _{k}, {k}")
@@ -166,15 +165,18 @@ def verify_initdict(initdict: InitDict) -> None:
     Ensures that its parameter is a proper ``InitDict``, or raises
     ``ValueError``.
     """
-    if (not isinstance(initdict, dict) or
-            ARGS_LABEL not in initdict or
-            KWARGS_LABEL not in initdict):
+    if (
+        not isinstance(initdict, dict)
+        or ARGS_LABEL not in initdict
+        or KWARGS_LABEL not in initdict
+    ):
         raise ValueError("Not an InitDict dictionary")
 
 
 # =============================================================================
 # InitDict -> class instance
 # =============================================================================
+
 
 def initdict_to_instance(d: InitDict, cls: ClassType) -> Any:
     """
@@ -198,6 +200,7 @@ def initdict_to_instance(d: InitDict, cls: ClassType) -> Any:
 # =============================================================================
 # Class instance -> InitDict, in various ways
 # =============================================================================
+
 
 def instance_to_initdict_simple(obj: Any) -> InitDict:
     """
@@ -264,45 +267,52 @@ def instance_to_initdict_stripping_underscores(obj: Instance) -> InitDict:
         {'a': 1, 'b': 2, 'c': 3}
     """
     return kwargs_to_initdict(
-        strip_leading_underscores_from_keys(obj.__dict__))
+        strip_leading_underscores_from_keys(obj.__dict__)
+    )
 
 
-def wrap_kwargs_to_initdict(init_kwargs_fn: InitKwargsFnType,
-                            typename: str,
-                            check_result: bool = True) \
-        -> InstanceToInitDictFnType:
+def wrap_kwargs_to_initdict(
+    init_kwargs_fn: InitKwargsFnType, typename: str, check_result: bool = True
+) -> InstanceToInitDictFnType:
     """
     Wraps a function producing a ``KwargsDict``, making it into a function
     producing an ``InitDict``.
     """
+
     def wrapper(obj: Instance) -> InitDict:
         result = init_kwargs_fn(obj)
         if check_result and not isinstance(result, dict):
             raise ValueError(
                 f"Class {typename} failed to provide a kwargs dict and "
-                f"provided instead: {result!r}")
+                f"provided instead: {result!r}"
+            )
         return kwargs_to_initdict(init_kwargs_fn(obj))
 
     return wrapper
 
 
-def wrap_args_kwargs_to_initdict(init_args_kwargs_fn: InitArgsKwargsFnType,
-                                 typename: str,
-                                 check_result: bool = True) \
-        -> InstanceToInitDictFnType:
+def wrap_args_kwargs_to_initdict(
+    init_args_kwargs_fn: InitArgsKwargsFnType,
+    typename: str,
+    check_result: bool = True,
+) -> InstanceToInitDictFnType:
     """
     Wraps a function producing a ``KwargsDict``, making it into a function
     producing an ``InitDict``.
     """
+
     def wrapper(obj: Instance) -> InitDict:
         result = init_args_kwargs_fn(obj)
-        if check_result and (not isinstance(result, tuple) or
-                             not len(result) == 2 or
-                             not isinstance(result[0], list) or
-                             not isinstance(result[1], dict)):
+        if check_result and (
+            not isinstance(result, tuple)
+            or not len(result) == 2
+            or not isinstance(result[0], list)
+            or not isinstance(result[1], dict)
+        ):
             raise ValueError(
                 f"Class {typename} failed to provide an (args, kwargs) tuple "
-                f"and provided instead: {result!r}")
+                f"and provided instead: {result!r}"
+            )
         return args_kwargs_to_initdict(*result)
 
     return wrapper
@@ -312,11 +322,13 @@ def wrap_args_kwargs_to_initdict(init_args_kwargs_fn: InitArgsKwargsFnType,
 # Function to make custom instance -> InitDict functions
 # =============================================================================
 
+
 def make_instance_to_initdict(attributes: List[str]) -> InstanceToDictFnType:
     """
     Returns a function that takes an object (instance) and produces an
     ``InitDict`` enabling its re-creation.
     """
+
     def custom_instance_to_initdict(x: Instance) -> InitDict:
         kwargs = {}
         for a in attributes:
@@ -330,16 +342,20 @@ def make_instance_to_initdict(attributes: List[str]) -> InstanceToDictFnType:
 # Describe how a Python class should be serialized to/from JSON
 # =============================================================================
 
+
 class JsonDescriptor(object):
     """
     Describe how a Python class should be serialized to/from JSON.
     """
-    def __init__(self,
-                 typename: str,
-                 obj_to_dict_fn: InstanceToDictFnType,
-                 dict_to_obj_fn: DictToInstanceFnType,
-                 cls: ClassType,
-                 default_factory: DefaultFactoryFnType = None) -> None:
+
+    def __init__(
+        self,
+        typename: str,
+        obj_to_dict_fn: InstanceToDictFnType,
+        dict_to_obj_fn: DictToInstanceFnType,
+        cls: ClassType,
+        default_factory: DefaultFactoryFnType = None,
+    ) -> None:
         self._typename = typename
         self._obj_to_dict_fn = obj_to_dict_fn
         self._dict_to_obj_fn = dict_to_obj_fn
@@ -357,7 +373,10 @@ class JsonDescriptor(object):
             log.warning(
                 "Failed to deserialize object of type {t}; exception was {e}; "
                 "dict was {d}; will use default factory instead",
-                t=self._typename, e=repr(err), d=repr(d))
+                t=self._typename,
+                e=repr(err),
+                d=repr(d),
+            )
             if self._default_factory:
                 return self._default_factory()
             else:
@@ -383,11 +402,12 @@ TYPE_MAP = {}  # type: Dict[str, JsonDescriptor]
 
 
 def register_class_for_json(
-        cls: ClassType,
-        method: str = METHOD_SIMPLE,
-        obj_to_dict_fn: InstanceToDictFnType = None,
-        dict_to_obj_fn: DictToInstanceFnType = initdict_to_instance,
-        default_factory: DefaultFactoryFnType = None) -> None:
+    cls: ClassType,
+    method: str = METHOD_SIMPLE,
+    obj_to_dict_fn: InstanceToDictFnType = None,
+    dict_to_obj_fn: DictToInstanceFnType = initdict_to_instance,
+    default_factory: DefaultFactoryFnType = None,
+) -> None:
     """
     Registers the class cls for JSON serialization.
 
@@ -414,21 +434,24 @@ def register_class_for_json(
             obj_to_dict_fn=obj_to_dict_fn,
             dict_to_obj_fn=dict_to_obj_fn,
             cls=cls,
-            default_factory=default_factory)
+            default_factory=default_factory,
+        )
     elif method == METHOD_SIMPLE:
         descriptor = JsonDescriptor(
             typename=typename,
             obj_to_dict_fn=instance_to_initdict_simple,
             dict_to_obj_fn=initdict_to_instance,
             cls=cls,
-            default_factory=default_factory)
+            default_factory=default_factory,
+        )
     elif method == METHOD_STRIP_UNDERSCORE:
         descriptor = JsonDescriptor(
             typename=typename,
             obj_to_dict_fn=instance_to_initdict_stripping_underscores,
             dict_to_obj_fn=initdict_to_instance,
             cls=cls,
-            default_factory=default_factory)
+            default_factory=default_factory,
+        )
     else:
         raise ValueError("Unknown method, and functions not fully specified")
     global TYPE_MAP
@@ -514,11 +537,17 @@ def register_for_json(*args, **kwargs) -> Any:
     # ... e.g.:
     #   args = ()
     #   kwargs = {'method': 'provides_to_init_args_kwargs_dict'}
-    method = kwargs.pop('method', METHOD_SIMPLE)  # type: str
-    obj_to_dict_fn = kwargs.pop('obj_to_dict_fn', None)  # type: InstanceToDictFnType  # noqa
-    dict_to_obj_fn = kwargs.pop('dict_to_obj_fn', initdict_to_instance)  # type: DictToInstanceFnType  # noqa
-    default_factory = kwargs.pop('default_factory', None)  # type: DefaultFactoryFnType  # noqa
-    check_result = kwargs.pop('check_results', True)  # type: bool
+    method = kwargs.pop("method", METHOD_SIMPLE)  # type: str
+    obj_to_dict_fn = kwargs.pop(
+        "obj_to_dict_fn", None
+    )  # type: InstanceToDictFnType  # noqa
+    dict_to_obj_fn = kwargs.pop(
+        "dict_to_obj_fn", initdict_to_instance
+    )  # type: DictToInstanceFnType  # noqa
+    default_factory = kwargs.pop(
+        "default_factory", None
+    )  # type: DefaultFactoryFnType  # noqa
+    check_result = kwargs.pop("check_results", True)  # type: bool
 
     def register_json_class(cls_: ClassType) -> ClassType:
         odf = obj_to_dict_fn
@@ -528,30 +557,34 @@ def register_for_json(*args, **kwargs) -> Any:
                 odf = wrap_args_kwargs_to_initdict(
                     getattr(cls_, INIT_ARGS_KWARGS_FN_NAME),
                     typename=cls_.__qualname__,
-                    check_result=check_result
+                    check_result=check_result,
                 )
             else:
                 raise ValueError(
                     f"Class type {cls_} does not provide function "
-                    f"{INIT_ARGS_KWARGS_FN_NAME}")
+                    f"{INIT_ARGS_KWARGS_FN_NAME}"
+                )
         elif method == METHOD_PROVIDES_INIT_KWARGS:
             if hasattr(cls_, INIT_KWARGS_FN_NAME):
                 odf = wrap_kwargs_to_initdict(
                     getattr(cls_, INIT_KWARGS_FN_NAME),
                     typename=cls_.__qualname__,
-                    check_result=check_result
+                    check_result=check_result,
                 )
             else:
                 raise ValueError(
                     f"Class type {cls_} does not provide function "
-                    f"{INIT_KWARGS_FN_NAME}")
+                    f"{INIT_KWARGS_FN_NAME}"
+                )
         elif method == METHOD_NO_ARGS:
             odf = obj_with_no_args_to_init_dict
-        register_class_for_json(cls_,
-                                method=method,
-                                obj_to_dict_fn=odf,
-                                dict_to_obj_fn=dof,
-                                default_factory=default_factory)
+        register_class_for_json(
+            cls_,
+            method=method,
+            obj_to_dict_fn=odf,
+            dict_to_obj_fn=dof,
+            default_factory=default_factory,
+        )
         return cls_
 
     return register_json_class
@@ -570,11 +603,13 @@ def dump_map(file: TextIO = sys.stdout) -> None:
 # Hooks to implement the JSON encoding/decoding
 # =============================================================================
 
+
 class JsonClassEncoder(json.JSONEncoder):
     """
     Provides a JSON encoder whose ``default`` method encodes a Python object
     to JSON with reference to our ``TYPE_MAP``.
     """
+
     def default(self, obj: Instance) -> Any:
         typename = type(obj).__qualname__  # preferable to __name__, as above
         if typename in TYPE_MAP:
@@ -613,6 +648,7 @@ def json_class_decoder_hook(d: Dict) -> Any:
 # Functions for end users
 # =============================================================================
 
+
 def json_encode(obj: Instance, **kwargs) -> str:
     """
     Encodes an object to JSON using our custom encoder.
@@ -644,7 +680,7 @@ def json_decode(s: str) -> Any:
 
 register_class_for_json(
     cls=datetime.date,
-    obj_to_dict_fn=make_instance_to_initdict(['year', 'month', 'day'])
+    obj_to_dict_fn=make_instance_to_initdict(["year", "month", "day"]),
 )
 
 # -----------------------------------------------------------------------------
@@ -653,10 +689,18 @@ register_class_for_json(
 
 register_class_for_json(
     cls=datetime.datetime,
-    obj_to_dict_fn=make_instance_to_initdict([
-        'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond',
-        'tzinfo'
-    ])
+    obj_to_dict_fn=make_instance_to_initdict(
+        [
+            "year",
+            "month",
+            "day",
+            "hour",
+            "minute",
+            "second",
+            "microsecond",
+            "tzinfo",
+        ]
+    ),
 )
 
 # -----------------------------------------------------------------------------
@@ -669,9 +713,9 @@ register_class_for_json(
 # that or __qualname__ to add the prefix automatically.
 register_class_for_json(
     cls=datetime.timedelta,
-    obj_to_dict_fn=make_instance_to_initdict([
-        'days', 'seconds', 'microseconds'
-    ])
+    obj_to_dict_fn=make_instance_to_initdict(
+        ["days", "seconds", "microseconds"]
+    ),
 )
 
 
@@ -680,20 +724,19 @@ register_class_for_json(
 # -----------------------------------------------------------------------------
 # Since this is a family of classes, we provide a decorator.
 
+
 def enum_to_dict_fn(e: Enum) -> Dict[str, Any]:
     """
     Converts an ``Enum`` to a ``dict``.
     """
-    return {
-        'name': e.name
-    }
+    return {"name": e.name}
 
 
 def dict_to_enum_fn(d: Dict[str, Any], enum_class: Type[Enum]) -> Enum:
     """
     Converts an ``dict`` to a ``Enum``.
     """
-    return enum_class[d['name']]
+    return enum_class[d["name"]]
 
 
 def register_enum_for_json(*args, **kwargs) -> Any:
@@ -705,43 +748,40 @@ def register_enum_for_json(*args, **kwargs) -> Any:
         # called as @register_enum_for_json
         cls = args[0]  # type: ClassType
         register_class_for_json(
-            cls,
-            obj_to_dict_fn=enum_to_dict_fn,
-            dict_to_obj_fn=dict_to_enum_fn
+            cls, obj_to_dict_fn=enum_to_dict_fn, dict_to_obj_fn=dict_to_enum_fn
         )
         return cls
     else:
         # called as @register_enum_for_json(*args, **kwargs)
-        raise AssertionError("Use as plain @register_enum_for_json, "
-                             "without arguments")
+        raise AssertionError(
+            "Use as plain @register_enum_for_json, " "without arguments"
+        )
 
 
 # -----------------------------------------------------------------------------
 # pendulum.DateTime (formerly pendulum.Pendulum)
 # -----------------------------------------------------------------------------
 
+
 def pendulum_to_dict(p: DateTime) -> Dict[str, Any]:
     """
     Converts a ``Pendulum`` or ``datetime`` object to a ``dict``.
     """
-    return {
-        'iso': str(p)
-    }
+    return {"iso": str(p)}
 
 
 # noinspection PyUnusedLocal,PyTypeChecker
-def dict_to_pendulum(d: Dict[str, Any],
-                     pendulum_class: ClassType) -> DateTime:
+def dict_to_pendulum(d: Dict[str, Any], pendulum_class: ClassType) -> DateTime:
     """
     Converts a ``dict`` object back to a ``Pendulum``.
     """
-    return pendulum.parse(d['iso'])
+    return pendulum.parse(d["iso"])
 
 
 register_class_for_json(
     cls=DateTime,
     obj_to_dict_fn=pendulum_to_dict,
-    dict_to_obj_fn=dict_to_pendulum
+    dict_to_obj_fn=dict_to_pendulum,
 )
 
 
@@ -749,23 +789,23 @@ register_class_for_json(
 # pendulum.Date
 # -----------------------------------------------------------------------------
 
+
 def pendulumdate_to_dict(p: Date) -> Dict[str, Any]:
     """
     Converts a ``pendulum.Date`` object to a ``dict``.
     """
-    return {
-        'iso': str(p)
-    }
+    return {"iso": str(p)}
 
 
 # noinspection PyUnusedLocal
-def dict_to_pendulumdate(d: Dict[str, Any],
-                         pendulumdate_class: ClassType) -> Date:
+def dict_to_pendulumdate(
+    d: Dict[str, Any], pendulumdate_class: ClassType
+) -> Date:
     """
     Converts a ``dict`` object back to a ``pendulum.Date``.
     """
     # noinspection PyTypeChecker
-    dt = pendulum.parse(d['iso'])  # type: pendulum.DateTime
+    dt = pendulum.parse(d["iso"])  # type: pendulum.DateTime
     # noinspection PyTypeChecker
     return dt.date()  # type: pendulum.Date
 
@@ -773,7 +813,7 @@ def dict_to_pendulumdate(d: Dict[str, Any],
 register_class_for_json(
     cls=Date,
     obj_to_dict_fn=pendulumdate_to_dict,
-    dict_to_obj_fn=dict_to_pendulumdate
+    dict_to_obj_fn=dict_to_pendulumdate,
 )
 
 # -----------------------------------------------------------------------------
@@ -821,6 +861,7 @@ register_class_for_json(
 # Testing
 # =============================================================================
 
+
 def simple_eq(one: Instance, two: Instance, attrs: List[str]) -> bool:
     """
     Test if two objects are equal, based on a comparison of the specified
@@ -830,7 +871,6 @@ def simple_eq(one: Instance, two: Instance, attrs: List[str]) -> bool:
 
 
 def unit_tests():
-
     class BaseTestClass(object):
         def __repr__(self) -> str:
             return auto_repr(self, with_addr=True)
@@ -846,16 +886,23 @@ def unit_tests():
             self.c = c
             self.d = d or datetime.datetime.now()
 
-        def __eq__(self, other: 'SimpleThing') -> bool:
-            return simple_eq(self, other, ['a', 'b', 'c', 'd'])
+        def __eq__(self, other: "SimpleThing") -> bool:
+            return simple_eq(self, other, ["a", "b", "c", "d"])
 
     # If you comment out the decorator for this derived class, serialization
     # will fail, and that is a good thing (derived classes shouldn't be
     # serialized on a "have a try" basis).
     @register_for_json
     class DerivedThing(BaseTestClass):
-        def __init__(self, a, b, c, d: datetime.datetime = None, e: int = 5,
-                     f: datetime.date = None):
+        def __init__(
+            self,
+            a,
+            b,
+            c,
+            d: datetime.datetime = None,
+            e: int = 5,
+            f: datetime.date = None,
+        ):
             self.a = a
             self.b = b
             self.c = c
@@ -863,8 +910,8 @@ def unit_tests():
             self.e = e
             self.f = f or datetime.date.today()
 
-        def __eq__(self, other: 'SimpleThing') -> bool:
-            return simple_eq(self, other, ['a', 'b', 'c', 'd', 'e'])
+        def __eq__(self, other: "SimpleThing") -> bool:
+            return simple_eq(self, other, ["a", "b", "c", "d", "e"])
 
     @register_for_json(method=METHOD_STRIP_UNDERSCORE)
     class UnderscoreThing(BaseTestClass):
@@ -874,8 +921,8 @@ def unit_tests():
             self._c = c
 
         # noinspection PyProtectedMember
-        def __eq__(self, other: 'UnderscoreThing') -> bool:
-            return simple_eq(self, other, ['_a', '_b', '_c'])
+        def __eq__(self, other: "UnderscoreThing") -> bool:
+            return simple_eq(self, other, ["_a", "_b", "_c"])
 
     @register_for_json(method=METHOD_PROVIDES_INIT_ARGS_KWARGS)
     class InitDictThing(BaseTestClass):
@@ -884,12 +931,12 @@ def unit_tests():
             self.q = b
             self.r = c
 
-        def __eq__(self, other: 'InitDictThing') -> bool:
-            return simple_eq(self, other, ['p', 'q', 'r'])
+        def __eq__(self, other: "InitDictThing") -> bool:
+            return simple_eq(self, other, ["p", "q", "r"])
 
         def init_args_kwargs(self) -> ArgsKwargsTuple:
             args = []
-            kwargs = {'a': self.p, 'b': self.q, 'c': self.r}
+            kwargs = {"a": self.p, "b": self.q, "c": self.r}
             return args, kwargs
 
     @register_for_json(method=METHOD_PROVIDES_INIT_KWARGS)
@@ -900,10 +947,10 @@ def unit_tests():
             self.r = c
 
         def __eq__(self, other):
-            return simple_eq(self, other, ['p', 'q', 'r'])
+            return simple_eq(self, other, ["p", "q", "r"])
 
         def init_kwargs(self) -> KwargsDict:
-            return {'a': self.p, 'b': self.q, 'c': self.r}
+            return {"a": self.p, "b": self.q, "c": self.r}
 
     def check_json(start: Any) -> None:
         print(repr(start))
@@ -926,5 +973,5 @@ def unit_tests():
     print("\nAll OK.\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unit_tests()

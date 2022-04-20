@@ -33,7 +33,12 @@ from sqlalchemy.engine.result import ResultProxy
 from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import (
-    column, exists, func, literal, select, table,
+    column,
+    exists,
+    func,
+    literal,
+    select,
+    table,
 )
 from sqlalchemy.sql.schema import Table
 from sqlalchemy.sql.selectable import Select
@@ -48,9 +53,10 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Get query result with fieldnames
 # =============================================================================
 
+
 def get_rows_fieldnames_from_raw_sql(
-        session: Union[Session, Engine, Connection],
-        sql: str) -> Tuple[Sequence[Sequence[Any]], Sequence[str]]:
+    session: Union[Session, Engine, Connection], sql: str
+) -> Tuple[Sequence[Sequence[Any]], Sequence[str]]:
     """
     Returns results and column names from a query.
 
@@ -75,9 +81,10 @@ def get_rows_fieldnames_from_raw_sql(
 # =============================================================================
 # https://stackoverflow.com/questions/12941416
 
-def count_star(session: Union[Session, Engine, Connection],
-               tablename: str,
-               *criteria: Any) -> int:
+
+def count_star(
+    session: Union[Session, Engine, Connection], tablename: str, *criteria: Any
+) -> int:
     """
     Returns the result of ``COUNT(*)`` from the specified table (with
     additional ``WHERE`` criteria if desired).
@@ -103,10 +110,13 @@ def count_star(session: Union[Session, Engine, Connection],
 # SELECT COUNT(*), MAX(field) (SQLAlchemy Core)
 # =============================================================================
 
-def count_star_and_max(session: Union[Session, Engine, Connection],
-                       tablename: str,
-                       maxfield: str,
-                       *criteria: Any) -> Tuple[int, Optional[int]]:
+
+def count_star_and_max(
+    session: Union[Session, Engine, Connection],
+    tablename: str,
+    maxfield: str,
+    *criteria: Any
+) -> Tuple[int, Optional[int]]:
     """
 
     Args:
@@ -120,10 +130,9 @@ def count_star_and_max(session: Union[Session, Engine, Connection],
         a tuple: ``(count, maximum)``
 
     """
-    query = select([
-        func.count(),
-        func.max(column(maxfield))
-    ]).select_from(table(tablename))
+    query = select([func.count(), func.max(column(maxfield))]).select_from(
+        table(tablename)
+    )
     for criterion in criteria:
         query = query.where(criterion)
     result = session.execute(query)
@@ -135,6 +144,7 @@ def count_star_and_max(session: Union[Session, Engine, Connection],
 # =============================================================================
 # https://stackoverflow.com/questions/15381604
 # http://docs.sqlalchemy.org/en/latest/orm/query.html
+
 
 def exists_in_table(session: Session, table_: Table, *criteria: Any) -> bool:
     """
@@ -206,8 +216,10 @@ def exists_plain(session: Session, tablename: str, *criteria: Any) -> bool:
 # Get all first values
 # =============================================================================
 
-def fetch_all_first_values(session: Session,
-                           select_statement: Select) -> List[Any]:
+
+def fetch_all_first_values(
+    session: Session, select_statement: Select
+) -> List[Any]:
     # noinspection HttpUrlsUsage
     """
     Returns a list of the first values in each row returned by a ``SELECT``

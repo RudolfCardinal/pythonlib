@@ -66,13 +66,15 @@ from pendulum.tz.timezone import Timezone
 from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 
 if Arrow is not None:
-    PotentialDatetimeType = Union[None, datetime.datetime, datetime.date,
-                                  DateTime, str, Arrow]
+    PotentialDatetimeType = Union[
+        None, datetime.datetime, datetime.date, DateTime, str, Arrow
+    ]
     DateTimeLikeType = Union[datetime.datetime, DateTime, Arrow]
     DateLikeType = Union[datetime.date, DateTime, Arrow]
 else:
-    PotentialDatetimeType = Union[None, datetime.datetime, datetime.date,
-                                  DateTime, str]
+    PotentialDatetimeType = Union[
+        None, datetime.datetime, datetime.date, DateTime, str
+    ]
     DateTimeLikeType = Union[datetime.datetime, DateTime]
     DateLikeType = Union[datetime.date, DateTime]
 
@@ -84,8 +86,10 @@ log = logging.getLogger(__name__)
 # ... including adding timezone information to timezone-naive objects
 # =============================================================================
 
-def coerce_to_pendulum(x: PotentialDatetimeType,
-                       assume_local: bool = False) -> Optional[DateTime]:
+
+def coerce_to_pendulum(
+    x: PotentialDatetimeType, assume_local: bool = False
+) -> Optional[DateTime]:
     """
     Converts something to a :class:`pendulum.DateTime`.
 
@@ -132,9 +136,9 @@ def coerce_to_pendulum(x: PotentialDatetimeType,
     # be altered; "tz" will only be applied in the absence of other info.
 
 
-def coerce_to_pendulum_date(x: PotentialDatetimeType,
-                            assume_local: bool = False,
-                            to_utc: bool = False) -> Optional[Date]:
+def coerce_to_pendulum_date(
+    x: PotentialDatetimeType, assume_local: bool = False, to_utc: bool = False
+) -> Optional[Date]:
     """
     Converts something to a :class:`pendulum.Date`.
 
@@ -175,9 +179,14 @@ def pendulum_to_datetime(x: DateTime) -> datetime.datetime:
     Compare code in :meth:`pendulum.datetime.DateTime.int_timestamp`.
     """
     return datetime.datetime(
-        x.year, x.month, x.day,
-        x.hour, x.minute, x.second, x.microsecond,
-        tzinfo=x.tzinfo
+        x.year,
+        x.month,
+        x.day,
+        x.hour,
+        x.minute,
+        x.second,
+        x.microsecond,
+        tzinfo=x.tzinfo,
     )
 
 
@@ -187,9 +196,14 @@ def pendulum_to_datetime_stripping_tz(x: DateTime) -> datetime.datetime:
     timezone information stripped.
     """
     return datetime.datetime(
-        x.year, x.month, x.day,
-        x.hour, x.minute, x.second, x.microsecond,
-        tzinfo=None
+        x.year,
+        x.month,
+        x.day,
+        x.hour,
+        x.minute,
+        x.second,
+        x.microsecond,
+        tzinfo=None,
     )
 
 
@@ -235,7 +249,7 @@ def pendulum_time_to_datetime_time(x: Time) -> datetime.time:
         minute=x.minute,
         second=x.second,
         microsecond=x.microsecond,
-        tzinfo=x.tzinfo
+        tzinfo=x.tzinfo,
     )
 
 
@@ -243,9 +257,10 @@ def pendulum_time_to_datetime_time(x: Time) -> datetime.time:
 # Format dates/times/timedelta to strings
 # =============================================================================
 
-def format_datetime(d: PotentialDatetimeType,
-                    fmt: str,
-                    default: str = None) -> Optional[str]:
+
+def format_datetime(
+    d: PotentialDatetimeType, fmt: str, default: str = None
+) -> Optional[str]:
     """
     Format a datetime with a ``strftime`` format specification string, or
     return ``default`` if the input is ``None``.
@@ -256,9 +271,11 @@ def format_datetime(d: PotentialDatetimeType,
     return d.strftime(fmt)
 
 
-def strfdelta(tdelta: Union[datetime.timedelta, int, float, str],
-              fmt='{D:02}d {H:02}h {M:02}m {S:02}s',
-              inputtype='timedelta'):
+def strfdelta(
+    tdelta: Union[datetime.timedelta, int, float, str],
+    fmt="{D:02}d {H:02}h {M:02}m {S:02}s",
+    inputtype="timedelta",
+):
     """
     Convert a ``datetime.timedelta`` object or a regular number to a custom-
     formatted string, just like the ``strftime()`` method does for
@@ -295,25 +312,25 @@ def strfdelta(tdelta: Union[datetime.timedelta, int, float, str],
     """  # noqa
 
     # Convert tdelta to integer seconds.
-    if inputtype == 'timedelta':
+    if inputtype == "timedelta":
         remainder = int(tdelta.total_seconds())
-    elif inputtype in ['s', 'seconds']:
+    elif inputtype in ["s", "seconds"]:
         remainder = int(tdelta)
-    elif inputtype in ['m', 'minutes']:
+    elif inputtype in ["m", "minutes"]:
         remainder = int(tdelta) * 60
-    elif inputtype in ['h', 'hours']:
+    elif inputtype in ["h", "hours"]:
         remainder = int(tdelta) * 3600
-    elif inputtype in ['d', 'days']:
+    elif inputtype in ["d", "days"]:
         remainder = int(tdelta) * 86400
-    elif inputtype in ['w', 'weeks']:
+    elif inputtype in ["w", "weeks"]:
         remainder = int(tdelta) * 604800
     else:
         raise ValueError(f"Bad inputtype: {inputtype}")
 
     f = Formatter()
     desired_fields = [field_tuple[1] for field_tuple in f.parse(fmt)]
-    possible_fields = ('W', 'D', 'H', 'M', 'S')
-    constants = {'W': 604800, 'D': 86400, 'H': 3600, 'M': 60, 'S': 1}
+    possible_fields = ("W", "D", "H", "M", "S")
+    constants = {"W": 604800, "D": 86400, "H": 3600, "M": 60, "S": 1}
     values = {}
     for field in possible_fields:
         if field in desired_fields and field in constants:
@@ -324,6 +341,7 @@ def strfdelta(tdelta: Union[datetime.timedelta, int, float, str],
 # =============================================================================
 # Time zones themselves
 # =============================================================================
+
 
 def get_tz_local() -> Timezone:  # datetime.tzinfo:
     """
@@ -343,6 +361,7 @@ def get_tz_utc() -> Timezone:  # datetime.tzinfo:
 # =============================================================================
 # Now
 # =============================================================================
+
 
 def get_now_localtz_pendulum() -> DateTime:
     """
@@ -371,6 +390,7 @@ def get_now_utc_datetime() -> datetime.datetime:
 # From one timezone to another
 # =============================================================================
 
+
 def convert_datetime_to_utc(dt: PotentialDatetimeType) -> DateTime:
     """
     Convert date/time with timezone to UTC (with UTC timezone).
@@ -393,9 +413,12 @@ def convert_datetime_to_local(dt: PotentialDatetimeType) -> DateTime:
 # Time differences
 # =============================================================================
 
-def get_duration_h_m(start: Union[str, DateTime],
-                     end: Union[str, DateTime],
-                     default: str = "N/A") -> str:
+
+def get_duration_h_m(
+    start: Union[str, DateTime],
+    end: Union[str, DateTime],
+    default: str = "N/A",
+) -> str:
     """
     Calculate the time between two dates/times expressed as strings.
 
@@ -433,9 +456,9 @@ def get_duration_h_m(start: Union[str, DateTime],
         return "{}:{}".format(hours, "00" if minutes == 0 else minutes)
 
 
-def get_age(dob: PotentialDatetimeType,
-            when: PotentialDatetimeType,
-            default: str = "") -> Union[int, str]:
+def get_age(
+    dob: PotentialDatetimeType, when: PotentialDatetimeType, default: str = ""
+) -> Union[int, str]:
     """
     Age (in whole years) at a particular date, or ``default``.
 
@@ -492,9 +515,7 @@ def pendulum_duration_from_isodate_duration(dur: IsodateDuration) -> Duration:
     if m.to_integral_value() != m:
         raise ValueError(f"Can't handle non-integer months {y!r}")
     return Duration(
-        seconds=dur.tdelta.total_seconds(),
-        years=int(y),
-        months=int(m)
+        seconds=dur.tdelta.total_seconds(), years=int(y), months=int(m)
     )
 
 
@@ -536,7 +557,9 @@ def duration_from_iso(iso_duration: str) -> Duration:
       this concept.
 
     """
-    duration = parse_duration(iso_duration)  # type: Union[datetime.timedelta, IsodateDuration]  # noqa
+    duration = parse_duration(
+        iso_duration
+    )  # type: Union[datetime.timedelta, IsodateDuration]  # noqa
     # print(f"CONVERTING: {iso_duration!r} -> {duration!r}")
     if isinstance(duration, datetime.timedelta):
         # It'll be a timedelta if it doesn't contain years or months.
@@ -547,7 +570,8 @@ def duration_from_iso(iso_duration: str) -> Duration:
     else:
         raise AssertionError(
             f"Bug in isodate.parse_duration, which returned unknown duration "
-            f"type: {duration!r}")
+            f"type: {duration!r}"
+        )
     # log.debug("Converted {!r} -> {!r} -> {!r}".format(
     #     iso_duration, duration, result))
     return result
@@ -575,9 +599,11 @@ def get_pendulum_duration_nonyear_nonmonth_seconds(d: Duration) -> float:
     return d.total_seconds() - assumed_seconds_for_y_m
 
 
-def duration_to_iso(d: Duration,
-                    permit_years_months: bool = True,
-                    minus_sign_at_front: bool = True) -> str:
+def duration_to_iso(
+    d: Duration,
+    permit_years_months: bool = True,
+    minus_sign_at_front: bool = True,
+) -> str:
     """
     Converts a :class:`pendulum.Duration` into an ISO-8601 formatted string.
 
@@ -633,11 +659,9 @@ def duration_to_iso(d: Duration,
         return prefix + f"P{y}Y{m}MT{s}S"
     else:
         if d.years != 0:
-            raise ValueError(
-                f"Duration has non-zero years: {d.years!r}")
+            raise ValueError(f"Duration has non-zero years: {d.years!r}")
         if d.months != 0:
-            raise ValueError(
-                f"Duration has non-zero months: {d.months!r}")
+            raise ValueError(f"Duration has non-zero months: {d.months!r}")
         # At this point, it's easy. As there is no year/month component, (a) we
         # are confident we have an exact interval that is always validly
         # convertable to seconds, and (b) Pendulum versions before 2.1.1 and
@@ -650,8 +674,10 @@ def duration_to_iso(d: Duration,
 # Other manipulations
 # =============================================================================
 
+
 def truncate_date_to_first_of_month(
-        dt: Optional[DateLikeType]) -> Optional[DateLikeType]:
+    dt: Optional[DateLikeType]
+) -> Optional[DateLikeType]:
     """
     Change the day to the first of the month.
     """
@@ -663,6 +689,7 @@ def truncate_date_to_first_of_month(
 # =============================================================================
 # Older date/time functions for native Python datetime objects
 # =============================================================================
+
 
 def get_now_utc_notz_datetime() -> datetime.datetime:
     """
@@ -691,9 +718,9 @@ def coerce_to_datetime(x: Any) -> Optional[datetime.datetime]:
         return dateutil.parser.parse(x)  # may raise
 
 
-def coerce_to_date(x: Any,
-                   assume_local: bool = False,
-                   to_utc: bool = False) -> Optional[datetime.date]:
+def coerce_to_date(
+    x: Any, assume_local: bool = False, to_utc: bool = False
+) -> Optional[datetime.date]:
     """
     Ensure an object is a :class:`datetime.date`, or coerce to one, or
     raise :exc:`ValueError` or :exc:`OverflowError` (as per
@@ -702,9 +729,7 @@ def coerce_to_date(x: Any,
     See also :func:`coerce_to_pendulum_date`, noting that
     :class:`pendulum.Date` is a subclass of :class:`datetime.date`.
     """
-    pd = coerce_to_pendulum_date(x,
-                                 assume_local=assume_local,
-                                 to_utc=to_utc)
+    pd = coerce_to_pendulum_date(x, assume_local=assume_local, to_utc=to_utc)
     if pd is None:
         return None
     return pendulum_date_to_datetime_date(pd)

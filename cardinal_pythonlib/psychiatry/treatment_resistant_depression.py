@@ -128,15 +128,17 @@ def timedelta_days(days: int) -> timedelta64:
     try:
         # Do not pass e.g. 27.0; that will raise a ValueError.
         # Must be an actual int:
-        return timedelta64(int_days, 'D')
+        return timedelta64(int_days, "D")
     except ValueError as e:
         raise ValueError(
             f"Failure in timedelta_days; value was {days!r}; "
-            f"original error was: {e}")
+            f"original error was: {e}"
+        )
 
 
 def _get_generic_two_antidep_episodes_result(
-        rowdata: Tuple[Any, ...] = None) -> DataFrame:
+    rowdata: Tuple[Any, ...] = None
+) -> DataFrame:
     """
     Create a results row for this application.
     """
@@ -145,20 +147,22 @@ def _get_generic_two_antidep_episodes_result(
     # - https://pandas.pydata.org/pandas-docs/stable/timeseries.html
     # - https://docs.scipy.org/doc/numpy-1.13.0/reference/arrays.datetime.html
     data = [rowdata] if rowdata else []
-    return DataFrame(array(
-        data,  # data
-        dtype=[  # column definitions:
-            (RCN_PATIENT_ID, DTYPE_STRING),
-            (RCN_DRUG_A_NAME, DTYPE_STRING),
-            (RCN_DRUG_A_FIRST_MENTION, DTYPE_DATE),
-            (RCN_DRUG_A_SECOND_MENTION, DTYPE_DATE),
-            (RCN_DRUG_B_NAME, DTYPE_STRING),
-            (RCN_DRUG_B_FIRST_MENTION, DTYPE_DATE),
-            (RCN_DRUG_B_SECOND_MENTION, DTYPE_DATE),
-            (RCN_EXPECT_RESPONSE_BY_DATE, DTYPE_DATE),
-            (RCN_END_OF_SYMPTOM_PERIOD, DTYPE_DATE),
-        ]
-    ))
+    return DataFrame(
+        array(
+            data,  # data
+            dtype=[  # column definitions:
+                (RCN_PATIENT_ID, DTYPE_STRING),
+                (RCN_DRUG_A_NAME, DTYPE_STRING),
+                (RCN_DRUG_A_FIRST_MENTION, DTYPE_DATE),
+                (RCN_DRUG_A_SECOND_MENTION, DTYPE_DATE),
+                (RCN_DRUG_B_NAME, DTYPE_STRING),
+                (RCN_DRUG_B_FIRST_MENTION, DTYPE_DATE),
+                (RCN_DRUG_B_SECOND_MENTION, DTYPE_DATE),
+                (RCN_EXPECT_RESPONSE_BY_DATE, DTYPE_DATE),
+                (RCN_END_OF_SYMPTOM_PERIOD, DTYPE_DATE),
+            ],
+        )
+    )
 
 
 def _get_blank_two_antidep_episodes_result() -> DataFrame:
@@ -169,15 +173,16 @@ def _get_blank_two_antidep_episodes_result() -> DataFrame:
 
 
 def two_antidepressant_episodes_single_patient(
-        patient_id: str,
-        patient_drug_date_df: DataFrame,
-        patient_colname: str = DEFAULT_SOURCE_PATIENT_COLNAME,
-        drug_colname: str = DEFAULT_SOURCE_DRUG_COLNAME,
-        date_colname: str = DEFAULT_SOURCE_DATE_COLNAME,
-        course_length_days: int = DEFAULT_ANTIDEPRESSANT_COURSE_LENGTH_DAYS,
-        expect_response_by_days: int = DEFAULT_EXPECT_RESPONSE_BY_DAYS,
-        symptom_assessment_time_days: int = DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,  # noqa
-        first_episode_only: bool = True) -> Optional[DataFrame]:
+    patient_id: str,
+    patient_drug_date_df: DataFrame,
+    patient_colname: str = DEFAULT_SOURCE_PATIENT_COLNAME,
+    drug_colname: str = DEFAULT_SOURCE_DRUG_COLNAME,
+    date_colname: str = DEFAULT_SOURCE_DATE_COLNAME,
+    course_length_days: int = DEFAULT_ANTIDEPRESSANT_COURSE_LENGTH_DAYS,
+    expect_response_by_days: int = DEFAULT_EXPECT_RESPONSE_BY_DAYS,
+    symptom_assessment_time_days: int = DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,  # noqa
+    first_episode_only: bool = True,
+) -> Optional[DataFrame]:
     """
     Processes a single patient for ``two_antidepressant_episodes()`` (q.v.).
 
@@ -185,7 +190,8 @@ def two_antidepressant_episodes_single_patient(
     """
     log.debug(
         f"Running two_antidepressant_episodes_single_patient() "
-        f"for patient {patient_id!r}")
+        f"for patient {patient_id!r}"
+    )
     all_episodes_for_patient = _get_blank_two_antidep_episodes_result()
     flush_stdout_stderr()
     # Get column details from source data
@@ -228,11 +234,12 @@ def two_antidepressant_episodes_single_patient(
         # Check candidate B drug
         # ---------------------------------------------------------------------
         antidepressant_b_name = tp.iat[first_b_rownum, sourcecolnum_drug]
-        antidepressant_b_first_mention = tp.iat[first_b_rownum,
-                                                sourcecolnum_date]
+        antidepressant_b_first_mention = tp.iat[
+            first_b_rownum, sourcecolnum_date
+        ]
         earliest_possible_b_second_mention = (
-            antidepressant_b_first_mention +
-            timedelta_days(course_length_days - 1)
+            antidepressant_b_first_mention
+            + timedelta_days(course_length_days - 1)
         )
         # ... e.g. "a 28-day course" means "day 1 to day 28 inclusive" => at
         # least 27 days between the first and second date
@@ -242,8 +249,10 @@ def two_antidepressant_episodes_single_patient(
             # the slice operation that follows.
             continue  # try another B
         b_second_mentions = tp[
-            (tp[drug_colname] == antidepressant_b_name) &  # same drug
-            (tp[date_colname] >= earliest_possible_b_second_mention)
+            (tp[drug_colname] == antidepressant_b_name)
+            & (  # same drug
+                tp[date_colname] >= earliest_possible_b_second_mention
+            )
         ]
         if len(b_second_mentions) == 0:
             # No second mention of antidepressant_b_name
@@ -251,7 +260,8 @@ def two_antidepressant_episodes_single_patient(
         # We only care about the earliest qualifying (completion-of-course)
         # B second mention.
         antidepressant_b_second_mention = b_second_mentions.iat[
-            0, sourcecolnum_date]
+            0, sourcecolnum_date
+        ]
         # ... this statement could be moved to after the A loop, but that
         #     would sacrifice clarity.
 
@@ -259,9 +269,9 @@ def two_antidepressant_episodes_single_patient(
         # Now find preceding A drug
         # ---------------------------------------------------------------------
         preceding_other_antidepressants = tp[
-            (tp[drug_colname] != antidepressant_b_name) &
+            (tp[drug_colname] != antidepressant_b_name)
+            &
             # ... A is a different drug to B
-
             # Changed 2019-04-01: WAS THIS:
             #     (tp[date_colname] < antidepressant_b_first_mention)
             #     # ... A is mentioned before B starts
@@ -282,25 +292,29 @@ def two_antidepressant_episodes_single_patient(
             # skip the last row, as that's impossible (the first mention of
             # A cannot be the last row since there must be two mentions of A)
             antidepressant_a_name = tp.iat[first_a_rownum, sourcecolnum_drug]
-            antidepressant_a_first_mention = tp.iat[first_a_rownum,
-                                                    sourcecolnum_date]
+            antidepressant_a_first_mention = tp.iat[
+                first_a_rownum, sourcecolnum_date
+            ]
             earliest_possible_a_second_mention = (
-                antidepressant_a_first_mention +
-                timedelta_days(course_length_days - 1)
+                antidepressant_a_first_mention
+                + timedelta_days(course_length_days - 1)
             )
 
             # 2019-04-01: CHANGED FROM:
             #     if (earliest_possible_a_second_mention >=
             #             antidepressant_b_first_mention):
             # TO:
-            if (earliest_possible_a_second_mention >
-                    antidepressant_b_first_mention):
+            if (
+                earliest_possible_a_second_mention
+                > antidepressant_b_first_mention
+            ):
                 # Impossible to squeeze in the second A mention before B.
                 # Logically unnecessary test, but improves efficiency by
                 # skipping the slice operation that follows.
                 continue  # try another A
             a_second_mentions = tp[
-                (tp[drug_colname] == antidepressant_a_name) &
+                (tp[drug_colname] == antidepressant_a_name)
+                &
                 # ... same drug
                 (tp[date_colname] >= earliest_possible_a_second_mention)
                 # ... mentioned late enough after its first mention
@@ -311,12 +325,13 @@ def two_antidepressant_episodes_single_patient(
             # We pick the first possible completion-of-course A second
             # mention:
             antidepressant_a_second_mention = a_second_mentions.iat[
-                0, sourcecolnum_date]
+                0, sourcecolnum_date
+            ]
             # Make sure B is not mentioned within the A range
             mentions_of_b_within_a_range = tp[
-                (tp[drug_colname] == antidepressant_b_name) &
-                (tp[date_colname] >= antidepressant_a_first_mention) &
-
+                (tp[drug_colname] == antidepressant_b_name)
+                & (tp[date_colname] >= antidepressant_a_first_mention)
+                &
                 # 2019-04-01: CHANGED FROM:
                 #    (tp[date_colname] <= antidepressant_a_second_mention)
                 # TO:
@@ -338,24 +353,28 @@ def two_antidepressant_episodes_single_patient(
         # http://pandas.pydata.org/pandas-docs/stable/indexing.html#setting-with-enlargement  # noqa
 
         expect_response_by_date = (
-            antidepressant_b_first_mention + timedelta_days(
-                expect_response_by_days)
+            antidepressant_b_first_mention
+            + timedelta_days(expect_response_by_days)
         )
         end_of_symptom_period = (
-            antidepressant_b_first_mention + timedelta_days(
-                expect_response_by_days + symptom_assessment_time_days - 1)
+            antidepressant_b_first_mention
+            + timedelta_days(
+                expect_response_by_days + symptom_assessment_time_days - 1
+            )
         )
-        result = _get_generic_two_antidep_episodes_result((
-            patient_id,
-            antidepressant_a_name,
-            antidepressant_a_first_mention,
-            antidepressant_a_second_mention,
-            antidepressant_b_name,
-            antidepressant_b_first_mention,
-            antidepressant_b_second_mention,
-            expect_response_by_date,
-            end_of_symptom_period
-        ))
+        result = _get_generic_two_antidep_episodes_result(
+            (
+                patient_id,
+                antidepressant_a_name,
+                antidepressant_a_first_mention,
+                antidepressant_a_second_mention,
+                antidepressant_b_name,
+                antidepressant_b_first_mention,
+                antidepressant_b_second_mention,
+                expect_response_by_date,
+                end_of_symptom_period,
+            )
+        )
         # We only care about the first episode per patient that matches, so:
         if first_episode_only:
             return result
@@ -368,16 +387,16 @@ def two_antidepressant_episodes_single_patient(
 
 
 def two_antidepressant_episodes(
-        patient_drug_date_df: DataFrame,
-        patient_colname: str = DEFAULT_SOURCE_PATIENT_COLNAME,
-        drug_colname: str = DEFAULT_SOURCE_DRUG_COLNAME,
-        date_colname: str = DEFAULT_SOURCE_DATE_COLNAME,
-        course_length_days: int = DEFAULT_ANTIDEPRESSANT_COURSE_LENGTH_DAYS,
-        expect_response_by_days: int = DEFAULT_EXPECT_RESPONSE_BY_DAYS,
-        symptom_assessment_time_days: int =
-        DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,
-        n_threads: int = DEFAULT_N_THREADS,
-        first_episode_only: bool = True) -> DataFrame:
+    patient_drug_date_df: DataFrame,
+    patient_colname: str = DEFAULT_SOURCE_PATIENT_COLNAME,
+    drug_colname: str = DEFAULT_SOURCE_DRUG_COLNAME,
+    date_colname: str = DEFAULT_SOURCE_DATE_COLNAME,
+    course_length_days: int = DEFAULT_ANTIDEPRESSANT_COURSE_LENGTH_DAYS,
+    expect_response_by_days: int = DEFAULT_EXPECT_RESPONSE_BY_DAYS,
+    symptom_assessment_time_days: int = DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,
+    n_threads: int = DEFAULT_N_THREADS,
+    first_episode_only: bool = True,
+) -> DataFrame:
     """
     Takes a *pandas* ``DataFrame``, ``patient_drug_date_df`` (or, via
     ``reticulate``, an R ``data.frame`` or ``data.table``). This should contain
@@ -413,8 +432,9 @@ def two_antidepressant_episodes(
         # Farm off the work to lots of threads:
         log.info("Parallel processing method; {} threads", n_threads)
         with ThreadPoolExecutor(max_workers=n_threads) as executor:
-            list_of_results_frames = executor.map(_get_patient_result,
-                                                  patient_ids)
+            list_of_results_frames = executor.map(
+                _get_patient_result, patient_ids
+            )
 
         log.debug("Recombining results from parallel processing...")
         for patient_result in list_of_results_frames:
@@ -432,20 +452,23 @@ def two_antidepressant_episodes(
 
     # For consistent results order, even with parallel processing:
     combined_result = combined_result.sort_values(
-        by=[RCN_PATIENT_ID], ascending=True)
+        by=[RCN_PATIENT_ID], ascending=True
+    )
     # So that the DataFrame indices aren't all zero (largely cosmetic):
     combined_result.reset_index(inplace=True, drop=True)
 
     end = Pendulum.now()
     duration = end - start
-    log.info("Took {} seconds for {} patients",
-             duration.total_seconds(), n_patients)
+    log.info(
+        "Took {} seconds for {} patients", duration.total_seconds(), n_patients
+    )
     flush_stdout_stderr()
     return combined_result
 
 
 def test_two_antidepressant_episodes(
-        n_sets: int = TEST_PATIENT_MULTIPLE) -> None:
+    n_sets: int = TEST_PATIENT_MULTIPLE
+) -> None:
     fluox = "fluoxetine"
     cital = "citalopram"
     sert = "sertraline"
@@ -529,7 +552,7 @@ def test_two_antidepressant_episodes(
                     (patient_colname, DTYPE_STRING),
                     (drug_colname, DTYPE_STRING),
                     (date_colname, DTYPE_DATE),
-                ]
+                ],
             )
             newpart = DataFrame.from_records(arr)
             if dataframe is None:
@@ -538,8 +561,13 @@ def test_two_antidepressant_episodes(
                 dataframe = dataframe.append(newpart)
         return dataframe
 
-    def _validate(_result: DataFrame, patient_name: str,
-                  nrows: int, drug_a: str = None, drug_b: str = None) -> None:
+    def _validate(
+        _result: DataFrame,
+        patient_name: str,
+        nrows: int,
+        drug_a: str = None,
+        drug_b: str = None,
+    ) -> None:
         colnum_drug_a = _result.columns.get_loc(RCN_DRUG_A_NAME)
         colnum_drug_b = _result.columns.get_loc(RCN_DRUG_B_NAME)
         patient_result = _result[_result[RCN_PATIENT_ID] == patient_name]
@@ -602,7 +630,7 @@ def main() -> None:
 
         pr.disable()
         s = io.StringIO()
-        sortby = 'cumulative'
+        sortby = "cumulative"
         # In Python 3.7: sortby = pstats.SortKey.CUMULATIVE
         ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
         ps.print_stats(50)  # top 50

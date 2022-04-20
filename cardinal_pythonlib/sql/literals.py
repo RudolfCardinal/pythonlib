@@ -39,6 +39,7 @@ DOUBLE_SQUOTE = "''"
 # SQL elements: literals
 # =============================================================================
 
+
 def sql_string_literal(text: str) -> str:
     """
     Transforms text into its ANSI SQL-quoted version, e.g. (in Python ``repr()``
@@ -67,8 +68,7 @@ def sql_date_literal(dt: DateLikeType) -> str:
     return dt.strftime("'%Y-%m-%d'")
 
 
-def sql_datetime_literal(dt: DateTimeLikeType,
-                         subsecond: bool = False) -> str:
+def sql_datetime_literal(dt: DateTimeLikeType, subsecond: bool = False) -> str:
     """
     Transforms a Python object that is of duck type ``datetime.datetime`` into
     an ANSI SQL literal string, like ``'2000-12-31 23:59:59'``, or if
@@ -97,6 +97,7 @@ def sql_comment(comment: str) -> str:
 # Reversing the operations above
 # =============================================================================
 
+
 def sql_dequote_string(s: str) -> str:
     """
     Reverses :func:`sql_quote_string`.
@@ -110,6 +111,7 @@ def sql_dequote_string(s: str) -> str:
 # =============================================================================
 # Processing SQL CSV values
 # =============================================================================
+
 
 def gen_items_from_sql_csv(s: str) -> Generator[str, None, None]:
     """

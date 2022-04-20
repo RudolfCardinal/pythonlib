@@ -46,12 +46,13 @@ from typing import (
 # Constants
 # =============================================================================
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 # =============================================================================
 # with_typehint
 # =============================================================================
+
 
 def with_typehint(baseclass: Type[T]) -> Type[T]:
     """
@@ -97,6 +98,7 @@ def with_typehints(*baseclasses: Type[T]) -> Type[T]:
 # csv.writer
 # =============================================================================
 
+
 class CSVWriterType(object):
     """
     Type hint for the result of ``csv.writer()``
@@ -121,6 +123,7 @@ class CSVWriterType(object):
 # =============================================================================
 # Pep249DatabaseConnectionType
 # =============================================================================
+
 
 class Pep249DatabaseConnectionType(object):
     """
@@ -232,8 +235,7 @@ class Pep249DatabaseCursorType(object):
 
     @property
     @abstractmethod
-    def description(self) \
-            -> Optional[Sequence[Sequence[Any]]]:
+    def description(self) -> Optional[Sequence[Sequence[Any]]]:
         """
         A sequence of column_description objects, where each column_description
         describes one result column and has the following items:
@@ -377,7 +379,7 @@ class Pep249DatabaseCursorType(object):
         pass
 
     @abstractmethod
-    def scroll(self, value: int, mode: str = 'relative') -> None:
+    def scroll(self, value: int, mode: str = "relative") -> None:
         """
         See
         https://www.python.org/dev/peps/pep-0249/#optional-db-api-extensions

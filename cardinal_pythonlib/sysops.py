@@ -38,9 +38,9 @@ EXIT_FAILURE = 1
 EXIT_SUCCESS = 0
 
 
-def die(msg: str,
-        log_level: int = logging.CRITICAL,
-        exit_code: int = EXIT_FAILURE) -> NoReturn:
+def die(
+    msg: str, log_level: int = logging.CRITICAL, exit_code: int = EXIT_FAILURE
+) -> NoReturn:
     """
     Prints a message and hard-exits the program.
 
@@ -53,9 +53,11 @@ def die(msg: str,
     sys.exit(exit_code)
 
 
-def get_envvar_or_die(envvar: str,
-                      log_level: int = logging.CRITICAL,
-                      exit_code: int = EXIT_FAILURE) -> str:
+def get_envvar_or_die(
+    envvar: str,
+    log_level: int = logging.CRITICAL,
+    exit_code: int = EXIT_FAILURE,
+) -> str:
     """
     Returns the value of an environment variable.
     If it is unset or blank, complains and hard-exits the program.
@@ -70,6 +72,9 @@ def get_envvar_or_die(envvar: str,
     """
     value = os.environ.get(envvar)
     if not value:
-        die(f"Must set environment variable {envvar}",
-            log_level=log_level, exit_code=exit_code)
+        die(
+            f"Must set environment variable {envvar}",
+            log_level=log_level,
+            exit_code=exit_code,
+        )
     return value

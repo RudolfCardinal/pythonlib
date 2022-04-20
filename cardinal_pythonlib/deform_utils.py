@@ -23,10 +23,19 @@
 ===============================================================================
 """
 
-from typing import (Any, Callable, Dict, Generator, Iterable, List, Tuple,
-                    TYPE_CHECKING)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Tuple,
+    TYPE_CHECKING,
+)
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
 # noinspection PyUnresolvedReferences
 from colander import Invalid, SchemaNode
 from deform.exception import ValidationFailure
@@ -57,6 +66,7 @@ if any([DEBUG_DYNAMIC_DESCRIPTIONS_FORM, DEBUG_FORM_VALIDATION]):
 # Widget resources
 # =============================================================================
 
+
 def get_head_form_html(req: "Request", forms: List[Form]) -> str:
     """
     Returns the extra HTML that needs to be injected into the ``<head>``
@@ -68,16 +78,21 @@ def get_head_form_html(req: "Request", forms: List[Form]) -> str:
     for form in forms:
         resources = form.get_widget_resources()  # type: Dict[str, List[str]]
         # Add, ignoring duplicates:
-        js_resources.extend(x for x in resources['js']
-                            if x not in js_resources)
-        css_resources.extend(x for x in resources['css']
-                             if x not in css_resources)
+        js_resources.extend(
+            x for x in resources["js"] if x not in js_resources
+        )
+        css_resources.extend(
+            x for x in resources["css"] if x not in css_resources
+        )
     js_links = [req.static_url(r) for r in js_resources]
     css_links = [req.static_url(r) for r in css_resources]
-    js_tags = ['<script type="text/javascript" src="%s"></script>' % link
-               for link in js_links]
-    css_tags = ['<link rel="stylesheet" href="%s"/>' % link
-                for link in css_links]
+    js_tags = [
+        '<script type="text/javascript" src="%s"></script>' % link
+        for link in js_links
+    ]
+    css_tags = [
+        '<link rel="stylesheet" href="%s"/>' % link for link in css_links
+    ]
     tags = js_tags + css_tags
     head_html = "\n".join(tags)
     return head_html
@@ -90,10 +105,12 @@ def get_head_form_html(req: "Request", forms: List[Form]) -> str:
 # https://groups.google.com/forum/?fromgroups#!topic/pylons-discuss/LNHDq6KvNLI
 # https://groups.google.com/forum/#!topic/pylons-discuss/Lr1d1VpMycU
 
+
 class DeformErrorInterface(object):
     """
     Class to record information about Deform errors.
     """
+
     def __init__(self, msg: str, *children: "DeformErrorInterface") -> None:
         """
         Args:
@@ -111,9 +128,10 @@ class InformativeForm(Form):
     """
     A Deform form class that shows its errors.
     """
-    def validate(self,
-                 controls: Iterable[Tuple[str, str]],
-                 subcontrol: str = None) -> Any:
+
+    def validate(
+        self, controls: Iterable[Tuple[str, str]], subcontrol: str = None
+    ) -> Any:
         """
         Validates the form.
 
@@ -131,13 +149,15 @@ class InformativeForm(Form):
             return super().validate(controls, subcontrol)
         except ValidationFailure as e:
             if DEBUG_FORM_VALIDATION:
-                log.warning("Validation failure: {!r}; {}",
-                            e, self._get_form_errors())
+                log.warning(
+                    "Validation failure: {!r}; {}", e, self._get_form_errors()
+                )
             self._show_hidden_widgets_for_fields_with_errors(self)
             raise
 
-    def _show_hidden_widgets_for_fields_with_errors(self,
-                                                    field: Field) -> None:
+    def _show_hidden_widgets_for_fields_with_errors(
+        self, field: Field
+    ) -> None:
         if field.error:
             widget = getattr(field, "widget", None)
             # log.warning(repr(widget))
@@ -148,19 +168,18 @@ class InformativeForm(Form):
         for child_field in field.children:
             self._show_hidden_widgets_for_fields_with_errors(child_field)
 
-    def _collect_error_errors(self,
-                              errorlist: List[str],
-                              error: DeformErrorInterface) -> None:
+    def _collect_error_errors(
+        self, errorlist: List[str], error: DeformErrorInterface
+    ) -> None:
         if error is None:
             return
         errorlist.append(str(error))
         for child_error in error.children:  # typically: subfields
             self._collect_error_errors(errorlist, child_error)
 
-    def _collect_form_errors(self,
-                             errorlist: List[str],
-                             field: Field,
-                             hidden_only: bool = False):
+    def _collect_form_errors(
+        self, errorlist: List[str], field: Field, hidden_only: bool = False
+    ):
         if hidden_only:
             widget = getattr(field, "widget", None)
             if not isinstance(widget, HiddenWidget):
@@ -168,8 +187,9 @@ class InformativeForm(Form):
         # log.critical(repr(field))
         self._collect_error_errors(errorlist, field.error)
         for child_field in field.children:
-            self._collect_form_errors(errorlist, child_field,
-                                      hidden_only=hidden_only)
+            self._collect_form_errors(
+                errorlist, child_field, hidden_only=hidden_only
+            )
 
     def _get_form_errors(self, hidden_only: bool = False) -> str:
         errorlist = []  # type: List[str]
@@ -188,6 +208,7 @@ def debug_validator(validator: ValidatorType) -> ValidatorType:
     If you do this, the log will show the thinking of the validator (what it's
     trying to validate, and whether it accepted or rejected the value).
     """
+
     def _validate(node: SchemaNode, value: Any) -> None:
         log.debug("Validating: {!r}", value)
         try:
@@ -203,6 +224,7 @@ def debug_validator(validator: ValidatorType) -> ValidatorType:
 # =============================================================================
 # DynamicDescriptionsForm
 # =============================================================================
+
 
 def gen_fields(field: Field) -> Generator[Field, None, None]:
     """
@@ -231,11 +253,14 @@ class DynamicDescriptionsForm(InformativeForm):
     The use case is to generate a random string which the user has to enter to
     confirm dangerous operations.
     """
-    def __init__(self,
-                 *args,
-                 dynamic_descriptions: bool = True,
-                 dynamic_titles: bool = False,
-                 **kwargs) -> None:
+
+    def __init__(
+        self,
+        *args,
+        dynamic_descriptions: bool = True,
+        dynamic_titles: bool = False,
+        **kwargs
+    ) -> None:
         """
         Args:
             args: other positional arguments to :class:`InformativeForm`
@@ -247,21 +272,28 @@ class DynamicDescriptionsForm(InformativeForm):
         self.dynamic_titles = dynamic_titles
         super().__init__(*args, **kwargs)
 
-    def validate(self,
-                 controls: Iterable[Tuple[str, str]],
-                 subcontrol: str = None) -> Any:
+    def validate(
+        self, controls: Iterable[Tuple[str, str]], subcontrol: str = None
+    ) -> Any:
         try:
             return super().validate(controls, subcontrol)
         finally:
             for f in gen_fields(self):
                 if self.dynamic_titles:
                     if DEBUG_DYNAMIC_DESCRIPTIONS_FORM:
-                        log.debug("Rewriting title for {!r} from {!r} to {!r}",
-                                  f, f.title, f.schema.title)
+                        log.debug(
+                            "Rewriting title for {!r} from {!r} to {!r}",
+                            f,
+                            f.title,
+                            f.schema.title,
+                        )
                     f.title = f.schema.title
                 if self.dynamic_descriptions:
                     if DEBUG_DYNAMIC_DESCRIPTIONS_FORM:
                         log.debug(
                             "Rewriting description for {!r} from {!r} to {!r}",
-                            f, f.description, f.schema.description)
+                            f,
+                            f.description,
+                            f.schema.description,
+                        )
                     f.description = f.schema.description

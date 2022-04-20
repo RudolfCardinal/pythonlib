@@ -38,15 +38,19 @@ log = get_brace_style_log_with_null_handler(__name__)
 # TableIdentity
 # =============================================================================
 
+
 class TableIdentity(object):
     """
     Convenient way of passing around SQLAlchemy :class:`Table` objects when you
     might know either either its name or the :class:`Table` object itself.
     """
-    def __init__(self,
-                 tablename: str = None,
-                 table: Table = None,
-                 metadata: MetaData = None) -> None:
+
+    def __init__(
+        self,
+        tablename: str = None,
+        table: Table = None,
+        metadata: MetaData = None,
+    ) -> None:
         """
         Initialize with either ``tablename`` or ``table``, not both.
 
@@ -56,8 +60,9 @@ class TableIdentity(object):
             metadata: optional :class:`MetaData` object
         """
         assert table is not None or tablename, "No table information provided"
-        assert not (tablename and table is not None), (
-            "Specify either table or tablename, not both")
+        assert not (
+            tablename and table is not None
+        ), "Specify either table or tablename, not both"
         self._table = table
         self._tablename = tablename
         self._metadata = metadata
@@ -89,7 +94,8 @@ class TableIdentity(object):
             if table.name == self._tablename:
                 return table
         raise ValueError(
-            f"No table named {self._tablename!r} is present in the metadata")
+            f"No table named {self._tablename!r} is present in the metadata"
+        )
 
     @property
     def tablename(self) -> str:

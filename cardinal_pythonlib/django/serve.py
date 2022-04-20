@@ -33,10 +33,13 @@ from typing import Iterable, Optional, Union
 
 # noinspection PyUnresolvedReferences
 from django.conf import settings
+
 # noinspection PyUnresolvedReferences
 from django.http import FileResponse, HttpResponse
+
 # noinspection PyUnresolvedReferences
 from django.http.response import HttpResponseBase
+
 # noinspection PyUnresolvedReferences
 from django.utils.encoding import smart_str
 
@@ -59,14 +62,16 @@ from cardinal_pythonlib.pdf import (
 # ... but it turns out that filetransfers.api.serve_file uses a file object,
 # not a filename. Not impossible, but never mind.
 
+
 def add_http_headers_for_attachment(
-        response: HttpResponse,
-        offered_filename: str = None,
-        content_type: str = None,
-        as_attachment: bool = False,
-        as_inline: bool = False,
-        content_length: int = None,
-        default_content_type: Optional[str] = MimeType.FORCE_DOWNLOAD) -> None:
+    response: HttpResponse,
+    offered_filename: str = None,
+    content_type: str = None,
+    as_attachment: bool = False,
+    as_inline: bool = False,
+    content_length: int = None,
+    default_content_type: Optional[str] = MimeType.FORCE_DOWNLOAD,
+) -> None:
     """
     Add HTTP headers to a Django response class object.
 
@@ -93,36 +98,37 @@ def add_http_headers_for_attachment(
     """
     # Parameters
     if offered_filename is None:
-        offered_filename = ''
+        offered_filename = ""
     if content_type is None:
         content_type = default_content_type
 
     # Content-Type
     if content_type is not None:
-        response['Content-Type'] = content_type
+        response["Content-Type"] = content_type
 
     # Content-Disposition
     if as_attachment:
-        prefix = 'attachment; '
+        prefix = "attachment; "
     elif as_inline:
-        prefix = 'inline; '
+        prefix = "inline; "
     else:
-        prefix = ''
-    fname = 'filename=%s' % smart_str(offered_filename)
-    response['Content-Disposition'] = prefix + fname
+        prefix = ""
+    fname = "filename=%s" % smart_str(offered_filename)
+    response["Content-Disposition"] = prefix + fname
 
     # Content-Length
     if content_length is not None:
-        response['Content-Length'] = content_length
+        response["Content-Length"] = content_length
 
 
-def serve_file(path_to_file: str,
-               offered_filename: str = None,
-               content_type: str = None,
-               as_attachment: bool = False,
-               as_inline: bool = False,
-               default_content_type: Optional[str] = MimeType.FORCE_DOWNLOAD) \
-        -> HttpResponseBase:
+def serve_file(
+    path_to_file: str,
+    offered_filename: str = None,
+    content_type: str = None,
+    as_attachment: bool = False,
+    as_inline: bool = False,
+    default_content_type: Optional[str] = MimeType.FORCE_DOWNLOAD,
+) -> HttpResponseBase:
     """
     Serve up a file from disk.
 
@@ -155,13 +161,13 @@ def serve_file(path_to_file: str,
     # https://docs.djangoproject.com/en/dev/ref/request-response/#telling-the-browser-to-treat-the-response-as-a-file-attachment  # noqa
     # https://djangosnippets.org/snippets/365/
     if offered_filename is None:
-        offered_filename = os.path.basename(path_to_file) or ''
+        offered_filename = os.path.basename(path_to_file) or ""
     if getattr(settings, "XSENDFILE", False):
         response = HttpResponse()
-        response['X-Sendfile'] = smart_str(path_to_file)
+        response["X-Sendfile"] = smart_str(path_to_file)
         content_length = os.path.getsize(path_to_file)
     else:
-        response = FileResponse(open(path_to_file, mode='rb'))
+        response = FileResponse(open(path_to_file, mode="rb"))
         content_length = None
     add_http_headers_for_attachment(
         response,
@@ -170,7 +176,8 @@ def serve_file(path_to_file: str,
         as_attachment=as_attachment,
         as_inline=as_inline,
         content_length=content_length,
-        default_content_type=default_content_type)
+        default_content_type=default_content_type,
+    )
     return response
     # Note for debugging: Chrome may request a file more than once (e.g. with a
     # GET request that's then marked 'canceled' in the Network tab of the
@@ -179,13 +186,13 @@ def serve_file(path_to_file: str,
 
 
 def serve_buffer(
-        data: bytes,
-        offered_filename: str = None,
-        content_type: str = None,
-        as_attachment: bool = True,
-        as_inline: bool = False,
-        default_content_type: Optional[str] = MimeType.FORCE_DOWNLOAD) \
-        -> HttpResponse:
+    data: bytes,
+    offered_filename: str = None,
+    content_type: str = None,
+    as_attachment: bool = True,
+    as_inline: bool = False,
+    default_content_type: Optional[str] = MimeType.FORCE_DOWNLOAD,
+) -> HttpResponse:
     """
     Serve up binary data from a buffer.
     Options as for :func:`serve_file`.
@@ -198,13 +205,15 @@ def serve_buffer(
         as_attachment=as_attachment,
         as_inline=as_inline,
         content_length=len(data),
-        default_content_type=default_content_type)
+        default_content_type=default_content_type,
+    )
     return response
 
 
 # =============================================================================
 # Simpler versions
 # =============================================================================
+
 
 def add_download_filename(response: HttpResponse, filename: str) -> None:
     """
@@ -213,12 +222,14 @@ def add_download_filename(response: HttpResponse, filename: str) -> None:
     """
     # https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     add_http_headers_for_attachment(response)
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
 
-def file_response(data: Union[bytes, str],  # HttpResponse encodes str if req'd
-                  content_type: str,
-                  filename: str) -> HttpResponse:
+def file_response(
+    data: Union[bytes, str],  # HttpResponse encodes str if req'd
+    content_type: str,
+    filename: str,
+) -> HttpResponse:
     """
     Returns an ``HttpResponse`` with an attachment containing the specified
     data with the specified filename as an attachment.
@@ -232,47 +243,56 @@ def file_response(data: Union[bytes, str],  # HttpResponse encodes str if req'd
 # PDF serving
 # =============================================================================
 
+
 def serve_concatenated_pdf_from_disk(
-        filenames: Iterable[str],
-        offered_filename: str = "crate_download.pdf",
-        **kwargs) -> HttpResponse:
+    filenames: Iterable[str],
+    offered_filename: str = "crate_download.pdf",
+    **kwargs,
+) -> HttpResponse:
     """
     Concatenates PDFs from disk and serves them.
     """
     pdf = get_concatenated_pdf_from_disk(filenames, **kwargs)
-    return serve_buffer(pdf,
-                        offered_filename=offered_filename,
-                        content_type=MimeType.PDF,
-                        as_attachment=False,
-                        as_inline=True)
+    return serve_buffer(
+        pdf,
+        offered_filename=offered_filename,
+        content_type=MimeType.PDF,
+        as_attachment=False,
+        as_inline=True,
+    )
 
 
-def serve_pdf_from_html(html: str,
-                        offered_filename: str = "test.pdf",
-                        **kwargs) -> HttpResponse:
+def serve_pdf_from_html(
+    html: str, offered_filename: str = "test.pdf", **kwargs
+) -> HttpResponse:
     """
     Same args as ``pdf_from_html()``.
     WATCH OUT: may not apply e.g. wkhtmltopdf options as you'd wish.
     """
     pdf = get_pdf_from_html(html, **kwargs)
-    return serve_buffer(pdf,
-                        offered_filename=offered_filename,
-                        content_type=MimeType.PDF,
-                        as_attachment=False,
-                        as_inline=True)
+    return serve_buffer(
+        pdf,
+        offered_filename=offered_filename,
+        content_type=MimeType.PDF,
+        as_attachment=False,
+        as_inline=True,
+    )
 
 
 def serve_concatenated_pdf_from_memory(
-        pdf_plans: Iterable[PdfPlan],
-        start_recto: bool = True,
-        offered_filename: str = "crate_download.pdf") -> HttpResponse:
+    pdf_plans: Iterable[PdfPlan],
+    start_recto: bool = True,
+    offered_filename: str = "crate_download.pdf",
+) -> HttpResponse:
     """
     Concatenates PDFs into memory and serves it.
     WATCH OUT: may not apply e.g. wkhtmltopdf options as you'd wish.
     """
     pdf = get_concatenated_pdf_in_memory(pdf_plans, start_recto=start_recto)
-    return serve_buffer(pdf,
-                        offered_filename=offered_filename,
-                        content_type=MimeType.PDF,
-                        as_attachment=False,
-                        as_inline=True)
+    return serve_buffer(
+        pdf,
+        offered_filename=offered_filename,
+        content_type=MimeType.PDF,
+        as_attachment=False,
+        as_inline=True,
+    )

@@ -126,6 +126,7 @@ e.g.:
 
 # noinspection PyUnresolvedReferences
 from django.core.exceptions import ValidationError
+
 # noinspection PyUnresolvedReferences
 from django.db.models import TextField
 
@@ -139,10 +140,12 @@ from cardinal_pythonlib.json.serialize import json_decode, json_encode
 #   defining it.
 # =============================================================================
 
+
 class JsonClassField(TextField):
     """
     Django field that serializes Python objects into JSON.
     """
+
     # https://docs.djangoproject.com/en/1.10/howto/custom-model-fields/
     description = "Python objects serialized into JSON"
 

@@ -43,14 +43,16 @@ from cardinal_pythonlib.logs import (
 log = BraceStyleAdapter(logging.getLogger(__name__))
 
 
-def cmdargs(mysqldump: str,
-            username: str,
-            password: str,
-            database: str,
-            verbose: bool,
-            with_drop_create_database: bool,
-            max_allowed_packet: str,
-            hide_password: bool = False) -> List[str]:
+def cmdargs(
+    mysqldump: str,
+    username: str,
+    password: str,
+    database: str,
+    verbose: bool,
+    with_drop_create_database: bool,
+    max_allowed_packet: str,
+    hide_password: bool = False,
+) -> List[str]:
     """
     Returns command arguments for a ``mysqldump`` call.
 
@@ -71,7 +73,8 @@ def cmdargs(mysqldump: str,
     """
     ca = [
         mysqldump,
-        "-u", username,
+        "-u",
+        username,
         "-p{}".format("*****" if hide_password else password),
         f"--max_allowed_packet={max_allowed_packet}",
         "--hex-blob",  # preferable to raw binary in our .sql file
@@ -79,11 +82,7 @@ def cmdargs(mysqldump: str,
     if verbose:
         ca.append("--verbose")
     if with_drop_create_database:
-        ca.extend([
-            "--add-drop-database",
-            "--databases",
-            database
-        ])
+        ca.extend(["--add-drop-database", "--databases", database])
     else:
         ca.append(database)
         pass
@@ -106,48 +105,53 @@ def main() -> None:
 
         A typical filename is therefore 'mydb_20190415T205524.sql'.
         """,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("databases", nargs="+", help="Database(s) to back up")
     parser.add_argument(
-        "databases", nargs="+",
-        help="Database(s) to back up")
+        "--max_allowed_packet", default="1GB", help="Maximum size of buffer"
+    )
     parser.add_argument(
-        "--max_allowed_packet", default="1GB",
-        help="Maximum size of buffer")
-    parser.add_argument(
-        "--mysqldump", default="mysqldump",
-        help="mysqldump executable")
-    parser.add_argument(
-        "--username", default="root",
-        help="MySQL user")
+        "--mysqldump", default="mysqldump", help="mysqldump executable"
+    )
+    parser.add_argument("--username", default="root", help="MySQL user")
     parser.add_argument(
         "--password",
         help="MySQL password (AVOID THIS OPTION IF POSSIBLE; VERY INSECURE; "
-             "VISIBLE TO OTHER PROCESSES; if you don't use it, you'll be "
-             "prompted for the password)")
+        "VISIBLE TO OTHER PROCESSES; if you don't use it, you'll be "
+        "prompted for the password)",
+    )
     parser.add_argument(
-        "--with_drop_create_database", action="store_true",
+        "--with_drop_create_database",
+        action="store_true",
         help="Include DROP DATABASE and CREATE DATABASE commands, and append "
-             "a suffix to the output filename as above")
+        "a suffix to the output filename as above",
+    )
     parser.add_argument(
-        "--output_dir", type=str,
+        "--output_dir",
+        type=str,
         help="Output directory (if not specified, current directory will be "
-             "used)")
+        "used)",
+    )
     parser.add_argument(
-        "--verbose", action="store_true",
-        help="Verbose output")
+        "--verbose", action="store_true", help="Verbose output"
+    )
     args = parser.parse_args()
 
     output_dir = args.output_dir or os.getcwd()
     os.chdir(output_dir)
 
     password = args.password or getpass.getpass(
-        prompt=f"MySQL password for user {args.username}: ")
+        prompt=f"MySQL password for user {args.username}: "
+    )
 
     output_files = []  # type: List[str]
     if args.with_drop_create_database:
-        log.info("Note that the DROP DATABASE commands will look like they're "
-                 "commented out, but they're not: "
-                 "https://dba.stackexchange.com/questions/59294/")
+        log.info(
+            "Note that the DROP DATABASE commands will look like they're "
+            "commented out, but they're not: "
+            "https://dba.stackexchange.com/questions/59294/"
+        )
         suffix = wdcd_suffix
     else:
         suffix = ""
@@ -162,7 +166,7 @@ def main() -> None:
             verbose=args.verbose,
             with_drop_create_database=args.with_drop_create_database,
             max_allowed_packet=args.max_allowed_packet,
-            hide_password=True
+            hide_password=True,
         )
         actual_args = cmdargs(
             mysqldump=args.mysqldump,
@@ -172,7 +176,7 @@ def main() -> None:
             verbose=args.verbose,
             with_drop_create_database=args.with_drop_create_database,
             max_allowed_packet=args.max_allowed_packet,
-            hide_password=False
+            hide_password=False,
         )
         log.info("Executing: " + repr(display_args))
         log.info("Output file: " + repr(outfilename))
@@ -191,5 +195,5 @@ def main() -> None:
         log.info("To restore: mysql -u USER -p DATABASE < BACKUP.sql")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -56,6 +56,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Ping
 # =============================================================================
 
+
 def ping(hostname: str, timeout_s: int = 5) -> bool:
     """
     Pings a host, using OS tools.
@@ -73,20 +74,25 @@ def ping(hostname: str, timeout_s: int = 5) -> bool:
         args = [
             "ping",
             hostname,
-            "-n", "1",  # ping count
-            "-w", str(timeout_ms),  # timeout
+            "-n",
+            "1",  # ping count
+            "-w",
+            str(timeout_ms),  # timeout
         ]
-    elif sys.platform.startswith('linux'):
+    elif sys.platform.startswith("linux"):
         args = [
             "ping",
             hostname,
-            "-c", "1",  # ping count
-            "-w", str(timeout_s),  # timeout
+            "-c",
+            "1",  # ping count
+            "-w",
+            str(timeout_s),  # timeout
         ]
     else:
         raise AssertionError("Don't know how to ping on this operating system")
-    proc = subprocess.Popen(args,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     proc.communicate()
     retcode = proc.returncode
     return retcode == 0  # zero success, non-zero failure
@@ -96,10 +102,13 @@ def ping(hostname: str, timeout_s: int = 5) -> bool:
 # Download things
 # =============================================================================
 
-def download(url: str,
-             filename: str,
-             skip_cert_verify: bool = True,
-             headers: Dict[str, str] = None) -> None:
+
+def download(
+    url: str,
+    filename: str,
+    skip_cert_verify: bool = True,
+    headers: Dict[str, str] = None,
+) -> None:
     """
     Downloads a URL to a file.
 
@@ -114,9 +123,7 @@ def download(url: str,
             request headers (if not specified, a default will be used that
             mimics Mozilla 5.0 to avoid certain HTTP 403 errors)
     """
-    headers = {
-        'User-Agent': 'Mozilla/5.0'
-    } if headers is None else headers
+    headers = {"User-Agent": "Mozilla/5.0"} if headers is None else headers
     log.info("Downloading from {} to {}", url, filename)
 
     # urllib.request.urlretrieve(url, filename)
@@ -138,8 +145,9 @@ def download(url: str,
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
     page = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(page, context=ctx) as u, \
-            open(filename, 'wb') as f:
+    with urllib.request.urlopen(page, context=ctx) as u, open(
+        filename, "wb"
+    ) as f:
         f.write(u.read())
 
 
@@ -147,10 +155,10 @@ def download(url: str,
 # Generators
 # =============================================================================
 
+
 def gen_binary_files_from_urls(
-        urls: Iterable[str],
-        on_disk: bool = False,
-        show_info: bool = True) -> Generator[BinaryIO, None, None]:
+    urls: Iterable[str], on_disk: bool = False, show_info: bool = True
+) -> Generator[BinaryIO, None, None]:
     """
     Generate binary files from a series of URLs (one per URL).
 
@@ -171,7 +179,7 @@ def gen_binary_files_from_urls(
             with tempfile.TemporaryDirectory() as tmpdir:
                 filename = os.path.join(tmpdir, "tempfile")
                 download(url=url, filename=filename)
-                with open(filename, 'rb') as f:
+                with open(filename, "rb") as f:
                     yield f
         else:
             if show_info:

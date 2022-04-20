@@ -42,9 +42,9 @@ except ImportError:
         raise
 
 
-def get_save_as_filename(defaultfilename: str,
-                         defaultextension: str,
-                         title: str = "Save As") -> str:
+def get_save_as_filename(
+    defaultfilename: str, defaultextension: str, title: str = "Save As"
+) -> str:
     """
     Provides a GUI "Save As" dialogue (via ``tkinter``) and returns the
     filename.
@@ -52,32 +52,32 @@ def get_save_as_filename(defaultfilename: str,
     root = tkinter.Tk()  # create and get Tk topmost window
     # (don't do this too early; the command prompt loses focus)
     root.withdraw()  # won't need this; this gets rid of a blank Tk window
-    root.attributes('-topmost', True)  # makes the tk window topmost
+    root.attributes("-topmost", True)  # makes the tk window topmost
     filename = filedialog.asksaveasfilename(
         initialfile=defaultfilename,
         defaultextension=defaultextension,
         parent=root,
-        title=title
+        title=title,
     )
-    root.attributes('-topmost', False)  # stop the tk window being topmost
+    root.attributes("-topmost", False)  # stop the tk window being topmost
     return filename
 
 
-def get_open_filename(defaultfilename: str,
-                      defaultextension: str,
-                      title: str = "Open") -> str:
+def get_open_filename(
+    defaultfilename: str, defaultextension: str, title: str = "Open"
+) -> str:
     """
     Provides a GUI "Open" dialogue (via ``tkinter``) and returns the filename.
     """
     root = tkinter.Tk()  # create and get Tk topmost window
     # (don't do this too early; the command prompt loses focus)
     root.withdraw()  # won't need this; this gets rid of a blank Tk window
-    root.attributes('-topmost', True)  # makes the tk window topmost
+    root.attributes("-topmost", True)  # makes the tk window topmost
     filename = filedialog.askopenfilename(
         initialfile=defaultfilename,
         defaultextension=defaultextension,
         parent=root,
-        title=title
+        title=title,
     )
-    root.attributes('-topmost', False)  # stop the tk window being topmost
+    root.attributes("-topmost", False)  # stop the tk window being topmost
     return filename

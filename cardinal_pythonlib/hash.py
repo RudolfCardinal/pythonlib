@@ -81,10 +81,12 @@ TIMING_HASH = "hash"
 # Base classes
 # =============================================================================
 
+
 class GenericHasher(object):
     """
     Abstract base class for a hasher.
     """
+
     def hash(self, raw: Any) -> str:
         """
         Returns a hash of its input.
@@ -109,6 +111,7 @@ class GenericHasher(object):
 # Simple salted hashers.
 # =============================================================================
 
+
 class GenericSaltedHasher(GenericHasher):
     """
     Generic representation of a simple salted hasher that stores a hash
@@ -121,6 +124,7 @@ class GenericSaltedHasher(GenericHasher):
 
     **You should use HMAC instead if the thing you are hashing is secret.**
     """
+
     def __init__(self, hashfunc: Callable[[bytes], Any], salt: str) -> None:
         """
         Args:
@@ -128,10 +132,10 @@ class GenericSaltedHasher(GenericHasher):
             salt: salt to use (following UTF-8 encoding)
         """
         self.hashfunc = hashfunc
-        self.salt_bytes = salt.encode('utf-8')
+        self.salt_bytes = salt.encode("utf-8")
 
     def hash(self, raw: Any) -> str:
-        raw_bytes = str(raw).encode('utf-8')
+        raw_bytes = str(raw).encode("utf-8")
         return self.hashfunc(self.salt_bytes + raw_bytes).hexdigest()
 
 
@@ -141,6 +145,7 @@ class MD5Hasher(GenericSaltedHasher):
 
     MD5 is cryptographically FLAWED; avoid using it or this class.
     """
+
     def __init__(self, salt: str) -> None:
         super().__init__(hashlib.md5, salt)
 
@@ -149,6 +154,7 @@ class SHA256Hasher(GenericSaltedHasher):
     """
     Salted hasher based on SHA256.
     """
+
     def __init__(self, salt: str) -> None:
         super().__init__(hashlib.sha256, salt)
 
@@ -157,6 +163,7 @@ class SHA512Hasher(GenericSaltedHasher):
     """
     Salted hasher based on SHA512.
     """
+
     def __init__(self, salt: str) -> None:
         super().__init__(hashlib.sha512, salt)
 
@@ -164,6 +171,7 @@ class SHA512Hasher(GenericSaltedHasher):
 # =============================================================================
 # HMAC hashers. Better, if what you are hashing is secret.
 # =============================================================================
+
 
 class GenericHmacHasher(GenericHasher):
     """
@@ -173,22 +181,24 @@ class GenericHmacHasher(GenericHasher):
 
     HMAC hashers are the thing to use if what you are hashing is secret.
     """
+
     def __init__(self, digestmod: Any, key: str) -> None:
         """
         Args:
             digestmod: see :func:`hmac.HMAC.__init__`
             key: cryptographic key to use
         """
-        self.key_bytes = str(key).encode('utf-8')
+        self.key_bytes = str(key).encode("utf-8")
         self.digestmod = digestmod
 
     def hash(self, raw: Any) -> str:
         """
         Returns the hex digest of a HMAC-encoded version of the input.
         """
-        raw_bytes = str(raw).encode('utf-8')
-        hmac_obj = hmac.new(key=self.key_bytes, msg=raw_bytes,
-                            digestmod=self.digestmod)
+        raw_bytes = str(raw).encode("utf-8")
+        hmac_obj = hmac.new(
+            key=self.key_bytes, msg=raw_bytes, digestmod=self.digestmod
+        )
         return hmac_obj.hexdigest()
 
 
@@ -199,6 +209,7 @@ class HmacMD5Hasher(GenericHmacHasher):
     Krawcyk H. Keying hash functions for message authentication. Lect. Notes
     Comput. Sci. Adv. Cryptol. - Crypto 96 Proc. 1996; 1109: 1–15.)
     """
+
     def __init__(self, key: str) -> None:
         super().__init__(hashlib.md5, key)
 
@@ -207,6 +218,7 @@ class HmacSHA256Hasher(GenericHmacHasher):
     """
     HMAC hasher based on SHA256.
     """
+
     def __init__(self, key: str) -> None:
         super().__init__(hashlib.sha256, key)
 
@@ -215,6 +227,7 @@ class HmacSHA512Hasher(GenericHmacHasher):
     """
     HMAC hasher based on SHA512.
     """
+
     def __init__(self, key: str) -> None:
         super().__init__(hashlib.sha512, key)
 
@@ -222,6 +235,7 @@ class HmacSHA512Hasher(GenericHmacHasher):
 # =============================================================================
 # Hash factory
 # =============================================================================
+
 
 class HashMethods(object):
     MD5 = "MD5"
@@ -234,10 +248,15 @@ class HashMethods(object):
 
 def make_hasher(hash_method: str, key: str) -> GenericHasher:
     hash_method = hash_method.upper()
-    if hash_method in (HashMethods.MD5, HashMethods.SHA256, HashMethods.SHA512):  # noqa
+    if hash_method in (
+        HashMethods.MD5,
+        HashMethods.SHA256,
+        HashMethods.SHA512,
+    ):  # noqa
         raise ValueError(
             f"Non-HMAC hashers are deprecated for security reasons. You are "
-            f"trying to use: {hash_method}")
+            f"trying to use: {hash_method}"
+        )
     if hash_method == HashMethods.HMAC_MD5:
         return HmacMD5Hasher(key)
     elif hash_method == HashMethods.HMAC_SHA256 or not hash_method:
@@ -297,6 +316,7 @@ for i in range(MAX_PID_NUM):
 # Support functions
 # =============================================================================
 
+
 def to_bytes(data: Any) -> bytearray:
     """
     Convert anything to a ``bytearray``.
@@ -308,7 +328,7 @@ def to_bytes(data: Any) -> bytearray:
     """  # noqa
     if isinstance(data, int):
         return bytearray([data])
-    return bytearray(data, encoding='latin-1')
+    return bytearray(data, encoding="latin-1")
 
 
 def to_str(data: Any) -> str:
@@ -381,6 +401,7 @@ def bytes_to_long(bytesdata: bytes) -> int:
 # SO ones
 # -----------------------------------------------------------------------------
 
+
 def murmur3_x86_32(data: Union[bytes, bytearray], seed: int = 0) -> int:
     """
     Pure 32-bit Python implementation of MurmurHash3; see
@@ -394,39 +415,43 @@ def murmur3_x86_32(data: Union[bytes, bytearray], seed: int = 0) -> int:
         integer hash
 
     """  # noqa
-    c1 = 0xcc9e2d51
-    c2 = 0x1b873593
+    c1 = 0xCC9E2D51
+    c2 = 0x1B873593
 
     length = len(data)
     h1 = seed
-    rounded_end = (length & 0xfffffffc)  # round down to 4 byte block
+    rounded_end = length & 0xFFFFFFFC  # round down to 4 byte block
     for i in range(0, rounded_end, 4):
         # little endian load order
         # RNC: removed ord() calls
-        k1 = (data[i] & 0xff) | ((data[i + 1] & 0xff) << 8) | \
-             ((data[i + 2] & 0xff) << 16) | (data[i + 3] << 24)
+        k1 = (
+            (data[i] & 0xFF)
+            | ((data[i + 1] & 0xFF) << 8)
+            | ((data[i + 2] & 0xFF) << 16)
+            | (data[i + 3] << 24)
+        )
         k1 *= c1
-        k1 = (k1 << 15) | ((k1 & 0xffffffff) >> 17)  # ROTL32(k1, 15)
+        k1 = (k1 << 15) | ((k1 & 0xFFFFFFFF) >> 17)  # ROTL32(k1, 15)
         k1 *= c2
 
         h1 ^= k1
-        h1 = (h1 << 13) | ((h1 & 0xffffffff) >> 19)  # ROTL32(h1, 13)
-        h1 = h1 * 5 + 0xe6546b64
+        h1 = (h1 << 13) | ((h1 & 0xFFFFFFFF) >> 19)  # ROTL32(h1, 13)
+        h1 = h1 * 5 + 0xE6546B64
 
     # tail
     k1 = 0
 
     val = length & 0x03
     if val == 3:
-        k1 = (data[rounded_end + 2] & 0xff) << 16
+        k1 = (data[rounded_end + 2] & 0xFF) << 16
     # fallthrough
     if val in (2, 3):
-        k1 |= (data[rounded_end + 1] & 0xff) << 8
+        k1 |= (data[rounded_end + 1] & 0xFF) << 8
     # fallthrough
     if val in (1, 2, 3):
-        k1 |= data[rounded_end] & 0xff
+        k1 |= data[rounded_end] & 0xFF
         k1 *= c1
-        k1 = (k1 << 15) | ((k1 & 0xffffffff) >> 17)  # ROTL32(k1, 15)
+        k1 = (k1 << 15) | ((k1 & 0xFFFFFFFF) >> 17)  # ROTL32(k1, 15)
         k1 *= c2
         h1 ^= k1
 
@@ -434,13 +459,13 @@ def murmur3_x86_32(data: Union[bytes, bytearray], seed: int = 0) -> int:
     h1 ^= length
 
     # fmix(h1)
-    h1 ^= ((h1 & 0xffffffff) >> 16)
-    h1 *= 0x85ebca6b
-    h1 ^= ((h1 & 0xffffffff) >> 13)
-    h1 *= 0xc2b2ae35
-    h1 ^= ((h1 & 0xffffffff) >> 16)
+    h1 ^= (h1 & 0xFFFFFFFF) >> 16
+    h1 *= 0x85EBCA6B
+    h1 ^= (h1 & 0xFFFFFFFF) >> 13
+    h1 *= 0xC2B2AE35
+    h1 ^= (h1 & 0xFFFFFFFF) >> 16
 
-    return h1 & 0xffffffff
+    return h1 & 0xFFFFFFFF
 
 
 # noinspection PyPep8
@@ -457,7 +482,7 @@ def murmur3_64(data: Union[bytes, bytearray], seed: int = 19820125) -> int:
     Returns:
         integer hash
     """  # noqa
-    m = 0xc6a4a7935bd1e995
+    m = 0xC6A4A7935BD1E995
     r = 47
 
     mask = 2 ** 64 - 1
@@ -469,36 +494,36 @@ def murmur3_64(data: Union[bytes, bytearray], seed: int = 19820125) -> int:
     offset = (length // 8) * 8
     # RNC: was /, but for Python 3 that gives float; brackets added for clarity
     for ll in range(0, offset, 8):
-        k = bytes_to_long(data[ll:ll + 8])
+        k = bytes_to_long(data[ll : ll + 8])
         k = (k * m) & mask
         k ^= (k >> r) & mask
         k = (k * m) & mask
-        h = (h ^ k)
+        h = h ^ k
         h = (h * m) & mask
 
     # Variable was named "l"; renamed to "l_" for PEP8
     l_ = length & 7
 
     if l_ >= 7:
-        h = (h ^ (data[offset + 6] << 48))
+        h = h ^ (data[offset + 6] << 48)
 
     if l_ >= 6:
-        h = (h ^ (data[offset + 5] << 40))
+        h = h ^ (data[offset + 5] << 40)
 
     if l_ >= 5:
-        h = (h ^ (data[offset + 4] << 32))
+        h = h ^ (data[offset + 4] << 32)
 
     if l_ >= 4:
-        h = (h ^ (data[offset + 3] << 24))
+        h = h ^ (data[offset + 3] << 24)
 
     if l_ >= 3:
-        h = (h ^ (data[offset + 2] << 16))
+        h = h ^ (data[offset + 2] << 16)
 
     if l_ >= 2:
-        h = (h ^ (data[offset + 1] << 8))
+        h = h ^ (data[offset + 1] << 8)
 
     if l_ >= 1:
-        h = (h ^ data[offset])
+        h = h ^ data[offset]
         h = (h * m) & mask
 
     h ^= (h >> r) & mask
@@ -511,6 +536,7 @@ def murmur3_64(data: Union[bytes, bytearray], seed: int = 19820125) -> int:
 # -----------------------------------------------------------------------------
 # pymmh3 ones, renamed, with some bugfixes
 # -----------------------------------------------------------------------------
+
 
 def pymmh3_hash128_x64(key: Union[bytes, bytearray], seed: int) -> int:
     """
@@ -527,9 +553,9 @@ def pymmh3_hash128_x64(key: Union[bytes, bytearray], seed: int) -> int:
 
     def fmix(k):
         k ^= k >> 33
-        k = (k * 0xff51afd7ed558ccd) & 0xFFFFFFFFFFFFFFFF
+        k = (k * 0xFF51AFD7ED558CCD) & 0xFFFFFFFFFFFFFFFF
         k ^= k >> 33
-        k = (k * 0xc4ceb9fe1a85ec53) & 0xFFFFFFFFFFFFFFFF
+        k = (k * 0xC4CEB9FE1A85EC53) & 0xFFFFFFFFFFFFFFFF
         k ^= k >> 33
         return k
 
@@ -539,32 +565,32 @@ def pymmh3_hash128_x64(key: Union[bytes, bytearray], seed: int) -> int:
     h1 = seed
     h2 = seed
 
-    c1 = 0x87c37b91114253d5
-    c2 = 0x4cf5ad432745937f
+    c1 = 0x87C37B91114253D5
+    c2 = 0x4CF5AD432745937F
 
     # body
     for block_start in range(0, nblocks * 8, 8):
         # ??? big endian?
         k1 = (
-            key[2 * block_start + 7] << 56 |
-            key[2 * block_start + 6] << 48 |
-            key[2 * block_start + 5] << 40 |
-            key[2 * block_start + 4] << 32 |
-            key[2 * block_start + 3] << 24 |
-            key[2 * block_start + 2] << 16 |
-            key[2 * block_start + 1] << 8 |
-            key[2 * block_start + 0]
+            key[2 * block_start + 7] << 56
+            | key[2 * block_start + 6] << 48
+            | key[2 * block_start + 5] << 40
+            | key[2 * block_start + 4] << 32
+            | key[2 * block_start + 3] << 24
+            | key[2 * block_start + 2] << 16
+            | key[2 * block_start + 1] << 8
+            | key[2 * block_start + 0]
         )
 
         k2 = (
-            key[2 * block_start + 15] << 56 |
-            key[2 * block_start + 14] << 48 |
-            key[2 * block_start + 13] << 40 |
-            key[2 * block_start + 12] << 32 |
-            key[2 * block_start + 11] << 24 |
-            key[2 * block_start + 10] << 16 |
-            key[2 * block_start + 9] << 8 |
-            key[2 * block_start + 8]
+            key[2 * block_start + 15] << 56
+            | key[2 * block_start + 14] << 48
+            | key[2 * block_start + 13] << 40
+            | key[2 * block_start + 12] << 32
+            | key[2 * block_start + 11] << 24
+            | key[2 * block_start + 10] << 16
+            | key[2 * block_start + 9] << 8
+            | key[2 * block_start + 8]
         )
 
         k1 = (c1 * k1) & 0xFFFFFFFFFFFFFFFF
@@ -574,7 +600,7 @@ def pymmh3_hash128_x64(key: Union[bytes, bytearray], seed: int) -> int:
 
         h1 = (h1 << 27 | h1 >> 37) & 0xFFFFFFFFFFFFFFFF  # inlined ROTL64
         h1 = (h1 + h2) & 0xFFFFFFFFFFFFFFFF
-        h1 = (h1 * 5 + 0x52dce729) & 0xFFFFFFFFFFFFFFFF
+        h1 = (h1 * 5 + 0x52DCE729) & 0xFFFFFFFFFFFFFFFF
 
         k2 = (c2 * k2) & 0xFFFFFFFFFFFFFFFF
         k2 = (k2 << 33 | k2 >> 31) & 0xFFFFFFFFFFFFFFFF  # inlined ROTL64
@@ -583,7 +609,7 @@ def pymmh3_hash128_x64(key: Union[bytes, bytearray], seed: int) -> int:
 
         h2 = (h2 << 31 | h2 >> 33) & 0xFFFFFFFFFFFFFFFF  # inlined ROTL64
         h2 = (h1 + h2) & 0xFFFFFFFFFFFFFFFF
-        h2 = (h2 * 5 + 0x38495ab5) & 0xFFFFFFFFFFFFFFFF
+        h2 = (h2 * 5 + 0x38495AB5) & 0xFFFFFFFFFFFFFFFF
 
     # tail
     tail_index = nblocks * 16
@@ -666,9 +692,9 @@ def pymmh3_hash128_x86(key: Union[bytes, bytearray], seed: int) -> int:
 
     def fmix(h):
         h ^= h >> 16
-        h = (h * 0x85ebca6b) & 0xFFFFFFFF
+        h = (h * 0x85EBCA6B) & 0xFFFFFFFF
         h ^= h >> 13
-        h = (h * 0xc2b2ae35) & 0xFFFFFFFF
+        h = (h * 0xC2B2AE35) & 0xFFFFFFFF
         h ^= h >> 16
         return h
 
@@ -680,36 +706,36 @@ def pymmh3_hash128_x86(key: Union[bytes, bytearray], seed: int) -> int:
     h3 = seed
     h4 = seed
 
-    c1 = 0x239b961b
-    c2 = 0xab0e9789
-    c3 = 0x38b34ae5
-    c4 = 0xa1e38b93
+    c1 = 0x239B961B
+    c2 = 0xAB0E9789
+    c3 = 0x38B34AE5
+    c4 = 0xA1E38B93
 
     # body
     for block_start in range(0, nblocks * 16, 16):
         k1 = (
-            key[block_start + 3] << 24 |
-            key[block_start + 2] << 16 |
-            key[block_start + 1] << 8 |
-            key[block_start + 0]
+            key[block_start + 3] << 24
+            | key[block_start + 2] << 16
+            | key[block_start + 1] << 8
+            | key[block_start + 0]
         )
         k2 = (
-            key[block_start + 7] << 24 |
-            key[block_start + 6] << 16 |
-            key[block_start + 5] << 8 |
-            key[block_start + 4]
+            key[block_start + 7] << 24
+            | key[block_start + 6] << 16
+            | key[block_start + 5] << 8
+            | key[block_start + 4]
         )
         k3 = (
-            key[block_start + 11] << 24 |
-            key[block_start + 10] << 16 |
-            key[block_start + 9] << 8 |
-            key[block_start + 8]
+            key[block_start + 11] << 24
+            | key[block_start + 10] << 16
+            | key[block_start + 9] << 8
+            | key[block_start + 8]
         )
         k4 = (
-            key[block_start + 15] << 24 |
-            key[block_start + 14] << 16 |
-            key[block_start + 13] << 8 |
-            key[block_start + 12]
+            key[block_start + 15] << 24
+            | key[block_start + 14] << 16
+            | key[block_start + 13] << 8
+            | key[block_start + 12]
         )
 
         k1 = (c1 * k1) & 0xFFFFFFFF
@@ -719,7 +745,7 @@ def pymmh3_hash128_x86(key: Union[bytes, bytearray], seed: int) -> int:
 
         h1 = (h1 << 19 | h1 >> 13) & 0xFFFFFFFF  # inlined ROTL32
         h1 = (h1 + h2) & 0xFFFFFFFF
-        h1 = (h1 * 5 + 0x561ccd1b) & 0xFFFFFFFF
+        h1 = (h1 * 5 + 0x561CCD1B) & 0xFFFFFFFF
 
         k2 = (c2 * k2) & 0xFFFFFFFF
         k2 = (k2 << 16 | k2 >> 16) & 0xFFFFFFFF  # inlined ROTL32
@@ -728,7 +754,7 @@ def pymmh3_hash128_x86(key: Union[bytes, bytearray], seed: int) -> int:
 
         h2 = (h2 << 17 | h2 >> 15) & 0xFFFFFFFF  # inlined ROTL32
         h2 = (h2 + h3) & 0xFFFFFFFF
-        h2 = (h2 * 5 + 0x0bcaa747) & 0xFFFFFFFF
+        h2 = (h2 * 5 + 0x0BCAA747) & 0xFFFFFFFF
 
         k3 = (c3 * k3) & 0xFFFFFFFF
         k3 = (k3 << 17 | k3 >> 15) & 0xFFFFFFFF  # inlined ROTL32
@@ -737,7 +763,7 @@ def pymmh3_hash128_x86(key: Union[bytes, bytearray], seed: int) -> int:
 
         h3 = (h3 << 15 | h3 >> 17) & 0xFFFFFFFF  # inlined ROTL32
         h3 = (h3 + h4) & 0xFFFFFFFF
-        h3 = (h3 * 5 + 0x96cd1c35) & 0xFFFFFFFF
+        h3 = (h3 * 5 + 0x96CD1C35) & 0xFFFFFFFF
 
         k4 = (c4 * k4) & 0xFFFFFFFF
         k4 = (k4 << 18 | k4 >> 14) & 0xFFFFFFFF  # inlined ROTL32
@@ -746,7 +772,7 @@ def pymmh3_hash128_x86(key: Union[bytes, bytearray], seed: int) -> int:
 
         h4 = (h4 << 13 | h4 >> 19) & 0xFFFFFFFF  # inlined ROTL32
         h4 = (h1 + h4) & 0xFFFFFFFF
-        h4 = (h4 * 5 + 0x32ac3b17) & 0xFFFFFFFF
+        h4 = (h4 * 5 + 0x32AC3B17) & 0xFFFFFFFF
 
     # tail
     tail_index = nblocks * 16
@@ -842,9 +868,9 @@ def pymmh3_hash128_x86(key: Union[bytes, bytearray], seed: int) -> int:
     return h4 << 96 | h3 << 64 | h2 << 32 | h1
 
 
-def pymmh3_hash128(key: Union[bytes, bytearray],
-                   seed: int = 0,
-                   x64arch: bool = True) -> int:
+def pymmh3_hash128(
+    key: Union[bytes, bytearray], seed: int = 0, x64arch: bool = True
+) -> int:
     """
     Implements 128bit murmur3 hash, as per ``pymmh3``.
 
@@ -863,9 +889,9 @@ def pymmh3_hash128(key: Union[bytes, bytearray],
         return pymmh3_hash128_x86(key, seed)
 
 
-def pymmh3_hash64(key: Union[bytes, bytearray],
-                  seed: int = 0,
-                  x64arch: bool = True) -> Tuple[int, int]:
+def pymmh3_hash64(
+    key: Union[bytes, bytearray], seed: int = 0, x64arch: bool = True
+) -> Tuple[int, int]:
     """
     Implements 64bit murmur3 hash, as per ``pymmh3``. Returns a tuple.
 
@@ -900,6 +926,7 @@ def pymmh3_hash64(key: Union[bytes, bytearray],
 # Checks
 # =============================================================================
 
+
 def compare_python_to_reference_murmur3_32(data: Any, seed: int = 0) -> None:
     """
     Checks the pure Python implementation of 32-bit murmur3 against the
@@ -925,9 +952,9 @@ def compare_python_to_reference_murmur3_32(data: Any, seed: int = 0) -> None:
         print(preamble + f" -> {c_signed}: OK")
     else:
         raise AssertionError(
-            preamble +
-            f"; mmh3 says {c_data!r} -> {c_signed}, "
-            f"Python version says {py_data!r} -> {py_unsigned} = {py_signed}")
+            preamble + f"; mmh3 says {c_data!r} -> {c_signed}, "
+            f"Python version says {py_data!r} -> {py_unsigned} = {py_signed}"
+        )
 
 
 def compare_python_to_reference_murmur3_64(data: Any, seed: int = 0) -> None:
@@ -946,8 +973,9 @@ def compare_python_to_reference_murmur3_64(data: Any, seed: int = 0) -> None:
     assert mmh3, "Need mmh3 module"
     c_data = to_str(data)
     # noinspection PyUnresolvedReferences
-    c_signed_low, c_signed_high = mmh3.hash64(c_data, seed=seed,
-                                              x64arch=IS_64_BIT)
+    c_signed_low, c_signed_high = mmh3.hash64(
+        c_data, seed=seed, x64arch=IS_64_BIT
+    )
     py_data = to_bytes(c_data)
     py_signed_low, py_signed_high = pymmh3_hash64(py_data, seed=seed)
     preamble = (
@@ -958,16 +986,17 @@ def compare_python_to_reference_murmur3_64(data: Any, seed: int = 0) -> None:
         print(preamble + f" -> (low={c_signed_low}, high={c_signed_high}): OK")
     else:
         raise AssertionError(
-            preamble +
-            f"; mmh3 says {c_data!r} -> "
+            preamble + f"; mmh3 says {c_data!r} -> "
             f"(low={c_signed_low}, high={c_signed_high}), "
             f"Python version says {py_data!r} -> "
-            f"(low={py_signed_low}, high={py_signed_high})")
+            f"(low={py_signed_low}, high={py_signed_high})"
+        )
 
 
 # =============================================================================
 # Hashing in a NON-CRYPTOGRAPHIC, PREDICTABLE, and fast way
 # =============================================================================
+
 
 def hash32(data: Any, seed: int = 0) -> int:
     """
@@ -1029,6 +1058,7 @@ def hash64(data: Any, seed: int = 0) -> int:
 # Testing
 # =============================================================================
 
+
 def main() -> None:
     """
     Command-line validation checks.
@@ -1041,16 +1071,12 @@ def main() -> None:
     print(signed_to_twos_comp(-1, n_bits=32))  # 4294967295 = 2 ** 32 - 1
     print(signed_to_twos_comp(-(2 ** 31), n_bits=32))  # 2147483648 = 2 ** 31 - 1
     """  # noqa
-    testdata = [
-        "hello",
-        1,
-        ["bongos", "today"],
-    ]
+    testdata = ["hello", 1, ["bongos", "today"]]
     for data in testdata:
         compare_python_to_reference_murmur3_32(data, seed=0)
         compare_python_to_reference_murmur3_64(data, seed=0)
     print("All OK")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

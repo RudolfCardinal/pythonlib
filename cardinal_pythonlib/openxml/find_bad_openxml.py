@@ -32,7 +32,6 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import fnmatch
 import logging
 import multiprocessing
-# from pprint import pformat
 import os
 from sys import stdin
 from time import sleep
@@ -55,13 +54,10 @@ log = BraceStyleAdapter(logging.getLogger(__name__))
 
 MANDATORY_FILENAMES = [
     # https://msdn.microsoft.com/en-us/library/aa982683(v=office.12).aspx
-
     "[Content_Types].xml",
-
     # "_rels/.rels",
     # ... not strictly mandatory:
     #     https://en.wikipedia.org/wiki/Open_Packaging_Conventions
-
     # "docProps/core.xml"
     # ... NOT mandatory, or at least I have a .pptx that works fine without it
 ]
@@ -83,7 +79,7 @@ def is_openxml_good(filename: str) -> bool:
     """
     try:
         log.debug("Trying: {}", filename)
-        with ZipFile(filename, 'r') as zip_ref:
+        with ZipFile(filename, "r") as zip_ref:
             namelist = zip_ref.namelist()  # type: List[str]
             # log.critical("\n{}", pformat(namelist))
             # -----------------------------------------------------------------
@@ -91,8 +87,9 @@ def is_openxml_good(filename: str) -> bool:
             # -----------------------------------------------------------------
             for mandatory_filename in MANDATORY_FILENAMES:
                 if mandatory_filename not in namelist:
-                    log.debug("Bad [missing {!r}]: {}",
-                              mandatory_filename, filename)
+                    log.debug(
+                        "Bad [missing {!r}]: {}", mandatory_filename, filename
+                    )
                     return False
 
             infolist = zip_ref.infolist()  # type: List[ZipInfo]
@@ -115,18 +112,22 @@ def is_openxml_good(filename: str) -> bool:
                 # files emerging from Scalpel (plus my find_recovered_openxml
                 # zip-fixing tool) that fail this test, though.
                 # -------------------------------------------------------------
-                if (not contains_docx and
-                        DOCX_CONTENTS_REGEX.search(info.filename)):
+                if not contains_docx and DOCX_CONTENTS_REGEX.search(
+                    info.filename
+                ):
                     contains_docx = True
-                if (not contains_pptx and
-                        PPTX_CONTENTS_REGEX.search(info.filename)):
+                if not contains_pptx and PPTX_CONTENTS_REGEX.search(
+                    info.filename
+                ):
                     contains_pptx = True
-                if (not contains_xlsx and
-                        XLSX_CONTENTS_REGEX.search(info.filename)):
+                if not contains_xlsx and XLSX_CONTENTS_REGEX.search(
+                    info.filename
+                ):
                     contains_xlsx = True
                 if sum([contains_docx, contains_pptx, contains_xlsx]) > 1:
-                    log.debug("Bad [>1 of DOCX, PPTX, XLSX content]: {}",
-                              filename)
+                    log.debug(
+                        "Bad [>1 of DOCX, PPTX, XLSX content]: {}", filename
+                    )
                     return False
 
             return True
@@ -134,14 +135,15 @@ def is_openxml_good(filename: str) -> bool:
         # ---------------------------------------------------------------------
         # Duff file. Easy!
         # ---------------------------------------------------------------------
-        log.debug("Bad [BadZipFile or OSError]: {!r}; error was {!r}",
-                  filename, e)
+        log.debug(
+            "Bad [BadZipFile or OSError]: {!r}; error was {!r}", filename, e
+        )
         return False
 
 
-def process_openxml_file(filename: str,
-                         print_good: bool,
-                         delete_if_bad: bool) -> None:
+def process_openxml_file(
+    filename: str, print_good: bool, delete_if_bad: bool
+) -> None:
     """
     Prints the filename of, or deletes, an OpenXML file depending on whether
     it is corrupt or not.
@@ -165,8 +167,9 @@ def process_openxml_file(filename: str,
     except Exception as e:
         # Must explicitly catch and report errors, since otherwise they vanish
         # into the ether.
-        log.critical("Uncaught error in subprocess: {!r}\n{}", e,
-                     traceback.format_exc())
+        log.critical(
+            "Uncaught error in subprocess: {!r}\n{}", e, traceback.format_exc()
+        )
         raise
 
 
@@ -181,73 +184,86 @@ def main() -> None:
 Tool to scan rescued Microsoft Office OpenXML files (produced by the
 find_recovered_openxml.py tool in this kit; q.v.) and detect bad (corrupted)
 ones.
-        """
+        """,
     )
     parser.add_argument(
-        "filename", nargs="*",
+        "filename",
+        nargs="*",
         help="File(s) to check. You can also specify directores if you use "
-             "--recursive"
+        "--recursive",
     )
     parser.add_argument(
-        "--filenames_from_stdin", "-x", action="store_true",
+        "--filenames_from_stdin",
+        "-x",
+        action="store_true",
         help="Take filenames from stdin instead, one line per filename "
-             "(useful for chained grep)."
+        "(useful for chained grep).",
     )
     parser.add_argument(
-        "--recursive", action="store_true",
+        "--recursive",
+        action="store_true",
         help="Allow search to descend recursively into any directories "
-             "encountered."
+        "encountered.",
     )
     parser.add_argument(
-        "--skip_files", nargs="*", default=[],
+        "--skip_files",
+        nargs="*",
+        default=[],
         help="File pattern(s) to skip. You can specify wildcards like '*.txt' "
-             "(but you will have to enclose that pattern in quotes under "
-             "UNIX-like operating systems). The basename of each file will be "
-             "tested against these filenames/patterns. Consider including "
-             "Scalpel's 'audit.txt'."
+        "(but you will have to enclose that pattern in quotes under "
+        "UNIX-like operating systems). The basename of each file will be "
+        "tested against these filenames/patterns. Consider including "
+        "Scalpel's 'audit.txt'.",
     )
     parser.add_argument(
-        "--good", action="store_true",
-        help="List good files, not bad"
+        "--good", action="store_true", help="List good files, not bad"
     )
     parser.add_argument(
-        "--delete_if_bad", action="store_true",
-        help="If a file is found to be bad, delete it. DANGEROUS."
+        "--delete_if_bad",
+        action="store_true",
+        help="If a file is found to be bad, delete it. DANGEROUS.",
     )
     parser.add_argument(
-        "--run_repeatedly", type=int,
+        "--run_repeatedly",
+        type=int,
         help="Run the tool repeatedly with a pause of <run_repeatedly> "
-             "seconds between runs. (For this to work well with the move/"
-             "delete options, you should specify one or more DIRECTORIES in "
-             "the 'filename' arguments, not files, and you will need the "
-             "--recursive option.)"
+        "seconds between runs. (For this to work well with the move/"
+        "delete options, you should specify one or more DIRECTORIES in "
+        "the 'filename' arguments, not files, and you will need the "
+        "--recursive option.)",
     )
     parser.add_argument(
-        "--nprocesses", type=int, default=multiprocessing.cpu_count(),
-        help="Specify the number of processes to run in parallel."
+        "--nprocesses",
+        type=int,
+        default=multiprocessing.cpu_count(),
+        help="Specify the number of processes to run in parallel.",
     )
     parser.add_argument(
-        "--verbose", action="store_true",
-        help="Verbose output"
+        "--verbose", action="store_true", help="Verbose output"
     )
     args = parser.parse_args()
     main_only_quicksetup_rootlogger(
         level=logging.DEBUG if args.verbose else logging.INFO,
-        with_process_id=True
+        with_process_id=True,
     )
     if bool(args.filenames_from_stdin) == bool(args.filename):
-        raise ValueError("Specify --filenames_from_stdin or filenames on the "
-                         "command line, but not both")
+        raise ValueError(
+            "Specify --filenames_from_stdin or filenames on the "
+            "command line, but not both"
+        )
     if args.filenames_from_stdin and args.run_repeatedly:
-        raise ValueError("Can't use both --filenames_from_stdin and "
-                         "--run_repeatedly")
+        raise ValueError(
+            "Can't use both --filenames_from_stdin and " "--run_repeatedly"
+        )
 
     # Repeated scanning loop
     while True:
         log.debug("Starting scan.")
-        log.debug("- Scanning files/directories {!r}{}",
-                  args.filename,
-                  " recursively" if args.recursive else "")
+        log.debug(
+            "- Scanning files/directories {!r}{}",
+            args.filename,
+            " recursively" if args.recursive else "",
+        )
         log.debug("- Skipping files matching {!r}", args.skip_files)
         log.debug("- Using {} simultaneous processes", args.nprocesses)
         log.debug("- Reporting {} filenames", "good" if args.good else "bad")
@@ -260,13 +276,16 @@ ones.
         if args.filenames_from_stdin:
             generator = gen_from_stdin()
         else:
-            generator = gen_filenames(starting_filenames=args.filename,
-                                      recursive=args.recursive)
+            generator = gen_filenames(
+                starting_filenames=args.filename, recursive=args.recursive
+            )
 
         for filename in generator:
             src_basename = os.path.basename(filename)
-            if any(fnmatch.fnmatch(src_basename, pattern)
-                   for pattern in args.skip_files):
+            if any(
+                fnmatch.fnmatch(src_basename, pattern)
+                for pattern in args.skip_files
+            ):
                 log.debug("Skipping file as ordered: " + filename)
                 continue
             exists, locked = exists_locked(filename)
@@ -274,9 +293,9 @@ ones.
                 log.debug("Skipping currently inaccessible file: " + filename)
                 continue
             kwargs = {
-                'filename': filename,
-                'print_good': args.good,
-                'delete_if_bad': args.delete_if_bad,
+                "filename": filename,
+                "print_good": args.good,
+                "delete_if_bad": args.delete_if_bad,
             }
             # log.critical("start")
             pool.apply_async(process_openxml_file, [], kwargs)
@@ -295,5 +314,5 @@ ones.
         sleep(args.run_repeatedly)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

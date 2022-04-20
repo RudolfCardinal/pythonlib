@@ -47,6 +47,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Helper functions for handling HTTP headers
 # =============================================================================
 
+
 def ip_addresses_from_xff(value: str) -> List[str]:
     """
     Returns a list of IP addresses (as strings), given the value of an HTTP
@@ -87,7 +88,7 @@ def first_from_xff(value: str) -> str:
     """
     ip_addresses = ip_addresses_from_xff(value)
     if not ip_addresses:
-        return ''
+        return ""
     return ip_addresses[0]  # leftmost
 
 
@@ -176,15 +177,18 @@ class ReverseProxiedConfig(object):
     """
     Class to hold information about a reverse proxy configuration.
     """
-    def __init__(self,
-                 trusted_proxy_headers: List[str] = None,
-                 http_host: str = None,
-                 remote_addr: str = None,
-                 script_name: str = None,
-                 server_name: str = None,
-                 server_port: int = None,
-                 url_scheme: str = None,
-                 rewrite_path_info: bool = False) -> None:
+
+    def __init__(
+        self,
+        trusted_proxy_headers: List[str] = None,
+        http_host: str = None,
+        remote_addr: str = None,
+        script_name: str = None,
+        server_name: str = None,
+        server_port: int = None,
+        url_scheme: str = None,
+        rewrite_path_info: bool = False,
+    ) -> None:
         # noinspection HttpUrlsUsage
         """
         Args:
@@ -245,16 +249,18 @@ class ReverseProxiedConfig(object):
         Is any special handling (e.g. the addition of
         :class:`ReverseProxiedMiddleware`) necessary for thie config?
         """
-        return any([
-            self.trusted_proxy_headers,
-            self.http_host,
-            self.remote_addr,
-            self.script_name,
-            self.server_name,
-            self.server_port,
-            self.url_scheme,
-            self.rewrite_path_info,
-        ])
+        return any(
+            [
+                self.trusted_proxy_headers,
+                self.http_host,
+                self.remote_addr,
+                self.script_name,
+                self.server_name,
+                self.server_port,
+                self.url_scheme,
+                self.rewrite_path_info,
+            ]
+        )
 
 
 class ReverseProxiedMiddleware(object):
@@ -280,7 +286,7 @@ class ReverseProxiedMiddleware(object):
     CANDIDATES_HTTP_HOST = [
         # These are variables that may contain a value for HTTP_HOST.
         WsgiEnvVar.HTTP_X_HOST,
-        WsgiEnvVar.HTTP_X_FORWARDED_HOST
+        WsgiEnvVar.HTTP_X_FORWARDED_HOST,
     ]
     CANDIDATES_SERVER_PORT = [
         # These are variables that may contain a value for SERVER_PORT.
@@ -290,7 +296,7 @@ class ReverseProxiedMiddleware(object):
         # These are variables that may contain a value for REMOTE_ADDR.
         # However, they differ:
         WsgiEnvVar.HTTP_X_FORWARDED_FOR,  # may contain many values; first is taken  # noqa
-        WsgiEnvVar.HTTP_X_REAL_IP  # may contain only one
+        WsgiEnvVar.HTTP_X_REAL_IP,  # may contain only one
     ]
     _CANDIDATES_URL_SCHEME_GIVING_PROTOCOL = [
         # These are variables whose values might be "http" or "https",
@@ -298,7 +304,7 @@ class ReverseProxiedMiddleware(object):
         WsgiEnvVar.HTTP_X_FORWARDED_PROTO,
         WsgiEnvVar.HTTP_X_FORWARDED_PROTOCOL,
         WsgiEnvVar.HTTP_X_FORWARDED_SCHEME,
-        WsgiEnvVar.HTTP_X_SCHEME
+        WsgiEnvVar.HTTP_X_SCHEME,
     ]
     _CANDIDATES_URL_SCHEME_INDICATING_HTTPS = [
         # These are variables whose values might be "On", "True", or "1",
@@ -309,13 +315,13 @@ class ReverseProxiedMiddleware(object):
     ]
     CANDIDATES_URL_SCHEME = (
         # All variables that may inform wsgi.url_scheme
-        _CANDIDATES_URL_SCHEME_GIVING_PROTOCOL +
-        _CANDIDATES_URL_SCHEME_INDICATING_HTTPS
+        _CANDIDATES_URL_SCHEME_GIVING_PROTOCOL
+        + _CANDIDATES_URL_SCHEME_INDICATING_HTTPS
     )
     CANDIDATES_SCRIPT_NAME = [
         # These are variables that may contain a value for SCRIPT_NAME.
         WsgiEnvVar.HTTP_X_SCRIPT_NAME,
-        WsgiEnvVar.HTTP_X_FORWARDED_SCRIPT_NAME
+        WsgiEnvVar.HTTP_X_FORWARDED_SCRIPT_NAME,
     ]
     CANDIDATES_SERVER_NAME = [
         # These are variables that may contain a value for SERVER_NAME.
@@ -323,108 +329,150 @@ class ReverseProxiedMiddleware(object):
     ]
     ALL_CANDIDATES = (
         # All variables of interest.
-        CANDIDATES_HTTP_HOST +
-        CANDIDATES_SERVER_PORT +
-        CANDIDATES_REMOTE_ADDR +
-        _CANDIDATES_URL_SCHEME_GIVING_PROTOCOL +
-        _CANDIDATES_URL_SCHEME_INDICATING_HTTPS +
-        CANDIDATES_SCRIPT_NAME +
-        CANDIDATES_SERVER_NAME
+        CANDIDATES_HTTP_HOST
+        + CANDIDATES_SERVER_PORT
+        + CANDIDATES_REMOTE_ADDR
+        + _CANDIDATES_URL_SCHEME_GIVING_PROTOCOL
+        + _CANDIDATES_URL_SCHEME_INDICATING_HTTPS
+        + CANDIDATES_SCRIPT_NAME
+        + CANDIDATES_SERVER_NAME
     )
-    SCHEME_HTTPS = 'https'
+    SCHEME_HTTPS = "https"
     TRUE_VALUES_LOWER_CASE = ["on", "true", "1"]
 
-    def __init__(self,
-                 app: TYPE_WSGI_APP,
-                 config: ReverseProxiedConfig,
-                 debug: bool = False) -> None:
+    def __init__(
+        self,
+        app: TYPE_WSGI_APP,
+        config: ReverseProxiedConfig,
+        debug: bool = False,
+    ) -> None:
         self.app = app
         self.config = config
         self.debug = debug
 
-        self.vars_host = [x for x in self.CANDIDATES_HTTP_HOST
-                          if x in config.trusted_proxy_headers]
-        self.vars_addr = [x for x in self.CANDIDATES_REMOTE_ADDR
-                          if x in config.trusted_proxy_headers]
-        self.vars_script = [x for x in self.CANDIDATES_SCRIPT_NAME
-                            if x in config.trusted_proxy_headers]
-        self.vars_server = [x for x in self.CANDIDATES_SERVER_NAME
-                            if x in config.trusted_proxy_headers]
-        self.vars_port = [x for x in self.CANDIDATES_SERVER_PORT
-                          if x in config.trusted_proxy_headers]
+        self.vars_host = [
+            x
+            for x in self.CANDIDATES_HTTP_HOST
+            if x in config.trusted_proxy_headers
+        ]
+        self.vars_addr = [
+            x
+            for x in self.CANDIDATES_REMOTE_ADDR
+            if x in config.trusted_proxy_headers
+        ]
+        self.vars_script = [
+            x
+            for x in self.CANDIDATES_SCRIPT_NAME
+            if x in config.trusted_proxy_headers
+        ]
+        self.vars_server = [
+            x
+            for x in self.CANDIDATES_SERVER_NAME
+            if x in config.trusted_proxy_headers
+        ]
+        self.vars_port = [
+            x
+            for x in self.CANDIDATES_SERVER_PORT
+            if x in config.trusted_proxy_headers
+        ]
         self.vars_scheme_a = [
-            x for x in self._CANDIDATES_URL_SCHEME_GIVING_PROTOCOL
+            x
+            for x in self._CANDIDATES_URL_SCHEME_GIVING_PROTOCOL
             if x in config.trusted_proxy_headers
         ]
         self.vars_scheme_b = [
-            x for x in self._CANDIDATES_URL_SCHEME_INDICATING_HTTPS
+            x
+            for x in self._CANDIDATES_URL_SCHEME_INDICATING_HTTPS
             if x in config.trusted_proxy_headers
         ]
 
         if self.debug:
             log.debug("ReverseProxiedMiddleware installed")
-            self._report(WsgiEnvVar.HTTP_HOST, config.http_host,
-                         self.vars_host)
-            self._report(WsgiEnvVar.REMOTE_ADDR, config.remote_addr,
-                         self.vars_addr)
-            self._report(WsgiEnvVar.SCRIPT_NAME, config.script_name,
-                         self.vars_script)
+            self._report(
+                WsgiEnvVar.HTTP_HOST, config.http_host, self.vars_host
+            )
+            self._report(
+                WsgiEnvVar.REMOTE_ADDR, config.remote_addr, self.vars_addr
+            )
+            self._report(
+                WsgiEnvVar.SCRIPT_NAME, config.script_name, self.vars_script
+            )
             if config.script_name or self.vars_script:
-                log.debug("... which will also affect WSGI environment "
-                          "variable {}", WsgiEnvVar.PATH_INFO)
-            self._report(WsgiEnvVar.SERVER_NAME, config.server_name,
-                         self.vars_server)
-            self._report(WsgiEnvVar.SERVER_PORT, config.server_port,
-                         self.vars_port)
-            self._report(WsgiEnvVar.WSGI_URL_SCHEME, config.url_scheme,
-                         self.vars_scheme_a + self.vars_scheme_b)
+                log.debug(
+                    "... which will also affect WSGI environment "
+                    "variable {}",
+                    WsgiEnvVar.PATH_INFO,
+                )
+            self._report(
+                WsgiEnvVar.SERVER_NAME, config.server_name, self.vars_server
+            )
+            self._report(
+                WsgiEnvVar.SERVER_PORT, config.server_port, self.vars_port
+            )
+            self._report(
+                WsgiEnvVar.WSGI_URL_SCHEME,
+                config.url_scheme,
+                self.vars_scheme_a + self.vars_scheme_b,
+            )
 
     @staticmethod
     def _report(option: str, value: str, envvars: List[str]) -> None:
         if value:
-            log.debug("... WSGI environment variable {} will be set to {}",
-                      option, value)
+            log.debug(
+                "... WSGI environment variable {} will be set to {}",
+                option,
+                value,
+            )
         elif envvars:
-            log.debug("... WSGI environment variable {} will be set according "
-                      "to reflect environment variables {!r} in "
-                      "incoming requests",
-                      option, envvars)
+            log.debug(
+                "... WSGI environment variable {} will be set according "
+                "to reflect environment variables {!r} in "
+                "incoming requests",
+                option,
+                envvars,
+            )
         else:
-            log.debug("... WSGI environment variable {} will not be changed",
-                      option)
+            log.debug(
+                "... WSGI environment variable {} will not be changed", option
+            )
 
     @classmethod
-    def _get_first(cls,
-                   environ: TYPE_WSGI_ENVIRON,
-                   envvars: List[str],
-                   keys_to_keep: List[str],
-                   as_remote_addr: bool = False) -> str:
+    def _get_first(
+        cls,
+        environ: TYPE_WSGI_ENVIRON,
+        envvars: List[str],
+        keys_to_keep: List[str],
+        as_remote_addr: bool = False,
+    ) -> str:
         for k in envvars:
-            value = environ.get(k, '')
+            value = environ.get(k, "")
             if value:
                 keys_to_keep.append(k)
                 # Oddity for REMOTE_ADDR and X-Forwarded-For:
                 if as_remote_addr and k == WsgiEnvVar.HTTP_X_FORWARDED_FOR:
                     value = first_from_xff(value)
                 return value
-        return ''
+        return ""
 
     @classmethod
-    def _proto_if_one_true(cls,
-                           environ: TYPE_WSGI_ENVIRON,
-                           envvars: List[str],
-                           keys_to_keep: List[str]) -> str:
+    def _proto_if_one_true(
+        cls,
+        environ: TYPE_WSGI_ENVIRON,
+        envvars: List[str],
+        keys_to_keep: List[str],
+    ) -> str:
         for k in envvars:
-            value = environ.get(k, '')
+            value = environ.get(k, "")
             if value.lower() in cls.TRUE_VALUES_LOWER_CASE:
                 keys_to_keep.append(k)
                 return cls.SCHEME_HTTPS
-        return ''
+        return ""
 
-    def __call__(self,
-                 environ: TYPE_WSGI_ENVIRON,
-                 start_response: TYPE_WSGI_START_RESPONSE) \
-            -> TYPE_WSGI_APP_RESULT:
+    def __call__(
+        self,
+        environ: TYPE_WSGI_ENVIRON,
+        start_response: TYPE_WSGI_START_RESPONSE,
+    ) -> TYPE_WSGI_APP_RESULT:
         # noinspection HttpUrlsUsage
         """
         -----------------------------------------------------------------------
@@ -490,56 +538,59 @@ class ReverseProxiedMiddleware(object):
 
         # HTTP_HOST
         http_host = (
-            config.http_host or  # manually specified: top priority. Otherwise:
-            self._get_first(environ, self.vars_host, keys_to_keep)
+            config.http_host
+            or self._get_first(  # manually specified: top priority. Otherwise:
+                environ, self.vars_host, keys_to_keep
+            )
         )
         if http_host:
             environ[WsgiEnvVar.HTTP_HOST] = http_host
 
         # REMOTE_ADDR
-        remote_addr = (
-            config.remote_addr or
-            self._get_first(environ, self.vars_addr, keys_to_keep,
-                            as_remote_addr=True)
+        remote_addr = config.remote_addr or self._get_first(
+            environ, self.vars_addr, keys_to_keep, as_remote_addr=True
         )
         if remote_addr:
             environ[WsgiEnvVar.REMOTE_ADDR] = remote_addr
 
         # SCRIPT_NAME, PATH_INFO
-        script_name = (
-            config.script_name or
-            self._get_first(environ, self.vars_script, keys_to_keep)
+        script_name = config.script_name or self._get_first(
+            environ, self.vars_script, keys_to_keep
         )
         if script_name:
             environ[WsgiEnvVar.SCRIPT_NAME] = script_name
             path_info = environ[WsgiEnvVar.PATH_INFO]
             if config.rewrite_path_info and path_info.startswith(script_name):
-                newpath = path_info[len(script_name):]
-                if not newpath:  # e.g. trailing slash omitted from incoming path  # noqa
+                newpath = path_info[len(script_name) :]
+                if (
+                    not newpath
+                ):  # e.g. trailing slash omitted from incoming path  # noqa
                     newpath = "/"
                 environ[WsgiEnvVar.PATH_INFO] = newpath
 
         # SERVER_NAME
-        server_name = (
-            config.server_name or
-            self._get_first(environ, self.vars_server, keys_to_keep)
+        server_name = config.server_name or self._get_first(
+            environ, self.vars_server, keys_to_keep
         )
         if server_name:
             environ[WsgiEnvVar.SERVER_NAME] = server_name
 
         # SERVER_PORT
-        server_port = (
-            config.server_port or
-            self._get_first(environ, self.vars_port, keys_to_keep)
+        server_port = config.server_port or self._get_first(
+            environ, self.vars_port, keys_to_keep
         )
         if server_port:
             environ[WsgiEnvVar.SERVER_PORT] = server_port
 
         # wsgi.url_scheme
         url_scheme = (
-            config.url_scheme or  # manually specified: top priority. Otherwise:
-            self._get_first(environ, self.vars_scheme_a, keys_to_keep) or
-            self._proto_if_one_true(environ, self.vars_scheme_b, keys_to_keep)
+            config.url_scheme
+            or self._get_first(  # manually specified: top priority. Otherwise:
+                environ, self.vars_scheme_a, keys_to_keep
+            )
+            or self._proto_if_one_true(
+                environ, self.vars_scheme_b, keys_to_keep
+            )
         )
         if url_scheme:
             url_scheme = url_scheme.lower()
@@ -548,9 +599,11 @@ class ReverseProxiedMiddleware(object):
         # ---------------------------------------------------------------------
 
         # As per mod_wsgi, we delete unused and untrusted keys.
-        delete_keys(environ,
-                    keys_to_delete=self.ALL_CANDIDATES,
-                    keys_to_keep=keys_to_keep)
+        delete_keys(
+            environ,
+            keys_to_delete=self.ALL_CANDIDATES,
+            keys_to_keep=keys_to_keep,
+        )
         if self.debug:
             # noinspection PyUnboundLocalVariable
             changes = dict_diff(oldenv, environ)

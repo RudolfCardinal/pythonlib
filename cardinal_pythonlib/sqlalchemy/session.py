@@ -49,9 +49,15 @@ log = get_brace_style_log_with_null_handler(__name__)
 SQLITE_MEMORY_URL = "sqlite://"
 
 
-def make_mysql_url(username: str, password: str, dbname: str,
-                   driver: str = "mysqldb", host: str = "localhost",
-                   port: int = 3306, charset: str = "utf8") -> str:
+def make_mysql_url(
+    username: str,
+    password: str,
+    dbname: str,
+    driver: str = "mysqldb",
+    host: str = "localhost",
+    port: int = 3306,
+    charset: str = "utf8",
+) -> str:
     """
     Makes an SQLAlchemy URL for a MySQL database.
     """
@@ -80,6 +86,7 @@ def make_sqlite_url(filename: str) -> str:
 # =============================================================================
 # Connection management
 # =============================================================================
+
 
 def get_engine_from_session(dbsession: Session) -> Engine:
     """

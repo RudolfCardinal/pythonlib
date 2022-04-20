@@ -37,10 +37,10 @@ def running_under_docker() -> bool:
     ... but without leaving a file open.
     """  # noqa
     # 1. Does /.dockerenv exist?
-    if os.path.exists('/.dockerenv'):
+    if os.path.exists("/.dockerenv"):
         return True
     # 2. Is there a line containing "docker" in /proc/self/cgroup?
-    path = '/proc/self/cgroup'
+    path = "/proc/self/cgroup"
     if os.path.isfile(path):
         with open(path) as f:
             for line in f:

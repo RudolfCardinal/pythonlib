@@ -52,12 +52,16 @@ class RequestLoggingMiddleware(object):
     WSGI middleware to log incoming request details (+/- the response status
     code and timing information).
     """
-    def __init__(self, app: TYPE_WSGI_APP,
-                 logger: logging.Logger = log,
-                 loglevel: int = logging.INFO,
-                 show_request_immediately: bool = True,
-                 show_response: bool = True,
-                 show_timing: bool = True) -> None:
+
+    def __init__(
+        self,
+        app: TYPE_WSGI_APP,
+        logger: logging.Logger = log,
+        loglevel: int = logging.INFO,
+        show_request_immediately: bool = True,
+        show_response: bool = True,
+        show_timing: bool = True,
+    ) -> None:
         """
         Args:
             app:
@@ -87,7 +91,8 @@ class RequestLoggingMiddleware(object):
         self.show_request_immediately = show_request_immediately
         self.show_timing = show_timing
         self.two_parts = show_request_immediately and (
-                show_response or show_timing)
+            show_response or show_timing
+        )
 
     def log(self, msg) -> None:
         """
@@ -95,28 +100,28 @@ class RequestLoggingMiddleware(object):
         """
         self.logger.log(self.loglevel, msg)
 
-    def __call__(self,
-                 environ: TYPE_WSGI_ENVIRON,
-                 start_response: TYPE_WSGI_START_RESPONSE) \
-            -> TYPE_WSGI_APP_RESULT:
+    def __call__(
+        self,
+        environ: TYPE_WSGI_ENVIRON,
+        start_response: TYPE_WSGI_START_RESPONSE,
+    ) -> TYPE_WSGI_APP_RESULT:
         query_string = environ.get(WsgiEnvVar.QUERY_STRING, "")
         try:
             # https://stackoverflow.com/questions/7835030/obtaining-client-ip-address-from-a-wsgi-app-using-eventlet  # noqa
             # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For  # noqa
             forwarded_for = " [forwarded for {}]".format(
-                environ[WsgiEnvVar.HTTP_X_FORWARDED_FOR])
+                environ[WsgiEnvVar.HTTP_X_FORWARDED_FOR]
+            )
         except KeyError:
             forwarded_for = ""
-        request_details = (
-            '{remote}{fwd}: "{method} {path}{qmark}{query} {proto}"'.format(
-                remote=environ.get(WsgiEnvVar.REMOTE_ADDR, ""),
-                fwd=forwarded_for,
-                method=environ.get(WsgiEnvVar.REQUEST_METHOD, ""),
-                path=environ.get(WsgiEnvVar.PATH_INFO, ""),
-                qmark="?" if query_string else "",
-                query=query_string,
-                proto=environ.get(WsgiEnvVar.SERVER_PROTOCOL, ""),
-            )
+        request_details = '{remote}{fwd}: "{method} {path}{qmark}{query} {proto}"'.format(
+            remote=environ.get(WsgiEnvVar.REMOTE_ADDR, ""),
+            fwd=forwarded_for,
+            method=environ.get(WsgiEnvVar.REQUEST_METHOD, ""),
+            path=environ.get(WsgiEnvVar.PATH_INFO, ""),
+            qmark="?" if query_string else "",
+            query=query_string,
+            proto=environ.get(WsgiEnvVar.SERVER_PROTOCOL, ""),
         )
         msg_parts = []  # type: List[str]
         if self.show_request_immediately:
@@ -126,10 +131,11 @@ class RequestLoggingMiddleware(object):
             msg_parts.clear()
         captured_status = None  # type: Optional[int]
 
-        def custom_start_response(status: TYPE_WSGI_STATUS,
-                                  headers: TYPE_WSGI_RESPONSE_HEADERS,
-                                  exc_info: TYPE_WSGI_EXC_INFO = None) \
-                -> TYPE_WSGI_START_RESP_RESULT:
+        def custom_start_response(
+            status: TYPE_WSGI_STATUS,
+            headers: TYPE_WSGI_RESPONSE_HEADERS,
+            exc_info: TYPE_WSGI_EXC_INFO = None,
+        ) -> TYPE_WSGI_START_RESP_RESULT:
             nonlocal captured_status
             captured_status = status
             return start_response(status, headers, exc_info)

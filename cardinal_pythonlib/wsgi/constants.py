@@ -37,32 +37,38 @@ from typing import Callable, Dict, Iterable, List, Optional, Tuple, Type
 TYPE_WSGI_ENVIRON = Dict[str, str]
 TYPE_WSGI_STATUS = str
 TYPE_WSGI_RESPONSE_HEADERS = List[Tuple[str, str]]
-TYPE_WSGI_START_RESP_RESULT = Callable[[str], None]  # call with e.g. write(body_data)  # noqa
+TYPE_WSGI_START_RESP_RESULT = Callable[
+    [str], None
+]  # call with e.g. write(body_data)  # noqa
 TYPE_WSGI_EXC_INFO = Tuple[
     # https://docs.python.org/3/library/sys.html#sys.exc_info
     Optional[Type[BaseException]],  # type
     Optional[BaseException],  # value
-    Optional[TracebackType]  # traceback
+    Optional[TracebackType],  # traceback
 ]
 TYPE_WSGI_START_RESPONSE = Callable[
     # There is an optional third parameter to start_response():
-    [TYPE_WSGI_STATUS,  # status
-     TYPE_WSGI_RESPONSE_HEADERS,  # headers
-     Optional[TYPE_WSGI_EXC_INFO]],  # exc_info
-    TYPE_WSGI_START_RESP_RESULT
+    [
+        TYPE_WSGI_STATUS,  # status
+        TYPE_WSGI_RESPONSE_HEADERS,  # headers
+        Optional[TYPE_WSGI_EXC_INFO],
+    ],  # exc_info
+    TYPE_WSGI_START_RESP_RESULT,
 ]
 TYPE_WSGI_APP_RESULT = Iterable[bytes]
 # ... must be BYTE STRINGS, not str; see
 # https://www.python.org/dev/peps/pep-0333/#unicode-issues
 # and also
 # https://github.com/fgallaire/wsgiserver/issues/2
-TYPE_WSGI_APP = Callable[[TYPE_WSGI_ENVIRON, TYPE_WSGI_START_RESPONSE],
-                         TYPE_WSGI_APP_RESULT]
+TYPE_WSGI_APP = Callable[
+    [TYPE_WSGI_ENVIRON, TYPE_WSGI_START_RESPONSE], TYPE_WSGI_APP_RESULT
+]
 
 
 # =============================================================================
 # Constants
 # =============================================================================
+
 
 class WsgiEnvVar(object):
     """
@@ -70,6 +76,7 @@ class WsgiEnvVar(object):
 
     For core ones, see https://wsgi.readthedocs.io/en/latest/definitions.html
     """
+
     CONTENT_LENGTH = "CONTENT_LENGTH"  # [1]
     CONTENT_TYPE = "CONTENT_TYPE"  # [1]
     HTTP_HOST = "HTTP_HOST"  # [2]

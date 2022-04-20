@@ -38,8 +38,17 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from typing import (Any, BinaryIO, Generator, Iterable, IO, List, TextIO,
-                    Tuple, Union)
+from typing import (
+    Any,
+    BinaryIO,
+    Generator,
+    Iterable,
+    IO,
+    List,
+    TextIO,
+    Tuple,
+    Union,
+)
 import zipfile
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
@@ -53,10 +62,17 @@ UTF8 = "utf8"
 # File opening
 # =============================================================================
 
+
 @contextmanager
-def smart_open(filename: str, mode: str = 'Ur', buffering: int = -1,
-               encoding: str = None, errors: str = None, newline: str = None,
-               closefd: bool = True) -> IO:
+def smart_open(
+    filename: str,
+    mode: str = "Ur",
+    buffering: int = -1,
+    encoding: str = None,
+    errors: str = None,
+    newline: str = None,
+    closefd: bool = True,
+) -> IO:
     """
     Context manager (for use with ``with``) that opens a filename and provides
     a :class:`IO` object. If the filename is ``'-'``, however, then
@@ -70,9 +86,15 @@ def smart_open(filename: str, mode: str = 'Ur', buffering: int = -1,
         else:
             fh = sys.stdout
     else:
-        fh = open(filename, mode=mode,
-                  buffering=buffering, encoding=encoding, errors=errors,
-                  newline=newline, closefd=closefd)
+        fh = open(
+            filename,
+            mode=mode,
+            buffering=buffering,
+            encoding=encoding,
+            errors=errors,
+            newline=newline,
+            closefd=closefd,
+        )
     try:
         yield fh
     finally:
@@ -87,11 +109,12 @@ def smart_open(filename: str, mode: str = 'Ur', buffering: int = -1,
 # File output
 # =============================================================================
 
+
 def writeline_nl(fileobj: TextIO, line: str) -> None:
     """
     Writes a line plus a terminating newline to the file.
     """
-    fileobj.write(line + '\n')
+    fileobj.write(line + "\n")
 
 
 def writelines_nl(fileobj: TextIO, lines: Iterable[str]) -> None:
@@ -101,14 +124,14 @@ def writelines_nl(fileobj: TextIO, lines: Iterable[str]) -> None:
     (Since :func:`fileobj.writelines` doesn't add newlines...
     https://stackoverflow.com/questions/13730107/writelines-writes-lines-without-newline-just-fills-the-file)
     """  # noqa
-    fileobj.write('\n'.join(lines) + '\n')
+    fileobj.write("\n".join(lines) + "\n")
 
 
 def write_text(filename: str, text: str) -> None:
     """
     Writes text to a file.
     """
-    with open(filename, 'w') as f:  # type: TextIO
+    with open(filename, "w") as f:  # type: TextIO
         print(text, file=f)
 
 
@@ -123,11 +146,11 @@ def write_gzipped_text(basefilename: str, text: str) -> None:
     - https://lintian.debian.org/tags/package-contains-timestamped-gzip.html
     - See https://stackoverflow.com/questions/25728472/python-gzip-omit-the-original-filename-and-timestamp
     """  # noqa
-    zipfilename = basefilename + '.gz'
+    zipfilename = basefilename + ".gz"
     compresslevel = 9
     mtime = 0
-    with open(zipfilename, 'wb') as f:
-        with gzip.GzipFile(basefilename, 'wb', compresslevel, f, mtime) as gz:
+    with open(zipfilename, "wb") as f:
+        with gzip.GzipFile(basefilename, "wb", compresslevel, f, mtime) as gz:
             with io.TextIOWrapper(gz) as tw:
                 tw.write(text)
 
@@ -135,6 +158,7 @@ def write_gzipped_text(basefilename: str, text: str) -> None:
 # =============================================================================
 # File input
 # =============================================================================
+
 
 def get_lines_without_comments(filename: str) -> List[str]:
     """
@@ -147,9 +171,10 @@ def get_lines_without_comments(filename: str) -> List[str]:
 # More file input: generic generators
 # =============================================================================
 
+
 def gen_noncomment_lines(
-        file: TextIO,
-        comment_at_start_only: bool = False) -> Generator[str, None, None]:
+    file: TextIO, comment_at_start_only: bool = False
+) -> Generator[str, None, None]:
     """
     From an open file, yields all lines as a list, left- and right-stripping
     the lines and (by default) removing everything on a line after the first
@@ -174,26 +199,28 @@ def gen_noncomment_lines(
                 yield line
     else:
         for line in file:
-            line = line.partition('#')[0]  # the part before the first #
+            line = line.partition("#")[0]  # the part before the first #
             line = line.strip()  # equivalent to lstrip() and rstrip()
             if line:
                 yield line
 
 
 def gen_lines_without_comments(
-        filename: str,
-        comment_at_start_only: bool = False) -> Generator[str, None, None]:
+    filename: str, comment_at_start_only: bool = False
+) -> Generator[str, None, None]:
     """
     As for :func:`gen_noncomment_lines`, but using a filename.
     """
     with open(filename) as f:
         for line in gen_noncomment_lines(
-                f, comment_at_start_only=comment_at_start_only):
+            f, comment_at_start_only=comment_at_start_only
+        ):
             yield line
 
 
 def gen_textfiles_from_filenames(
-        filenames: Iterable[str]) -> Generator[TextIO, None, None]:
+    filenames: Iterable[str]
+) -> Generator[TextIO, None, None]:
     """
     Generates file-like objects from a list of filenames.
 
@@ -210,7 +237,8 @@ def gen_textfiles_from_filenames(
 
 
 def gen_lines_from_textfiles(
-        files: Iterable[TextIO]) -> Generator[str, None, None]:
+    files: Iterable[TextIO]
+) -> Generator[str, None, None]:
     """
     Generates lines from file-like objects.
 
@@ -239,8 +267,8 @@ def gen_lower(x: Iterable[str]) -> Generator[str, None, None]:
 
 
 def gen_lines_from_binary_files(
-        files: Iterable[BinaryIO],
-        encoding: str = UTF8) -> Generator[str, None, None]:
+    files: Iterable[BinaryIO], encoding: str = UTF8
+) -> Generator[str, None, None]:
     """
     Generates lines from binary files.
     Strips out newlines.
@@ -260,9 +288,10 @@ def gen_lines_from_binary_files(
 
 
 def gen_files_from_zipfiles(
-        zipfilenames_or_files: Iterable[Union[str, BinaryIO]],
-        filespec: str,
-        on_disk: bool = False) -> Generator[BinaryIO, None, None]:
+    zipfilenames_or_files: Iterable[Union[str, BinaryIO]],
+    filespec: str,
+    on_disk: bool = False,
+) -> Generator[BinaryIO, None, None]:
     """
 
     Args:
@@ -283,7 +312,7 @@ def gen_files_from_zipfiles(
     for zipfilename_or_file in zipfilenames_or_files:
         with zipfile.ZipFile(zipfilename_or_file) as zf:
             infolist = zf.infolist()  # type: List[zipfile.ZipInfo]
-            infolist.sort(key=attrgetter('filename'))
+            infolist.sort(key=attrgetter("filename"))
             for zipinfo in infolist:
                 if not fnmatch.fnmatch(zipinfo.filename, filespec):
                     continue
@@ -292,7 +321,7 @@ def gen_files_from_zipfiles(
                     with tempfile.TemporaryDirectory() as tmpdir:
                         zf.extract(zipinfo.filename, tmpdir)
                         diskfilename = os.path.join(tmpdir, zipinfo.filename)
-                        with open(diskfilename, 'rb') as subfile:
+                        with open(diskfilename, "rb") as subfile:
                             yield subfile
                 else:
                     # Will not be seekable; e.g.
@@ -301,9 +330,9 @@ def gen_files_from_zipfiles(
                         yield subfile
 
 
-def gen_part_from_line(lines: Iterable[str],
-                       part_index: int,
-                       splitter: str = None) -> Generator[str, None, None]:
+def gen_part_from_line(
+    lines: Iterable[str], part_index: int, splitter: str = None
+) -> Generator[str, None, None]:
     """
     Splits lines with ``splitter`` and yields a specified part by index.
 
@@ -321,8 +350,9 @@ def gen_part_from_line(lines: Iterable[str],
         yield parts[part_index]
 
 
-def gen_part_from_iterables(iterables: Iterable[Any],
-                            part_index: int) -> Generator[Any, None, None]:
+def gen_part_from_iterables(
+    iterables: Iterable[Any], part_index: int
+) -> Generator[Any, None, None]:
     r"""
     Yields the *n*\ th part of each thing in ``iterables``.
 
@@ -341,10 +371,11 @@ def gen_part_from_iterables(iterables: Iterable[Any],
 
 
 def gen_rows_from_csv_binfiles(
-        csv_files: Iterable[BinaryIO],
-        encoding: str = UTF8,
-        skip_header: bool = False,
-        **csv_reader_kwargs) -> Generator[Iterable[str], None, None]:
+    csv_files: Iterable[BinaryIO],
+    encoding: str = UTF8,
+    skip_header: bool = False,
+    **csv_reader_kwargs
+) -> Generator[Iterable[str], None, None]:
     """
     Iterate through binary file-like objects that are CSV files in a specified
     encoding. Yield each row.
@@ -359,7 +390,7 @@ def gen_rows_from_csv_binfiles(
         rows from the files
 
     """
-    dialect = csv_reader_kwargs.pop('dialect', None)
+    dialect = csv_reader_kwargs.pop("dialect", None)
     for csv_file_bin in csv_files:
         # noinspection PyTypeChecker
         csv_file = io.TextIOWrapper(csv_file_bin, encoding=encoding)
@@ -367,8 +398,9 @@ def gen_rows_from_csv_binfiles(
         if thisfile_dialect is None:
             thisfile_dialect = csv.Sniffer().sniff(csv_file.read(1024))
             csv_file.seek(0)
-        reader = csv.reader(csv_file, dialect=thisfile_dialect,
-                            **csv_reader_kwargs)
+        reader = csv.reader(
+            csv_file, dialect=thisfile_dialect, **csv_reader_kwargs
+        )
         first = True
         for row in reader:
             if first:
@@ -382,20 +414,23 @@ def gen_rows_from_csv_binfiles(
 # File transformations
 # =============================================================================
 
+
 def webify_file(srcfilename: str, destfilename: str) -> None:
     """
     Rewrites a file from ``srcfilename`` to ``destfilename``, HTML-escaping it
     in the process.
     """
-    with open(srcfilename) as infile, open(destfilename, 'w') as ofile:
+    with open(srcfilename) as infile, open(destfilename, "w") as ofile:
         for line_ in infile:
             ofile.write(escape(line_))
 
 
-def remove_gzip_timestamp(filename: str,
-                          gunzip_executable: str = "gunzip",
-                          gzip_executable: str = "gzip",
-                          gzip_args: List[str] = None) -> None:
+def remove_gzip_timestamp(
+    filename: str,
+    gunzip_executable: str = "gunzip",
+    gzip_executable: str = "gzip",
+    gzip_args: List[str] = None,
+) -> None:
     """
     Uses external ``gunzip``/``gzip`` tools to remove a ``gzip`` timestamp.
     Necessary for Lintian.
@@ -408,15 +443,18 @@ def remove_gzip_timestamp(filename: str,
     with tempfile.TemporaryDirectory() as dir_:
         basezipfilename = os.path.basename(filename)
         newzip = os.path.join(dir_, basezipfilename)
-        with open(newzip, 'wb') as z:
+        with open(newzip, "wb") as z:
             log.info(
-                "Removing gzip timestamp: "
-                "{} -> gunzip -c -> gzip -n -> {}",
-                basezipfilename, newzip)
-            p1 = subprocess.Popen([gunzip_executable, "-c", filename],
-                                  stdout=subprocess.PIPE)
-            p2 = subprocess.Popen([gzip_executable] + gzip_args,
-                                  stdin=p1.stdout, stdout=z)
+                "Removing gzip timestamp: " "{} -> gunzip -c -> gzip -n -> {}",
+                basezipfilename,
+                newzip,
+            )
+            p1 = subprocess.Popen(
+                [gunzip_executable, "-c", filename], stdout=subprocess.PIPE
+            )
+            p2 = subprocess.Popen(
+                [gzip_executable] + gzip_args, stdin=p1.stdout, stdout=z
+            )
             p2.communicate()
         shutil.copyfile(newzip, filename)  # copy back
 
@@ -425,8 +463,10 @@ def remove_gzip_timestamp(filename: str,
 # File modifications
 # =============================================================================
 
-def replace_in_file(filename: str, text_from: str, text_to: str,
-                    backup_filename: str = None) -> None:
+
+def replace_in_file(
+    filename: str, text_from: str, text_to: str, backup_filename: str = None
+) -> None:
     """
     Replaces text in a file.
 
@@ -436,22 +476,23 @@ def replace_in_file(filename: str, text_from: str, text_to: str,
         text_to: replacement text
         backup_filename: backup filename to write to, if modifications made
     """
-    log.info("Amending {}: {} -> {}",
-             filename, repr(text_from), repr(text_to))
+    log.info("Amending {}: {} -> {}", filename, repr(text_from), repr(text_to))
     with open(filename) as infile:
         original = infile.read()
     modified = original.replace(text_from, text_to)
     if modified != original:
         if backup_filename:
-            with open(filename, 'w') as outfile:
+            with open(filename, "w") as outfile:
                 outfile.write(original)
-        with open(filename, 'w') as outfile:
+        with open(filename, "w") as outfile:
             outfile.write(modified)
 
 
-def replace_multiple_in_file(filename: str,
-                             replacements: List[Tuple[str, str]],
-                             backup_filename: str = None) -> None:
+def replace_multiple_in_file(
+    filename: str,
+    replacements: List[Tuple[str, str]],
+    backup_filename: str = None,
+) -> None:
     """
     Replaces multiple from/to string pairs within a single file.
 
@@ -464,19 +505,21 @@ def replace_multiple_in_file(filename: str,
         original = infile.read()
     modified = original
     for text_from, text_to in replacements:
-        log.info("Amending {}: {} -> {}",
-                 filename, repr(text_from), repr(text_to))
+        log.info(
+            "Amending {}: {} -> {}", filename, repr(text_from), repr(text_to)
+        )
         modified = modified.replace(text_from, text_to)
     if modified != original:
         if backup_filename:
-            with open(filename, 'w') as outfile:
+            with open(filename, "w") as outfile:
                 outfile.write(original)
-        with open(filename, 'w') as outfile:
+        with open(filename, "w") as outfile:
             outfile.write(modified)
 
 
-def convert_line_endings(filename: str, to_unix: bool = False,
-                         to_windows: bool = False) -> None:
+def convert_line_endings(
+    filename: str, to_unix: bool = False, to_windows: bool = False
+) -> None:
     """
     Converts a file (in place) from UNIX to Windows line endings, or the
     reverse.
@@ -492,18 +535,22 @@ def convert_line_endings(filename: str, to_unix: bool = False,
     windows_eol = b"\r\n"  # CR LF
     unix_eol = b"\n"  # LF
     if to_unix:
-        log.info("Converting from Windows to UNIX line endings: {!r}",
-                 filename)
+        log.info(
+            "Converting from Windows to UNIX line endings: {!r}", filename
+        )
         src = windows_eol
         dst = unix_eol
     else:  # to_windows
-        log.info("Converting from UNIX to Windows line endings: {!r}",
-                 filename)
+        log.info(
+            "Converting from UNIX to Windows line endings: {!r}", filename
+        )
         src = unix_eol
         dst = windows_eol
         if windows_eol in contents:
-            log.info("... already contains at least one Windows line ending; "
-                     "probably converted before; skipping")
+            log.info(
+                "... already contains at least one Windows line ending; "
+                "probably converted before; skipping"
+            )
             return
     contents = contents.replace(src, dst)
     with open(filename, "wb") as f:

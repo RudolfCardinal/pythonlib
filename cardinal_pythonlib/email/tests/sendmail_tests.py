@@ -47,10 +47,10 @@ class TestIsEmailValid(unittest.TestCase):
         for good in good_addresses:
             self.assertTrue(
                 is_email_valid(good),
-                f"Good e-mail being flagged as bad: {good!r}"
+                f"Good e-mail being flagged as bad: {good!r}",
             )
         for bad in bad_addresses:
             self.assertFalse(
                 is_email_valid(bad),
-                f"Bad e-mail being flagged as good: {bad!r}"
+                f"Bad e-mail being flagged as good: {bad!r}",
             )

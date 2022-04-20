@@ -38,8 +38,9 @@ from typing import Any, Iterable
 # These two auto-delete files from filesystem when they are unneeded:
 # ... with a bit of modification to make them generic (RNC)
 # Attach them with signals; see e.g. Study model.
-def auto_delete_files_on_instance_delete(instance: Any,
-                                         fieldnames: Iterable[str]) -> None:
+def auto_delete_files_on_instance_delete(
+    instance: Any, fieldnames: Iterable[str]
+) -> None:
     """
     Deletes files from filesystem when object is deleted.
     """
@@ -69,9 +70,8 @@ def auto_delete_files_on_instance_delete(instance: Any,
 
 
 def auto_delete_files_on_instance_change(
-        instance: Any,
-        fieldnames: Iterable[str],
-        model_class) -> None:
+    instance: Any, fieldnames: Iterable[str], model_class
+) -> None:
     """
     Deletes files from filesystem when object is changed.
 

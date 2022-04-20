@@ -32,6 +32,7 @@ import inspect
 import os
 import os.path
 import pkgutil
+
 # noinspection PyUnresolvedReferences
 from types import ModuleType
 from typing import Dict, List, Union
@@ -45,9 +46,12 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Module management
 # =============================================================================
 
-def import_submodules(package: Union[str, ModuleType],
-                      base_package_for_relative_import: str = None,
-                      recursive: bool = True) -> Dict[str, ModuleType]:
+
+def import_submodules(
+    package: Union[str, ModuleType],
+    base_package_for_relative_import: str = None,
+    recursive: bool = True,
+) -> Dict[str, ModuleType]:
     """
     Import all submodules of a module, recursively, including subpackages.
 
@@ -62,16 +66,18 @@ def import_submodules(package: Union[str, ModuleType],
     """
     # https://stackoverflow.com/questions/3365740/how-to-import-all-submodules
     if isinstance(package, str):
-        package = importlib.import_module(package,
-                                          base_package_for_relative_import)
+        package = importlib.import_module(
+            package, base_package_for_relative_import
+        )
     results = {}
     for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
-        full_name = package.__name__ + '.' + name
+        full_name = package.__name__ + "." + name
         log.debug("importing: {}", full_name)
         results[full_name] = importlib.import_module(full_name)
         if recursive and is_pkg:
             results.update(import_submodules(full_name))
     return results
+
 
 # Note slightly nastier way: e.g.
 #   # Task imports: everything in "tasks" directory
@@ -84,6 +90,7 @@ def import_submodules(package: Union[str, ModuleType],
 # =============================================================================
 # For package developers
 # =============================================================================
+
 
 def is_builtin_module(module: ModuleType) -> bool:
     """
@@ -134,7 +141,7 @@ def is_c_extension(module: ModuleType) -> bool:
 
     # If this module was loaded by a PEP 302-compliant CPython-specific loader
     # loading only C extensions, this module is a C extension.
-    if isinstance(getattr(module, '__loader__', None), ExtensionFileLoader):
+    if isinstance(getattr(module, "__loader__", None), ExtensionFileLoader):
         return True
 
     # If it's built-in, it's not a C extension.
@@ -154,10 +161,12 @@ def is_c_extension(module: ModuleType) -> bool:
     return module_filetype in EXTENSION_SUFFIXES
 
 
-def contains_c_extension(module: ModuleType,
-                         import_all_submodules: bool = True,
-                         include_external_imports: bool = False,
-                         seen: List[ModuleType] = None) -> bool:
+def contains_c_extension(
+    module: ModuleType,
+    import_all_submodules: bool = True,
+    include_external_imports: bool = False,
+    seen: List[ModuleType] = None,
+) -> bool:
     """
     Extends :func:`is_c_extension` by asking: is this module, or any of its
     submodules, a C extension?
@@ -257,15 +266,19 @@ def contains_c_extension(module: ModuleType,
         candidate_fname = getattr(candidate, "__file__")
         if not include_external_imports:
             if os.path.commonpath([top_path, candidate_fname]) != top_path:
-                log.debug("Skipping, not within the top-level module's "
-                          "directory: {!r}", candidate)
+                log.debug(
+                    "Skipping, not within the top-level module's "
+                    "directory: {!r}",
+                    candidate,
+                )
                 continue
         # Recurse:
         if contains_c_extension(
-                module=candidate,
-                import_all_submodules=False,  # only done at the top level, below  # noqa
-                include_external_imports=include_external_imports,
-                seen=seen):
+            module=candidate,
+            import_all_submodules=False,  # only done at the top level, below  # noqa
+            include_external_imports=include_external_imports,
+            seen=seen,
+        ):
             return True
 
     if import_all_submodules:
@@ -279,15 +292,18 @@ def contains_c_extension(module: ModuleType,
         log.debug("Walking path: {!r}", top_path)
         # noinspection PyBroadException
         try:
-            for loader, module_name, is_pkg in pkgutil.walk_packages([top_path]):  # noqa
+            for loader, module_name, is_pkg in pkgutil.walk_packages(
+                [top_path]
+            ):  # noqa
                 if not is_pkg:
                     log.debug("Skipping, not a package: {!r}", module_name)
                     continue
                 log.debug("Manually importing: {!r}", module_name)
                 # noinspection PyBroadException
                 try:
-                    candidate = loader.find_module(module_name)\
-                        .load_module(module_name)  # noqa
+                    candidate = loader.find_module(module_name).load_module(
+                        module_name
+                    )  # noqa
                 except Exception:
                     # e.g. Alembic "autogenerate" gives: "ValueError: attempted
                     # relative import beyond top-level package"; or Django
@@ -295,14 +311,17 @@ def contains_c_extension(module: ModuleType,
                     log.error("Package failed to import: {!r}", module_name)
                     continue
                 if contains_c_extension(
-                        module=candidate,
-                        import_all_submodules=False,  # only done at the top level  # noqa
-                        include_external_imports=include_external_imports,
-                        seen=seen):
+                    module=candidate,
+                    import_all_submodules=False,  # only done at the top level  # noqa
+                    include_external_imports=include_external_imports,
+                    seen=seen,
+                ):
                     return True
         except Exception:
-            log.error("Unable to walk packages further; no C extensions "
-                      "detected so far!")
+            log.error(
+                "Unable to walk packages further; no C extensions "
+                "detected so far!"
+            )
             raise
 
     return False

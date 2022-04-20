@@ -67,10 +67,10 @@ import platform
 import sys
 from typing import List
 
-ODBC_ADD_DSN = 1         # Add data source
-ODBC_CONFIG_DSN = 2      # Configure (edit) data source
-ODBC_REMOVE_DSN = 3      # Remove data source
-ODBC_ADD_SYS_DSN = 4     # add a system DSN
+ODBC_ADD_DSN = 1  # Add data source
+ODBC_CONFIG_DSN = 2  # Configure (edit) data source
+ODBC_REMOVE_DSN = 3  # Remove data source
+ODBC_ADD_SYS_DSN = 4  # add a system DSN
 ODBC_CONFIG_SYS_DSN = 5  # Configure a system DSN
 ODBC_REMOVE_SYS_DSN = 6  # remove a system DSN
 access_driver = "Microsoft Access Driver (*.mdb)"
@@ -93,9 +93,9 @@ def create_sys_dsn(driver: str, **kw) -> bool:
     for attr in kw.keys():
         attributes.append("%s=%s" % (attr, kw[attr]))
     return bool(
-        ctypes.windll.ODBCCP32.SQLConfigDataSource(0, ODBC_ADD_SYS_DSN,
-                                                   driver,
-                                                   nul.join(attributes))
+        ctypes.windll.ODBCCP32.SQLConfigDataSource(
+            0, ODBC_ADD_SYS_DSN, driver, nul.join(attributes)
+        )
     )
 
 
@@ -115,8 +115,9 @@ def create_user_dsn(driver: str, **kw) -> bool:
     for attr in kw.keys():
         attributes.append("%s=%s" % (attr, kw[attr]))
     return bool(
-        ctypes.windll.ODBCCP32.SQLConfigDataSource(0, ODBC_ADD_DSN, driver,
-                                                   nul.join(attributes))
+        ctypes.windll.ODBCCP32.SQLConfigDataSource(
+            0, ODBC_ADD_DSN, driver, nul.join(attributes)
+        )
     )
 
 
@@ -141,13 +142,13 @@ def register_access_db(fullfilename: str, dsn: str, description: str) -> bool:
         DESCRIPTION=description,
         DSN=dsn,
         DBQ=fullfilename,
-        DefaultDir=directory
+        DefaultDir=directory,
     )
 
 
-def create_and_register_access97_db(filename: str,
-                                    dsn: str,
-                                    description: str) -> bool:
+def create_and_register_access97_db(
+    filename: str, dsn: str, description: str
+) -> bool:
     """
     (Windows only.)
     Creates a Microsoft Access 97 database and registers it with ODBC.
@@ -163,13 +164,14 @@ def create_and_register_access97_db(filename: str,
     fullfilename = os.path.abspath(filename)
     create_string = fullfilename + " General"
     # ... filename, space, sort order ("General" for English)
-    return (create_user_dsn(access_driver, CREATE_DB3=create_string) and
-            register_access_db(filename, dsn, description))
+    return create_user_dsn(
+        access_driver, CREATE_DB3=create_string
+    ) and register_access_db(filename, dsn, description)
 
 
-def create_and_register_access2000_db(filename: str,
-                                      dsn: str,
-                                      description: str) -> bool:
+def create_and_register_access2000_db(
+    filename: str, dsn: str, description: str
+) -> bool:
     """
     (Windows only.)
     Creates a Microsoft Access 2000 database and registers it with ODBC.
@@ -185,13 +187,14 @@ def create_and_register_access2000_db(filename: str,
     fullfilename = os.path.abspath(filename)
     create_string = fullfilename + " General"
     # ... filename, space, sort order ("General" for English)
-    return (create_user_dsn(access_driver, CREATE_DB4=create_string) and
-            register_access_db(filename, dsn, description))
+    return create_user_dsn(
+        access_driver, CREATE_DB4=create_string
+    ) and register_access_db(filename, dsn, description)
 
 
-def create_and_register_access_db(filename: str,
-                                  dsn: str,
-                                  description: str) -> bool:
+def create_and_register_access_db(
+    filename: str, dsn: str, description: str
+) -> bool:
     """
     (Windows only.)
     Creates a Microsoft Access database and registers it with ODBC.
@@ -207,8 +210,9 @@ def create_and_register_access_db(filename: str,
     fullfilename = os.path.abspath(filename)
     create_string = fullfilename + " General"
     # ... filename, space, sort order ("General" for English)
-    return (create_user_dsn(access_driver, CREATE_DB=create_string) and
-            register_access_db(filename, dsn, description))
+    return create_user_dsn(
+        access_driver, CREATE_DB=create_string
+    ) and register_access_db(filename, dsn, description)
     # likely defaults to Access 2000
 
 
@@ -216,9 +220,9 @@ if __name__ == "__main__":
     if platform.system() != "Windows":
         print("Only Windows supported.")
         sys.exit()
-    if create_and_register_access_db("testaccessdb.mdb",
-                                     "Test_Access_DB",
-                                     "My test Access DB DSN"):
+    if create_and_register_access_db(
+        "testaccessdb.mdb", "Test_Access_DB", "My test Access DB DSN"
+    ):
         print("DSN created")
     else:
         print("DSN not created")

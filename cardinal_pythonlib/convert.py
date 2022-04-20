@@ -40,6 +40,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Simple type converters
 # =============================================================================
 
+
 def convert_to_bool(x: Any, default: bool = None) -> bool:
     """
     Transforms its input to a ``bool`` (or returns ``default`` if ``x`` is
@@ -87,9 +88,10 @@ def convert_to_int(x: Any, default: int = None) -> int:
 # Attribute converters
 # =============================================================================
 
-def convert_attrs_to_bool(obj: Any,
-                          attrs: Iterable[str],
-                          default: bool = None) -> None:
+
+def convert_attrs_to_bool(
+    obj: Any, attrs: Iterable[str], default: bool = None
+) -> None:
     """
     Applies :func:`convert_to_bool` to the specified attributes of an object,
     modifying it in place.
@@ -122,9 +124,9 @@ def convert_attrs_to_lowercase(obj: Any, attrs: Iterable[str]) -> None:
         setattr(obj, a, value.lower())
 
 
-def convert_attrs_to_int(obj: Any,
-                         attrs: Iterable[str],
-                         default: int = None) -> None:
+def convert_attrs_to_int(
+    obj: Any, attrs: Iterable[str], default: int = None
+) -> None:
     """
     Applies :func:`convert_to_int` to the specified attributes of an object,
     modifying it in place.
@@ -138,12 +140,16 @@ def convert_attrs_to_int(obj: Any,
 # Encoding: binary as hex in X'...' format
 # =============================================================================
 
-REGEX_HEX_XFORMAT = re.compile("""
+REGEX_HEX_XFORMAT = re.compile(
+    """
     ^X'                             # begins with X'
     ([a-fA-F0-9][a-fA-F0-9])+       # one or more hex pairs
     '$                              # ends with '
-    """, re.X)  # re.X allows whitespace/comments in regex
-REGEX_BASE64_64FORMAT = re.compile("""
+    """,
+    re.X,
+)  # re.X allows whitespace/comments in regex
+REGEX_BASE64_64FORMAT = re.compile(
+    """
     ^64'                                # begins with 64'
     (?: [A-Za-z0-9+/]{4} )*             # zero or more quads, followed by...
     (?:
@@ -152,7 +158,9 @@ REGEX_BASE64_64FORMAT = re.compile("""
         [A-Za-z0-9+/] [AQgw] ==                     # a pair then ==
     )?
     '$                                  # ends with '
-    """, re.X)  # re.X allows whitespace/comments in regex
+    """,
+    re.X,
+)  # re.X allows whitespace/comments in regex
 
 
 def hex_xformat_encode(v: bytes) -> str:
@@ -196,6 +204,7 @@ def hex_xformat_decode(s: str) -> Optional[bytes]:
 # Encoding: binary as hex in 64'...' format (which is idiosyncratic!)
 # =============================================================================
 
+
 def base64_64format_encode(v: bytes) -> str:
     """
     Encode in ``64'{base64encoded}'`` format.
@@ -206,7 +215,7 @@ def base64_64format_encode(v: bytes) -> str:
 
         base64_64format_encode(b"hello") == "64'aGVsbG8='"
     """
-    return "64'{}'".format(base64.b64encode(v).decode('ascii'))
+    return "64'{}'".format(base64.b64encode(v).decode("ascii"))
 
 
 def base64_64format_decode(s: str) -> Optional[bytes]:

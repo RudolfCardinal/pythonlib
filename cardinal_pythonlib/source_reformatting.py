@@ -61,13 +61,15 @@ PYTHON_EXTENSION = ".py"
 # PythonProcessor
 # =============================================================================
 
+
 class PythonProcessor(object):
     """
     Class to read a Python source file and reformat its shebang/docstring etc.
     """
 
-    def __init__(self, full_path: str, top_dir: str,
-                 correct_copyright_lines: List[str]) -> None:
+    def __init__(
+        self, full_path: str, top_dir: str, correct_copyright_lines: List[str]
+    ) -> None:
         """
 
         Args:
@@ -83,7 +85,8 @@ class PythonProcessor(object):
         """
         self.full_path = full_path
         self.advertised_filename = relative_filename_within_dir(
-            full_path, top_dir)
+            full_path, top_dir
+        )
         self.correct_copyright_lines = correct_copyright_lines
         self.needs_rewriting = False
         self.source_lines = []  # type: List[str]
@@ -98,14 +101,17 @@ class PythonProcessor(object):
         with open(self.full_path, "rt") as f:
             for linenum, line_with_nl in enumerate(f.readlines(), start=1):
                 line_without_newline = (
-                    line_with_nl[:-1] if line_with_nl.endswith(NL)
+                    line_with_nl[:-1]
+                    if line_with_nl.endswith(NL)
                     else line_with_nl
                 )
                 if TAB in line_without_newline:
                     self._warn(f"Tab character at line {linenum}")
                 if CR in line_without_newline:
-                    self._warn(f"Carriage return character at line {linenum} "
-                               f"(Windows CR+LF endings?)")
+                    self._warn(
+                        f"Carriage return character at line {linenum} "
+                        f"(Windows CR+LF endings?)"
+                    )
                 self.source_lines.append(line_without_newline)
 
     def _create_dest(self) -> None:
@@ -132,25 +138,31 @@ class PythonProcessor(object):
                 if linenum == 1:
                     # Shebang
                     if not dl.startswith(SHEBANG_START):
-                        self._warn(f"File does not start with shebang; "
-                                   f"first line was {dl!r}")
+                        self._warn(
+                            f"File does not start with shebang; "
+                            f"first line was {dl!r}"
+                        )
                         self._too_risky()
                         return
                     if dl != CORRECT_SHEBANG:
                         self._debug(f"Rewriting shebang; was {dl!r}")
                     dl = CORRECT_SHEBANG
 
-                if (linenum == 2 and dl.startswith(HASH_SPACE) and
-                        dl.endswith(PYTHON_EXTENSION)):
-                    self._debug(
-                        f"Removing filename comment: {dl!r}")
+                if (
+                    linenum == 2
+                    and dl.startswith(HASH_SPACE)
+                    and dl.endswith(PYTHON_EXTENSION)
+                ):
+                    self._debug(f"Removing filename comment: {dl!r}")
                     dl = None
 
                 elif TRIPLE_DOUBLEQUOTE in dl:
-                    if (not dl.startswith(TRIPLE_DOUBLEQUOTE) and
-                            not dl.startswith(RAW_TRIPLE_DOUBLEQUOTE)):
+                    if not dl.startswith(
+                        TRIPLE_DOUBLEQUOTE
+                    ) and not dl.startswith(RAW_TRIPLE_DOUBLEQUOTE):
                         self._warn(
-                            "Triple-quote not at start of line, as follows")
+                            "Triple-quote not at start of line, as follows"
+                        )
                         self._debug_line(linenum, dl)
                         self._too_risky()
                         return
@@ -180,7 +192,7 @@ class PythonProcessor(object):
                         if dl == tdq:
                             dl = None  # don't write another triple-quote line
                         else:
-                            dl = dl[len(tdq):]
+                            dl = dl[len(tdq) :]
 
                 elif in_docstring:
                     # Reading within the source docstring
@@ -212,20 +224,26 @@ class PythonProcessor(object):
 
                     if not docstring_done:
                         # The source file didn't have a docstring!
-                        new_docstring_lines = [
-                            BLANK,
-                            TRIPLE_DOUBLEQUOTE,
-                            self.advertised_filename,
-                            BLANK,
-                        ] + self.correct_copyright_lines + [
-                            BLANK,
-                            MISSING_RST_TITLE,
-                            BLANK,
-                            TRIPLE_DOUBLEQUOTE
-                        ]
-                        self._warn(f"File had no docstring; adding one. "
-                                   f"Will need manual edit to add RST title. "
-                                   f"Search for {MISSING_RST_TITLE!r}")
+                        new_docstring_lines = (
+                            [
+                                BLANK,
+                                TRIPLE_DOUBLEQUOTE,
+                                self.advertised_filename,
+                                BLANK,
+                            ]
+                            + self.correct_copyright_lines
+                            + [
+                                BLANK,
+                                MISSING_RST_TITLE,
+                                BLANK,
+                                TRIPLE_DOUBLEQUOTE,
+                            ]
+                        )
+                        self._warn(
+                            f"File had no docstring; adding one. "
+                            f"Will need manual edit to add RST title. "
+                            f"Search for {MISSING_RST_TITLE!r}"
+                        )
                         self.dest_lines[1:1] = new_docstring_lines
 
             if dl is not None:
@@ -306,11 +324,14 @@ class PythonProcessor(object):
 # Top-level functions
 # =============================================================================
 
-def reformat_python_docstrings(top_dirs: List[str],
-                               correct_copyright_lines: List[str],
-                               show_only: bool = True,
-                               rewrite: bool = False,
-                               process_only_filenum: int = None) -> None:
+
+def reformat_python_docstrings(
+    top_dirs: List[str],
+    correct_copyright_lines: List[str],
+    show_only: bool = True,
+    rewrite: bool = False,
+    process_only_filenum: int = None,
+) -> None:
     """
     Walk a directory, finding Python files and rewriting them.
 
@@ -344,7 +365,8 @@ def reformat_python_docstrings(top_dirs: List[str],
                 proc = PythonProcessor(
                     full_path=fullname,
                     top_dir=top_dir,
-                    correct_copyright_lines=correct_copyright_lines)
+                    correct_copyright_lines=correct_copyright_lines,
+                )
                 if show_only:
                     proc.show()
                 elif rewrite:

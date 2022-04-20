@@ -31,11 +31,13 @@
 # Common URI schemes
 # =============================================================================
 
+
 class UriSchemes:
     """
     Common URI schemes.
     See https://en.wikipedia.org/wiki/List_of_URI_schemes.
     """
+
     FTP = "ftp"
     GEO = "geo"
     HTTP = "http"

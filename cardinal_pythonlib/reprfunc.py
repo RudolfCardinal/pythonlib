@@ -39,8 +39,13 @@ COMMA_SPACE = ", "
 # failing that, it usually shows an address.
 # https://docs.python.org/3/library/functions.html#repr
 
-def repr_result(obj: Any, elements: List[str],
-                with_addr: bool = False, joiner: str = COMMA_SPACE) -> str:
+
+def repr_result(
+    obj: Any,
+    elements: List[str],
+    with_addr: bool = False,
+    joiner: str = COMMA_SPACE,
+) -> str:
     """
     Internal function to make a :func:`repr`-style representation of an object.
 
@@ -58,15 +63,20 @@ def repr_result(obj: Any, elements: List[str],
         return "<{qualname}({elements}) at {addr}>".format(
             qualname=obj.__class__.__qualname__,
             elements=joiner.join(elements),
-            addr=hex(id(obj)))
+            addr=hex(id(obj)),
+        )
     else:
         return "{qualname}({elements})".format(
-            qualname=obj.__class__.__qualname__,
-            elements=joiner.join(elements))
+            qualname=obj.__class__.__qualname__, elements=joiner.join(elements)
+        )
 
 
-def auto_repr(obj: Any, with_addr: bool = False,
-              sort_attrs: bool = True, joiner: str = COMMA_SPACE) -> str:
+def auto_repr(
+    obj: Any,
+    with_addr: bool = False,
+    sort_attrs: bool = True,
+    joiner: str = COMMA_SPACE,
+) -> str:
     """
     Convenience function for :func:`__repr__`.
     Works its way through the object's ``__dict__`` and reports accordingly.
@@ -88,8 +98,12 @@ def auto_repr(obj: Any, with_addr: bool = False,
     return repr_result(obj, elements, with_addr=with_addr, joiner=joiner)
 
 
-def simple_repr(obj: Any, attrnames: List[str],
-                with_addr: bool = False, joiner: str = COMMA_SPACE) -> str:
+def simple_repr(
+    obj: Any,
+    attrnames: List[str],
+    with_addr: bool = False,
+    joiner: str = COMMA_SPACE,
+) -> str:
     """
     Convenience function for :func:`__repr__`.
     Works its way through a list of attribute names, and creates a ``repr()``
@@ -110,8 +124,12 @@ def simple_repr(obj: Any, attrnames: List[str],
     return repr_result(obj, elements, with_addr=with_addr, joiner=joiner)
 
 
-def mapped_repr(obj: Any, attributes: List[Tuple[str, str]],
-                with_addr: bool = False, joiner: str = COMMA_SPACE) -> str:
+def mapped_repr(
+    obj: Any,
+    attributes: List[Tuple[str, str]],
+    with_addr: bool = False,
+    joiner: str = COMMA_SPACE,
+) -> str:
     """
     Convenience function for :func:`__repr__`.
     Takes attribute names and corresponding initialization parameter names
@@ -127,14 +145,19 @@ def mapped_repr(obj: Any, attributes: List[Tuple[str, str]],
         string: :func:`repr`-style representation
 
     """
-    elements = [f"{init_param_name}={getattr(obj, attr_name)!r}"
-                for attr_name, init_param_name in attributes]
+    elements = [
+        f"{init_param_name}={getattr(obj, attr_name)!r}"
+        for attr_name, init_param_name in attributes
+    ]
     return repr_result(obj, elements, with_addr=with_addr, joiner=joiner)
 
 
 def mapped_repr_stripping_underscores(
-        obj: Any, attrnames: List[str],
-        with_addr: bool = False, joiner: str = COMMA_SPACE) -> str:
+    obj: Any,
+    attrnames: List[str],
+    with_addr: bool = False,
+    joiner: str = COMMA_SPACE,
+) -> str:
     """
     Convenience function for :func:`__repr__`.
     Here, you pass a list of internal attributes, and it assumes that the
@@ -152,7 +175,7 @@ def mapped_repr_stripping_underscores(
     """
     attributes = []
     for attr_name in attrnames:
-        if attr_name.startswith('_'):
+        if attr_name.startswith("_"):
             init_param_name = attr_name[1:]
         else:
             init_param_name = attr_name
@@ -160,8 +183,9 @@ def mapped_repr_stripping_underscores(
     return mapped_repr(obj, attributes, with_addr=with_addr, joiner=joiner)
 
 
-def ordered_repr(obj: object, attrlist: Iterable[str],
-                 joiner: str = COMMA_SPACE) -> str:
+def ordered_repr(
+    obj: object, attrlist: Iterable[str], joiner: str = COMMA_SPACE
+) -> str:
     """
     Shortcut to make :func:`repr` functions ordered.
     Define your :func:`__repr__` like this:
@@ -181,12 +205,17 @@ def ordered_repr(obj: object, attrlist: Iterable[str],
     """
     return "<{classname}({kvp})>".format(
         classname=type(obj).__name__,
-        kvp=joiner.join(f"{a}={getattr(obj, a)!r}" for a in attrlist)
+        kvp=joiner.join(f"{a}={getattr(obj, a)!r}" for a in attrlist),
     )
 
 
-def auto_str(obj: Any, indent: int = 4, width: int = 80, depth: int = None,
-             compact: bool = False) -> str:
+def auto_str(
+    obj: Any,
+    indent: int = 4,
+    width: int = 80,
+    depth: int = None,
+    compact: bool = False,
+) -> str:
     """
     Make a pretty :func:`str()` representation using :func:`pprint.pformat`
     and the object's ``__dict__`` attribute.
@@ -203,5 +232,6 @@ def auto_str(obj: Any, indent: int = 4, width: int = 80, depth: int = None,
         string: :func:`str`-style representation
 
     """
-    return pprint.pformat(obj.__dict__, indent=indent, width=width,
-                          depth=depth, compact=compact)
+    return pprint.pformat(
+        obj.__dict__, indent=indent, width=width, depth=depth, compact=compact
+    )

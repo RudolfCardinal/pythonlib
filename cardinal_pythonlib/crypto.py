@@ -40,8 +40,9 @@ import bcrypt  # pip install bcrypt; see https://pypi.org/project/bcrypt/
 BCRYPT_DEFAULT_LOG_ROUNDS = 12  # bcrypt default; work factor is 2^this.
 
 
-def hash_password(plaintextpw: str,
-                  log_rounds: int = BCRYPT_DEFAULT_LOG_ROUNDS) -> str:
+def hash_password(
+    plaintextpw: str, log_rounds: int = BCRYPT_DEFAULT_LOG_ROUNDS
+) -> str:
     """
     Makes a hashed password (using a new salt) using ``bcrypt``.
 

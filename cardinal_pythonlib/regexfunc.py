@@ -34,6 +34,7 @@ from typing import Match, Optional, Pattern
 # =============================================================================
 # Based on https://stackoverflow.com/questions/597476/how-to-concisely-cascade-through-multiple-regex-statements-in-python  # noqa
 
+
 class CompiledRegexMemory(object):
     """
     Class to store last match of compiled regex.
@@ -45,6 +46,7 @@ class CompiledRegexMemory(object):
     Based on
     https://stackoverflow.com/questions/597476/how-to-concisely-cascade-through-multiple-regex-statements-in-python.
     """  # noqa
+
     def __init__(self) -> None:
         self.last_match = None  # type: Optional[Match]
 

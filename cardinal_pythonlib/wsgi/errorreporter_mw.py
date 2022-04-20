@@ -34,7 +34,7 @@
 # Latest changes: 6 Jan 2016
 
 import cgitb
-# import six
+
 from io import StringIO
 import sys
 from typing import List
@@ -53,6 +53,7 @@ class ErrorReportingMiddleware(object):
     """
     WSGI middleware to produce ``cgitb`` traceback upon errors.
     """
+
     def __init__(self, app: TYPE_WSGI_APP) -> None:
         self.app = app
 
@@ -61,20 +62,21 @@ class ErrorReportingMiddleware(object):
         dummy_file = StringIO()
         hook = cgitb.Hook(file=dummy_file)
         hook(*exc_info)
-        return [dummy_file.getvalue().encode('utf-8')]
+        return [dummy_file.getvalue().encode("utf-8")]
 
-    def __call__(self,
-                 environ: TYPE_WSGI_ENVIRON,
-                 start_response: TYPE_WSGI_START_RESPONSE) \
-            -> TYPE_WSGI_APP_RESULT:
+    def __call__(
+        self,
+        environ: TYPE_WSGI_ENVIRON,
+        start_response: TYPE_WSGI_START_RESPONSE,
+    ) -> TYPE_WSGI_APP_RESULT:
         # noinspection PyBroadException
         try:
             return self.app(environ, start_response)
         except Exception:
             exc_info = sys.exc_info()
             start_response(
-                '500 Internal Server Error',
-                [('content-type', 'text/html; charset=utf-8')],
-                exc_info
+                "500 Internal Server Error",
+                [("content-type", "text/html; charset=utf-8")],
+                exc_info,
             )
             return self.format_exception(exc_info)

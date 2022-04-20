@@ -113,6 +113,7 @@ import logging
 from typing import List, Generator, Optional, Sequence, Set, Tuple, Union
 
 from appdirs import user_cache_dir
+
 try:
     # noinspection PyPackageRequirements
     from libchebipy import (
@@ -122,7 +123,9 @@ try:
         set_download_cache_path,
     )
 except ImportError:
-    raise ImportError("Cannot import libchebipy; try the command: pip install libChEBIpy")  # noqa
+    raise ImportError(
+        "Cannot import libchebipy; try the command: pip install libChEBIpy"
+    )  # noqa
 
 from cardinal_pythonlib.file_io import (
     gen_lines_without_comments,
@@ -206,6 +209,7 @@ class HashableChebiEntity(ChebiEntity):
 # Descriptions of a ChebiEntity
 # =============================================================================
 
+
 def brief_description(entity: ChebiEntity) -> str:
     """
     Args:
@@ -223,6 +227,7 @@ def brief_description(entity: ChebiEntity) -> str:
 # Searching ChEBI
 # =============================================================================
 
+
 def get_entity(chebi_id: Union[int, str]) -> ChebiEntity:
     """
     Fetch a ChEBI entity by its ID.
@@ -237,10 +242,11 @@ def get_entity(chebi_id: Union[int, str]) -> ChebiEntity:
     return ChebiEntity(chebi_id)
 
 
-def search_entities(search_term: Union[int, str],
-                    exact_search: bool = DEFAULT_EXACT_SEARCH,
-                    exact_match: bool = DEFAULT_EXACT_MATCH) \
-        -> List[ChebiEntity]:
+def search_entities(
+    search_term: Union[int, str],
+    exact_search: bool = DEFAULT_EXACT_SEARCH,
+    exact_match: bool = DEFAULT_EXACT_MATCH,
+) -> List[ChebiEntity]:
     """
     Search for ChEBI entities.
 
@@ -257,27 +263,38 @@ def search_entities(search_term: Union[int, str],
             (CHEBI:32315)" and "(5R)-zopiclone (CHEBI:53762)"; this option
             filters to the first.
     """
-    log.debug(f"Searching for {search_term!r} "
-              f"(exact_search={exact_search}, exact_match={exact_match})")
+    log.debug(
+        f"Searching for {search_term!r} "
+        f"(exact_search={exact_search}, exact_match={exact_match})"
+    )
     results = search(search_term, exact=exact_search)
-    log.debug(f"libchebipy.search({search_term!r}, exact={exact_search}) "
-              f"-> {results!r}")
+    log.debug(
+        f"libchebipy.search({search_term!r}, exact={exact_search}) "
+        f"-> {results!r}"
+    )
     if exact_match:
         if isinstance(search_term, int):
-            results = [r for r in results
-                       if get_chebi_id_number(r) == search_term]
+            results = [
+                r for r in results if get_chebi_id_number(r) == search_term
+            ]
         else:
             assert isinstance(search_term, str)
-            results = [r for r in results
-                       if r.get_name().lower() == search_term.lower()]
-    log.debug(f"search_entities({search_term!r}, exact_search={exact_search}, "
-              f"exact_match={exact_match}) -> {results!r}")
+            results = [
+                r
+                for r in results
+                if r.get_name().lower() == search_term.lower()
+            ]
+    log.debug(
+        f"search_entities({search_term!r}, exact_search={exact_search}, "
+        f"exact_match={exact_match}) -> {results!r}"
+    )
     return results
 
 
 # =============================================================================
 # Describing ChEBI entries
 # =============================================================================
+
 
 def describe_entity(entity: ChebiEntity) -> None:
     """
@@ -293,27 +310,31 @@ def describe_entity(entity: ChebiEntity) -> None:
     for other in entity.get_outgoings():
         target = ChebiEntity(other.get_target_chebi_id())
         out_lines.append(
-            f"    • {name} {other.get_type()} {brief_description(target)}")
+            f"    • {name} {other.get_type()} {brief_description(target)}"
+        )
 
     in_lines = []  # type: List[str]
     for other in entity.get_incomings():
         target = ChebiEntity(other.get_target_chebi_id())
         in_lines.append(
-            f"    • {brief_description(target)} {other.get_type()} {name}")
+            f"    • {brief_description(target)} {other.get_type()} {name}"
+        )
 
     lines = (
-        [entity.get_name(), f"  ► OUTGOING ({len(out_lines)})"] +
-        out_lines +
-        [f"  ► INCOMING ({len(in_lines)})"] +
-        in_lines
+        [entity.get_name(), f"  ► OUTGOING ({len(out_lines)})"]
+        + out_lines
+        + [f"  ► INCOMING ({len(in_lines)})"]
+        + in_lines
     )
     report = "\n".join(lines)
     log.info(f"{entity.get_id()}:\n{report}")
 
 
-def search_and_describe(search_term: Union[int, str],
-                        exact_search: bool = DEFAULT_EXACT_SEARCH,
-                        exact_match: bool = DEFAULT_EXACT_MATCH) -> None:
+def search_and_describe(
+    search_term: Union[int, str],
+    exact_search: bool = DEFAULT_EXACT_SEARCH,
+    exact_match: bool = DEFAULT_EXACT_MATCH,
+) -> None:
     """
     Search for a ChEBI term and describe it to the log.
 
@@ -322,16 +343,18 @@ def search_and_describe(search_term: Union[int, str],
         exact_search: exact search?
         exact_match: exact match?
     """
-    entities = search_entities(search_term, exact_search=exact_search,
-                               exact_match=exact_match)
+    entities = search_entities(
+        search_term, exact_search=exact_search, exact_match=exact_match
+    )
     for entity in entities:
         describe_entity(entity)
 
 
 def search_and_describe_multiple(
-        search_terms: List[Union[int, str]],
-        exact_search: bool = DEFAULT_EXACT_SEARCH,
-        exact_match: bool = DEFAULT_EXACT_MATCH) -> None:
+    search_terms: List[Union[int, str]],
+    exact_search: bool = DEFAULT_EXACT_SEARCH,
+    exact_match: bool = DEFAULT_EXACT_MATCH,
+) -> None:
     """
     Search for ChEBI terms; describe matching entries to the log.
 
@@ -341,13 +364,16 @@ def search_and_describe_multiple(
         exact_match: exact match?
     """
     for search_term in search_terms:
-        search_and_describe(search_term, exact_search=exact_search,
-                            exact_match=exact_match)
+        search_and_describe(
+            search_term, exact_search=exact_search, exact_match=exact_match
+        )
 
 
-def search_and_list(search_term: Union[int, str],
-                    exact_search: bool = DEFAULT_EXACT_SEARCH,
-                    exact_match: bool = DEFAULT_EXACT_MATCH) -> None:
+def search_and_list(
+    search_term: Union[int, str],
+    exact_search: bool = DEFAULT_EXACT_SEARCH,
+    exact_match: bool = DEFAULT_EXACT_MATCH,
+) -> None:
     """
     Search for a ChEBI term; print matching entries to the log.
 
@@ -356,16 +382,19 @@ def search_and_list(search_term: Union[int, str],
         exact_search: exact search?
         exact_match: exact match?
     """
-    entities = search_entities(search_term, exact_search=exact_search,
-                               exact_match=exact_match)
+    entities = search_entities(
+        search_term, exact_search=exact_search, exact_match=exact_match
+    )
     lines = [f"– {brief_description(entity)}" for entity in entities]
     report = "\n".join(lines)
     log.info(f"Results:\n{report}")
 
 
-def search_and_list_multiple(search_terms: List[Union[int, str]],
-                             exact_search: bool = DEFAULT_EXACT_SEARCH,
-                             exact_match: bool = DEFAULT_EXACT_MATCH) -> None:
+def search_and_list_multiple(
+    search_terms: List[Union[int, str]],
+    exact_search: bool = DEFAULT_EXACT_SEARCH,
+    exact_match: bool = DEFAULT_EXACT_MATCH,
+) -> None:
     """
     Search for ChEBI terms; print matching entries to the log.
 
@@ -375,20 +404,23 @@ def search_and_list_multiple(search_terms: List[Union[int, str]],
         exact_match: exact match?
     """
     for search_term in search_terms:
-        search_and_list(search_term, exact_search=exact_search,
-                        exact_match=exact_match)
+        search_and_list(
+            search_term, exact_search=exact_search, exact_match=exact_match
+        )
 
 
 # =============================================================================
 # Ancestors and descendants of ChEBI entities
 # =============================================================================
 
-def gen_ancestor_info(entity: ChebiEntity,
-                      relationships: List[str] = None,
-                      max_generations: int = None,
-                      starting_generation_: int = 0,
-                      seen_: Set[HashableChebiEntity] = None) \
-        -> Generator[Tuple[HashableChebiEntity, str, int], None, None]:
+
+def gen_ancestor_info(
+    entity: ChebiEntity,
+    relationships: List[str] = None,
+    max_generations: int = None,
+    starting_generation_: int = 0,
+    seen_: Set[HashableChebiEntity] = None,
+) -> Generator[Tuple[HashableChebiEntity, str, int], None, None]:
     """
     Retrieves all ancestors ("outgoing" links).
 
@@ -412,9 +444,11 @@ def gen_ancestor_info(entity: ChebiEntity,
     assert starting_generation_ == 0 or seen_ is not None
     seen_ = seen_ or set()  # type: Set[HashableChebiEntity]
     relationships = relationships or DEFAULT_ANCESTOR_RELATIONSHIPS
-    log.debug(f"Finding ancestors of {brief_description(entity)} "
-              f"(generation {starting_generation_}) "
-              f"via relationships {relationships!r}")
+    log.debug(
+        f"Finding ancestors of {brief_description(entity)} "
+        f"(generation {starting_generation_}) "
+        f"via relationships {relationships!r}"
+    )
     for rel in entity.get_outgoings():  # type: Relation
         if rel.get_type() in relationships:
             target = HashableChebiEntity(rel.get_target_chebi_id())
@@ -432,46 +466,54 @@ def gen_ancestor_info(entity: ChebiEntity,
             )
 
 
-def gen_ancestors(entity: ChebiEntity,
-                  relationships: List[str] = None,
-                  max_generations: int = None) \
-        -> Generator[HashableChebiEntity, None, None]:
+def gen_ancestors(
+    entity: ChebiEntity,
+    relationships: List[str] = None,
+    max_generations: int = None,
+) -> Generator[HashableChebiEntity, None, None]:
     """
     Generates ancestors as per :func:`gen_ancestor_info`, without relationship
     or generation info.
     """
-    for (ancestor,
-         relationship,
-         generation) in gen_ancestor_info(entity,
-                                          relationships,
-                                          max_generations):
+    for (ancestor, relationship, generation) in gen_ancestor_info(
+        entity, relationships, max_generations
+    ):
         yield ancestor
 
 
-def report_ancestors(entity: ChebiEntity,
-                     relationships: List[str] = None,
-                     max_generations: int = None) -> None:
+def report_ancestors(
+    entity: ChebiEntity,
+    relationships: List[str] = None,
+    max_generations: int = None,
+) -> None:
     """
     Fetches and reports on ancestors of an entity, e.g. via "is_a"
     relationships. See :func:`gen_ancestor_info`.
     """
     relationships = relationships or DEFAULT_ANCESTOR_RELATIONSHIPS
-    ancestors = list(gen_ancestor_info(
-        entity=entity,
-        relationships=relationships,
-        max_generations=max_generations))
+    ancestors = list(
+        gen_ancestor_info(
+            entity=entity,
+            relationships=relationships,
+            max_generations=max_generations,
+        )
+    )
     lines = [f"{entity.get_name()} ({entity.get_id()})"]
     for ancestor, relationship, generation in ancestors:
         prefix = "  " * generation
-        lines.append(f"{prefix}► {relationship} "
-                     f"{brief_description(ancestor)} [{generation}]")
+        lines.append(
+            f"{prefix}► {relationship} "
+            f"{brief_description(ancestor)} [{generation}]"
+        )
     report = "\n".join(lines)
     log.info(f"Ancestors via {relationships!r}:\n{report}")
 
 
-def report_ancestors_multiple(entity_names: List[str],
-                              relationships: List[str] = None,
-                              max_generations: int = None) -> None:
+def report_ancestors_multiple(
+    entity_names: List[str],
+    relationships: List[str] = None,
+    max_generations: int = None,
+) -> None:
     """
     Looks up entities, then reports on ancestors.
     Fetches and reports on ancestors of an entity, e.g. via "is_a"
@@ -487,6 +529,7 @@ def report_ancestors_multiple(entity_names: List[str],
 # =============================================================================
 # Testing
 # =============================================================================
+
 
 def testfunc1() -> None:
     """
@@ -518,11 +561,13 @@ def testfunc1() -> None:
 # Mapping terms via dictionaries
 # =============================================================================
 
+
 class CaseInsensitiveDict(dict):
     """
     Case-insensitive dictionary for strings; see
     https://stackoverflow.com/questions/2082152/case-insensitive-dictionary
     """
+
     def __setitem__(self, key: str, value: str) -> None:
         # https://docs.python.org/3/reference/datamodel.html#object.__setitem__
         super().__setitem__(key.lower(), value)
@@ -591,12 +636,15 @@ def translate(term: str, mapping: CaseInsensitiveDict) -> Tuple[str, bool]:
 # Categorizing drugs
 # =============================================================================
 
-def get_category(entity_name: str,
-                 categories: Sequence[str],
-                 entity_synonyms: CaseInsensitiveDict = None,
-                 category_synonyms: CaseInsensitiveDict = None,
-                 manual_categories: CaseInsensitiveDict = None,
-                 relationships: List[str] = None) -> Optional[str]:
+
+def get_category(
+    entity_name: str,
+    categories: Sequence[str],
+    entity_synonyms: CaseInsensitiveDict = None,
+    category_synonyms: CaseInsensitiveDict = None,
+    manual_categories: CaseInsensitiveDict = None,
+    relationships: List[str] = None,
+) -> Optional[str]:
     """
 
     Args:
@@ -625,8 +673,9 @@ def get_category(entity_name: str,
 
     # Manual override for original name?
     if entity_name in manual_categories:
-        category, _ = translate(manual_categories[entity_name],
-                                category_synonyms)
+        category, _ = translate(
+            manual_categories[entity_name], category_synonyms
+        )
         log.debug(f"Manual categorization: {entity_name} → {category}")
         return category
 
@@ -636,29 +685,31 @@ def get_category(entity_name: str,
     # Manual override for renamed entity?
     if renamed:
         if entity_name in manual_categories:
-            category, _ = translate(manual_categories[entity_name],
-                                    category_synonyms)
+            category, _ = translate(
+                manual_categories[entity_name], category_synonyms
+            )
             log.debug(f"Manual categorization: {entity_name} → {category}")
             return category
 
     # Find entity
-    entities = search_entities(entity_name,
-                               exact_search=True,
-                               exact_match=True)
+    entities = search_entities(
+        entity_name, exact_search=True, exact_match=True
+    )
     if len(entities) == 0:
         log.warning(f"No entity found for {entity_name!r}")
         return None
     if len(entities) > 1:
         descriptions = "; ".join(brief_description(e) for e in entities)
-        log.warning(f"Multiple entities found for {entity_name!r}; "
-                    f"using the first. They were:\n{descriptions}")
+        log.warning(
+            f"Multiple entities found for {entity_name!r}; "
+            f"using the first. They were:\n{descriptions}"
+        )
     entity = entities[0]
 
     # Find category
     ancestors = list(gen_ancestors(entity, relationships=relationships))
     ancestor_categories = [
-        translate(a.get_name(), category_synonyms)[0]
-        for a in ancestors
+        translate(a.get_name(), category_synonyms)[0] for a in ancestors
     ]
     # log.debug(f"ancestor_categories: {ancestor_categories!r}")
     for category in categories:  # implements category order
@@ -668,15 +719,17 @@ def get_category(entity_name: str,
     return None
 
 
-def categorize_from_file(entity_filename: str,
-                         category_filename: str,
-                         results_filename: str,
-                         entity_synonyms_filename: str = None,
-                         category_synonyms_filename: str = None,
-                         manual_categories_filename: str = None,
-                         relationships: List[str] = None,
-                         output_dialect: str = "excel",
-                         headers: bool = True) -> None:
+def categorize_from_file(
+    entity_filename: str,
+    category_filename: str,
+    results_filename: str,
+    entity_synonyms_filename: str = None,
+    category_synonyms_filename: str = None,
+    manual_categories_filename: str = None,
+    relationships: List[str] = None,
+    output_dialect: str = "excel",
+    headers: bool = True,
+) -> None:
     """
     Categorizes entities.
 
@@ -718,14 +771,18 @@ def categorize_from_file(entity_filename: str,
     log.debug(f"Using entity synonyms: {entity_synonyms!r}")
 
     if category_synonyms_filename:
-        log.info(f"Reading category synonyms from {category_synonyms_filename}")
+        log.info(
+            f"Reading category synonyms from {category_synonyms_filename}"
+        )
         category_synonyms = read_dict(category_synonyms_filename)
     else:
         category_synonyms = CaseInsensitiveDict()
     log.debug(f"Using category synonyms: {category_synonyms!r}")
 
     if manual_categories_filename:
-        log.info(f"Reading manual categories from {manual_categories_filename}")  # noqa
+        log.info(
+            f"Reading manual categories from {manual_categories_filename}"
+        )  # noqa
         manual_categories = read_dict(manual_categories_filename)
     else:
         manual_categories = CaseInsensitiveDict()
@@ -744,14 +801,17 @@ def categorize_from_file(entity_filename: str,
                 log.warning(f"Ignoring duplicate: {entity_name!r}")
                 continue
             entities_seen.add(entity_name_lower)
-            category = get_category(
-                entity_name=entity_name,
-                categories=categories,
-                entity_synonyms=entity_synonyms,
-                category_synonyms=category_synonyms,
-                manual_categories=manual_categories,
-                relationships=relationships
-            ) or ""
+            category = (
+                get_category(
+                    entity_name=entity_name,
+                    categories=categories,
+                    entity_synonyms=entity_synonyms,
+                    category_synonyms=category_synonyms,
+                    manual_categories=manual_categories,
+                    relationships=relationships,
+                )
+                or ""
+            )
             if category:
                 log.debug(f"{entity_name} → {category}")
             else:
@@ -763,166 +823,195 @@ def categorize_from_file(entity_filename: str,
 # Main
 # =============================================================================
 
+
 def main() -> None:
     """
     Command-line entry point.
     """
     # Parser
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "--cachepath", type=str, default=DEFAULT_CACHE_PATH,
-        help="Cache path for ChEBI files"
+        "--cachepath",
+        type=str,
+        default=DEFAULT_CACHE_PATH,
+        help="Cache path for ChEBI files",
     )
-    parser.add_argument(
-        "--verbose", action="store_true",
-        help="Be verbose"
-    )
+    parser.add_argument("--verbose", action="store_true", help="Be verbose")
     subparsers = parser.add_subparsers(
-        title="subcommands",
-        description="Valid subcommands",
-        dest="command"
+        title="subcommands", description="Valid subcommands", dest="command"
     )
     subparsers.required = True
 
     def add_exact(p: argparse.ArgumentParser) -> None:
         p.add_argument(
-            "--exact_search", dest="exact_search", action="store_true",
-            help="Search using exact term")
+            "--exact_search",
+            dest="exact_search",
+            action="store_true",
+            help="Search using exact term",
+        )
         p.add_argument(
-            "--inexact_search", dest="exact_search", action="store_false",
-            help="Search allowing inexact matches")
+            "--inexact_search",
+            dest="exact_search",
+            action="store_false",
+            help="Search allowing inexact matches",
+        )
         p.set_defaults(exact_search=DEFAULT_EXACT_SEARCH)
         p.add_argument(
-            "--exact_match", dest="exact_match", action="store_true",
-            help="Return results for exact term only")
+            "--exact_match",
+            dest="exact_match",
+            action="store_true",
+            help="Return results for exact term only",
+        )
         p.add_argument(
-            "--inexact_match", dest="exact_match", action="store_false",
-            help="Return results allowing inexact matches")
+            "--inexact_match",
+            dest="exact_match",
+            action="store_false",
+            help="Return results allowing inexact matches",
+        )
         p.set_defaults(exact_match=DEFAULT_EXACT_MATCH)
 
     def add_entities(p: argparse.ArgumentParser) -> None:
         p.add_argument(
-            "entity", type=str, nargs="+",
-            help="Entity or entities to search for"
+            "entity",
+            type=str,
+            nargs="+",
+            help="Entity or entities to search for",
         )
 
     # -------------------------------------------------------------------------
     # Test
     # -------------------------------------------------------------------------
-    parser_test = subparsers.add_parser(
-        "test",
-        help="Run some simple tests"
-    )
+    parser_test = subparsers.add_parser("test", help="Run some simple tests")
     parser_test.set_defaults(func=lambda args: testfunc1())
 
     # -------------------------------------------------------------------------
     # Search
     # -------------------------------------------------------------------------
     parser_search = subparsers.add_parser(
-        "search",
-        help="Search for an entity in the ChEBI database"
+        "search", help="Search for an entity in the ChEBI database"
     )
     add_entities(parser_search)
     add_exact(parser_search)
-    parser_search.set_defaults(func=lambda args: search_and_list_multiple(
-        search_terms=args.entity,
-        exact_search=args.exact_search,
-        exact_match=args.exact_match,
-    ))
+    parser_search.set_defaults(
+        func=lambda args: search_and_list_multiple(
+            search_terms=args.entity,
+            exact_search=args.exact_search,
+            exact_match=args.exact_match,
+        )
+    )
 
     # -------------------------------------------------------------------------
     # Describe
     # -------------------------------------------------------------------------
     parser_describe = subparsers.add_parser(
-        "describe",
-        help="Describe an entity/entities in the ChEBI database"
+        "describe", help="Describe an entity/entities in the ChEBI database"
     )
     add_entities(parser_describe)
     add_exact(parser_describe)
-    parser_describe.set_defaults(func=lambda args: search_and_describe_multiple(  # noqa
-        search_terms=args.entity,
-        exact_search=args.exact_search,
-        exact_match=args.exact_match,
-    ))
+    parser_describe.set_defaults(
+        func=lambda args: search_and_describe_multiple(  # noqa
+            search_terms=args.entity,
+            exact_search=args.exact_search,
+            exact_match=args.exact_match,
+        )
+    )
 
     # -------------------------------------------------------------------------
     # Ancestors
     # -------------------------------------------------------------------------
     parser_ancestors = subparsers.add_parser(
         "ancestors",
-        help="Show ancestors of an entity/entities in the ChEBI database"
+        help="Show ancestors of an entity/entities in the ChEBI database",
     )
     add_entities(parser_ancestors)
     parser_ancestors.add_argument(
-        "--relationships", type=str, nargs="+",
+        "--relationships",
+        type=str,
+        nargs="+",
         default=DEFAULT_ANCESTOR_RELATIONSHIPS,
-        help="Relationship types that define an ancestor"
+        help="Relationship types that define an ancestor",
     )
     parser_ancestors.add_argument(
-        "--max_generations", type=int, default=None,
-        help="Number of generations to search, or None for unlimited"
+        "--max_generations",
+        type=int,
+        default=None,
+        help="Number of generations to search, or None for unlimited",
     )
-    parser_ancestors.set_defaults(func=lambda args: report_ancestors_multiple(
-        entity_names=args.entity,
-        relationships=args.relationships,
-        max_generations=args.max_generations,
-    ))
+    parser_ancestors.set_defaults(
+        func=lambda args: report_ancestors_multiple(
+            entity_names=args.entity,
+            relationships=args.relationships,
+            max_generations=args.max_generations,
+        )
+    )
 
     # -------------------------------------------------------------------------
     # Categorize
     # -------------------------------------------------------------------------
     parser_categorize = subparsers.add_parser(
-        "categorize",
-        help="Categorize a list of drugs."
+        "categorize", help="Categorize a list of drugs."
     )
     parser_categorize.add_argument(
-        "--entities", type=str, required=True,
-        help="Input file, one entity (e.g. drug) name per line."
+        "--entities",
+        type=str,
+        required=True,
+        help="Input file, one entity (e.g. drug) name per line.",
     )
     parser_categorize.add_argument(
-        "--categories", type=str, required=True,
+        "--categories",
+        type=str,
+        required=True,
         help="Name of file containing categories, one per line "
-             "(earlier categories preferred to later)."
+        "(earlier categories preferred to later).",
     )
     parser_categorize.add_argument(
-        "--entity_synonyms", type=str, default=None,
+        "--entity_synonyms",
+        type=str,
+        default=None,
         help="Name of CSV file (with optional # comments) containing synonyms "
-             "in the format 'entity_from, entity_to'"
+        "in the format 'entity_from, entity_to'",
     )
     parser_categorize.add_argument(
-        "--category_synonyms", type=str, default=None,
+        "--category_synonyms",
+        type=str,
+        default=None,
         help="Name of CSV file (with optional # comments) containing synonyms "
-             "in the format 'category_from, category_to'. The translation is "
-             "applied to ChEBI categories before matching. For example you "
-             "can map 'EC 3.1.1.7 (acetylcholinesterase) inhibitor' to "
-             "'acetylcholinesterase inhibitor' and then use only "
-             "'acetylcholinesterase inhibitor' in your category file."
+        "in the format 'category_from, category_to'. The translation is "
+        "applied to ChEBI categories before matching. For example you "
+        "can map 'EC 3.1.1.7 (acetylcholinesterase) inhibitor' to "
+        "'acetylcholinesterase inhibitor' and then use only "
+        "'acetylcholinesterase inhibitor' in your category file.",
     )
     parser_categorize.add_argument(
-        "--manual_categories", type=str, default=None,
+        "--manual_categories",
+        type=str,
+        default=None,
         help="Name of CSV file (with optional # comments) containing manual "
-             "categorizations in the format 'entity, category'"
+        "categorizations in the format 'entity, category'",
     )
     parser_categorize.add_argument(
-        "--results", type=str, required=True,
-        help="Output CSV file."
+        "--results", type=str, required=True, help="Output CSV file."
     )
     parser_categorize.add_argument(
-        "--relationships", type=str, nargs="+",
+        "--relationships",
+        type=str,
+        nargs="+",
         default=DEFAULT_ANCESTOR_RELATIONSHIPS,
-        help="Relationship types that define an ancestor"
+        help="Relationship types that define an ancestor",
     )
-    parser_categorize.set_defaults(func=lambda args: categorize_from_file(
-        entity_filename=args.entities,
-        results_filename=args.results,
-        category_filename=args.categories,
-        entity_synonyms_filename=args.entity_synonyms,
-        category_synonyms_filename=args.category_synonyms,
-        manual_categories_filename=args.manual_categories,
-        relationships=args.relationships,
-    ))
+    parser_categorize.set_defaults(
+        func=lambda args: categorize_from_file(
+            entity_filename=args.entities,
+            results_filename=args.results,
+            category_filename=args.categories,
+            entity_synonyms_filename=args.entity_synonyms,
+            category_synonyms_filename=args.category_synonyms,
+            manual_categories_filename=args.manual_categories,
+            relationships=args.relationships,
+        )
+    )
 
     # -------------------------------------------------------------------------
     # Parse and run
@@ -930,8 +1019,9 @@ def main() -> None:
     cmdargs = parser.parse_args()
 
     # Logging
-    main_only_quicksetup_rootlogger(level=logging.DEBUG if cmdargs.verbose
-                                    else logging.INFO)
+    main_only_quicksetup_rootlogger(
+        level=logging.DEBUG if cmdargs.verbose else logging.INFO
+    )
     log.debug(f"ChEBI lookup from cardinal_pythonlib=={VERSION_STRING}")
 
     # Caching

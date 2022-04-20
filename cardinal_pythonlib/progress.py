@@ -35,15 +35,19 @@ log = logging.getLogger(__name__)
 # Visuals
 # =============================================================================
 
+
 class ActivityCounter(object):
     """
     Simple class to report progress in a repetitive activity.
     """
-    def __init__(self,
-                 activity: str,
-                 n_total: int = None,
-                 report_every: int = 1000,
-                 loglevel: int = logging.DEBUG) -> None:
+
+    def __init__(
+        self,
+        activity: str,
+        n_total: int = None,
+        report_every: int = 1000,
+        loglevel: int = logging.DEBUG,
+    ) -> None:
         """
         Args:
             activity:

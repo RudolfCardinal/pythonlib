@@ -123,20 +123,22 @@ class StrEnum(Enum):
     - adds ordering by value
 
     """
+
     def __str__(self) -> str:
         return str(self.value)
 
     @classmethod
-    def lookup(cls,
-               value: Any,
-               allow_none: bool = False) -> Optional[STR_ENUM_FWD_REF]:
+    def lookup(
+        cls, value: Any, allow_none: bool = False
+    ) -> Optional[STR_ENUM_FWD_REF]:
         for item in cls:
             if value == item.value:
                 return item
         if not value and allow_none:
             return None
         raise ValueError(
-            f"Value {value!r} not found in enum class {cls.__name__}")
+            f"Value {value!r} not found in enum class {cls.__name__}"
+        )
 
     def __lt__(self, other: STR_ENUM_FWD_REF) -> bool:
         return str(self) < str(other)
@@ -153,6 +155,7 @@ class _Auto:
     """
     Instances are replaced with an appropriate value in Enum class suites.
     """
+
     value = _auto_null
 
 
@@ -163,9 +166,10 @@ def _is_descriptor(obj):
     Returns True if obj is a descriptor, False otherwise.
     """
     return (
-            hasattr(obj, '__get__') or
-            hasattr(obj, '__set__') or
-            hasattr(obj, '__delete__'))
+        hasattr(obj, "__get__")
+        or hasattr(obj, "__set__")
+        or hasattr(obj, "__delete__")
+    )
 
 
 def _is_dunder(name):
@@ -174,10 +178,12 @@ def _is_dunder(name):
 
     Returns True if a __dunder__ (double underscore) name, False otherwise.
     """
-    return (len(name) > 4 and
-            name[:2] == name[-2:] == '__' and
-            name[2] != '_' and
-            name[-3] != '_')
+    return (
+        len(name) > 4
+        and name[:2] == name[-2:] == "__"
+        and name[2] != "_"
+        and name[-3] != "_"
+    )
 
 
 def _is_sunder(name):
@@ -186,10 +192,12 @@ def _is_sunder(name):
 
     Returns True if a _sunder_ (single underscore) name, False otherwise.
     """
-    return (len(name) > 2 and
-            name[0] == name[-1] == '_' and
-            name[1:2] != '_' and
-            name[-2:-1] != '_')
+    return (
+        len(name) > 2
+        and name[0] == name[-1] == "_"
+        and name[1:2] != "_"
+        and name[-2:-1] != "_"
+    )
 
 
 class EnumDict(dict):
@@ -202,6 +210,7 @@ class EnumDict(dict):
     EnumMeta will use the names found in self._member_names as the
     enumeration member names.
     """
+
     def __init__(self):
         super().__init__()
         self._member_names = []
@@ -220,46 +229,51 @@ class EnumDict(dict):
         """
         if _is_sunder(key):
             if key not in (
-                    '_order_', '_create_pseudo_member_',
-                    '_generate_next_value_', '_missing_', '_ignore_',
-                    ):
-                raise ValueError('_names_ are reserved for future Enum use')
-            if key == '_generate_next_value_':
+                "_order_",
+                "_create_pseudo_member_",
+                "_generate_next_value_",
+                "_missing_",
+                "_ignore_",
+            ):
+                raise ValueError("_names_ are reserved for future Enum use")
+            if key == "_generate_next_value_":
                 # check if members already defined as auto()
                 if self._auto_called:
                     raise TypeError(
-                        "_generate_next_value_ must be defined before members")
-                setattr(self, '_generate_next_value', value)
-            elif key == '_ignore_':
+                        "_generate_next_value_ must be defined before members"
+                    )
+                setattr(self, "_generate_next_value", value)
+            elif key == "_ignore_":
                 if isinstance(value, str):
-                    value = value.replace(',', ' ').split()
+                    value = value.replace(",", " ").split()
                 else:
                     value = list(value)
                 self._ignore = value
                 already = set(value) & set(self._member_names)
                 if already:
                     raise ValueError(
-                        '_ignore_ cannot specify already set names: %r' %
-                        (already, )
+                        "_ignore_ cannot specify already set names: %r"
+                        % (already,)
                     )
         elif _is_dunder(key):
-            if key == '__order__':
-                key = '_order_'
+            if key == "__order__":
+                key = "_order_"
         elif key in self._member_names:
             # descriptor overwriting an enum?
-            raise TypeError('Attempted to reuse key: %r' % key)
+            raise TypeError("Attempted to reuse key: %r" % key)
         elif key in self._ignore:
             pass
         elif not _is_descriptor(value):
             if key in self:
                 # enum overwriting a descriptor?
-                raise TypeError('%r already defined as: %r' % (key, self[key]))
+                raise TypeError("%r already defined as: %r" % (key, self[key]))
             if isinstance(value, _Auto):
                 self._auto_called = True
                 if value.value == _auto_null:
                     # noinspection PyUnresolvedReferences
                     value.value = self._generate_next_value(
-                        key, 1, len(self._member_names), self._last_values[:])
+                        key, 1, len(self._member_names), self._last_values[:]
+                    )
                 value = value.value
             self._member_names.append(key)
             self._last_values.append(value)
@@ -269,6 +283,7 @@ class EnumDict(dict):
 # -----------------------------------------------------------------------------
 # AutoStrEnum
 # -----------------------------------------------------------------------------
+
 
 class AutoStrEnumMeta(EnumMeta):
     # noinspection PyInitNewSignature
@@ -285,9 +300,7 @@ class AutoStrEnumMeta(EnumMeta):
         return super().__new__(mcs, cls, bases, newclassdict)
 
 
-class AutoStrEnum(str,
-                  StrEnum,  # was Enum,
-                  metaclass=AutoStrEnumMeta):
+class AutoStrEnum(str, StrEnum, metaclass=AutoStrEnumMeta):  # was Enum,
     """
     Base class for ``name=value`` ``str`` enums.
 
@@ -309,12 +322,14 @@ class AutoStrEnum(str,
     and then inherit from :class:`StrEnum` rather than :class:`Enum`.
 
     """  # noqa
+
     pass
 
 
 # -----------------------------------------------------------------------------
 # LowerCaseAutoStrEnumMeta
 # -----------------------------------------------------------------------------
+
 
 class LowerCaseAutoStrEnumMeta(EnumMeta):
     # noinspection PyInitNewSignature
@@ -351,12 +366,14 @@ class LowerCaseAutoStrEnum(str, StrEnum, metaclass=LowerCaseAutoStrEnumMeta):
         print(AnimalLC.Horse.name, AnimalLC.Horse.value)
 
     """
+
     pass
 
 
 # -----------------------------------------------------------------------------
 # AutoNumberEnum
 # -----------------------------------------------------------------------------
+
 
 class AutoNumberEnum(Enum):
     """
@@ -374,6 +391,7 @@ class AutoNumberEnum(Enum):
 
         Color.green.value == 2  # True
     """
+
     def __new__(cls):
         value = len(cls.__members__) + 1  # will be numbered from 1
         obj = object.__new__(cls)
@@ -384,6 +402,7 @@ class AutoNumberEnum(Enum):
 # -----------------------------------------------------------------------------
 # AutoNumberObject
 # -----------------------------------------------------------------------------
+
 
 class AutoNumberObjectMetaClass(type):
     @classmethod
@@ -443,6 +462,7 @@ class AutoNumberObject(metaclass=AutoNumberObjectMetaClass):
         MyThing.b
         # 2
     """
+
     pass
 
 
@@ -453,6 +473,7 @@ class AutoNumberObject(metaclass=AutoNumberObjectMetaClass):
 # Or similar. But the defaultdict argument function receives no parameters,
 # so it can't read the key. Therefore:
 
+
 class LowerCaseAutoStringObjectMetaClass(type):
     @classmethod
     def __prepare__(mcs, name, bases):
@@ -461,7 +482,7 @@ class LowerCaseAutoStringObjectMetaClass(type):
     # noinspection PyInitNewSignature
     def __new__(mcs, name, bases, classdict):
         for k in classdict.keys():
-            if k.startswith('__'):  # e.g. __qualname__, __name__, __module__
+            if k.startswith("__"):  # e.g. __qualname__, __name__, __module__
                 continue
             value = k.lower()
             if value in classdict.values():
@@ -484,6 +505,7 @@ class LowerCaseAutoStringObject(metaclass=LowerCaseAutoStringObjectMetaClass):
         Wacky.Thing  # 'thing'
         Wacky.OtherThing  # 'otherthing'
     """
+
     pass
 
 
@@ -494,6 +516,7 @@ class LowerCaseAutoStringObject(metaclass=LowerCaseAutoStringObjectMetaClass):
 # Or similar. But the defaultdict argument function receives no parameters,
 # so it can't read the key. Therefore:
 
+
 class AutoStringObjectMetaClass(type):
     @classmethod
     def __prepare__(mcs, name, bases):
@@ -502,7 +525,7 @@ class AutoStringObjectMetaClass(type):
     # noinspection PyInitNewSignature
     def __new__(mcs, name, bases, classdict):
         for k in classdict.keys():
-            if k.startswith('__'):  # e.g. __qualname__, __name__, __module__
+            if k.startswith("__"):  # e.g. __qualname__, __name__, __module__
                 continue
             classdict[k] = k
         cls = type.__new__(mcs, name, bases, dict(classdict))
@@ -521,6 +544,7 @@ class AutoStringObject(metaclass=AutoStringObjectMetaClass):
 
         Fish.Thing  # 'Thing'
     """
+
     pass
 
 
@@ -537,11 +561,13 @@ class AutoStringObject(metaclass=AutoStringObjectMetaClass):
 # AttrDict: DEPRECATED
 # =============================================================================
 
+
 class AttrDict(dict):
     """
     Dictionary with attribute access; see
     https://stackoverflow.com/questions/4984647
     """
+
     def __init__(self, *args, **kwargs) -> None:
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
@@ -552,16 +578,18 @@ class AttrDict(dict):
 # =============================================================================
 # for attrdict itself: use the attrdict package
 
+
 class OrderedNamespace(object):
     """
     As per https://stackoverflow.com/questions/455059, modified for
     ``__init__``.
     """
+
     def __init__(self, *args):
-        super().__setattr__('_odict', OrderedDict(*args))
+        super().__setattr__("_odict", OrderedDict(*args))
 
     def __getattr__(self, key):
-        odict = super().__getattribute__('_odict')
+        odict = super().__getattribute__("_odict")
         if key in odict:
             return odict[key]
         return super().__getattribute__(key)
@@ -574,7 +602,7 @@ class OrderedNamespace(object):
         return self._odict
 
     def __setstate__(self, state):  # Support copy.copy
-        super().__setattr__('_odict', OrderedDict())
+        super().__setattr__("_odict", OrderedDict())
         self._odict.update(state)
 
     def __eq__(self, other):
@@ -595,13 +623,15 @@ class OrderedNamespace(object):
 # keys_descriptions_from_enum
 # =============================================================================
 
+
 def keys_descriptions_from_enum(
-        enum: Type[Enum],
-        sort_keys: bool = False,
-        keys_to_lower: bool = False,
-        keys_to_upper: bool = False,
-        key_to_description: str = ": ",
-        joiner: str = " // ") -> Tuple[List[str], str]:
+    enum: Type[Enum],
+    sort_keys: bool = False,
+    keys_to_lower: bool = False,
+    keys_to_upper: bool = False,
+    key_to_description: str = ": ",
+    joiner: str = " // ",
+) -> Tuple[List[str], str]:
     """
     From an Enum subclass, return (keys, descriptions_as_formatted_string).
     This is a convenience function used to provide command-line help for
@@ -617,8 +647,7 @@ def keys_descriptions_from_enum(
         keys.sort()
     try:
         descriptions = [
-            f"{k}{key_to_description}{enum[k].value}"
-            for k in keys
+            f"{k}{key_to_description}{enum[k].value}" for k in keys
         ]
     except KeyError:
         raise KeyError(
@@ -633,6 +662,7 @@ def keys_descriptions_from_enum(
 # =============================================================================
 # EnumLower
 # =============================================================================
+
 
 class CaseInsensitiveEnumMeta(EnumMeta):
     """
@@ -660,6 +690,7 @@ class CaseInsensitiveEnumMeta(EnumMeta):
         TestEnum["PineApplE"]  # <TestEnum.PineApple: 3>
 
     """  # noqa
+
     def __getitem__(self, item: Any) -> Any:
         if isinstance(item, str):
             item_lower = item.lower()

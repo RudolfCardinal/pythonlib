@@ -43,6 +43,7 @@ from typing import Any, Dict, List, Type
 # Argparse actions
 # =============================================================================
 
+
 class ShowAllSubparserHelpAction(_HelpAction):
     """
     Class to serve as the ``action`` for an ``argparse`` top-level parser that
@@ -51,11 +52,13 @@ class ShowAllSubparserHelpAction(_HelpAction):
     https://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output
     """  # noqa
 
-    def __call__(self,
-                 parser: ArgumentParser,
-                 namespace: Namespace,
-                 values: List[Any],  # ?
-                 option_string: str = None) -> None:
+    def __call__(
+        self,
+        parser: ArgumentParser,
+        namespace: Namespace,
+        values: List[Any],  # ?
+        option_string: str = None,
+    ) -> None:
         # 1. Print top-level help
         parser.print_help()
         sep = "=" * 79  # "-" less helpful when using grep for "--option"!
@@ -63,7 +66,8 @@ class ShowAllSubparserHelpAction(_HelpAction):
         # 2. Print help for all subparsers
         # noinspection PyProtectedMember
         subparsers_actions = [
-            action for action in parser._actions
+            action
+            for action in parser._actions
             if isinstance(action, _SubParsersAction)
         ]  # type: List[_SubParsersAction]
         messages = [""]  # type: List[str]
@@ -82,21 +86,24 @@ class ShowAllSubparserHelpAction(_HelpAction):
 # Argparse formatters
 # =============================================================================
 
+
 class RawDescriptionArgumentDefaultsHelpFormatter(
-        ArgumentDefaultsHelpFormatter,
-        RawDescriptionHelpFormatter):
+    ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter
+):
     """
     Combines the features of
 
     - :class:`RawDescriptionHelpFormatter` -- don't mangle the description
     - :class:`ArgumentDefaultsHelpFormatter` -- print argument defaults
     """
+
     pass
 
 
 # =============================================================================
 # Argparse types/checkers
 # =============================================================================
+
 
 def str2bool(v: str) -> bool:
     """
@@ -124,12 +131,12 @@ def str2bool(v: str) -> bool:
 
     """  # noqa
     lv = v.lower()
-    if lv in ('yes', 'true', 't', 'y', '1'):
+    if lv in ("yes", "true", "t", "y", "1"):
         return True
-    elif lv in ('no', 'false', 'f', 'n', '0'):
+    elif lv in ("no", "false", "f", "n", "0"):
         return False
     else:
-        raise ArgumentTypeError('Boolean value expected.')
+        raise ArgumentTypeError("Boolean value expected.")
 
 
 def positive_int(value: str) -> int:
@@ -141,8 +148,7 @@ def positive_int(value: str) -> int:
         ivalue = int(value)
         assert ivalue > 0
     except (AssertionError, TypeError, ValueError):
-        raise ArgumentTypeError(
-            f"{value!r} is an invalid positive int")
+        raise ArgumentTypeError(f"{value!r} is an invalid positive int")
     return ivalue
 
 
@@ -155,8 +161,7 @@ def nonnegative_int(value: str) -> int:
         ivalue = int(value)
         assert ivalue >= 0
     except (AssertionError, TypeError, ValueError):
-        raise ArgumentTypeError(
-            f"{value!r} is an invalid non-negative int")
+        raise ArgumentTypeError(f"{value!r} is an invalid non-negative int")
     return ivalue
 
 
@@ -169,8 +174,7 @@ def percentage(value: str) -> float:
         fvalue = float(value)
         assert 0 <= fvalue <= 100
     except (AssertionError, TypeError, ValueError):
-        raise ArgumentTypeError(
-            f"{value!r} is an invalid percentage value")
+        raise ArgumentTypeError(f"{value!r} is an invalid percentage value")
     return fvalue
 
 
@@ -179,12 +183,14 @@ class MapType(object):
     ``argparse`` type maker that maps strings to a dictionary (map).
     """
 
-    def __init__(self,
-                 map_separator: str = ":",
-                 pair_separator: str = ",",
-                 strip: bool = True,
-                 from_type: Type = str,
-                 to_type: Type = str) -> None:
+    def __init__(
+        self,
+        map_separator: str = ":",
+        pair_separator: str = ",",
+        strip: bool = True,
+        from_type: Type = str,
+        to_type: Type = str,
+    ) -> None:
         """
         Args:
             map_separator:
@@ -217,12 +223,14 @@ class MapType(object):
             except (TypeError, ValueError):
                 raise ArgumentTypeError(
                     f"{from_str!r} cannot be converted to type "
-                    f"{self.from_type!r}")
+                    f"{self.from_type!r}"
+                )
             try:
                 to_val = self.to_type(to_str)
             except (TypeError, ValueError):
                 raise ArgumentTypeError(
                     f"{to_str!r} cannot be converted to type "
-                    f"{self.to_type!r}")
+                    f"{self.to_type!r}"
+                )
             result[from_val] = to_val
         return result

@@ -31,7 +31,9 @@ See https://www.python.org/dev/peps/pep-0249/.
 from collections import OrderedDict
 from typing import Any, Dict, Generator, List, Optional
 
-from cardinal_pythonlib.typing_helpers import Pep249DatabaseCursorType as Cursor  # noqa
+from cardinal_pythonlib.typing_helpers import (
+    Pep249DatabaseCursorType as Cursor,
+)  # noqa
 
 
 def get_fieldnames_from_cursor(cursor: Cursor) -> List[str]:
@@ -41,8 +43,9 @@ def get_fieldnames_from_cursor(cursor: Cursor) -> List[str]:
     return [i[0] for i in cursor.description]
 
 
-def genrows(cursor: Cursor, arraysize: int = 1000) \
-        -> Generator[List[Any], None, None]:
+def genrows(
+    cursor: Cursor, arraysize: int = 1000
+) -> Generator[List[Any], None, None]:
     """
     Generate all rows from a cursor.
 
@@ -62,8 +65,9 @@ def genrows(cursor: Cursor, arraysize: int = 1000) \
             yield result
 
 
-def genfirstvalues(cursor: Cursor, arraysize: int = 1000) \
-        -> Generator[Any, None, None]:
+def genfirstvalues(
+    cursor: Cursor, arraysize: int = 1000
+) -> Generator[Any, None, None]:
     """
     Generate the first value in each row.
 
@@ -84,8 +88,9 @@ def fetchallfirstvalues(cursor: Cursor) -> List[Any]:
     return [row[0] for row in cursor.fetchall()]
 
 
-def gendicts(cursor: Cursor, arraysize: int = 1000) \
-        -> Generator[Dict[str, Any], None, None]:
+def gendicts(
+    cursor: Cursor, arraysize: int = 1000
+) -> Generator[Dict[str, Any], None, None]:
     """
     Generate all rows from a cursor as :class:`OrderedDict` objects.
 
@@ -99,8 +104,7 @@ def gendicts(cursor: Cursor, arraysize: int = 1000) \
     """
     columns = get_fieldnames_from_cursor(cursor)
     return (
-        OrderedDict(zip(columns, row))
-        for row in genrows(cursor, arraysize)
+        OrderedDict(zip(columns, row)) for row in genrows(cursor, arraysize)
     )
 
 
@@ -116,10 +120,7 @@ def dictfetchall(cursor: Cursor) -> List[Dict[str, Any]]:
         column names and whose values are the row values
     """
     columns = get_fieldnames_from_cursor(cursor)
-    return [
-        OrderedDict(zip(columns, row))
-        for row in cursor.fetchall()
-    ]
+    return [OrderedDict(zip(columns, row)) for row in cursor.fetchall()]
 
 
 def dictfetchone(cursor: Cursor) -> Optional[Dict[str, Any]]:

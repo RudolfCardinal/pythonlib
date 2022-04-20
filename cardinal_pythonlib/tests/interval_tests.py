@@ -39,10 +39,12 @@ log = logging.getLogger(__name__)
 # Unit testing
 # =============================================================================
 
+
 class TestInterval(unittest.TestCase):
     """
     Unit tests.
     """
+
     def test_interval(self) -> None:
         a = datetime.datetime(2015, 1, 1)
         log.debug(f"a = {a!r}")

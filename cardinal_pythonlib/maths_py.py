@@ -39,6 +39,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Mean
 # =============================================================================
 
+
 def mean(values: Sequence[Union[int, float, None]]) -> Optional[float]:
     """
     Returns the mean of a list of numbers.
@@ -62,6 +63,7 @@ def mean(values: Sequence[Union[int, float, None]]) -> Optional[float]:
 # =============================================================================
 # logit
 # =============================================================================
+
 
 def safe_logit(p: Union[float, int]) -> Optional[float]:
     r"""
@@ -90,6 +92,7 @@ def safe_logit(p: Union[float, int]) -> Optional[float]:
 # =============================================================================
 # Rounding
 # =============================================================================
+
 
 def normal_round_float(x: float, dp: int = 0) -> float:
     """
@@ -178,6 +181,7 @@ def round_sf(x: float, n: int = 2) -> float:
 # =============================================================================
 # Addition, permutation
 # =============================================================================
+
 
 def sum_of_integers_in_inclusive_range(a: int, b: int) -> int:
     """

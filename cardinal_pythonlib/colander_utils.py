@@ -29,16 +29,27 @@ Colander: https://docs.pylonsproject.org/projects/colander/en/latest/
 """
 
 import random
-from typing import (Any, Callable, Dict, Iterable, List, Optional,
-                    Tuple, TYPE_CHECKING, Union)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 from cardinal_pythonlib.datetimefunc import (
     coerce_to_pendulum,
     PotentialDatetimeType,
 )
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
 # noinspection PyUnresolvedReferences
 import colander
+
 # noinspection PyUnresolvedReferences
 from colander import (
     Boolean,
@@ -53,11 +64,7 @@ from colander import (
     SchemaType,
     String,
 )
-from deform.widget import (
-    CheckboxWidget,
-    DateTimeInputWidget,
-    HiddenWidget,
-)
+from deform.widget import CheckboxWidget, DateTimeInputWidget, HiddenWidget
 from pendulum import DateTime as Pendulum  # NB name clash with colander
 from pendulum.parsing.exceptions import ParserError
 
@@ -91,49 +98,54 @@ SERIALIZED_NONE = ""  # has to be a string; avoid "None" like the plague!
 # New generic SchemaType classes
 # =============================================================================
 
+
 class PendulumType(SchemaType):
     """
     Colander :class:`SchemaType` for :class:`Pendulum` date/time objects.
     """
+
     def __init__(self, use_local_tz: bool = True):
         self.use_local_tz = use_local_tz
         super().__init__()  # not necessary; SchemaType has no __init__
 
-    def serialize(self,
-                  node: SchemaNode,
-                  appstruct: Union[PotentialDatetimeType,
-                                   ColanderNullType]) \
-            -> Union[str, ColanderNullType]:
+    def serialize(
+        self,
+        node: SchemaNode,
+        appstruct: Union[PotentialDatetimeType, ColanderNullType],
+    ) -> Union[str, ColanderNullType]:
         """
         Serializes Python object to string representation.
         """
         if not appstruct:
             return colander.null
         try:
-            appstruct = coerce_to_pendulum(appstruct,
-                                           assume_local=self.use_local_tz)
+            appstruct = coerce_to_pendulum(
+                appstruct, assume_local=self.use_local_tz
+            )
         except (ValueError, ParserError) as e:
             raise Invalid(
                 node,
                 f"{appstruct!r} is not a pendulum.DateTime object; "
-                f"error was {e!r}")
+                f"error was {e!r}",
+            )
         return appstruct.isoformat()
 
-    def deserialize(self,
-                    node: SchemaNode,
-                    cstruct: Union[str, ColanderNullType]) \
-            -> Optional[Pendulum]:
+    def deserialize(
+        self, node: SchemaNode, cstruct: Union[str, ColanderNullType]
+    ) -> Optional[Pendulum]:
         """
         Deserializes string representation to Python object.
         """
         if not cstruct:
             return colander.null
         try:
-            result = coerce_to_pendulum(cstruct,
-                                        assume_local=self.use_local_tz)
+            result = coerce_to_pendulum(
+                cstruct, assume_local=self.use_local_tz
+            )
         except (ValueError, ParserError) as e:
-            raise Invalid(node,
-                          f"Invalid date/time: value={cstruct!r}, error={e!r}")
+            raise Invalid(
+                node, f"Invalid date/time: value={cstruct!r}, error={e!r}"
+            )
         return result
 
 
@@ -163,28 +175,31 @@ class AllowNoneType(SchemaType):
     the form refuse to validate if it's still ``None`` at submission.
 
     """
+
     def __init__(self, type_: SchemaType) -> None:
         self.type_ = type_
 
-    def serialize(self, node: SchemaNode,
-                  value: Any) -> Union[str, ColanderNullType]:
+    def serialize(
+        self, node: SchemaNode, value: Any
+    ) -> Union[str, ColanderNullType]:
         """
         Serializes Python object to string representation.
         """
         if value is None:
-            retval = ''
+            retval = ""
         else:
             # noinspection PyUnresolvedReferences
             retval = self.type_.serialize(node, value)
         # log.debug("AllowNoneType.serialize: {!r} -> {!r}", value, retval)
         return retval
 
-    def deserialize(self, node: SchemaNode,
-                    value: Union[str, ColanderNullType]) -> Any:
+    def deserialize(
+        self, node: SchemaNode, value: Union[str, ColanderNullType]
+    ) -> Any:
         """
         Deserializes string representation to Python object.
         """
-        if value is None or value == '':
+        if value is None or value == "":
             retval = None
         else:
             # noinspection PyUnresolvedReferences
@@ -197,10 +212,12 @@ class AllowNoneType(SchemaType):
 # Node helper functions
 # =============================================================================
 
-def get_values_and_permissible(values: Iterable[Tuple[Any, str]],
-                               add_none: bool = False,
-                               none_description: str = "[None]") \
-        -> Tuple[List[Tuple[Any, str]], List[Any]]:
+
+def get_values_and_permissible(
+    values: Iterable[Tuple[Any, str]],
+    add_none: bool = False,
+    none_description: str = "[None]",
+) -> Tuple[List[Tuple[Any, str]], List[Any]]:
     """
     Used when building Colander nodes.
 
@@ -254,10 +271,12 @@ def get_child_node(parent: "_SchemaNode", child_name: str) -> "_SchemaNode":
 # Validators
 # =============================================================================
 
+
 class EmailValidatorWithLengthConstraint(Email):
     """
     The Colander ``Email`` validator doesn't check length. This does.
     """
+
     def __init__(self, *args, min_length: int = 0, **kwargs) -> None:
         self._length = Length(min_length, EMAIL_ADDRESS_MAX_LEN)
         super().__init__(*args, **kwargs)
@@ -277,11 +296,13 @@ class EmailValidatorWithLengthConstraint(Email):
 # Simple types
 # -----------------------------------------------------------------------------
 
+
 class OptionalIntNode(SchemaNode):
     """
     Colander node accepting integers but also blank values (i.e. it's
     optional).
     """
+
     # YOU CANNOT USE ARGUMENTS THAT INFLUENCE THE STRUCTURE, because these Node
     # objects get default-copied by Deform.
     @staticmethod
@@ -300,6 +321,7 @@ class OptionalStringNode(SchemaNode):
     ``"None"``, i.e. a string literal containing the word "None", which is much
     more wrong.
     """
+
     @staticmethod
     def schema_type() -> SchemaType:
         return AllowNoneType(String(allow_empty=True))
@@ -322,6 +344,7 @@ class MandatoryStringNode(SchemaNode):
             #                  without this, None is converted to "None"
         }
     """
+
     @staticmethod
     def schema_type() -> SchemaType:
         return String(allow_empty=False)
@@ -331,6 +354,7 @@ class HiddenIntegerNode(OptionalIntNode):
     """
     Colander node containing an integer, that is hidden to the user.
     """
+
     widget = HiddenWidget()
 
 
@@ -338,6 +362,7 @@ class HiddenStringNode(OptionalStringNode):
     """
     Colander node containing an optional string, that is hidden to the user.
     """
+
     widget = HiddenWidget()
 
 
@@ -345,11 +370,18 @@ class BooleanNode(SchemaNode):
     """
     Colander node representing a boolean value with a checkbox widget.
     """
+
     schema_type = Boolean
     widget = CheckboxWidget()
 
-    def __init__(self, *args, title: str = "?", label: str = "",
-                 default: bool = False, **kwargs) -> None:
+    def __init__(
+        self,
+        *args,
+        title: str = "?",
+        label: str = "",
+        default: bool = False,
+        **kwargs,
+    ) -> None:
         self.title = title  # above the checkbox
         self.label = label or title  # to the right of the checkbox
         self.default = default
@@ -361,11 +393,13 @@ class BooleanNode(SchemaNode):
 # Email addresses
 # -----------------------------------------------------------------------------
 
+
 class OptionalEmailNode(OptionalStringNode):
     """
     Colander string node, where the string can be blank but if not then it
     must look like a valid e-mail address.
     """
+
     validator = EmailValidatorWithLengthConstraint()
 
 
@@ -374,6 +408,7 @@ class MandatoryEmailNode(MandatoryStringNode):
     Colander string node, requiring something that looks like a valid e-mail
     address.
     """
+
     validator = EmailValidatorWithLengthConstraint()
 
 
@@ -381,10 +416,12 @@ class MandatoryEmailNode(MandatoryStringNode):
 # Date/time types
 # -----------------------------------------------------------------------------
 
+
 class DateTimeSelectorNode(SchemaNode):
     """
     Colander node containing a date/time.
     """
+
     schema_type = DateTime
     missing = None
 
@@ -393,20 +430,21 @@ class DateSelectorNode(SchemaNode):
     """
     Colander node containing a date.
     """
+
     schema_type = Date
     missing = None
 
 
 DEFAULT_WIDGET_DATE_OPTIONS_FOR_PENDULUM = dict(
     # http://amsul.ca/pickadate.js/date/#formatting-rules
-    format='yyyy-mm-dd',
+    format="yyyy-mm-dd",
     selectMonths=True,
     selectYears=True,
 )
 DEFAULT_WIDGET_TIME_OPTIONS_FOR_PENDULUM = dict(
     # See http://amsul.ca/pickadate.js/time/#formatting-rules
     # format='h:i A',  # the default, e.g. "11:30 PM"
-    format='HH:i',  # e.g. "23:30"
+    format="HH:i",  # e.g. "23:30"
     interval=30,
 )
 
@@ -416,6 +454,7 @@ class OptionalPendulumNodeLocalTZ(SchemaNode):
     Colander node containing an optional :class:`Pendulum` date/time, in which
     the date/time is assumed to be in the local timezone.
     """
+
     @staticmethod
     def schema_type() -> SchemaType:
         return AllowNoneType(PendulumType(use_local_tz=True))
@@ -428,7 +467,9 @@ class OptionalPendulumNodeLocalTZ(SchemaNode):
     )
 
 
-OptionalPendulumNode = OptionalPendulumNodeLocalTZ  # synonym for back-compatibility  # noqa
+OptionalPendulumNode = (
+    OptionalPendulumNodeLocalTZ
+)  # synonym for back-compatibility  # noqa
 
 
 class OptionalPendulumNodeUTC(SchemaNode):
@@ -436,6 +477,7 @@ class OptionalPendulumNodeUTC(SchemaNode):
     Colander node containing an optional :class:`Pendulum` date/time, in which
     the date/time is assumed to be UTC.
     """
+
     @staticmethod
     def schema_type() -> SchemaType:
         return AllowNoneType(PendulumType(use_local_tz=False))
@@ -451,6 +493,7 @@ class OptionalPendulumNodeUTC(SchemaNode):
 # -----------------------------------------------------------------------------
 # Safety-checking nodes
 # -----------------------------------------------------------------------------
+
 
 class ValidateDangerousOperationNode(MappingSchema):
     """
@@ -472,11 +515,13 @@ class ValidateDangerousOperationNode(MappingSchema):
             danger = ValidateDangerousOperationNode()
 
     """
+
     target = HiddenStringNode()
     user_entry = MandatoryStringNode(title="Validate this dangerous operation")
 
-    def __init__(self, *args, length: int = 4, allowed_chars: str = None,
-                 **kwargs) -> None:
+    def __init__(
+        self, *args, length: int = 4, allowed_chars: str = None, **kwargs
+    ) -> None:
         """
         Args:
             length: code length required from the user
@@ -520,8 +565,9 @@ class ValidateDangerousOperationNode(MappingSchema):
         #   function.
         # - Fifthly: a new DangerValidationForm that rewrites its field
         #   descriptions after validation. That works!
-        target_value = ''.join(random.choice(self.allowed_chars)
-                               for i in range(self.length))
+        target_value = "".join(
+            random.choice(self.allowed_chars) for i in range(self.length)
+        )
         target_node.default = target_value
         # Set the description:
         if DEBUG_DANGER_VALIDATION:
@@ -531,26 +577,29 @@ class ValidateDangerousOperationNode(MappingSchema):
         #     first rendering
 
     def validator(self, node: SchemaNode, value: Any) -> None:
-        user_entry_value = value['user_entry']
-        target_value = value['target']
+        user_entry_value = value["user_entry"]
+        target_value = value["target"]
         # Set the description:
         if DEBUG_DANGER_VALIDATION:
             log.debug("validator: setting description to {!r}", target_value)
         self.set_description(target_value)
         # arse!
-        value['display_target'] = target_value
+        value["display_target"] = target_value
         # Check the value
         if user_entry_value != target_value:
             raise Invalid(
                 node,
                 f"Not correctly validated "
                 f"(user_entry_value={user_entry_value!r}, "
-                f"target_value={target_value!r}")
+                f"target_value={target_value!r}",
+            )
 
     def set_description(self, target_value: str) -> None:
         user_entry_node = get_child_node(self, "user_entry")
         prefix = "Please enter the following: "
         user_entry_node.description = prefix + target_value
         if DEBUG_DANGER_VALIDATION:
-            log.debug("user_entry_node.description: {!r}",
-                      user_entry_node.description)
+            log.debug(
+                "user_entry_node.description: {!r}",
+                user_entry_node.description,
+            )

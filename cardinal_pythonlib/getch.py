@@ -35,6 +35,7 @@ import sys
 
 try:
     import msvcrt  # Windows only
+
     termios = None
     tty = None
 except ImportError:
@@ -50,13 +51,14 @@ except ImportError:
 # http://home.wlu.edu/~levys/software/kbhit.py
 # ... modified a little
 
+
 def _getch_windows() -> str:
     """
     Under Windows, wets a single character from standard input. Does not echo
     to the screen.
     """
     # noinspection PyUnresolvedReferences
-    return msvcrt.getch().decode('utf-8')
+    return msvcrt.getch().decode("utf-8")
 
 
 def _getch_unix() -> str:
@@ -72,6 +74,7 @@ def _getch_unix() -> str:
 # =============================================================================
 # http://code.activestate.com/recipes/572182-how-to-implement-kbhit-on-linux/
 # https://stackoverflow.com/questions/2408560/python-nonblocking-console-input
+
 
 def _kbhit_windows() -> bool:
     """
@@ -92,6 +95,7 @@ def _kbhit_unix() -> bool:
 # =============================================================================
 # Configure terminal (UNIX)
 # =============================================================================
+
 
 def set_normal_term() -> None:
     """
@@ -130,7 +134,7 @@ else:
     _new_term = termios.tcgetattr(_fd)
     _old_term = termios.tcgetattr(_fd)
     # new terminal setting unbuffered
-    _new_term[3] = (_new_term[3] & ~termios.ICANON & ~termios.ECHO)
+    _new_term[3] = _new_term[3] & ~termios.ICANON & ~termios.ECHO
     _new_term[6][termios.VMIN] = 1
     _new_term[6][termios.VTIME] = 0
 

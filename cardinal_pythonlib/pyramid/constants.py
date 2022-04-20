@@ -30,6 +30,7 @@ from typing import Callable
 
 # noinspection PyUnresolvedReferences
 from pyramid.request import Request
+
 # noinspection PyUnresolvedReferences
 from pyramid.response import Response
 

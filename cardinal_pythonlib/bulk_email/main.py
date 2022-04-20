@@ -78,10 +78,12 @@ log = logging.getLogger(__name__)
 # Constants
 # =============================================================================
 
+
 class Command:
     """
     Commands to this tool.
     """
+
     ADD = "add"
     CLEAR = "clear"
     CONFIGURE = "configure"
@@ -93,6 +95,7 @@ class Command:
 # =============================================================================
 # Create database
 # =============================================================================
+
 
 def create_db(engine: Engine) -> None:
     """
@@ -111,13 +114,16 @@ def create_db(engine: Engine) -> None:
 # Configure server settings
 # =============================================================================
 
-def configure(session: Session,
-              host: str,
-              port: int,
-              use_tls: bool,
-              username: str,
-              password: str,
-              time_between_emails: float) -> None:
+
+def configure(
+    session: Session,
+    host: str,
+    port: int,
+    use_tls: bool,
+    username: str,
+    password: str,
+    time_between_emails: float,
+) -> None:
     """
     Updates the configuration from command-line parameters.
     """
@@ -138,15 +144,18 @@ def configure(session: Session,
 # Add a job
 # =============================================================================
 
-def add_job(session: Session,
-            recipients_filename: str,
-            from_addr: str,  # avoid clash with "from" keyword
-            reply_to_addr: str,
-            subject: str,
-            content_html_filename: Optional[str],
-            content_text_filename: Optional[str],
-            charset: str,
-            timestamp_at_creation: bool) -> None:
+
+def add_job(
+    session: Session,
+    recipients_filename: str,
+    from_addr: str,  # avoid clash with "from" keyword
+    reply_to_addr: str,
+    subject: str,
+    content_html_filename: Optional[str],
+    content_text_filename: Optional[str],
+    charset: str,
+    timestamp_at_creation: bool,
+) -> None:
     """
     Adds an e-mail sending job -- contents and recipients.
     """
@@ -200,7 +209,7 @@ def add_job(session: Session,
         subject=subject,
         body=body,
         content_type=content_type,
-        charset=charset
+        charset=charset,
     )
     session.add(content)
     log.info("... created.")
@@ -211,10 +220,7 @@ def add_job(session: Session,
 
     log.info("Adding jobs...")
     for recipient in recipients:
-        job = Job(
-            recipient=recipient,
-            content=content
-        )
+        job = Job(recipient=recipient, content=content)
         session.add(job)
     log.info("... done.")
 
@@ -223,8 +229,8 @@ def add_job(session: Session,
 # Send pending emails
 # =============================================================================
 
-def work(session: Session,
-         stop_on_error: bool) -> None:
+
+def work(session: Session, stop_on_error: bool) -> None:
     """
     Processes outstanding jobs until there are no more.
     """
@@ -263,14 +269,14 @@ def work(session: Session,
             attachment_filenames=None,
             attachment_binaries=None,
             attachment_binary_filenames=None,
-            verbose=False
+            verbose=False,
         )
         attempt = SendAttempt(
             job=job,
             config=config,
             when_attempt=now,
             success=success,
-            details=details
+            details=details,
         )
         session.add(attempt)
         if success:
@@ -287,6 +293,7 @@ def work(session: Session,
 # Show info
 # =============================================================================
 
+
 def info(session: Session) -> None:
     """
     Shows information about jobs, to stdout.
@@ -296,18 +303,21 @@ def info(session: Session) -> None:
     n_complete = Job.n_completed_jobs(session)
     n_pending = Job.n_pending_jobs(session)
 
-    print(f"""Status:
+    print(
+        f"""Status:
 
 Recipients: {n_recipients}
 Content templates: {n_content_templates}
 Jobs complete: {n_complete}
 Jobs pending: {n_pending}
-""")
+"""
+    )
 
 
 # =============================================================================
 # Clear pending jobs
 # =============================================================================
+
 
 def clear_pending_jobs(session: Session) -> None:
     """
@@ -322,6 +332,7 @@ def clear_pending_jobs(session: Session) -> None:
 # Command-line entry point.
 # =============================================================================
 
+
 def main() -> None:
     """
     Command-line entry point.
@@ -332,31 +343,27 @@ def main() -> None:
     # -------------------------------------------------------------------------
     parser = argparse.ArgumentParser(
         description="Simple bulk e-mail tool. All data are stored in a "
-                    "relational database (e.g. SQLite).",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        "relational database (e.g. SQLite).",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
     # Top-level arguments
     parser.add_argument(
-        "--db", type=str, default=None,
+        "--db",
+        type=str,
+        default=None,
         help=f"Database URL, in SQLAlchemy format. If not specified, it will "
-             f"be taken from the environment variable {DB_URL_ENVVAR}"
+        f"be taken from the environment variable {DB_URL_ENVVAR}",
     )
-    parser.add_argument(
-        "--echo", action="store_true",
-        help="Echo all SQL"
-    )
-    parser.add_argument(
-        "--verbose", action="store_true",
-        help="Be verbose"
-    )
+    parser.add_argument("--echo", action="store_true", help="Echo all SQL")
+    parser.add_argument("--verbose", action="store_true", help="Be verbose")
 
     # Subparsers
     # We don't use "set_defaults(func=somefunc)" because we want to have more
     # control prior to launching the subcommand.
     subparsers = parser.add_subparsers(
         help="Append '--help' to any command for further help.",
-        dest="command"  # store name of chosen command here
+        dest="command",  # store name of chosen command here
     )
     subparsers.required = True
 
@@ -366,7 +373,7 @@ def main() -> None:
     _ = subparsers.add_parser(
         Command.CREATE_DB,
         help="Set up the database structure. Beware: DESTROYS EXISTING DATA.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -375,40 +382,44 @@ def main() -> None:
     parser_configure = subparsers.add_parser(
         Command.CONFIGURE,
         help="Configure the e-mailer.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser_configure.add_argument(
-        "--host", type=str, required=True,
-        help="Mail server (SMTP) hostname."
+        "--host", type=str, required=True, help="Mail server (SMTP) hostname."
     )
     parser_configure.add_argument(
-        "--port", type=str, default=STANDARD_TLS_PORT,
+        "--port",
+        type=str,
+        default=STANDARD_TLS_PORT,
         help=f"Mail server TCP port (e.g. {STANDARD_SMTP_PORT} for plain "
-             f"SMTP, {STANDARD_TLS_PORT} for TLS)."
+        f"SMTP, {STANDARD_TLS_PORT} for TLS).",
     )
     # Requires Python 3.9:
     # action=argparse.BooleanOptionalAction,
     parser_configure.add_argument(
-        "--tls", action="store_true", default=True,
-        help="Use TLS? (Enabled by default.)"
+        "--tls",
+        action="store_true",
+        default=True,
+        help="Use TLS? (Enabled by default.)",
     )
     parser_configure.add_argument(
-        "--no-tls", dest="tls", action="store_false",
-        help="Disable TLS?"
+        "--no-tls", dest="tls", action="store_false", help="Disable TLS?"
     )
     parser_configure.add_argument(
-        "--username", type=str, required=True,
-        help="Username on mail server."
+        "--username", type=str, required=True, help="Username on mail server."
     )
     parser_configure.add_argument(
-        "--password", type=str, required=True,
-        help="Password on mail server. (WILL BE STORED IN DATABASE.)"
+        "--password",
+        type=str,
+        required=True,
+        help="Password on mail server. (WILL BE STORED IN DATABASE.)",
     )
     parser_configure.add_argument(
-        "--time_between_emails", type=float,
+        "--time_between_emails",
+        type=float,
         default=DEFAULT_TIME_BETWEEN_EMAILS_S,
         help="Time (in seconds) between each e-mail to be sent. Your server "
-             "may object if you send them too fast."
+        "may object if you send them too fast.",
     )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -417,41 +428,38 @@ def main() -> None:
     parser_add_job = subparsers.add_parser(
         Command.ADD,
         help="Adds a bulk e-mail job.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser_add_job.add_argument(
-        "--recipients_file", type=str, required=True,
-        help="Name of a file containing one recipient e-mail address per line."
+        "--recipients_file",
+        type=str,
+        required=True,
+        help="Name of a file containing one recipient e-mail address per line.",
     )
     parser_add_job.add_argument(
-        "--from_addr", type=str, required=True,
-        help="From address."
+        "--from_addr", type=str, required=True, help="From address."
     )
     parser_add_job.add_argument(
-        "--reply_to_addr", type=str,
-        help="Reply-To address."
+        "--reply_to_addr", type=str, help="Reply-To address."
     )
     parser_add_job.add_argument(
-        "--subject", type=str, required=True,
-        help="E-mail subject."
+        "--subject", type=str, required=True, help="E-mail subject."
     )
     contents_group = parser_add_job.add_mutually_exclusive_group(required=True)
     contents_group.add_argument(
-        "--content_html_file", type=str,
-        help="E-mail contents as HTML."
+        "--content_html_file", type=str, help="E-mail contents as HTML."
     )
     contents_group.add_argument(
-        "--content_text_file", type=str,
-        help="E-mail contents as plain text."
+        "--content_text_file", type=str, help="E-mail contents as plain text."
     )
     parser_add_job.add_argument(
-        "--charset", type=str, default=UTF8,
-        help="Encoding (character set)."
+        "--charset", type=str, default=UTF8, help="Encoding (character set)."
     )
     parser_add_job.add_argument(
-        "--timestamp_at_creation", action="store_true",
+        "--timestamp_at_creation",
+        action="store_true",
         help="Set the e-mail's date/time to now, as it's created, rather than "
-             "when each copy is sent (the default)."
+        "when each copy is sent (the default).",
     )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -460,15 +468,19 @@ def main() -> None:
     parser_work = subparsers.add_parser(
         Command.WORK,
         help="Does work that is pending.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser_work.add_argument(
-        "--stop_on_error", action="store_true", default=True,
-        help="Stop if an error occurs. (The default.)"
+        "--stop_on_error",
+        action="store_true",
+        default=True,
+        help="Stop if an error occurs. (The default.)",
     )
     parser_work.add_argument(
-        "--continue_on_error", dest="stop_on_error", action="store_false",
-        help="Continue if an error occors."
+        "--continue_on_error",
+        dest="stop_on_error",
+        action="store_false",
+        help="Continue if an error occors.",
     )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -477,7 +489,7 @@ def main() -> None:
     _ = subparsers.add_parser(
         Command.INFO,
         help="Shows information about the jobs (queued and done).",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -486,7 +498,7 @@ def main() -> None:
     _ = subparsers.add_parser(
         Command.CLEAR,
         help="Clear pending jobs.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -497,8 +509,9 @@ def main() -> None:
     # -------------------------------------------------------------------------
     # Logging
     # -------------------------------------------------------------------------
-    main_only_quicksetup_rootlogger(level=logging.DEBUG if args.verbose
-                                    else logging.INFO)
+    main_only_quicksetup_rootlogger(
+        level=logging.DEBUG if args.verbose else logging.INFO
+    )
     if args.verbose:
         # Show arguments, but obscuring any password.
         safe_args = deepcopy(args)
@@ -511,8 +524,10 @@ def main() -> None:
     # -------------------------------------------------------------------------
     db_url = args.db or os.environ.get(DB_URL_ENVVAR)
     if not db_url:
-        log.critical(f"Must specify the database URL, either via '--db' or "
-                     f"via the environment variable {DB_URL_ENVVAR}")
+        log.critical(
+            f"Must specify the database URL, either via '--db' or "
+            f"via the environment variable {DB_URL_ENVVAR}"
+        )
         sys.exit(EXIT_FAILURE)
     engine = create_engine(db_url, echo=args.echo)
     log.info(f"Using database: {get_safe_url_from_engine(engine)}")
@@ -534,7 +549,7 @@ def main() -> None:
             use_tls=args.tls,
             username=args.username,
             password=args.password,
-            time_between_emails=args.time_between_emails
+            time_between_emails=args.time_between_emails,
         )
 
     elif command == Command.ADD:
@@ -547,14 +562,11 @@ def main() -> None:
             content_html_filename=args.content_html_file,
             content_text_filename=args.content_text_file,
             charset=args.charset,
-            timestamp_at_creation=args.timestamp_at_creation
+            timestamp_at_creation=args.timestamp_at_creation,
         )
 
     elif command == Command.WORK:
-        work(
-            session=session,
-            stop_on_error=args.stop_on_error
-        )
+        work(session=session, stop_on_error=args.stop_on_error)
 
     elif command == Command.INFO:
         info(session)

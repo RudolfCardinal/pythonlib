@@ -33,6 +33,7 @@ from typing import Any
 # Number printing, e.g. for parity
 # =============================================================================
 
+
 def trunc_if_integer(n: Any) -> Any:
     """
     Truncates floats that are integers to their integer representation.

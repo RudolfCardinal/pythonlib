@@ -55,8 +55,9 @@ from cardinal_pythonlib.fileops import gen_filenames
 log = BraceStyleAdapter(logging.getLogger(__name__))
 
 
-def report_hit_filename(zipfilename: str, contentsfilename: str,
-                        show_inner_file: bool) -> None:
+def report_hit_filename(
+    zipfilename: str, contentsfilename: str, show_inner_file: bool
+) -> None:
     """
     For "hits": prints either the ``.zip`` filename, or the ``.zip`` filename
     and the inner filename.
@@ -83,8 +84,9 @@ def report_miss_filename(zipfilename: str) -> None:
     print(zipfilename)
 
 
-def report_line(zipfilename: str, contentsfilename: str, line: str,
-                show_inner_file: bool) -> None:
+def report_line(
+    zipfilename: str, contentsfilename: str, line: str, show_inner_file: bool
+) -> None:
     """
     Prints a line from a file, with the ``.zip`` filename and optionally also
     the inner filename.
@@ -102,13 +104,15 @@ def report_line(zipfilename: str, contentsfilename: str, line: str,
         print(f"{zipfilename}: {line}")
 
 
-def parse_zip(zipfilename: str,
-              regex: Pattern,
-              invert_match: bool,
-              files_with_matches: bool,
-              files_without_match: bool,
-              grep_inner_file_name: bool,
-              show_inner_file: bool) -> None:
+def parse_zip(
+    zipfilename: str,
+    regex: Pattern,
+    invert_match: bool,
+    files_with_matches: bool,
+    files_without_match: bool,
+    grep_inner_file_name: bool,
+    show_inner_file: bool,
+) -> None:
     """
     Implement a "grep within an OpenXML file" for a single OpenXML file, which
     is by definition a ``.zip`` file.
@@ -131,46 +135,64 @@ def parse_zip(zipfilename: str,
     log.debug("Checking ZIP: " + zipfilename)
     found_in_zip = False
     try:
-        with ZipFile(zipfilename, 'r') as zf:
+        with ZipFile(zipfilename, "r") as zf:
             for contentsfilename in zf.namelist():
                 log.debug("... checking file: " + contentsfilename)
                 if grep_inner_file_name:
                     found_in_filename = bool(regex.search(contentsfilename))
                     found_in_zip = found_in_zip or found_in_filename
                     if files_with_matches and found_in_zip:
-                        report_hit_filename(zipfilename, contentsfilename,
-                                            show_inner_file)
+                        report_hit_filename(
+                            zipfilename, contentsfilename, show_inner_file
+                        )
                         return
-                    if ((report_hit_lines and found_in_filename) or
-                            (report_miss_lines and not found_in_filename)):
-                        report_line(zipfilename, contentsfilename,
-                                    contentsfilename, show_inner_file)
+                    if (report_hit_lines and found_in_filename) or (
+                        report_miss_lines and not found_in_filename
+                    ):
+                        report_line(
+                            zipfilename,
+                            contentsfilename,
+                            contentsfilename,
+                            show_inner_file,
+                        )
                 else:
                     try:
-                        with zf.open(contentsfilename, 'r') as file:
+                        with zf.open(contentsfilename, "r") as file:
                             try:
                                 for line in file.readlines():
                                     # log.debug("line: {!r}", line)
                                     found_in_line = bool(regex.search(line))
-                                    found_in_zip = found_in_zip or found_in_line
+                                    found_in_zip = (
+                                        found_in_zip or found_in_line
+                                    )
                                     if files_with_matches and found_in_zip:
-                                        report_hit_filename(zipfilename,
-                                                            contentsfilename,
-                                                            show_inner_file)
+                                        report_hit_filename(
+                                            zipfilename,
+                                            contentsfilename,
+                                            show_inner_file,
+                                        )
                                         return
-                                    if ((report_hit_lines and found_in_line) or
-                                            (report_miss_lines and
-                                             not found_in_line)):
-                                        report_line(zipfilename,
-                                                    contentsfilename,
-                                                    line, show_inner_file)
+                                    if (
+                                        report_hit_lines and found_in_line
+                                    ) or (
+                                        report_miss_lines and not found_in_line
+                                    ):
+                                        report_line(
+                                            zipfilename,
+                                            contentsfilename,
+                                            line,
+                                            show_inner_file,
+                                        )
                             except EOFError:
                                 pass
                     except RuntimeError as e:
                         log.warning(
                             "RuntimeError whilst processing {} [{}]: probably "
                             "encrypted contents; error was {!r}",
-                            zipfilename, contentsfilename, e)
+                            zipfilename,
+                            contentsfilename,
+                            e,
+                        )
     except (zlib.error, BadZipFile) as e:
         log.debug("Invalid zip: {}; error was {!r}", zipfilename, e)
     if files_without_match and not found_in_zip:
@@ -206,69 +228,80 @@ as in
     {exe_name} -l --recursive "armadillo country" <STARTDIR>
 
 but that won't restrict to ".docx" files.
-"""  # noqa
+""",  # noqa
     )
+    parser.add_argument("pattern", help="Regular expression pattern to apply.")
     parser.add_argument(
-        "pattern",
-        help="Regular expression pattern to apply."
-    )
-    parser.add_argument(
-        "filename", nargs="*",
+        "filename",
+        nargs="*",
         help="File(s) to check. You can also specify directores if you use "
-             "--recursive"
+        "--recursive",
     )
     parser.add_argument(
-        "--filenames_from_stdin", "-x", action="store_true",
+        "--filenames_from_stdin",
+        "-x",
+        action="store_true",
         help="Take filenames from stdin instead, one line per filename "
-             "(useful for chained grep)."
+        "(useful for chained grep).",
     )
     parser.add_argument(
-        "--recursive", action="store_true",
+        "--recursive",
+        action="store_true",
         help="Allow search to descend recursively into any directories "
-             "encountered."
+        "encountered.",
     )
     # Flag abbreviations to match grep:
     parser.add_argument(
-        "--ignore_case", "-i", action="store_true",
-        help="Ignore case"
+        "--ignore_case", "-i", action="store_true", help="Ignore case"
     )
     parser.add_argument(
-        "--invert_match", "-v", action="store_true",
-        help="Invert match"
+        "--invert_match", "-v", action="store_true", help="Invert match"
     )
     parser.add_argument(
-        "--files_with_matches", "-l", action="store_true",
-        help="Show filenames of files with matches"
+        "--files_with_matches",
+        "-l",
+        action="store_true",
+        help="Show filenames of files with matches",
     )
     parser.add_argument(
-        "--files_without_match", "-L", action="store_true",
-        help="Show filenames of files with no match"
+        "--files_without_match",
+        "-L",
+        action="store_true",
+        help="Show filenames of files with no match",
     )
     parser.add_argument(
-        "--grep_inner_file_name", action="store_true",
-        help="Search the NAMES of the inner files, not their contents."
+        "--grep_inner_file_name",
+        action="store_true",
+        help="Search the NAMES of the inner files, not their contents.",
     )
     parser.add_argument(
-        "--show_inner_file", action="store_true",
-        help="For hits, show the filenames of inner files, within each ZIP."
+        "--show_inner_file",
+        action="store_true",
+        help="For hits, show the filenames of inner files, within each ZIP.",
     )
     parser.add_argument(
-        "--nprocesses", type=int, default=multiprocessing.cpu_count(),
-        help="Specify the number of processes to run in parallel."
+        "--nprocesses",
+        type=int,
+        default=multiprocessing.cpu_count(),
+        help="Specify the number of processes to run in parallel.",
     )
     parser.add_argument(
-        "--verbose", action="store_true",
-        help="Verbose output"
+        "--verbose", action="store_true", help="Verbose output"
     )
     args = parser.parse_args()
     main_only_quicksetup_rootlogger(
-        level=logging.DEBUG if args.verbose else logging.INFO)
+        level=logging.DEBUG if args.verbose else logging.INFO
+    )
     if args.files_with_matches and args.files_without_match:
-        raise ValueError("Can't specify both --files_with_matches (-l) and "
-                         "--files_without_match (-L)!")
+        raise ValueError(
+            "Can't specify both --files_with_matches (-l) and "
+            "--files_without_match (-L)!"
+        )
     if bool(args.filenames_from_stdin) == bool(args.filename):
-        raise ValueError("Specify --filenames_from_stdin or filenames on the "
-                         "command line, but not both")
+        raise ValueError(
+            "Specify --filenames_from_stdin or filenames on the "
+            "command line, but not both"
+        )
 
     # Compile regular expression
     if args.grep_inner_file_name:
@@ -277,8 +310,9 @@ but that won't restrict to ".docx" files.
         encoding = getdefaultencoding()
         final_pattern = args.pattern.encode(encoding)
     flags = re.IGNORECASE if args.ignore_case else 0
-    log.debug("Using regular expression {!r} with flags {!r}",
-              final_pattern, flags)
+    log.debug(
+        "Using regular expression {!r} with flags {!r}", final_pattern, flags
+    )
     regex = re.compile(final_pattern, flags)
 
     # Set up pool for parallel processing
@@ -291,23 +325,24 @@ but that won't restrict to ".docx" files.
         files_with_matches=args.files_with_matches,
         files_without_match=args.files_without_match,
         grep_inner_file_name=args.grep_inner_file_name,
-        show_inner_file=args.show_inner_file
+        show_inner_file=args.show_inner_file,
     )
     if args.filenames_from_stdin:
         for line in stdin.readlines():
             zipfilename = line.strip()
-            parallel_kwargs = {'zipfilename': zipfilename}
+            parallel_kwargs = {"zipfilename": zipfilename}
             parallel_kwargs.update(**parse_kwargs)
             pool.apply_async(parse_zip, [], parallel_kwargs)
     else:
-        for zipfilename in gen_filenames(starting_filenames=args.filename,
-                                         recursive=args.recursive):
-            parallel_kwargs = {'zipfilename': zipfilename}
+        for zipfilename in gen_filenames(
+            starting_filenames=args.filename, recursive=args.recursive
+        ):
+            parallel_kwargs = {"zipfilename": zipfilename}
             parallel_kwargs.update(**parse_kwargs)
             pool.apply_async(parse_zip, [], parallel_kwargs)
     pool.close()
     pool.join()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

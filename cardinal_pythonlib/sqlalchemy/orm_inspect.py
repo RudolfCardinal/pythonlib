@@ -26,8 +26,16 @@
 
 """
 
-from typing import (Dict, Generator, List, Set, Tuple, Type, TYPE_CHECKING,
-                    Union)
+from typing import (
+    Dict,
+    Generator,
+    List,
+    Set,
+    Tuple,
+    Type,
+    TYPE_CHECKING,
+    Union,
+)
 
 # noinspection PyProtectedMember
 from sqlalchemy.ext.declarative.base import _get_immediate_cls_attr
@@ -57,8 +65,10 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Creating ORM objects conveniently, etc.
 # =============================================================================
 
-def coltype_as_typeengine(coltype: Union[VisitableType,
-                                         TypeEngine]) -> TypeEngine:
+
+def coltype_as_typeengine(
+    coltype: Union[VisitableType, TypeEngine]
+) -> TypeEngine:
     """
     Instances of SQLAlchemy column types are subclasses of ``TypeEngine``.
     It's possible to specify column types either as such instances, or as the
@@ -93,6 +103,7 @@ def coltype_as_typeengine(coltype: Union[VisitableType,
 # SqlAlchemyAttrDictMixin
 # =============================================================================
 
+
 class SqlAlchemyAttrDictMixin(object):
     """
     Mixin to:
@@ -119,8 +130,9 @@ class SqlAlchemyAttrDictMixin(object):
     def __repr__(self) -> str:
         return "<{classname}({kvp})>".format(
             classname=type(self).__name__,
-            kvp=", ".join(f"{k}={v!r}"
-                          for k, v in self.get_attrdict().items())
+            kvp=", ".join(
+                f"{k}={v!r}" for k, v in self.get_attrdict().items()
+            ),
         )
 
     @classmethod
@@ -137,14 +149,16 @@ class SqlAlchemyAttrDictMixin(object):
 # Traverse ORM relationships (SQLAlchemy ORM)
 # =============================================================================
 
-def walk_orm_tree(obj,
-                  debug: bool = False,
-                  seen: Set = None,
-                  skip_relationships_always: List[str] = None,
-                  skip_relationships_by_tablename: Dict[str, List[str]] = None,
-                  skip_all_relationships_for_tablenames: List[str] = None,
-                  skip_all_objects_for_tablenames: List[str] = None) \
-        -> Generator[object, None, None]:
+
+def walk_orm_tree(
+    obj,
+    debug: bool = False,
+    seen: Set = None,
+    skip_relationships_always: List[str] = None,
+    skip_relationships_by_tablename: Dict[str, List[str]] = None,
+    skip_all_relationships_for_tablenames: List[str] = None,
+    skip_all_objects_for_tablenames: List[str] = None,
+) -> Generator[object, None, None]:
     """
     Starting with a SQLAlchemy ORM object, this function walks a
     relationship tree, yielding each of the objects once.
@@ -185,10 +199,18 @@ def walk_orm_tree(obj,
 
     """
     # http://docs.sqlalchemy.org/en/latest/faq/sessions.html#faq-walk-objects
-    skip_relationships_always = skip_relationships_always or []  # type: List[str]  # noqa
-    skip_relationships_by_tablename = skip_relationships_by_tablename or {}  # type: Dict[str, List[str]]  # noqa
-    skip_all_relationships_for_tablenames = skip_all_relationships_for_tablenames or []  # type: List[str]  # noqa
-    skip_all_objects_for_tablenames = skip_all_objects_for_tablenames or []  # type: List[str]  # noqa
+    skip_relationships_always = (
+        skip_relationships_always or []
+    )  # type: List[str]  # noqa
+    skip_relationships_by_tablename = (
+        skip_relationships_by_tablename or {}
+    )  # type: Dict[str, List[str]]  # noqa
+    skip_all_relationships_for_tablenames = (
+        skip_all_relationships_for_tablenames or []
+    )  # type: List[str]  # noqa
+    skip_all_objects_for_tablenames = (
+        skip_all_objects_for_tablenames or []
+    )  # type: List[str]  # noqa
     stack = [obj]
     if seen is None:
         seen = set()
@@ -204,15 +226,19 @@ def walk_orm_tree(obj,
             log.debug("walk: yielding {!r}", obj)
         yield obj
         insp = inspect(obj)  # type: InstanceState
-        for relationship in insp.mapper.relationships:  # type: RelationshipProperty  # noqa
+        for (
+            relationship
+        ) in insp.mapper.relationships:  # type: RelationshipProperty  # noqa
             attrname = relationship.key
             # Skip?
             if attrname in skip_relationships_always:
                 continue
             if tablename in skip_all_relationships_for_tablenames:
                 continue
-            if (tablename in skip_relationships_by_tablename and
-                    attrname in skip_relationships_by_tablename[tablename]):
+            if (
+                tablename in skip_relationships_by_tablename
+                and attrname in skip_relationships_by_tablename[tablename]
+            ):
                 continue
             # Process relationship
             if debug:
@@ -237,11 +263,14 @@ def walk_orm_tree(obj,
 # https://groups.google.com/forum/#!topic/sqlalchemy/wb2M_oYkQdY
 # https://groups.google.com/forum/#!searchin/sqlalchemy/cascade%7Csort:date/sqlalchemy/eIOkkXwJ-Ms/JLnpI2wJAAAJ  # noqa
 
-def copy_sqla_object(obj: object,
-                     omit_fk: bool = True,
-                     omit_pk: bool = True,
-                     omit_attrs: List[str] = None,
-                     debug: bool = False) -> object:
+
+def copy_sqla_object(
+    obj: object,
+    omit_fk: bool = True,
+    omit_pk: bool = True,
+    omit_attrs: List[str] = None,
+    debug: bool = False,
+) -> object:
     """
     Given an SQLAlchemy object, creates a new object (FOR WHICH THE OBJECT
     MUST SUPPORT CREATION USING ``__init__()`` WITH NO PARAMETERS), and copies
@@ -273,13 +302,15 @@ def copy_sqla_object(obj: object,
     prohibited |= set(omit_attrs)
     if debug:
         log.debug("copy_sqla_object: skipping: {}", prohibited)
-    for k in [p.key for p in mapper.iterate_properties
-              if p.key not in prohibited]:
+    for k in [
+        p.key for p in mapper.iterate_properties if p.key not in prohibited
+    ]:
         try:
             value = getattr(obj, k)
             if debug:
-                log.debug("copy_sqla_object: processing attribute {} = {}",
-                          k, value)
+                log.debug(
+                    "copy_sqla_object: processing attribute {} = {}", k, value
+                )
             setattr(newobj, k, value)
         except AttributeError:
             if debug:
@@ -288,11 +319,13 @@ def copy_sqla_object(obj: object,
     return newobj
 
 
-def rewrite_relationships(oldobj: object,
-                          newobj: object,
-                          objmap: Dict[object, object],
-                          debug: bool = False,
-                          skip_table_names: List[str] = None) -> None:
+def rewrite_relationships(
+    oldobj: object,
+    newobj: object,
+    objmap: Dict[object, object],
+    debug: bool = False,
+    skip_table_names: List[str] = None,
+) -> None:
     """
     A utility function only.
     Used in copying objects between SQLAlchemy sessions.
@@ -349,7 +382,11 @@ def rewrite_relationships(oldobj: object,
     # insp.mapper.relationships is of type
     # sqlalchemy.utils._collections.ImmutableProperties, which is basically
     # a sort of AttrDict.
-    for attrname_rel in insp.mapper.relationships.items():  # type: Tuple[str, RelationshipProperty]  # noqa
+    for (
+        attrname_rel
+    ) in (
+        insp.mapper.relationships.items()
+    ):  # type: Tuple[str, RelationshipProperty]  # noqa
         attrname = attrname_rel[0]
         rel_prop = attrname_rel[1]
         if rel_prop.viewonly:
@@ -360,8 +397,10 @@ def rewrite_relationships(oldobj: object,
         related_table_name = related_class.__tablename__  # type: str
         if related_table_name in skip_table_names:
             if debug:
-                log.debug("Skipping relationship for related table {!r}",
-                          related_table_name)
+                log.debug(
+                    "Skipping relationship for related table {!r}",
+                    related_table_name,
+                )
             continue
         # The relationship is an abstract object (so getting the
         # relationship from the old object and from the new, with e.g.
@@ -377,19 +416,23 @@ def rewrite_relationships(oldobj: object,
         else:
             related_new = None
         if debug:
-            log.debug("rewrite_relationships: relationship {} -> {}",
-                      attrname, related_new)
+            log.debug(
+                "rewrite_relationships: relationship {} -> {}",
+                attrname,
+                related_new,
+            )
         setattr(newobj, attrname, related_new)
 
 
 def deepcopy_sqla_objects(
-        startobjs: List[object],
-        session: Session,
-        flush: bool = True,
-        debug: bool = False,
-        debug_walk: bool = True,
-        debug_rewrite_rel: bool = False,
-        objmap: Dict[object, object] = None) -> None:
+    startobjs: List[object],
+    session: Session,
+    flush: bool = True,
+    debug: bool = False,
+    debug_walk: bool = True,
+    debug_rewrite_rel: bool = False,
+    objmap: Dict[object, object] = None,
+) -> None:
     """
     Makes a copy of the specified SQLAlchemy ORM objects, inserting them into a
     new session.
@@ -468,13 +511,15 @@ def deepcopy_sqla_objects(
         session.flush()
 
 
-def deepcopy_sqla_object(startobj: object,
-                         session: Session,
-                         flush: bool = True,
-                         debug: bool = False,
-                         debug_walk: bool = False,
-                         debug_rewrite_rel: bool = False,
-                         objmap: Dict[object, object] = None) -> object:
+def deepcopy_sqla_object(
+    startobj: object,
+    session: Session,
+    flush: bool = True,
+    debug: bool = False,
+    debug_walk: bool = False,
+    debug_rewrite_rel: bool = False,
+    objmap: Dict[object, object] = None,
+) -> object:
     """
     Makes a copy of the object, inserting it into ``session``.
 
@@ -511,7 +556,7 @@ def deepcopy_sqla_object(startobj: object,
         debug=debug,
         debug_walk=debug_walk,
         debug_rewrite_rel=debug_rewrite_rel,
-        objmap=objmap
+        objmap=objmap,
     )
     return objmap[startobj]  # returns the new object matching startobj
 
@@ -519,6 +564,7 @@ def deepcopy_sqla_object(startobj: object,
 # =============================================================================
 # Get Columns from an ORM instance
 # =============================================================================
+
 
 def gen_columns(obj) -> Generator[Tuple[str, Column], None, None]:
     """
@@ -547,9 +593,9 @@ def gen_columns(obj) -> Generator[Tuple[str, Column], None, None]:
 
     """
     mapper = obj.__mapper__  # type: Mapper
-    assert mapper, (
-        f"gen_columns called on {obj!r} which is not an SQLAlchemy ORM object"
-    )
+    assert (
+        mapper
+    ), f"gen_columns called on {obj!r} which is not an SQLAlchemy ORM object"
     colmap = mapper.columns  # type: OrderedProperties
     if not colmap:
         return
@@ -575,13 +621,14 @@ def get_pk_attrnames(obj) -> List[str]:
         list of attribute names of primary-key columns
 
     """
-    return [attrname
-            for attrname, column in gen_columns(obj)
-            if column.primary_key]
+    return [
+        attrname for attrname, column in gen_columns(obj) if column.primary_key
+    ]
 
 
-def gen_columns_for_uninstrumented_class(cls: Type) \
-        -> Generator[Tuple[str, Column], None, None]:
+def gen_columns_for_uninstrumented_class(
+    cls: Type
+) -> Generator[Tuple[str, Column], None, None]:
     """
     Generate ``(attr_name, Column)`` tuples from an UNINSTRUMENTED class, i.e.
     one that does not inherit from ``declarative_base()``. Use this for mixins
@@ -626,8 +673,10 @@ def colname_to_attrname_dict(cls) -> Dict[str, str]:
 # Get relationships from an ORM instance
 # =============================================================================
 
-def gen_relationships(obj) -> Generator[Tuple[str, RelationshipProperty, Type],
-                                        None, None]:
+
+def gen_relationships(
+    obj
+) -> Generator[Tuple[str, RelationshipProperty, Type], None, None]:
     """
     Yields tuples of ``(attrname, RelationshipProperty, related_class)``
     for all relationships of an ORM object.
@@ -637,7 +686,12 @@ def gen_relationships(obj) -> Generator[Tuple[str, RelationshipProperty, Type],
     # insp.mapper.relationships is of type
     # sqlalchemy.utils._collections.ImmutableProperties, which is basically
     # a sort of AttrDict.
-    for attrname, rel_prop in insp.mapper.relationships.items():  # type: Tuple[str, RelationshipProperty]  # noqa
+    for (
+        attrname,
+        rel_prop,
+    ) in (
+        insp.mapper.relationships.items()
+    ):  # type: Tuple[str, RelationshipProperty]  # noqa
         # noinspection PyUnresolvedReferences
         related_class = rel_prop.mapper.class_
         # log.critical("gen_relationships: attrname={!r}, "
@@ -649,6 +703,7 @@ def gen_relationships(obj) -> Generator[Tuple[str, RelationshipProperty, Type],
 # =============================================================================
 # Inspect ORM objects (SQLAlchemy ORM)
 # =============================================================================
+
 
 def get_orm_columns(cls: Type) -> List[Column]:
     """
@@ -677,6 +732,7 @@ def get_orm_column_names(cls: Type, sort: bool = False) -> List[str]:
 # Inspect metadata (SQLAlchemy ORM)
 # =============================================================================
 
+
 def get_table_names_from_metadata(metadata: MetaData) -> List[str]:
     """
     Returns all database table names found in an SQLAlchemy :class:`MetaData`
@@ -704,7 +760,7 @@ def gen_orm_classes_from_base(base: Type) -> Generator[Type, None, None]:
     ORM classes in use.
     """
     for cls in gen_all_subclasses(base):
-        if _get_immediate_cls_attr(cls, '__abstract__', strict=True):
+        if _get_immediate_cls_attr(cls, "__abstract__", strict=True):
             # This is SQLAlchemy's own way of detecting abstract classes; see
             # sqlalchemy.ext.declarative.base
             continue  # NOT an ORM class

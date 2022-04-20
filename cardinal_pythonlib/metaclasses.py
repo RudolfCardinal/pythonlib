@@ -54,17 +54,23 @@ class CooperativeMeta(type):
     See also
     https://blog.ionelmc.ro/2015/02/09/understanding-python-metaclasses/.
     """  # noqa
-    def __new__(mcs: Type,
-                name: str,
-                bases: Tuple[Type, ...],
-                members: Dict[str, Any]) -> Type:
+
+    def __new__(
+        mcs: Type, name: str, bases: Tuple[Type, ...], members: Dict[str, Any]
+    ) -> Type:
         # collect up the metaclasses
         metas = [type(base) for base in bases]
 
         # prune repeated or conflicting entries
-        metas = [meta for index, meta in enumerate(metas)
-                 if not [later for later in metas[index + 1:]
-                         if issubclass(later, meta)]]
+        metas = [
+            meta
+            for index, meta in enumerate(metas)
+            if not [
+                later
+                for later in metas[index + 1 :]
+                if issubclass(later, meta)
+            ]
+        ]
 
         # whip up the actual combined meta class; derive off all of these
         meta = type(name, tuple(metas), dict(combined_metas=metas))
@@ -73,10 +79,9 @@ class CooperativeMeta(type):
         return meta(name, bases, members)
 
     # noinspection PyMissingConstructor
-    def __init__(cls: Type,
-                 name: str,
-                 bases: Tuple[Type, ...],
-                 members: Dict[str, Any]) -> None:
+    def __init__(
+        cls: Type, name: str, bases: Tuple[Type, ...], members: Dict[str, Any]
+    ) -> None:
         # noinspection PyUnresolvedReferences
         for meta in cls.combined_metas:
             meta.__init__(cls, name, bases, members)
@@ -87,14 +92,20 @@ class DebuggingCooperativeMeta(type):
     ``CooperativeMeta``, but with :func:`print` output.
     Still not working.
     """
-    def __new__(mcs: Type,
-                name: str,
-                bases: Tuple[Type, ...],
-                members: Dict[str, Any]) -> Type:
+
+    def __new__(
+        mcs: Type, name: str, bases: Tuple[Type, ...], members: Dict[str, Any]
+    ) -> Type:
         metas = [type(base) for base in bases]
-        metas = [meta for index, meta in enumerate(metas)
-                 if not [later for later in metas[index + 1:]
-                         if issubclass(later, meta)]]
+        metas = [
+            meta
+            for index, meta in enumerate(metas)
+            if not [
+                later
+                for later in metas[index + 1 :]
+                if issubclass(later, meta)
+            ]
+        ]
         meta = type(name, tuple(metas), dict(combined_metas=metas))
         obj = meta(name, bases, members)
 
@@ -107,10 +118,9 @@ class DebuggingCooperativeMeta(type):
         return obj
 
     # noinspection PyMissingConstructor
-    def __init__(cls: Type,
-                 name: str,
-                 bases: Tuple[Type, ...],
-                 members: Dict[str, Any]) -> None:
+    def __init__(
+        cls: Type, name: str, bases: Tuple[Type, ...], members: Dict[str, Any]
+    ) -> None:
         # noinspection PyUnresolvedReferences
         for meta in cls.combined_metas:
             print(

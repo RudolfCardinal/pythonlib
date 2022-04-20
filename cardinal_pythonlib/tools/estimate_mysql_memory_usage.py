@@ -44,14 +44,13 @@ from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 log = logging.getLogger(__name__)
 
 MYSQL_DEFAULT_PORT = 3306
-MYSQL_DEFAULT_USER = 'root'
-UNITS_MB = 'Mb'
+MYSQL_DEFAULT_USER = "root"
+UNITS_MB = "Mb"
 
 
-def get_mysql_vars(mysql: str,
-                   host: str,
-                   port: int,
-                   user: str) -> Dict[str, str]:
+def get_mysql_vars(
+    mysql: str, host: str, port: int, user: str
+) -> Dict[str, str]:
     """
     Asks MySQL for its variables and status.
 
@@ -67,11 +66,15 @@ def get_mysql_vars(mysql: str,
     """
     cmdargs = [
         mysql,
-        "-h", host,
-        "-P", str(port),
-        "-e", "SHOW VARIABLES; SHOW STATUS",
-        "-u", user,
-        "-p"  # prompt for password
+        "-h",
+        host,
+        "-P",
+        str(port),
+        "-e",
+        "SHOW VARIABLES; SHOW STATUS",
+        "-u",
+        user,
+        "-p",  # prompt for password
     ]
     log.info(f"Connecting to MySQL with user: {user}")
     log.debug(cmdargs)
@@ -92,7 +95,7 @@ def val_mb(valstr: Union[int, str]) -> str:
     try:
         return "{:.3f}".format(int(valstr) / (1024 * 1024))
     except (TypeError, ValueError):
-        return '?'
+        return "?"
 
 
 def val_int(val: int) -> str:
@@ -102,9 +105,9 @@ def val_int(val: int) -> str:
     return str(val) + " " * 4
 
 
-def add_var_mb(table: PrettyTable,
-               vardict: Dict[str, str],
-               varname: str) -> None:
+def add_var_mb(
+    table: PrettyTable, vardict: Dict[str, str], varname: str
+) -> None:
     """
     Adds a row to ``table`` for ``varname``, in megabytes.
     """
@@ -116,7 +119,7 @@ def add_blank_row(table: PrettyTable) -> None:
     """
     Adds a blank row to ``table``.
     """
-    table.add_row([''] * 3)
+    table.add_row([""] * 3)
 
 
 def main():
@@ -126,42 +129,47 @@ def main():
     main_only_quicksetup_rootlogger(level=logging.DEBUG)
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--mysql", default="mysql",
-        help="MySQL program (default=mysql)")
+        "--mysql", default="mysql", help="MySQL program (default=mysql)"
+    )
     parser.add_argument(
-        "--host", default="127.0.0.1",
-        help="MySQL server/host (prefer '127.0.0.1' to 'localhost')")
+        "--host",
+        default="127.0.0.1",
+        help="MySQL server/host (prefer '127.0.0.1' to 'localhost')",
+    )
     parser.add_argument(
-        "--port", type=int, default=MYSQL_DEFAULT_PORT,
-        help=f"MySQL port (default={MYSQL_DEFAULT_PORT})")
+        "--port",
+        type=int,
+        default=MYSQL_DEFAULT_PORT,
+        help=f"MySQL port (default={MYSQL_DEFAULT_PORT})",
+    )
     parser.add_argument(
-        "--user", default=MYSQL_DEFAULT_USER,
-        help=f"MySQL user (default={MYSQL_DEFAULT_USER})")
+        "--user",
+        default=MYSQL_DEFAULT_USER,
+        help=f"MySQL user (default={MYSQL_DEFAULT_USER})",
+    )
     args = parser.parse_args()
 
     vardict = get_mysql_vars(
-        mysql=args.mysql,
-        host=args.host,
-        port=args.port,
-        user=args.user,
+        mysql=args.mysql, host=args.host, port=args.port, user=args.user
     )
     max_conn = int(vardict["max_connections"])
     max_used_conn = int(vardict["Max_used_connections"])
     base_mem = (
-        int(vardict["key_buffer_size"]) +
-        int(vardict["query_cache_size"]) +
-        int(vardict["innodb_buffer_pool_size"]) +
+        int(vardict["key_buffer_size"])
+        + int(vardict["query_cache_size"])
+        + int(vardict["innodb_buffer_pool_size"])
+        +
         # int(vardict["innodb_additional_mem_pool_size"]) +
         int(vardict["innodb_log_buffer_size"])
     )
     mem_per_conn = (
-        int(vardict["read_buffer_size"]) +
-        int(vardict["read_rnd_buffer_size"]) +
-        int(vardict["sort_buffer_size"]) +
-        int(vardict["join_buffer_size"]) +
-        int(vardict["binlog_cache_size"]) +
-        int(vardict["thread_stack"]) +
-        int(vardict["tmp_table_size"])
+        int(vardict["read_buffer_size"])
+        + int(vardict["read_rnd_buffer_size"])
+        + int(vardict["sort_buffer_size"])
+        + int(vardict["join_buffer_size"])
+        + int(vardict["binlog_cache_size"])
+        + int(vardict["thread_stack"])
+        + int(vardict["tmp_table_size"])
     )
     mem_total_min = base_mem + mem_per_conn * max_used_conn
     mem_total_max = base_mem + mem_per_conn * max_conn
@@ -189,8 +197,8 @@ def main():
     add_blank_row(table)
     table.add_row(["MEMORY PER CONNECTION", val_mb(mem_per_conn), UNITS_MB])
     add_blank_row(table)
-    table.add_row(["Max_used_connections", val_int(max_used_conn), ''])
-    table.add_row(["max_connections", val_int(max_conn), ''])
+    table.add_row(["Max_used_connections", val_int(max_used_conn), ""])
+    table.add_row(["max_connections", val_int(max_conn), ""])
     add_blank_row(table)
     table.add_row(["TOTAL (MIN)", val_mb(mem_total_min), UNITS_MB])
     table.add_row(["TOTAL (MAX)", val_mb(mem_total_max), UNITS_MB])
@@ -198,5 +206,5 @@ def main():
     print(table.get_string())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

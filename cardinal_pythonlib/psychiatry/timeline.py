@@ -276,12 +276,13 @@ RCN_AFTER_DAYS = "after_days"
 # Timelines
 # =============================================================================
 
+
 def drug_timelines(
-        drug_events_df: DataFrame,
-        event_lasts_for: datetime.timedelta,
-        patient_colname: str = DEFAULT_PATIENT_COLNAME,
-        event_datetime_colname: str = DEFAULT_DRUG_EVENT_DATETIME_COLNAME) \
-        -> Dict[Any, IntervalList]:
+    drug_events_df: DataFrame,
+    event_lasts_for: datetime.timedelta,
+    patient_colname: str = DEFAULT_PATIENT_COLNAME,
+    event_datetime_colname: str = DEFAULT_DRUG_EVENT_DATETIME_COLNAME,
+) -> Dict[Any, IntervalList]:
     """
     Takes a set of drug event start times (one or more per patient), plus a
     fixed time that each event is presumed to last for, and returns an
@@ -321,18 +322,18 @@ def drug_timelines(
 
 
 def cumulative_time_on_drug(
-        drug_events_df: DataFrame,
-        query_times_df: DataFrame,
-        event_lasts_for_timedelta: datetime.timedelta = None,
-        event_lasts_for_quantity: float = None,
-        event_lasts_for_units: str = None,
-        patient_colname: str = DEFAULT_PATIENT_COLNAME,
-        event_datetime_colname: str = DEFAULT_DRUG_EVENT_DATETIME_COLNAME,
-        start_colname: str = DEFAULT_START_DATETIME_COLNAME,
-        when_colname: str = DEFAULT_QUERY_DATETIME_COLNAME,
-        include_timedelta_in_output: bool = False,
-        debug: bool = False) \
-        -> DataFrame:
+    drug_events_df: DataFrame,
+    query_times_df: DataFrame,
+    event_lasts_for_timedelta: datetime.timedelta = None,
+    event_lasts_for_quantity: float = None,
+    event_lasts_for_units: str = None,
+    patient_colname: str = DEFAULT_PATIENT_COLNAME,
+    event_datetime_colname: str = DEFAULT_DRUG_EVENT_DATETIME_COLNAME,
+    start_colname: str = DEFAULT_START_DATETIME_COLNAME,
+    when_colname: str = DEFAULT_QUERY_DATETIME_COLNAME,
+    include_timedelta_in_output: bool = False,
+    debug: bool = False,
+) -> DataFrame:
     """
 
     Args:
@@ -404,11 +405,13 @@ def cumulative_time_on_drug(
         (RCN_AFTER_DAYS, DTYPE_FLOAT),
     ]
     if include_timedelta_in_output:
-        ct_coldefs.extend([
-            (RCN_BEFORE_TIMEDELTA, DTYPE_TIMEDELTA),
-            (RCN_DURING_TIMEDELTA, DTYPE_TIMEDELTA),
-            (RCN_AFTER_TIMEDELTA, DTYPE_TIMEDELTA),
-        ])
+        ct_coldefs.extend(
+            [
+                (RCN_BEFORE_TIMEDELTA, DTYPE_TIMEDELTA),
+                (RCN_DURING_TIMEDELTA, DTYPE_TIMEDELTA),
+                (RCN_AFTER_TIMEDELTA, DTYPE_TIMEDELTA),
+            ]
+        )
     ct_arr = array([None] * query_nrow, dtype=ct_coldefs)
     # log.debug("ct_arr:\n{!r}", ct_arr)
     cumulative_times = DataFrame(ct_arr, index=list(range(query_nrow)))
@@ -424,9 +427,15 @@ def cumulative_time_on_drug(
     dest_colnum_during_days = cumulative_times.columns.get_loc(RCN_DURING_DAYS)
     dest_colnum_after_days = cumulative_times.columns.get_loc(RCN_AFTER_DAYS)
     if include_timedelta_in_output:
-        dest_colnum_before_dt = cumulative_times.columns.get_loc(RCN_BEFORE_TIMEDELTA)  # noqa
-        dest_colnum_during_dt = cumulative_times.columns.get_loc(RCN_DURING_TIMEDELTA)  # noqa
-        dest_colnum_after_dt = cumulative_times.columns.get_loc(RCN_AFTER_TIMEDELTA)  # noqa
+        dest_colnum_before_dt = cumulative_times.columns.get_loc(
+            RCN_BEFORE_TIMEDELTA
+        )  # noqa
+        dest_colnum_during_dt = cumulative_times.columns.get_loc(
+            RCN_DURING_TIMEDELTA
+        )  # noqa
+        dest_colnum_after_dt = cumulative_times.columns.get_loc(
+            RCN_AFTER_TIMEDELTA
+        )  # noqa
     else:
         # for type checker
         dest_colnum_before_dt = 0
@@ -438,8 +447,9 @@ def cumulative_time_on_drug(
         when = query_times_df.iat[rowidx, sourcecolnum_when]
         ivlist = timelines[patient_id]
         # log.critical("ivlist: {!r}", ivlist)
-        before, during, after = ivlist.cumulative_before_during_after(start,
-                                                                      when)
+        before, during, after = ivlist.cumulative_before_during_after(
+            start, when
+        )
         # log.critical(
         #     "{!r}.cumulative_before_during_after(start={!r}, when={!r}) "
         #     "-> {!r}, {!r}, {!r}",

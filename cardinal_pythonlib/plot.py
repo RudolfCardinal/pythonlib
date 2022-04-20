@@ -26,6 +26,7 @@
 """
 
 import io
+
 # noinspection PyUnresolvedReferences
 from types import ModuleType
 from typing import TYPE_CHECKING, Union
@@ -49,9 +50,10 @@ if TYPE_CHECKING:
 # You could make a PDF and append it, though that would (without further
 # effort) lack the patient headers.
 
-def png_img_html_from_pyplot_figure(fig: "Figure",
-                                    dpi: int = 100,
-                                    extra_html_class: str = None) -> str:
+
+def png_img_html_from_pyplot_figure(
+    fig: "Figure", dpi: int = 100, extra_html_class: str = None
+) -> str:
     """
     Converts a ``pyplot`` figure to an HTML IMG tag with encapsulated PNG.
     """
@@ -88,8 +90,10 @@ def svg_html_from_pyplot_figure(fig: "Figure") -> str:
 # Plotting
 # =============================================================================
 
-def set_matplotlib_fontsize(matplotlib: ModuleType,
-                            fontsize: Union[int, float] = 12) -> None:
+
+def set_matplotlib_fontsize(
+    matplotlib: ModuleType, fontsize: Union[int, float] = 12
+) -> None:
     """
     Sets the current font size within the ``matplotlib`` library.
 
@@ -100,20 +104,20 @@ def set_matplotlib_fontsize(matplotlib: ModuleType,
     font = {
         # https://stackoverflow.com/questions/3899980
         # http://matplotlib.org/users/customizing.html
-        'family': 'sans-serif',
+        "family": "sans-serif",
         # ... serif, sans-serif, cursive, fantasy, monospace
-        'style': 'normal',  # normal (roman), italic, oblique
-        'variant': 'normal',  # normal, small-caps
-        'weight': 'normal',
+        "style": "normal",  # normal (roman), italic, oblique
+        "variant": "normal",  # normal, small-caps
+        "weight": "normal",
         # ... normal [=400], bold [=700], bolder [relative to current],
         # lighter [relative], 100, 200, 300, ..., 900
-        'size': fontsize  # in pt (default 12)
+        "size": fontsize,  # in pt (default 12)
     }
     # noinspection PyUnresolvedReferences
-    matplotlib.rc('font', **font)
+    matplotlib.rc("font", **font)
     legend = {
         # https://stackoverflow.com/questions/7125009
-        'fontsize': fontsize
+        "fontsize": fontsize
     }
     # noinspection PyUnresolvedReferences
-    matplotlib.rc('legend', **legend)
+    matplotlib.rc("legend", **legend)

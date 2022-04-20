@@ -53,8 +53,9 @@ from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
 log = logging.getLogger()
 
 DEFAULT_CONCEPT = os.path.join(os.getcwd(), "CONCEPT.csv")
-DEFAULT_CONCEPT_RELATIONSHIP = os.path.join(os.getcwd(),
-                                            "CONCEPT_RELATIONSHIP.csv")
+DEFAULT_CONCEPT_RELATIONSHIP = os.path.join(
+    os.getcwd(), "CONCEPT_RELATIONSHIP.csv"
+)
 
 
 def report(concepts: Iterable[AthenaConceptRow]) -> str:
@@ -62,12 +63,14 @@ def report(concepts: Iterable[AthenaConceptRow]) -> str:
     return "\n".join(sorted(descriptions))
 
 
-def print_equivalent_opcs_codes(source_vocabulary: str,
-                                source_codes: List[int],
-                                destination_vocabulary: str,
-                                concept_file: str,
-                                concept_relationship_file: str,
-                                with_descendants: bool = False) -> None:
+def print_equivalent_opcs_codes(
+    source_vocabulary: str,
+    source_codes: List[int],
+    destination_vocabulary: str,
+    concept_file: str,
+    concept_relationship_file: str,
+    with_descendants: bool = False,
+) -> None:
     """
     Print codes from another vocabulary equivalent to the supplied source
     codes and (optionally) their descendants.
@@ -94,17 +97,14 @@ def print_equivalent_opcs_codes(source_vocabulary: str,
     log.debug(f"Concepts file: {concept_file}")
     log.debug(f"Concept relationship file: {concept_relationship_file}")
 
-    equivalent_relationships = [
-        AthenaRelationshipId.IS_A
-    ]
+    equivalent_relationships = [AthenaRelationshipId.IS_A]
     child_parent_relationships = [
         AthenaRelationshipId.MAPS_TO,
         AthenaRelationshipId.MAPPED_FROM,
         AthenaRelationshipId.SUBSUMES,
     ]
     all_relationships_of_interest = (
-        equivalent_relationships +
-        child_parent_relationships
+        equivalent_relationships + child_parent_relationships
     )
 
     # Since we are scanning many times, cache what we care about:
@@ -115,7 +115,7 @@ def print_equivalent_opcs_codes(source_vocabulary: str,
     )
     cr_rows = get_athena_concept_relationships(
         tsv_filename=concept_relationship_file,
-        relationship_id_values=all_relationships_of_interest
+        relationship_id_values=all_relationships_of_interest,
     )
 
     # 1. Find Athena concepts from source codes
@@ -125,8 +125,10 @@ def print_equivalent_opcs_codes(source_vocabulary: str,
         vocabulary_ids=[source_vocabulary],
         concept_codes=source_codes_str,
     )
-    log.info(f"Athena concepts for starting source codes:\n"
-             f"{report(parent_concepts)}")
+    log.info(
+        f"Athena concepts for starting source codes:\n"
+        f"{report(parent_concepts)}"
+    )
 
     # 2. Find children
     source_concept_ids = set(p.concept_id for p in parent_concepts)
@@ -144,7 +146,7 @@ def print_equivalent_opcs_codes(source_vocabulary: str,
                     cached_concept_relationships=cr_rows,
                     relationship_id_values=equivalent_relationships,
                     concept_id_2_values=parents_to_search,
-                    not_concept_id_1_values=ignore
+                    not_concept_id_1_values=ignore,
                 )
             ]
             if not new_children:
@@ -152,28 +154,30 @@ def print_equivalent_opcs_codes(source_vocabulary: str,
             ignore.update(parents_to_search)  # don't search these twice
             parents_to_search = new_children
             source_concept_ids.update(new_children)
-            log.debug(f"Currently have {len(source_concept_ids)} "
-                      f"source concepts")
+            log.debug(
+                f"Currently have {len(source_concept_ids)} " f"source concepts"
+            )
             # log.debug(f"... {source_concept_ids}")
 
     # Cosmetic only...
     source_concepts = get_athena_concepts(
-        cached_concepts=concept_rows,
-        concept_ids=source_concept_ids
+        cached_concepts=concept_rows, concept_ids=source_concept_ids
     )
-    log.debug(f"All source concepts:\n"
-              f"{report(source_concepts)}")
+    log.debug(f"All source concepts:\n" f"{report(source_concepts)}")
     log.debug(f"source_concept_ids = {source_concept_ids}")
 
     # 3. Find equivalent concepts in the destination vocabulary
-    destination_concept_ids = set(
-        relrow.concept_id_2
-        for relrow in get_athena_concept_relationships(
-            cached_concept_relationships=cr_rows,
-            concept_id_1_values=source_concept_ids,
-            relationship_id_values=child_parent_relationships
+    destination_concept_ids = (
+        set(
+            relrow.concept_id_2
+            for relrow in get_athena_concept_relationships(
+                cached_concept_relationships=cr_rows,
+                concept_id_1_values=source_concept_ids,
+                relationship_id_values=child_parent_relationships,
+            )
         )
-    ) - source_concept_ids
+        - source_concept_ids
+    )
     # There are plenty of codes that are listed as mapping to themselves; we
     # ignore those (by subtracting descendant_concept_ids).
     log.debug(f"Athena concepts for equivalents: {destination_concept_ids!r}")
@@ -188,7 +192,7 @@ def print_equivalent_opcs_codes(source_vocabulary: str,
             vocabulary_ids=[destination_vocabulary],
             concept_ids=destination_concept_ids,
         ),
-        key=lambda cr: cr.concept_code
+        key=lambda cr: cr.concept_code,
     )
     log.info(f"Destination ({destination_vocabulary}) equivalents follow.")
     for r in dest_rows:
@@ -203,32 +207,42 @@ def main() -> None:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "source_codes", nargs="+", type=int,
+        "source_codes",
+        nargs="+",
+        type=int,
         help="Source codes to look up "
-             "(along with their descendants if --descendants is specified)"
+        "(along with their descendants if --descendants is specified)",
     )
     parser.add_argument(
-        "--descendants", action="store_true",
-        help="Include descendants of the codes specified"
+        "--descendants",
+        action="store_true",
+        help="Include descendants of the codes specified",
     )
     parser.add_argument(
-        "--concept", type=str, default=DEFAULT_CONCEPT,
+        "--concept",
+        type=str,
+        default=DEFAULT_CONCEPT,
         help="Athena OHDSI CONCEPT.csv TSV file including the source and "
-             "destination vocabularies"
+        "destination vocabularies",
     )
     parser.add_argument(
-        "--concept_relationship", type=str,
+        "--concept_relationship",
+        type=str,
         default=DEFAULT_CONCEPT_RELATIONSHIP,
         help="Athena OHDSI CONCEPT_RELATIONSHIP.csv TSV file "
-             "including the source and destination vocabularies"
+        "including the source and destination vocabularies",
     )
     parser.add_argument(
-        "--src_vocabulary", type=str, default=AthenaVocabularyId.SNOMED,
-        help="Source vocabulary"
+        "--src_vocabulary",
+        type=str,
+        default=AthenaVocabularyId.SNOMED,
+        help="Source vocabulary",
     )
     parser.add_argument(
-        "--dest_vocabulary", type=str, default=AthenaVocabularyId.OPCS4,
-        help="Destination vocabulary"
+        "--dest_vocabulary",
+        type=str,
+        default=AthenaVocabularyId.OPCS4,
+        help="Destination vocabulary",
     )
     args = parser.parse_args()
     main_only_quicksetup_rootlogger()

@@ -39,6 +39,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Exception handling
 # =============================================================================
 
+
 def add_info_to_exception(err: Exception, info: Dict) -> None:
     """
     Adds an information dictionary to an exception.
@@ -51,8 +52,8 @@ def add_info_to_exception(err: Exception, info: Dict) -> None:
         info: the information to add
     """  # noqa
     if not err.args:
-        err.args = ('', )
-    err.args += (info, )
+        err.args = ("",)
+    err.args += (info,)
 
 
 def recover_info_from_exception(err: Exception) -> Dict:
@@ -108,9 +109,8 @@ def die(exc: Exception = None, exit_code: int = 1) -> NoReturn:
     """  # noqa
     if exc:
         lines = traceback.format_exception(
-            None,  # etype: ignored
-            exc,
-            exc.__traceback__)  # https://www.python.org/dev/peps/pep-3134/
+            None, exc, exc.__traceback__  # etype: ignored
+        )  # https://www.python.org/dev/peps/pep-3134/
         msg = "".join(lines)
         # Method 1:
         # print("".join(lines), file=sys.stderr, flush=True)

@@ -44,9 +44,12 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Create single table from SQLAlchemy ORM class
 # =============================================================================
 
-def create_table_from_orm_class(engine: Engine,
-                                ormclass: DeclarativeMeta,
-                                without_constraints: bool = False) -> None:
+
+def create_table_from_orm_class(
+    engine: Engine,
+    ormclass: DeclarativeMeta,
+    without_constraints: bool = False,
+) -> None:
     """
     From an SQLAlchemy ORM class, creates the database table via the specified
     engine, using a ``CREATE TABLE`` SQL (DDL) statement.
@@ -57,17 +60,18 @@ def create_table_from_orm_class(engine: Engine,
         without_constraints: don't add foreign key constraints
     """
     table = ormclass.__table__  # type: Table
-    log.info("Creating table {} on engine {}{}",
-             table.name,
-             get_safe_url_from_engine(engine),
-             " (omitting constraints)" if without_constraints else "")
+    log.info(
+        "Creating table {} on engine {}{}",
+        table.name,
+        get_safe_url_from_engine(engine),
+        " (omitting constraints)" if without_constraints else "",
+    )
     # https://stackoverflow.com/questions/19175311/how-to-create-only-one-table-with-sqlalchemy  # noqa
     if without_constraints:
         include_foreign_key_constraints = []
     else:
         include_foreign_key_constraints = None  # the default
     creator = CreateTable(
-        table,
-        include_foreign_key_constraints=include_foreign_key_constraints
+        table, include_foreign_key_constraints=include_foreign_key_constraints
     )
     creator.execute(bind=engine)

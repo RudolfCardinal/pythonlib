@@ -121,11 +121,14 @@ FILETYPES = [DOCX, PPTX, XLSX]
 ZIP_PROMPTS_RESPONSES = [
     (SOURCE_STDOUT, "Is this a single-disk archive?  (y/n): ", "y\n"),
     (SOURCE_STDOUT, " or ENTER  (try reading this split again): ", "q\n"),
-    (SOURCE_STDERR,
-     "zip: malloc.c:2394: sysmalloc: Assertion `(old_top == initial_top (av) "
-     "&& old_size == 0) || ((unsigned long) (old_size) >= MINSIZE && "
-     "prev_inuse (old_top) && ((unsigned long) old_end & (pagesize - 1)) "
-     "== 0)' failed.", TERMINATE_SUBPROCESS),
+    (
+        SOURCE_STDERR,
+        "zip: malloc.c:2394: sysmalloc: Assertion `(old_top == initial_top (av) "
+        "&& old_size == 0) || ((unsigned long) (old_size) >= MINSIZE && "
+        "prev_inuse (old_top) && ((unsigned long) old_end & (pagesize - 1)) "
+        "== 0)' failed.",
+        TERMINATE_SUBPROCESS,
+    ),
 ]
 ZIP_STDOUT_TERMINATORS = ["\n", "): "]
 
@@ -135,6 +138,7 @@ class CorruptedZipReader(object):
     Class to open a zip file, even one that is corrupted, and detect the
     files within.
     """
+
     def __init__(self, filename: str, show_zip_output: bool = False) -> None:
         """
         Args:
@@ -149,18 +153,19 @@ class CorruptedZipReader(object):
 
         try:
             # A happy zip file will be readable like this:
-            with ZipFile(self.src_filename, 'r') as zip_ref:
+            with ZipFile(self.src_filename, "r") as zip_ref:
                 self.contents_filenames = zip_ref.namelist()
         except (BadZipFile, OSError) as e:
             # Here we have an unhappy zip file.
             log.debug("File {!r} raised error: {!r}", filename, e)
             self._fix_zip(show_zip_output=show_zip_output)
             try:
-                with ZipFile(self.rescue_filename, 'r') as zip_ref:
+                with ZipFile(self.rescue_filename, "r") as zip_ref:
                     self.contents_filenames = zip_ref.namelist()
             except (BadZipFile, OSError, struct.error) as e:
-                log.debug("... exception raised even after fix attempt: {!r}",
-                          e)
+                log.debug(
+                    "... exception raised even after fix attempt: {!r}", e
+                )
             if self.contents_filenames:
                 log.debug("... recovered!")
             else:
@@ -173,13 +178,16 @@ class CorruptedZipReader(object):
         # Make a file in a temporary directory
         self.tmp_dir = tempfile.mkdtemp()
         self.rescue_filename = os.path.join(
-            self.tmp_dir, os.path.basename(self.src_filename))
+            self.tmp_dir, os.path.basename(self.src_filename)
+        )
         cmdargs = [
             "zip",  # Linux zip tool
             "-FF",  # or "--fixfix": "fix very broken things"
             self.src_filename,  # input file
-            "--temp-path", self.tmp_dir,  # temporary storage path
-            "--out", self.rescue_filename  # output file
+            "--temp-path",
+            self.tmp_dir,  # temporary storage path
+            "--out",
+            self.rescue_filename,  # output file
         ]
         # We would like to be able to say "y" automatically to
         # "Is this a single-disk archive?  (y/n):"
@@ -190,15 +198,18 @@ class CorruptedZipReader(object):
         # Therefore we will do something very ugly, and send raw text via
         # stdin.
         log.debug("Running {!r}", cmdargs)
-        mimic_user_input(cmdargs,
-                         source_challenge_response=ZIP_PROMPTS_RESPONSES,
-                         line_terminators=ZIP_STDOUT_TERMINATORS,
-                         print_stdout=show_zip_output,
-                         print_stdin=show_zip_output)
+        mimic_user_input(
+            cmdargs,
+            source_challenge_response=ZIP_PROMPTS_RESPONSES,
+            line_terminators=ZIP_STDOUT_TERMINATORS,
+            print_stdout=show_zip_output,
+            print_stdin=show_zip_output,
+        )
         # ... will raise if the 'zip' tool isn't available
 
-    def move_to(self, destination_filename: str,
-                alter_if_clash: bool = True) -> None:
+    def move_to(
+        self, destination_filename: str, alter_if_clash: bool = True
+    ) -> None:
         """
         Move the file to which this class refers to a new location.
         The function will not overwrite existing files (but offers the option
@@ -223,22 +234,28 @@ class CorruptedZipReader(object):
         else:
             if os.path.exists(destination_filename):
                 src = self.rescue_filename or self.src_filename
-                log.warning("Destination exists; won't move {!r} to {!r}",
-                            src, destination_filename)
+                log.warning(
+                    "Destination exists; won't move {!r} to {!r}",
+                    src,
+                    destination_filename,
+                )
                 return
         if self.rescue_filename:
             shutil.move(self.rescue_filename, destination_filename)
             os.remove(self.src_filename)
-            log.info("Moved recovered file {!r} to {!r} and deleted corrupted "
-                     "original {!r}",
-                     self.rescue_filename,
-                     destination_filename,
-                     self.src_filename)
+            log.info(
+                "Moved recovered file {!r} to {!r} and deleted corrupted "
+                "original {!r}",
+                self.rescue_filename,
+                destination_filename,
+                self.src_filename,
+            )
             self.rescue_filename = ""
         else:
             shutil.move(self.src_filename, destination_filename)
-            log.info("Moved {!r} to {!r}", self.src_filename,
-                     destination_filename)
+            log.info(
+                "Moved {!r} to {!r}", self.src_filename, destination_filename
+            )
         self.src_filename = ""
 
     def __del__(self) -> None:
@@ -252,27 +269,36 @@ class CorruptedOpenXmlReader(CorruptedZipReader):
     As it is created, it sets its ``file_type`` member to the detected OpenXML
     file type, if it can.
     """
+
     def __init__(self, filename: str, show_zip_output: bool = False) -> None:
-        super().__init__(filename=filename,
-                         show_zip_output=show_zip_output)
+        super().__init__(filename=filename, show_zip_output=show_zip_output)
         self.file_type = ""
         self._recognize()
 
     def _recognize(self) -> None:
         for fname in self.contents_filenames:
             if DOCX_CONTENTS_REGEX.match(fname):
-                log.debug("Zip file {!r} has Word DOCX contents {!r}",
-                          self.src_filename, fname)
+                log.debug(
+                    "Zip file {!r} has Word DOCX contents {!r}",
+                    self.src_filename,
+                    fname,
+                )
                 self.file_type = DOCX
                 return
             if PPTX_CONTENTS_REGEX.match(fname):
-                log.debug("Zip file {!r} has Powerpoint PPTX contents {!r}",
-                          self.src_filename, fname)
+                log.debug(
+                    "Zip file {!r} has Powerpoint PPTX contents {!r}",
+                    self.src_filename,
+                    fname,
+                )
                 self.file_type = PPTX
                 return
             if XLSX_CONTENTS_REGEX.match(fname):
-                log.debug("Zip file {!r} has Excel XLSX contents {!r}",
-                          self.src_filename, fname)
+                log.debug(
+                    "Zip file {!r} has Excel XLSX contents {!r}",
+                    self.src_filename,
+                    fname,
+                )
                 self.file_type = XLSX
                 return
 
@@ -290,11 +316,13 @@ class CorruptedOpenXmlReader(CorruptedZipReader):
         return self.file_type.upper()
 
 
-def process_file(filename: str,
-                 filetypes: List[str],
-                 move_to: str,
-                 delete_if_not_specified_file_type: bool,
-                 show_zip_output: bool) -> None:
+def process_file(
+    filename: str,
+    filetypes: List[str],
+    move_to: str,
+    delete_if_not_specified_file_type: bool,
+    show_zip_output: bool,
+) -> None:
     """
     Deals with an OpenXML, including if it is potentially corrupted.
 
@@ -309,8 +337,9 @@ def process_file(filename: str,
     """
     # log.critical("process_file: start")
     try:
-        reader = CorruptedOpenXmlReader(filename,
-                                        show_zip_output=show_zip_output)
+        reader = CorruptedOpenXmlReader(
+            filename, show_zip_output=show_zip_output
+        )
         if reader.file_type in filetypes:
             log.info("Found {}: {}", reader.description, filename)
             if move_to:
@@ -327,8 +356,9 @@ def process_file(filename: str,
     except Exception as e:
         # Must explicitly catch and report errors, since otherwise they vanish
         # into the ether.
-        log.critical("Uncaught error in subprocess: {!r}\n{}", e,
-                     traceback.format_exc())
+        log.critical(
+            "Uncaught error in subprocess: {!r}\n{}", e, traceback.format_exc()
+        )
         raise
         # See also good advice, not implemented here, at
         # https://stackoverflow.com/questions/19924104/python-multiprocessing-handling-child-errors-in-parent  # noqa
@@ -398,70 +428,81 @@ garbage appended to them.
   regularly allows you to clear up the junk. Use the --run_every option to help
   with this.)
 
-        """
+        """,
     )
     parser.add_argument(
-        "filename", nargs="+",
+        "filename",
+        nargs="+",
         help="File(s) to check. You can also specify directores if you use "
-             "--recursive"
+        "--recursive",
     )
     parser.add_argument(
-        "--recursive", action="store_true",
+        "--recursive",
+        action="store_true",
         help="Allow search to descend recursively into any directories "
-             "encountered."
+        "encountered.",
     )
     parser.add_argument(
-        "--skip_files", nargs="*", default=[],
+        "--skip_files",
+        nargs="*",
+        default=[],
         help="File pattern(s) to skip. You can specify wildcards like '*.txt' "
-             "(but you will have to enclose that pattern in quotes under "
-             "UNIX-like operating systems). The basename of each file will be "
-             "tested against these filenames/patterns. Consider including "
-             "Scalpel's 'audit.txt'."
+        "(but you will have to enclose that pattern in quotes under "
+        "UNIX-like operating systems). The basename of each file will be "
+        "tested against these filenames/patterns. Consider including "
+        "Scalpel's 'audit.txt'.",
     )
     parser.add_argument(
-        "--filetypes", nargs="+", default=FILETYPES,
-        help=f"File types to check. Options: {FILETYPES}"
+        "--filetypes",
+        nargs="+",
+        default=FILETYPES,
+        help=f"File types to check. Options: {FILETYPES}",
     )
     parser.add_argument(
         "--move_to",
         help="If the file is recognized as one of the specified file types, "
-             "move it to the directory specified here."
+        "move it to the directory specified here.",
     )
     parser.add_argument(
-        "--delete_if_not_specified_file_type", action="store_true",
+        "--delete_if_not_specified_file_type",
+        action="store_true",
         help="If a file is NOT recognized as one of the specified file types, "
-             "delete it. VERY DANGEROUS."
+        "delete it. VERY DANGEROUS.",
     )
     parser.add_argument(
-        "--run_repeatedly", type=int,
+        "--run_repeatedly",
+        type=int,
         help="Run the tool repeatedly with a pause of <run_repeatedly> "
-             "seconds between runs. (For this to work well with the move/"
-             "delete options, you should specify one or more DIRECTORIES in "
-             "the 'filename' arguments, not files, and you will need the "
-             "--recursive option.)"
+        "seconds between runs. (For this to work well with the move/"
+        "delete options, you should specify one or more DIRECTORIES in "
+        "the 'filename' arguments, not files, and you will need the "
+        "--recursive option.)",
     )
     parser.add_argument(
-        "--nprocesses", type=int, default=multiprocessing.cpu_count(),
-        help="Specify the number of processes to run in parallel."
+        "--nprocesses",
+        type=int,
+        default=multiprocessing.cpu_count(),
+        help="Specify the number of processes to run in parallel.",
     )
     parser.add_argument(
-        "--verbose", action="store_true",
-        help="Verbose output"
+        "--verbose", action="store_true", help="Verbose output"
     )
     parser.add_argument(
-        "--show_zip_output", action="store_true",
-        help="Verbose output from the external 'zip' tool"
+        "--show_zip_output",
+        action="store_true",
+        help="Verbose output from the external 'zip' tool",
     )
     args = parser.parse_args()
     main_only_quicksetup_rootlogger(
         level=logging.DEBUG if args.verbose else logging.INFO,
-        with_process_id=True
+        with_process_id=True,
     )
 
     # Further argument checks
     if args.move_to and not os.path.isdir(args.move_to):
         raise ValueError(
-            f"Destination directory {args.move_to!r} is not a directory")
+            f"Destination directory {args.move_to!r} is not a directory"
+        )
     if not args.filetypes:
         raise ValueError("No file type to scan for")
     filetypes = [ft.lower() for ft in args.filetypes]
@@ -473,9 +514,11 @@ garbage appended to them.
     while True:
         log.info("Starting scan.")
         log.info("- Looking for filetypes {}", filetypes)
-        log.info("- Scanning files/directories {!r}{}",
-                 args.filename,
-                 " recursively" if args.recursive else "")
+        log.info(
+            "- Scanning files/directories {!r}{}",
+            args.filename,
+            " recursively" if args.recursive else "",
+        )
         log.info("- Skipping files matching {!r}", args.skip_files)
         log.info("- Using {} simultaneous processes", args.nprocesses)
         if args.move_to:
@@ -485,11 +528,14 @@ garbage appended to them.
 
         # Iterate through files
         pool = multiprocessing.Pool(processes=args.nprocesses)
-        for filename in gen_filenames(starting_filenames=args.filename,
-                                      recursive=args.recursive):
+        for filename in gen_filenames(
+            starting_filenames=args.filename, recursive=args.recursive
+        ):
             src_basename = os.path.basename(filename)
-            if any(fnmatch.fnmatch(src_basename, pattern)
-                   for pattern in args.skip_files):
+            if any(
+                fnmatch.fnmatch(src_basename, pattern)
+                for pattern in args.skip_files
+            ):
                 log.info("Skipping file as ordered: " + filename)
                 continue
             exists, locked = exists_locked(filename)
@@ -497,12 +543,11 @@ garbage appended to them.
                 log.info("Skipping currently inaccessible file: " + filename)
                 continue
             kwargs = {
-                'filename': filename,
-                'filetypes': filetypes,
-                'move_to': args.move_to,
-                'delete_if_not_specified_file_type':
-                    args.delete_if_not_specified_file_type,
-                'show_zip_output': args.show_zip_output,
+                "filename": filename,
+                "filetypes": filetypes,
+                "move_to": args.move_to,
+                "delete_if_not_specified_file_type": args.delete_if_not_specified_file_type,
+                "show_zip_output": args.show_zip_output,
             }
             # log.critical("start")
             pool.apply_async(process_file, [], kwargs)
@@ -521,5 +566,5 @@ garbage appended to them.
         sleep(args.run_repeatedly)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

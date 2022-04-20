@@ -91,17 +91,21 @@ log = get_brace_style_log_with_null_handler(__name__)
 # pyparsing helpers
 # =============================================================================
 
-def delim_list(expr_: Token,
-               delim: str = ",",
-               combine: bool = False,
-               combine_adjacent: bool = False,
-               suppress_delim: bool = False):
+
+def delim_list(
+    expr_: Token,
+    delim: str = ",",
+    combine: bool = False,
+    combine_adjacent: bool = False,
+    suppress_delim: bool = False,
+):
     # A better version of delimitedList
     # BUT SEE ALSO ALTERNATIVE: https://stackoverflow.com/questions/37926516
     name = str(expr_) + " [" + str(delim) + " " + str(expr_) + "]..."
     if combine:
-        return Combine(expr_ + ZeroOrMore(delim + expr_),
-                       adjacent=combine_adjacent).setName(name)
+        return Combine(
+            expr_ + ZeroOrMore(delim + expr_), adjacent=combine_adjacent
+        ).setName(name)
     else:
         if suppress_delim:
             return (expr_ + ZeroOrMore(Suppress(delim) + expr_)).setName(name)
@@ -119,7 +123,8 @@ def word_regex_element(word: str) -> str:
 
 
 def multiple_words_regex_element(
-        words_as_string_or_list: Union[str, List[str]]) -> str:
+    words_as_string_or_list: Union[str, List[str]]
+) -> str:
     if isinstance(words_as_string_or_list, list):
         wordlist = words_as_string_or_list
     elif isinstance(words_as_string_or_list, str):
@@ -129,9 +134,9 @@ def multiple_words_regex_element(
     return WORD_BOUNDARY + "(" + "|".join(wordlist) + ")" + WORD_BOUNDARY
 
 
-def make_pyparsing_regex(regex_str: str,
-                         caseless: bool = False,
-                         name: str = None) -> Regex:
+def make_pyparsing_regex(
+    regex_str: str, caseless: bool = False, name: str = None
+) -> Regex:
     flags = re.IGNORECASE if caseless else 0
     result = Regex(regex_str, flags=flags)
     if name:
@@ -139,21 +144,25 @@ def make_pyparsing_regex(regex_str: str,
     return result
 
 
-def make_words_regex(words_as_string_or_list: Union[str, List[str]],
-                     caseless: bool = False,
-                     name: str = None,
-                     debug: bool = False) -> Regex:
+def make_words_regex(
+    words_as_string_or_list: Union[str, List[str]],
+    caseless: bool = False,
+    name: str = None,
+    debug: bool = False,
+) -> Regex:
     regex_str = multiple_words_regex_element(words_as_string_or_list)
     if debug:
         log.debug(regex_str)
     return make_pyparsing_regex(regex_str, caseless=caseless, name=name)
 
 
-def make_regex_except_words(word_pattern: str,
-                            negative_words_str_or_list: Union[str, List[str]],
-                            caseless: bool = False,
-                            name: str = None,
-                            debug: bool = False) -> Regex:
+def make_regex_except_words(
+    word_pattern: str,
+    negative_words_str_or_list: Union[str, List[str]],
+    caseless: bool = False,
+    name: str = None,
+    debug: bool = False,
+) -> Regex:
     # http://regexr.com/
     regex_str = r"(?!{negative}){positive}".format(
         negative=multiple_words_regex_element(negative_words_str_or_list),
@@ -323,23 +332,24 @@ bash_comment = Literal("#") + restOfLine
 
 boolean_literal = make_words_regex("TRUE FALSE", name="boolean")
 binary_literal = Regex("(b'[01]+')|(0b[01]+)").setName("binary")
-hexadecimal_literal = Regex("(X'[0-9a-fA-F]+')|"
-                            "(x'[0-9a-fA-F]+')|"
-                            "(0x[0-9a-fA-F]+)").setName("hex")
+hexadecimal_literal = Regex(
+    "(X'[0-9a-fA-F]+')|" "(x'[0-9a-fA-F]+')|" "(0x[0-9a-fA-F]+)"
+).setName("hex")
 numeric_literal = Regex(r"[+-]?\d+(\.\d*)?([eE][+-]?\d+)?")
 integer = Regex(r"[+-]?\d+")  # ... simple integer
-sql_keyword_literal = make_words_regex("NULL TRUE FALSE UNKNOWN",
-                                       name="boolean")
+sql_keyword_literal = make_words_regex(
+    "NULL TRUE FALSE UNKNOWN", name="boolean"
+)
 
 string_value_singlequote = QuotedString(
     quoteChar="'", escChar="\\", escQuote="''", unquoteResults=False
 ).setName("single_q_string")
 string_value_doublequote = QuotedString(
-    quoteChar='"', escChar='\\', escQuote='""', unquoteResults=False
+    quoteChar='"', escChar="\\", escQuote='""', unquoteResults=False
 ).setName("double_q_string")
-string_literal = (
-    string_value_singlequote | string_value_doublequote
-).setName("string")
+string_literal = (string_value_singlequote | string_value_doublequote).setName(
+    "string"
+)
 
 # http://dev.mysql.com/doc/refman/5.7/en/date-and-time-literals.html
 RE_YEAR = r"([\d]{4}|[\d]{2})"
@@ -354,51 +364,43 @@ DATESEP = bracket(r"{}?".format(PUNCTUATION))  # "any punctuation"... or none
 DTSEP = bracket(r"[T ]?")  # T or none
 TIMESEP = bracket(r"[:]?")  # can also be none
 
-DATE_CORE_REGEX_STR = (
-    "({year}{sep}{month}{sep}{day})".format(
-        year=RE_YEAR,
-        month=RE_MONTH,
-        day=RE_DAY,
-        sep=DATESEP
-    )
+DATE_CORE_REGEX_STR = "({year}{sep}{month}{sep}{day})".format(
+    year=RE_YEAR, month=RE_MONTH, day=RE_DAY, sep=DATESEP
 )
 DATE_LITERAL_REGEX_STR = single_quote(DATE_CORE_REGEX_STR)
-TIME_CORE_REGEX_STR = (
-    bracket(
-        "({hour}{sep}{minute}{sep}{second}{fraction})|"
-        "({hour}{sep}{minute})".format(
-            hour=RE_HOUR,
-            minute=RE_MINUTE,
-            second=RE_SECOND,
-            fraction=FRACTIONAL_SECONDS,
-            sep=TIMESEP
-        )
+TIME_CORE_REGEX_STR = bracket(
+    "({hour}{sep}{minute}{sep}{second}{fraction})|"
+    "({hour}{sep}{minute})".format(
+        hour=RE_HOUR,
+        minute=RE_MINUTE,
+        second=RE_SECOND,
+        fraction=FRACTIONAL_SECONDS,
+        sep=TIMESEP,
     )
 )
 TIME_LITERAL_REGEX_STR = single_quote(TIME_CORE_REGEX_STR)
 DATETIME_CORE_REGEX_STR = "({date}{sep}{time})".format(
-    date=DATE_CORE_REGEX_STR,
-    sep=DTSEP,
-    time=TIME_CORE_REGEX_STR)
+    date=DATE_CORE_REGEX_STR, sep=DTSEP, time=TIME_CORE_REGEX_STR
+)
 DATETIME_LITERAL_REGEX_STR = single_quote(DATETIME_CORE_REGEX_STR)
 
 date_string = Regex(DATE_LITERAL_REGEX_STR)
 time_string = Regex(TIME_LITERAL_REGEX_STR)
 datetime_string = Regex(DATETIME_LITERAL_REGEX_STR)
 datetime_literal = (
-    (Optional(DATE | 'd') + date_string) |
-    (Optional(TIME | 't') + time_string) |
-    (Optional(TIMESTAMP | 'ts') + datetime_string)
+    (Optional(DATE | "d") + date_string)
+    | (Optional(TIME | "t") + time_string)
+    | (Optional(TIMESTAMP | "ts") + datetime_string)
 ).setName("datetime")
 
 literal_value = (
-    numeric_literal |
-    boolean_literal |
-    binary_literal |
-    hexadecimal_literal |
-    sql_keyword_literal |
-    string_literal |
-    datetime_literal
+    numeric_literal
+    | boolean_literal
+    | binary_literal
+    | hexadecimal_literal
+    | sql_keyword_literal
+    | string_literal
+    | datetime_literal
 ).setName("literal_value")
 
 # https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_date-add  # noqa
@@ -410,7 +412,7 @@ time_unit = make_words_regex(
     " DAY_MICROSECOND DAY_SECOND DAY_MINUTE DAY_HOUR"
     " YEAR_MONTH",
     caseless=True,
-    name="time_unit"
+    name="time_unit",
 )
 
 # =============================================================================
@@ -448,6 +450,7 @@ def format_sql(sql: str, reindent: bool = True, indent_width: int = 4) -> str:
 
 # See also: parser.runTests()
 
+
 def standardize_for_testing(text: str) -> str:
     text = " ".join(t for t in text.split() if t)
     text = text.replace(" ,", ",")
@@ -461,12 +464,14 @@ def standardize_for_testing(text: str) -> str:
     return text
 
 
-def _test_succeed(parser: ParserElement,
-                  text: str,
-                  target: str = None,
-                  skip_target: bool = False,
-                  show_raw: bool = False,
-                  verbose: bool = False) -> None:
+def _test_succeed(
+    parser: ParserElement,
+    text: str,
+    target: str = None,
+    skip_target: bool = False,
+    show_raw: bool = False,
+    verbose: bool = False,
+) -> None:
     log.info("Testing to succeed: " + text)
     if target is None:
         target = text
@@ -495,7 +500,8 @@ def _test_succeed(parser: ParserElement,
                 f"... should have been:\n"
                 f"{intended!r}\n"
                 f"... parser: {parser}\n"
-                f"... as list: {p.asList()!r}]")
+                f"... as list: {p.asList()!r}]"
+            )
 
 
 def _test_fail(parser: ParserElement, text: str, verbose: bool = True) -> None:
@@ -507,7 +513,8 @@ def _test_fail(parser: ParserElement, text: str, verbose: bool = True) -> None:
             f"Succeeded erroneously (no ParseException): {text}\n"
             f"-> structured format: {p}\n"
             f"-> Raw text output: {text_from_parsed(p)}\n"
-            f"... parser: {parser}]")
+            f"... parser: {parser}]"
+        )
     except ParseException:
         log.debug("Correctly failed: {}", text)
 
@@ -545,9 +552,9 @@ def flatten(*args):
             yield x
 
 
-def text_from_parsed(parsetree: ParseResults,
-                     formatted: bool = True,
-                     indent_width: int = 4) -> str:
+def text_from_parsed(
+    parsetree: ParseResults, formatted: bool = True, indent_width: int = 4
+) -> str:
     nested_list = parsetree.asList()
     flattened_list = flatten(nested_list)
     plain_str = " ".join(flattened_list)
@@ -594,8 +601,9 @@ def text_from_parsed(parsetree: ParseResults,
     # return result
 
 
-def statement_and_failure_marker(text: str,
-                                 parse_exception: ParseException) -> str:
+def statement_and_failure_marker(
+    text: str, parse_exception: ParseException
+) -> str:
     output_lines = []
     for line_index, line in enumerate(text.split("\n")):
         output_lines.append(line)
@@ -608,10 +616,12 @@ def statement_and_failure_marker(text: str,
 # Base class for SQL grammar
 # =============================================================================
 
+
 class SqlGrammar(object):
     """
     Base class for implementing an SQL grammar.
     """
+
     # For type checker:
     bare_identifier_word = None
     column_spec = None
@@ -629,8 +639,9 @@ class SqlGrammar(object):
         pass
 
     @classmethod
-    def quote_identifier_if_required(cls, identifier: str,
-                                     debug_force_quote: bool = False) -> str:
+    def quote_identifier_if_required(
+        cls, identifier: str, debug_force_quote: bool = False
+    ) -> str:
         """
         Transforms a SQL identifier (such as a column name) into a version
         that is quoted if required (or, with ``debug_force_quote=True``, is
@@ -950,9 +961,9 @@ class SqlGrammar(object):
         _test_succeed(cls.result_column, "COUNT(*) AS alias")
         _test_fail(cls.result_column, "COUNT")
 
-        _test_succeed(Combine(COUNT + LPAR) + '*', "COUNT(*")
-        _test_succeed(Combine(COUNT + LPAR) + '*', "COUNT( *")
-        _test_fail(Combine(COUNT + LPAR) + '*', "COUNT (*")
+        _test_succeed(Combine(COUNT + LPAR) + "*", "COUNT(*")
+        _test_succeed(Combine(COUNT + LPAR) + "*", "COUNT( *")
+        _test_fail(Combine(COUNT + LPAR) + "*", "COUNT (*")
 
         _test_fail(cls.result_column, "COUNT (*)")  # space disallowed
         _test_succeed(cls.result_column, "COUNT(DISTINCT col)")
@@ -964,7 +975,8 @@ class SqlGrammar(object):
         cls.test_select("SELECT a, b FROM c")  # no WHERE
         cls.test_select("SELECT a, b FROM c WHERE d > 5 AND e = 4")
         cls.test_select(
-            "SELECT a, b FROM c INNER JOIN f WHERE d > 5 AND e = 4")
+            "SELECT a, b FROM c INNER JOIN f WHERE d > 5 AND e = 4"
+        )
         cls.test_select("SELECT t1.a, t1.b FROM t1 WHERE t1.col1 > 5")
 
         log.info("Testing SELECT something AS alias")
@@ -973,15 +985,19 @@ class SqlGrammar(object):
 
         log.info("Testing nested query: IN")
         cls.test_select(
-            "SELECT col1 FROM table1 WHERE col2 IN (SELECT col3 FROM table2)")
+            "SELECT col1 FROM table1 WHERE col2 IN (SELECT col3 FROM table2)"
+        )
 
         log.info("Testing COUNT(*)")
         cls.test_select("SELECT col1, COUNT(*) FROM table1 GROUP BY col1")
 
-        log.info("MySQL rejects COUNT (*) and other aggregate functions with "
-                 "a space between the function and the opening bracket")
+        log.info(
+            "MySQL rejects COUNT (*) and other aggregate functions with "
+            "a space between the function and the opening bracket"
+        )
         cls.test_select_fail(
-            "SELECT col1, COUNT (*) FROM table1 GROUP BY col1")
+            "SELECT col1, COUNT (*) FROM table1 GROUP BY col1"
+        )
 
         log.info("Testing SELECT with literal")
         cls.test_select("SELECT 'blah' AS some_literal")

@@ -235,6 +235,7 @@ WB = WORD_BOUNDARY = r"\b"
 # Class to capture drug information
 # =============================================================================
 
+
 class Drug(object):
     """
     Class to describe a specific drug, or a drug category.
@@ -243,60 +244,62 @@ class Drug(object):
 
     See the :const:`DRUGS` list for example of use.
     """
+
     def __init__(
-            self,
-            # Names
-            generic: Union[str, List[str]],
-            alternatives: List[str] = None,
-            category_not_drug: bool = False,
-            add_preceding_wildcards: bool = True,
-            add_preceding_word_boundary: bool = True,
-            add_following_wildcards: bool = True,
-            # Psychiatry
-            psychotropic: bool = None,  # special; can be used as override if False  # noqa
-            antidepressant: bool = False,
-            conventional_antidepressant: bool = False,
-            ssri: bool = False,
-            non_ssri_modern_antidepressant: bool = False,
-            tricyclic_antidepressant: bool = False,
-            tetracyclic_and_related_antidepressant: bool = False,
-            monoamine_oxidase_inhibitor: bool = False,
-            antipsychotic: bool = False,
-            first_generation_antipsychotic: bool = False,
-            second_generation_antipsychotic: bool = False,
-            stimulant: bool = False,
-            anticholinergic: bool = False,
-            benzodiazepine: bool = False,
-            z_drug: bool = False,
-            non_benzodiazepine_anxiolytic: bool = False,
-            gaba_a_functional_agonist: bool = False,
-            gaba_b_functional_agonist: bool = False,
-            mood_stabilizer: bool = False,
-            # Endocrinology
-            antidiabetic: bool = False,
-            sulfonylurea: bool = False,
-            biguanide: bool = False,
-            glifozin: bool = False,
-            glp1_agonist: bool = False,
-            dpp4_inhibitor: bool = False,
-            meglitinide: bool = False,
-            thiazolidinedione: bool = False,
-            # Cardiovascular
-            cardiovascular: bool = False,
-            beta_blocker: bool = False,
-            ace_inhibitor: bool = False,
-            statin: bool = False,
-            # Respiratory
-            respiratory: bool = False,
-            beta_agonist: bool = False,
-            # Gastrointestinal
-            gastrointestinal: bool = False,
-            proton_pump_inhibitor: bool = False,
-            nonsteroidal_anti_inflammatory: bool = False,
-            # Nutritional
-            vitamin: bool = False,
-            # Special flags:
-            slam_antidepressant_finder: bool = False) -> None:
+        self,
+        # Names
+        generic: Union[str, List[str]],
+        alternatives: List[str] = None,
+        category_not_drug: bool = False,
+        add_preceding_wildcards: bool = True,
+        add_preceding_word_boundary: bool = True,
+        add_following_wildcards: bool = True,
+        # Psychiatry
+        psychotropic: bool = None,  # special; can be used as override if False  # noqa
+        antidepressant: bool = False,
+        conventional_antidepressant: bool = False,
+        ssri: bool = False,
+        non_ssri_modern_antidepressant: bool = False,
+        tricyclic_antidepressant: bool = False,
+        tetracyclic_and_related_antidepressant: bool = False,
+        monoamine_oxidase_inhibitor: bool = False,
+        antipsychotic: bool = False,
+        first_generation_antipsychotic: bool = False,
+        second_generation_antipsychotic: bool = False,
+        stimulant: bool = False,
+        anticholinergic: bool = False,
+        benzodiazepine: bool = False,
+        z_drug: bool = False,
+        non_benzodiazepine_anxiolytic: bool = False,
+        gaba_a_functional_agonist: bool = False,
+        gaba_b_functional_agonist: bool = False,
+        mood_stabilizer: bool = False,
+        # Endocrinology
+        antidiabetic: bool = False,
+        sulfonylurea: bool = False,
+        biguanide: bool = False,
+        glifozin: bool = False,
+        glp1_agonist: bool = False,
+        dpp4_inhibitor: bool = False,
+        meglitinide: bool = False,
+        thiazolidinedione: bool = False,
+        # Cardiovascular
+        cardiovascular: bool = False,
+        beta_blocker: bool = False,
+        ace_inhibitor: bool = False,
+        statin: bool = False,
+        # Respiratory
+        respiratory: bool = False,
+        beta_agonist: bool = False,
+        # Gastrointestinal
+        gastrointestinal: bool = False,
+        proton_pump_inhibitor: bool = False,
+        nonsteroidal_anti_inflammatory: bool = False,
+        # Nutritional
+        vitamin: bool = False,
+        # Special flags:
+        slam_antidepressant_finder: bool = False,
+    ) -> None:
         # noinspection PyUnresolvedReferences
         """
         Initialize and determine/store category knowledge.
@@ -412,10 +415,13 @@ class Drug(object):
         # Things we know about psychotropics
         # ---------------------------------------------------------------------
 
-        if (ssri or non_ssri_modern_antidepressant or
-                tricyclic_antidepressant or
-                tetracyclic_and_related_antidepressant or
-                monoamine_oxidase_inhibitor):
+        if (
+            ssri
+            or non_ssri_modern_antidepressant
+            or tricyclic_antidepressant
+            or tetracyclic_and_related_antidepressant
+            or monoamine_oxidase_inhibitor
+        ):
             conventional_antidepressant = True
 
         if conventional_antidepressant:
@@ -427,10 +433,15 @@ class Drug(object):
         if benzodiazepine or z_drug:
             gaba_a_functional_agonist = True
 
-        if ((antidepressant or antipsychotic or stimulant or anticholinergic or
-                gaba_a_functional_agonist or gaba_b_functional_agonist or
-                mood_stabilizer) and
-                (psychotropic is not False)):
+        if (
+            antidepressant
+            or antipsychotic
+            or stimulant
+            or anticholinergic
+            or gaba_a_functional_agonist
+            or gaba_b_functional_agonist
+            or mood_stabilizer
+        ) and (psychotropic is not False):
             psychotropic = True
         if psychotropic is None:
             psychotropic = False
@@ -439,8 +450,15 @@ class Drug(object):
         # Things we know about other drugs
         # ---------------------------------------------------------------------
 
-        if (sulfonylurea or biguanide or glifozin or glp1_agonist or
-                dpp4_inhibitor or meglitinide or thiazolidinedione):
+        if (
+            sulfonylurea
+            or biguanide
+            or glifozin
+            or glp1_agonist
+            or dpp4_inhibitor
+            or meglitinide
+            or thiazolidinedione
+        ):
             antidiabetic = True
 
         if beta_blocker or ace_inhibitor:
@@ -458,7 +476,9 @@ class Drug(object):
         self.ssri = ssri
         self.non_ssri_modern_antidepressant = non_ssri_modern_antidepressant
         self.tricyclic = tricyclic_antidepressant
-        self.tetracyclic_and_related_antidepressant = tetracyclic_and_related_antidepressant  # noqa
+        self.tetracyclic_and_related_antidepressant = (
+            tetracyclic_and_related_antidepressant
+        )  # noqa
         self.monoamine_oxidase_inhibitor = monoamine_oxidase_inhibitor
 
         self.antipsychotic = antipsychotic
@@ -521,14 +541,17 @@ class Drug(object):
         Returns a compiled regex for this drug.
         """
         if self._regex is None:
-            self._regex = re.compile(self.regex_text,
-                                     re.IGNORECASE | re.DOTALL)
+            self._regex = re.compile(
+                self.regex_text, re.IGNORECASE | re.DOTALL
+            )
         return self._regex
 
     @staticmethod
-    def regex_to_sql_like(regex_text: str,
-                          single_wildcard: str = "_",
-                          zero_or_more_wildcard: str = "%") -> List[str]:
+    def regex_to_sql_like(
+        regex_text: str,
+        single_wildcard: str = "_",
+        zero_or_more_wildcard: str = "%",
+    ) -> List[str]:
         """
         Converts regular expression text to a reasonably close fragment
         for the SQL ``LIKE`` operator.
@@ -548,6 +571,7 @@ class Drug(object):
             :exc:`ValueError` for some regex text that it doesn't understand
             properly
         """
+
         def append_to_all(new_content: str) -> None:
             nonlocal results
             results = [r + new_content for r in results]
@@ -563,7 +587,8 @@ class Drug(object):
             while zero_or_more_wildcard + zero_or_more_wildcard in text:
                 text = text.replace(
                     zero_or_more_wildcard + zero_or_more_wildcard,
-                    zero_or_more_wildcard)
+                    zero_or_more_wildcard,
+                )
             return text
 
         # Basic processing
@@ -582,7 +607,7 @@ class Drug(object):
                 option_groups = bracketed.split("|")
                 options = [c for group in option_groups for c in group]
                 split_and_append(options)
-                working = working[close_bracket + 1:]
+                working = working[close_bracket + 1 :]
             elif len(working) > 1 and working[1] == "?":
                 # e.g. "r?azole"
                 split_and_append(["", working[0]])
@@ -659,7 +684,6 @@ class Drug(object):
 DRUGS = [
     # In comments below: (*) misspelling, capitalized for brand name, (~)
     # hybrid generic/brand name, (+) old name.
-
     # -------------------------------------------------------------------------
     # SSRIs
     # -------------------------------------------------------------------------
@@ -667,32 +691,32 @@ DRUGS = [
         "citalopram",
         ["Cipramil", "Celexa"],
         ssri=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "escitalopram",
         ["Cipralex", "Lexapro"],
         ssri=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "fluoxetine",
         ["Prozac", "Bellzac", "Oxactin", "Prozep", "Sarafem", "fluox.*"],
         # CPFT 2013: "fluoxetine  Dec"
         ssri=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "fluvoxamine",
         ["Luvox", "Faverin", "fluvoxamine.*"],  # e.g. "fluvoxamine maleate"
         ssri=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "paroxetine",
         ["Seroxat", "Paxil"],  # there are other brands elsewhere...
         ssri=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "sertraline",
@@ -700,9 +724,8 @@ DRUGS = [
         # NOT Seretra (cf. SLAM code, see email to self 2016-12-02); Seretra =
         # seratrodast = for asthma
         ssri=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
-
     # -------------------------------------------------------------------------
     # FIRST-GENERATION ANTIPSYCHOTICS
     # -------------------------------------------------------------------------
@@ -714,23 +737,27 @@ DRUGS = [
         # e.g. flupenthixol, flupenthixol decanoate, flupentixol decanoate
         first_generation_antipsychotic=True,
         antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "fluphenazine",
         ["Modecate", "fluphen.*", "Modecate.*"],
-        first_generation_antipsychotic=True
+        first_generation_antipsychotic=True,
     ),
     Drug(
         "haloperidol",
         [
-            "Haldol", "Serenase",
-            "hal[io]p.*", "Dozi.*", "Hald.*", "Serena.*",
+            "Haldol",
+            "Serenase",
+            "hal[io]p.*",
+            "Dozi.*",
+            "Hald.*",
+            "Serena.*",
             # NB Serenase, Serenace.
             #  CPFT 2013: haloperidol, haloperidol decanoate, Haldol, Haldol
             #  decanoate, Serenase.
         ],
-        first_generation_antipsychotic=True
+        first_generation_antipsychotic=True,
     ),
     Drug("levomepromazine", ["Nozinan"], first_generation_antipsychotic=True),
     Drug("pericyazine", first_generation_antipsychotic=True),
@@ -739,39 +766,34 @@ DRUGS = [
         ["amitriptyline", "perphenazine"],
         ["Triptafen"],  # special
         tricyclic_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug("pimozide", ["Orap"], first_generation_antipsychotic=True),
     Drug(
         "pipotiazine",
         ["pipot.*", "Piport.*"],
         # ... actually (CPFT 2013): pipotiazine, Piportil
-        first_generation_antipsychotic=True
+        first_generation_antipsychotic=True,
     ),
     Drug(
-        "prochlorperazine",
-        ["Stemetil"],
-        first_generation_antipsychotic=True
+        "prochlorperazine", ["Stemetil"], first_generation_antipsychotic=True
     ),
     Drug("promazine", first_generation_antipsychotic=True),
     Drug(
         "sulpiride",
         ["Dolmatil", "Sulpor"],
-        first_generation_antipsychotic=True
+        first_generation_antipsychotic=True,
     ),
     Drug(
-        "trifluoperazine",
-        ["Stelazine"],
-        first_generation_antipsychotic=True
+        "trifluoperazine", ["Stelazine"], first_generation_antipsychotic=True
     ),
     Drug(
         "zuclopenthixol",
         ["zuclop.*", "Clopix.*", "Acc?uphase"],
         # ... actually (CPFT 2013): zuclopenthixol, zuclopenthixol acetate,
         # zuclopenthixol decanoate, Clopixol, Clopixol Decanoate, Acuphase
-        first_generation_antipsychotic=True
+        first_generation_antipsychotic=True,
     ),
-
     # -------------------------------------------------------------------------
     # SECOND-GENERATION ANTIPSYCHOTICS
     # -------------------------------------------------------------------------
@@ -779,28 +801,28 @@ DRUGS = [
         "amisulpride",
         ["amisulp.*", "Solian"],
         # ... actually (CPFT 2013): amisulpiride(*), amisulpride, Solian
-        second_generation_antipsychotic=True
+        second_generation_antipsychotic=True,
     ),
     Drug(
         "aripiprazole",
         ["Abilify", "ari?pr?ipr?azol.*"],
-        second_generation_antipsychotic=True
+        second_generation_antipsychotic=True,
     ),
     Drug(
         "asenapine",
         ["Saphris", "Sycrest"],
-         second_generation_antipsychotic=True
+        second_generation_antipsychotic=True,
     ),
     Drug(
         "clozapine",
         ["cloz.*", "Denz.*", "Zapon.*"],
         # ... actually (CPFT 2013): clozapine, Clozaril, clozepine(*)
-        second_generation_antipsychotic=True
+        second_generation_antipsychotic=True,
     ),
     Drug(
         "iloperidone",
         ["Fanapt", "Fanapta", "Zomaril"],
-        second_generation_antipsychotic=True
+        second_generation_antipsychotic=True,
     ),
     Drug("lurasidone", ["Latuda"], second_generation_antipsychotic=True),
     Drug(
@@ -808,38 +830,37 @@ DRUGS = [
         ["olanz.*", "Zalast.*", "Zyprex.*", "Zypad.*"],
         # ... actually (CPFT 2013): olanzapine, olanzapine embonate,
         # olanz(*), olanzepine(*), olanzapin(*), Zyprexa
-        second_generation_antipsychotic=True
+        second_generation_antipsychotic=True,
     ),
     Drug(
         "paliperidone",
         ["Invega", "Xeplion"],
-        second_generation_antipsychotic=True
+        second_generation_antipsychotic=True,
     ),
     Drug(
         "quetiapine",
         ["quet.*", "Seroquel"],
         # ... actually (CPFT 2013): quetiapine, quetiepine(*), Seroquel
-        second_generation_antipsychotic=True
+        second_generation_antipsychotic=True,
     ),
     Drug(
         "risperidone",
         ["risp.*", "Consta"],
         # ... actually (CPFT 2013): risperidone, risperadone(*), Risperidone
         # Consta (~), Risperdal, Risperdal Consta
-        second_generation_antipsychotic=True
+        second_generation_antipsychotic=True,
     ),
     Drug(
         "sertindole",
         ["Serdolect", "Serlect"],
-        second_generation_antipsychotic=True
+        second_generation_antipsychotic=True,
     ),
     Drug("ziprasidone", second_generation_antipsychotic=True),
     Drug(
         "zotepine",  # not in UK
         ["Nipolept", "Losizopilon", "Lodopin", "Setous"],
-        second_generation_antipsychotic=True
+        second_generation_antipsychotic=True,
     ),
-
     # -------------------------------------------------------------------------
     # STIMULANTS
     # -------------------------------------------------------------------------
@@ -847,16 +868,15 @@ DRUGS = [
         "amfetamine",
         [".*am[ph|f]etamine.*", "Adderall"],
         # ... actually (CPFT 2013): dextroamphetamine(+), dexamfetamine
-        stimulant=True
+        stimulant=True,
     ),
     Drug(
         "methylphenidate",
         ["Ritalin", "Concerta.*", "Equasym.*", "Medikinet.*"],
         # ... actually (CPFT 2013): methylphenidate, Ritalin, Concerta
-        stimulant=True
+        stimulant=True,
     ),
     Drug("modafinil", ["Provigil"], stimulant=True),
-
     # -------------------------------------------------------------------------
     # ANTICHOLINERGICS
     # -------------------------------------------------------------------------
@@ -864,7 +884,6 @@ DRUGS = [
     Drug("orphenadrine", ["Biorphen", "Disipal"], anticholinergic=True),
     Drug("procyclidine", ["Arpicolin", "Kemadrin"], anticholinergic=True),
     Drug("trihexyphenidyl", ["Broflex"], anticholinergic=True),
-
     # -------------------------------------------------------------------------
     # OTHER MODERN ANTIDEPRESSANTS
     # -------------------------------------------------------------------------
@@ -872,7 +891,7 @@ DRUGS = [
         "agomelatine",
         ["Valdoxan"],
         non_ssri_modern_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "bupropion",
@@ -883,8 +902,8 @@ DRUGS = [
     Drug(
         "duloxetine",
         ["Cymbalta", "Yentreve", "duloxat.*"],
-         non_ssri_modern_antidepressant=True,
-        slam_antidepressant_finder=True
+        non_ssri_modern_antidepressant=True,
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "mirtazapine",
@@ -892,28 +911,27 @@ DRUGS = [
         # ... actually (CPFT 2013): mirtazapine, mirtazepine(*), "mirtazapine
         # Dec" (?)
         non_ssri_modern_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "reboxetine",
         ["Edronax", "reboxat.*"],
         non_ssri_modern_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "tryptophan",
         ["Optimax"],
         non_ssri_modern_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "venlafaxine",
         ["venla.*", "Eff?exor.*"],
         # ... actually (CPFT 2013): venlafaxine, venlafaxine XL,
         non_ssri_modern_antidepressant=True,  # though obviously an SSRI too...
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
-
     # -------------------------------------------------------------------------
     # TRICYCLIC AND RELATED ANTIDEPRESSANTS
     # -------------------------------------------------------------------------
@@ -931,67 +949,66 @@ DRUGS = [
         # amitryptyline(*)
         # Triptafen = amitriptyline + perphenazine; see above.
         tricyclic_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "clomipramine",
         ["Anafranil.*"],
         tricyclic_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "dosulepin",
         ["dothiepin", "Prothiaden"],
         # ... actually (CPFT 2013): dosulepin, dothiepin(+)
         tricyclic_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "doxepin",
         ["Sinepin", "Sinequan", "Sinepin", "Xepin"],
         # Xepin is cream only
         tricyclic_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "imipramine",
         ["Tofranil"],
         tricyclic_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "lofepramine",
         ["Lomont"],
         tricyclic_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "nortriptyline",
         ["nortr.*", "Allegron", "Pamelor", "Aventyl"],
         # ... actually (CPFT 2013): nortriptyline, nortryptiline(*)
         tricyclic_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "trimipramine",
         ["Surmontil"],
         tricyclic_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
-
     # -------------------------------------------------------------------------
     # TETRACYCLIC-RELATED ANTIDEPRESSANTS
     # -------------------------------------------------------------------------
     Drug(
         "mianserin",
         tetracyclic_and_related_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "trazodone",
         ["Molipaxin"],
         tetracyclic_and_related_antidepressant=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "nefazodone",
@@ -1006,9 +1023,8 @@ DRUGS = [
     Drug(
         "maprotiline",
         ["Ludiomil"],
-        tetracyclic_and_related_antidepressant=True
+        tetracyclic_and_related_antidepressant=True,
     ),
-
     # -------------------------------------------------------------------------
     # MAOIs
     # -------------------------------------------------------------------------
@@ -1029,21 +1045,20 @@ DRUGS = [
     Drug(
         "isocarboxazid",
         monoamine_oxidase_inhibitor=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "moclobemide",
         ["Manerix"],
         monoamine_oxidase_inhibitor=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
     Drug(
         "tranylcypromine",
         ["Parnate"],
         monoamine_oxidase_inhibitor=True,
-        slam_antidepressant_finder=True
+        slam_antidepressant_finder=True,
     ),
-
     # -------------------------------------------------------------------------
     # BENZODIAZEPINES
     # -------------------------------------------------------------------------
@@ -1051,7 +1066,7 @@ DRUGS = [
         "benzodiazepine",
         ["benzodiazepine.*"],
         benzodiazepine=True,
-        category_not_drug=True
+        category_not_drug=True,
     ),
     Drug("alprazolam", benzodiazepine=True),
     Drug("chlordiazepoxide", benzodiazepine=True),
@@ -1061,7 +1076,7 @@ DRUGS = [
         "diazepam",
         ["diaz.*", "Valium"],
         # ... actually (CPFT 2013): diazepam, diazapam(*), diazapem(*), Valium
-        benzodiazepine=True
+        benzodiazepine=True,
     ),
     Drug("flurazepam", ["Dalmane"], benzodiazepine=True),
     Drug("loprazolam", benzodiazepine=True),
@@ -1071,7 +1086,6 @@ DRUGS = [
     Drug("nitrazepam", benzodiazepine=True),
     Drug("oxazepam", benzodiazepine=True),
     Drug("temazepam", benzodiazepine=True),
-
     # -------------------------------------------------------------------------
     # Z-DRUGS
     # -------------------------------------------------------------------------
@@ -1080,28 +1094,35 @@ DRUGS = [
         "zolpidem",
         ["zolpidem.*", "Stilnoct"],
         # ... actually (CPFT 2013): zolpidem, zolpidem tartrate
-        z_drug=True
+        z_drug=True,
     ),
     Drug("zopiclone", ["Zimovane"], z_drug=True),
-
     # -------------------------------------------------------------------------
     # OTHER GABA MODULATORS
     # -------------------------------------------------------------------------
     Drug(
         "baclofen",
         [
-            "Lioresal", "Lyflex", "Bacfen", "Baclof", "Bacmax", "Chinofen",
-            "Parafon", "Riclofen", "Spinofen", "Spinospas", "Tefsole",
-            "Gablofen", "Kemstro"
+            "Lioresal",
+            "Lyflex",
+            "Bacfen",
+            "Baclof",
+            "Bacmax",
+            "Chinofen",
+            "Parafon",
+            "Riclofen",
+            "Spinofen",
+            "Spinospas",
+            "Tefsole",
+            "Gablofen",
+            "Kemstro",
         ],
-        gaba_b_functional_agonist=True
+        gaba_b_functional_agonist=True,
     ),
-
     # -------------------------------------------------------------------------
     # OTHER ANXIOLYTICS
     # -------------------------------------------------------------------------
     Drug("buspirone", ["Buspar"], non_benzodiazepine_anxiolytic=True),
-
     # -------------------------------------------------------------------------
     # OTHER ANTIMANIC
     # -------------------------------------------------------------------------
@@ -1110,7 +1131,7 @@ DRUGS = [
         ["Carbagen.*", "Tegretol.*"],
         # also Tegretol Prolonged Release (formerly Tegretol Retard)
         # ... actually (CPFT 2013): carbamazepine, Tegretol
-        mood_stabilizer=True
+        mood_stabilizer=True,
     ),
     Drug(
         "valproate",
@@ -1119,7 +1140,7 @@ DRUGS = [
         # ... actually (CPFT 2013): sodium valproate [chrono], valproic acid,
         # valproate, sodium valproate, sodium valporate(*), sodium valporate(*)
         # chrono, Depakote
-        mood_stabilizer=True
+        mood_stabilizer=True,
     ),
     Drug(
         "lithium",
@@ -1127,9 +1148,8 @@ DRUGS = [
         # ... actually (CPFT 2013): lithium, lithium carbonate, lithium citrate
         # (curious: Priadel must be being changed to lithium...)
         antidepressant=True,
-        mood_stabilizer=True
+        mood_stabilizer=True,
     ),
-
     # -------------------------------------------------------------------------
     # OTHER FOR BIPOLAR/UNIPOLAR DEPRESSION
     # -------------------------------------------------------------------------
@@ -1144,7 +1164,6 @@ DRUGS = [
         ["tri-iodothyronine", "liothyronine", "Cytomel"],
         antidepressant=True,
     ),
-
     # -------------------------------------------------------------------------
     # GENERAL MEDICINE: DIABETES
     # -------------------------------------------------------------------------
@@ -1152,7 +1171,7 @@ DRUGS = [
     Drug(
         "gliclazide",
         ["Zicron", "Diamicron.*", "Dacadis.*", "Vitile.*"],
-        sulfonylurea=True
+        sulfonylurea=True,
     ),
     Drug("glimepiride", ["Amaryl"], sulfonylurea=True),
     Drug("glipizide", ["Minodiab"], sulfonylurea=True),
@@ -1162,24 +1181,44 @@ DRUGS = [
     Drug("dapagliflozin", ["Forxiga"], glifozin=True),
     Drug("exenatide", ["Byetta", "Bydureon"], glp1_agonist=True),
     Drug("linagliptin", ["Trajenta"], dpp4_inhibitor=True),
-    Drug(["linagliptin", "metformin"], ["Jentadueto"],
-         biguanide=True, dpp4_inhibitor=True),
+    Drug(
+        ["linagliptin", "metformin"],
+        ["Jentadueto"],
+        biguanide=True,
+        dpp4_inhibitor=True,
+    ),
     Drug("liraglutide", ["Victoza"], glp1_agonist=True),
     Drug("lixisenatide", ["Lyxumia"], glp1_agonist=True),
     Drug("nateglinide", ["Starlix"], meglitinide=True),
     Drug("pioglitazone", ["Actos"], thiazolidinedione=True),
-    Drug(["pioglitazone", "metformin"], ["Competact"],
-         thiazolidinedione=True, biguanide=True),
+    Drug(
+        ["pioglitazone", "metformin"],
+        ["Competact"],
+        thiazolidinedione=True,
+        biguanide=True,
+    ),
     Drug("repaglinide", ["Prandin"], meglitinide=True),
     Drug("saxagliptin", ["Onglyza"], dpp4_inhibitor=True),
-    Drug(["saxagliptin", "metformin"], ["Komboglyze"],
-         dpp4_inhibitor=True, biguanide=True),
+    Drug(
+        ["saxagliptin", "metformin"],
+        ["Komboglyze"],
+        dpp4_inhibitor=True,
+        biguanide=True,
+    ),
     Drug("sitagliptin", ["Januvia"], dpp4_inhibitor=True),
-    Drug(["sitagliptin", "metformin"], ["Janumet"],
-         dpp4_inhibitor=True, biguanide=True),
+    Drug(
+        ["sitagliptin", "metformin"],
+        ["Janumet"],
+        dpp4_inhibitor=True,
+        biguanide=True,
+    ),
     Drug("vildagliptin", ["Galvus"], dpp4_inhibitor=True),
-    Drug(["vildagliptin", "metformin"], ["Eucreas"],
-         dpp4_inhibitor=True, biguanide=True),
+    Drug(
+        ["vildagliptin", "metformin"],
+        ["Eucreas"],
+        dpp4_inhibitor=True,
+        biguanide=True,
+    ),
     Drug(
         "insulin",
         # Insulin. Covering the BNF categories:
@@ -1197,15 +1236,28 @@ DRUGS = [
         # BIPHASIC INSULIN LISPRO
         # BIPHASIC ISOPHANE INSULIN
         [
-            ".*insulin.*", ".*aspart.*", ".*glulisine.*", ".*lispro.*",
-            ".*degludec.*", ".*detemir.*", ".*glargine.*", ".*Hypurin.*",
-            ".*Actrapid.*", ".*Humulin.*", ".*Insuman.*", ".*Novorapid.*",
-            ".*Apidra.*", ".*Humalog.*", ".*Tresiba.*", ".*Levemir.*",
-            ".*Lantus.*", ".*Insulatard.*", ".*NovoMix.*",
+            ".*insulin.*",
+            ".*aspart.*",
+            ".*glulisine.*",
+            ".*lispro.*",
+            ".*degludec.*",
+            ".*detemir.*",
+            ".*glargine.*",
+            ".*Hypurin.*",
+            ".*Actrapid.*",
+            ".*Humulin.*",
+            ".*Insuman.*",
+            ".*Novorapid.*",
+            ".*Apidra.*",
+            ".*Humalog.*",
+            ".*Tresiba.*",
+            ".*Levemir.*",
+            ".*Lantus.*",
+            ".*Insulatard.*",
+            ".*NovoMix.*",
         ],
-        antidiabetic=True
+        antidiabetic=True,
     ),
-
     # -------------------------------------------------------------------------
     # GENERAL MEDICINE: CARDIOVASCULAR
     # -------------------------------------------------------------------------
@@ -1221,7 +1273,6 @@ DRUGS = [
     Drug("rosuvastatin", ["Crestor"], statin=True),
     Drug("simvastatin", ["Zocor"], statin=True),
     Drug(["simvastatin", "ezetimibe"], ["Inegy"], statin=True),
-
     # -------------------------------------------------------------------------
     # GENERAL MEDICINE: RESPIRATORY
     # -------------------------------------------------------------------------
@@ -1229,9 +1280,9 @@ DRUGS = [
         "salbutamol",
         ["salbut.*", "vent.*"],
         # ... actually (CPFT 2013): salbutamol
-        respiratory=True, beta_agonist=True
+        respiratory=True,
+        beta_agonist=True,
     ),
-
     # -------------------------------------------------------------------------
     # GENERAL MEDICINE: GASTROINTESTINAL
     # -------------------------------------------------------------------------
@@ -1239,12 +1290,11 @@ DRUGS = [
         "lactulose",
         ["lactul.*", "Duphal.*", "Lactug.*", "laevol.*"],
         # ... actually (CPFT 2013): lactulose
-        gastrointestinal=True
+        gastrointestinal=True,
     ),
     Drug("lansoprazole", proton_pump_inhibitor=True),
     Drug("omeprazole", proton_pump_inhibitor=True),
     Drug("senna", gastrointestinal=True),
-
     # -------------------------------------------------------------------------
     # GENERAL MEDICINE: OTHER
     # -------------------------------------------------------------------------
@@ -1252,7 +1302,6 @@ DRUGS = [
     Drug("levothyroxine"),
     Drug("paracetamol"),
     Drug("thiamine", vitamin=True),
-
     # -------------------------------------------------------------------------
     # MAYBE ADD:
     # - OPIOIDS
@@ -1275,7 +1324,6 @@ DRUGS = [
     # - selegiline
     # - topiramate
     # -------------------------------------------------------------------------
-
 ]  # type: List[Drug]
 
 
@@ -1290,9 +1338,12 @@ DRUGS_BY_GENERIC_NAME = {d.generic_name: d for d in DRUGS}
 # Get drug object by name
 # =============================================================================
 
-def get_drug(drug_name: str,
-             name_is_generic: bool = False,
-             include_categories: bool = False) -> Optional[Drug]:
+
+def get_drug(
+    drug_name: str,
+    name_is_generic: bool = False,
+    include_categories: bool = False,
+) -> Optional[Drug]:
     """
     Converts a drug name to a :class:`.Drug` class.
 
@@ -1305,7 +1356,11 @@ def get_drug(drug_name: str,
     drug_name = drug_name.strip().lower()
     if name_is_generic:
         drug = DRUGS_BY_GENERIC_NAME.get(drug_name)  # type: Optional[Drug]
-        if drug is not None and drug.category_not_drug and not include_categories:  # noqa
+        if (
+            drug is not None
+            and drug.category_not_drug
+            and not include_categories
+        ):  # noqa
             return None
         return drug
     else:
@@ -1319,10 +1374,13 @@ def get_drug(drug_name: str,
 # Convert drug names to generic equivalents
 # =============================================================================
 
-def drug_name_to_generic(drug_name: str,
-                         unknown_to_default: bool = False,
-                         default: str = None,
-                         include_categories: bool = False) -> str:
+
+def drug_name_to_generic(
+    drug_name: str,
+    unknown_to_default: bool = False,
+    default: str = None,
+    include_categories: bool = False,
+) -> str:
     """
     Converts a drug name to the name of its generic equivalent.
     """
@@ -1332,10 +1390,12 @@ def drug_name_to_generic(drug_name: str,
     return default if unknown_to_default else drug_name
 
 
-def drug_names_to_generic(drugs: List[str],
-                          unknown_to_default: bool = False,
-                          default: str = None,
-                          include_categories: bool = False) -> List[str]:
+def drug_names_to_generic(
+    drugs: List[str],
+    unknown_to_default: bool = False,
+    default: str = None,
+    include_categories: bool = False,
+) -> List[str]:
     """
     Converts a list of drug names to their generic equivalents.
 
@@ -1359,10 +1419,12 @@ def drug_names_to_generic(drugs: List[str],
 
     """
     return [
-        drug_name_to_generic(drug,
-                             unknown_to_default=unknown_to_default,
-                             default=default,
-                             include_categories=include_categories)
+        drug_name_to_generic(
+            drug,
+            unknown_to_default=unknown_to_default,
+            default=default,
+            include_categories=include_categories,
+        )
         for drug in drugs
     ]
 
@@ -1370,6 +1432,7 @@ def drug_names_to_generic(drugs: List[str],
 # =============================================================================
 # Check drugs against criteria
 # =============================================================================
+
 
 def drug_matches_criteria(drug: Drug, **criteria: Dict[str, bool]) -> bool:
     """
@@ -1388,9 +1451,9 @@ def drug_matches_criteria(drug: Drug, **criteria: Dict[str, bool]) -> bool:
     return True
 
 
-def all_drugs_where(sort=True,
-                    include_categories: bool = False,
-                    **criteria: Dict[str, bool]) -> List[Drug]:
+def all_drugs_where(
+    sort=True, include_categories: bool = False, **criteria: Dict[str, bool]
+) -> List[Drug]:
     """
     Find all drugs matching the specified criteria (see
     :func:`drug_matches_criteria`). If ``include_categories`` is true, then
@@ -1418,10 +1481,12 @@ def all_drugs_where(sort=True,
     return matching_drugs
 
 
-def drug_name_matches_criteria(drug_name: str,
-                               name_is_generic: bool = False,
-                               include_categories: bool = False,
-                               **criteria: Dict[str, bool]) -> bool:
+def drug_name_matches_criteria(
+    drug_name: str,
+    name_is_generic: bool = False,
+    include_categories: bool = False,
+    **criteria: Dict[str, bool],
+) -> bool:
     """
     Establish whether a single drug, passed by name, matches the specified
     criteria. See :func:`drug_matches_criteria`.
@@ -1434,10 +1499,12 @@ def drug_name_matches_criteria(drug_name: str,
     return drug_matches_criteria(drug, **criteria)
 
 
-def drug_names_match_criteria(drug_names: List[str],
-                              names_are_generic: bool = False,
-                              include_categories: bool = False,
-                              **criteria: Dict[str, bool]) -> List[bool]:
+def drug_names_match_criteria(
+    drug_names: List[str],
+    names_are_generic: bool = False,
+    include_categories: bool = False,
+    **criteria: Dict[str, bool],
+) -> List[bool]:
     """
     Establish whether multiple drugs, passed as a list of drug names, each
     matches the specified criteria. See :func:`drug_matches_criteria`.
@@ -1447,6 +1514,7 @@ def drug_names_match_criteria(drug_names: List[str],
             dn,
             name_is_generic=names_are_generic,
             include_categories=include_categories,
-            **criteria)
+            **criteria,
+        )
         for dn in drug_names
     ]

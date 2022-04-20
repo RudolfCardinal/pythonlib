@@ -45,10 +45,12 @@ ArgsType = Tuple[Any, ...]
 KwargsType = Dict[str, Any]
 
 
-def get_call_signature(fn: FunctionType,
-                       args: ArgsType,
-                       kwargs: KwargsType,
-                       debug_cache: bool = False) -> str:
+def get_call_signature(
+    fn: FunctionType,
+    args: ArgsType,
+    kwargs: KwargsType,
+    debug_cache: bool = False,
+) -> str:
     """
     Takes a function and its args/kwargs, and produces a string description
     of the function call (the call signature) suitable for use indirectly as a
@@ -64,15 +66,15 @@ def get_call_signature(fn: FunctionType,
             "\nTo decorate using @django_cache_function without specifying "
             "cache_key, the decorated function's owning class and its "
             "parameters must be JSON-serializable (see jsonfunc.py, "
-            "django_cache_fn.py).\n")
+            "django_cache_fn.py).\n"
+        )
         raise
     if debug_cache:
         log.debug("Making call signature {!r}", call_sig)
     return call_sig
 
 
-def make_cache_key(call_signature: str,
-                   debug_cache: bool = False) -> str:
+def make_cache_key(call_signature: str, debug_cache: bool = False) -> str:
     """
     Takes a function and its args/kwargs, and produces a string description
     of the function call (the call signature) suitable for use as a cache key.
@@ -106,14 +108,15 @@ def make_cache_key(call_signature: str,
     """
     key = hashlib.md5(call_signature.encode("utf-8")).hexdigest()
     if debug_cache:
-        log.debug("Making cache key {} from call_signature {!r}",
-                  key, call_signature)
+        log.debug(
+            "Making cache key {} from call_signature {!r}", key, call_signature
+        )
     return key
 
 
-def django_cache_function(timeout: int = 5 * 60,
-                          cache_key: str = '',
-                          debug_cache: bool = False):
+def django_cache_function(
+    timeout: int = 5 * 60, cache_key: str = "", debug_cache: bool = False
+):
     """
     Decorator to add caching to a function in Django.
     Uses the Django default cache.
@@ -140,7 +143,7 @@ def django_cache_function(timeout: int = 5 * 60,
             #   result properly as well.
             if cache_key:
                 # User specified a cache key. This is easy.
-                call_sig = ''
+                call_sig = ""
                 _cache_key = cache_key
                 check_stored_call_sig = False
             else:
@@ -165,14 +168,16 @@ def django_cache_function(timeout: int = 5 * 60,
                 log.warning(
                     f"... Cache hit was due to hash collision; "
                     f"cached_call_sig {cached_call_sig!r} != "
-                    f"call_sig {call_sig!r}")
+                    f"call_sig {call_sig!r}"
+                )
                 # If we get here, either it wasn't in the cache, or something
                 # was in the cache that matched by cache_key but was actually a
                 # hash collision. Either way, we must do the real work.
             func_result = fn(*args, **kwargs)
             cache_result_tuple = (call_sig, func_result)
-            cache.set(key=_cache_key, value=cache_result_tuple,
-                      timeout=timeout)  # TALKS TO CACHE HERE
+            cache.set(
+                key=_cache_key, value=cache_result_tuple, timeout=timeout
+            )  # TALKS TO CACHE HERE
             return func_result
 
         return wrapper

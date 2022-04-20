@@ -36,9 +36,9 @@ from cardinal_pythonlib.logs import BraceStyleAdapter
 log = BraceStyleAdapter(logging.getLogger(__name__))
 
 
-def produce_csv_output(filehandle: TextIO,
-                       fields: Sequence[str],
-                       values: Iterable[str]) -> None:
+def produce_csv_output(
+    filehandle: TextIO, fields: Sequence[str], values: Iterable[str]
+) -> None:
     """
     Produce CSV output, without using ``csv.writer``, so the log can be used
     for lots of things.
@@ -68,10 +68,9 @@ def output_csv(filehandle: TextIO, values: Iterable[str]) -> None:
     filehandle.write(line + "\n")
 
 
-def get_what_follows_raw(s: str,
-                         prefix: str,
-                         onlyatstart: bool = True,
-                         stripwhitespace: bool = True) -> Tuple[bool, str]:
+def get_what_follows_raw(
+    s: str, prefix: str, onlyatstart: bool = True, stripwhitespace: bool = True
+) -> Tuple[bool, str]:
     """
     Find the part of ``s`` that is after ``prefix``.
 
@@ -87,8 +86,9 @@ def get_what_follows_raw(s: str,
 
     """
     prefixstart = s.find(prefix)
-    if ((prefixstart == 0 and onlyatstart) or
-            (prefixstart != -1 and not onlyatstart)):
+    if (prefixstart == 0 and onlyatstart) or (
+        prefixstart != -1 and not onlyatstart
+    ):
         # substring found
         resultstart = prefixstart + len(prefix)
         result = s[resultstart:]
@@ -98,11 +98,13 @@ def get_what_follows_raw(s: str,
     return False, ""
 
 
-def get_what_follows(strings: Sequence[str],
-                     prefix: str,
-                     onlyatstart: bool = True,
-                     stripwhitespace: bool = True,
-                     precedingline: str = "") -> str:
+def get_what_follows(
+    strings: Sequence[str],
+    prefix: str,
+    onlyatstart: bool = True,
+    stripwhitespace: bool = True,
+    precedingline: str = "",
+) -> str:
     """
     Find a string in ``strings`` that begins with ``prefix``; return the part
     that's after ``prefix``. Optionally, require that the preceding string
@@ -123,27 +125,30 @@ def get_what_follows(strings: Sequence[str],
     """
     if not precedingline:
         for s in strings:
-            (found, result) = get_what_follows_raw(s, prefix, onlyatstart,
-                                                   stripwhitespace)
+            (found, result) = get_what_follows_raw(
+                s, prefix, onlyatstart, stripwhitespace
+            )
             if found:
                 return result
         return ""
     else:
         for i in range(1, len(strings)):  # i indexes the second of a pair
-            if strings[i-1].find(precedingline) == 0:
+            if strings[i - 1].find(precedingline) == 0:
                 # ... if found at the start
-                (found, result) = get_what_follows_raw(strings[i], prefix,
-                                                       onlyatstart,
-                                                       stripwhitespace)
+                (found, result) = get_what_follows_raw(
+                    strings[i], prefix, onlyatstart, stripwhitespace
+                )
                 if found:
                     return result
         return ""
 
 
-def get_string(strings: Sequence[str],
-               prefix: str,
-               ignoreleadingcolon: bool = False,
-               precedingline: str = "") -> Optional[str]:
+def get_string(
+    strings: Sequence[str],
+    prefix: str,
+    ignoreleadingcolon: bool = False,
+    precedingline: str = "",
+) -> Optional[str]:
     """
     Find a string as per :func:`get_what_follows`.
 
@@ -162,18 +167,20 @@ def get_string(strings: Sequence[str],
     if ignoreleadingcolon:
         f = s.find(":")
         if f != -1:
-            s = s[f+1:].strip()
+            s = s[f + 1 :].strip()
     if len(s) == 0:
         return None
     return s
 
 
-def get_string_relative(strings: Sequence[str],
-                        prefix1: str,
-                        delta: int,
-                        prefix2: str,
-                        ignoreleadingcolon: bool = False,
-                        stripwhitespace: bool = True) -> Optional[str]:
+def get_string_relative(
+    strings: Sequence[str],
+    prefix1: str,
+    delta: int,
+    prefix2: str,
+    ignoreleadingcolon: bool = False,
+    stripwhitespace: bool = True,
+) -> Optional[str]:
     """
     Finds a line (string) in ``strings`` beginning with ``prefix1``. Moves
     ``delta`` lines (strings) further. Returns the end of the line that
@@ -197,13 +204,13 @@ def get_string_relative(strings: Sequence[str],
             if secondline < 0 or secondline >= len(strings):
                 continue
             if strings[secondline].find(prefix2) == 0:
-                s = strings[secondline][len(prefix2):]
+                s = strings[secondline][len(prefix2) :]
                 if stripwhitespace:
                     s = s.strip()
                 if ignoreleadingcolon:
                     f = s.find(":")
                     if f != -1:
-                        s = s[f+1:].strip()
+                        s = s[f + 1 :].strip()
                     if stripwhitespace:
                         s = s.strip()
                 if len(s) == 0:
@@ -212,28 +219,42 @@ def get_string_relative(strings: Sequence[str],
     return None
 
 
-def get_int(strings: Sequence[str],
-            prefix: str,
-            ignoreleadingcolon: bool = False,
-            precedingline: str = "") -> Optional[int]:
+def get_int(
+    strings: Sequence[str],
+    prefix: str,
+    ignoreleadingcolon: bool = False,
+    precedingline: str = "",
+) -> Optional[int]:
     """
     Fetches an integer parameter via :func:`get_string`.
     """
-    return get_int_raw(get_string(strings, prefix,
-                                  ignoreleadingcolon=ignoreleadingcolon,
-                                  precedingline=precedingline))
+    return get_int_raw(
+        get_string(
+            strings,
+            prefix,
+            ignoreleadingcolon=ignoreleadingcolon,
+            precedingline=precedingline,
+        )
+    )
 
 
-def get_float(strings: Sequence[str],
-              prefix: str,
-              ignoreleadingcolon: bool = False,
-              precedingline: str = "") -> Optional[float]:
+def get_float(
+    strings: Sequence[str],
+    prefix: str,
+    ignoreleadingcolon: bool = False,
+    precedingline: str = "",
+) -> Optional[float]:
     """
     Fetches a float parameter via :func:`get_string`.
     """
-    return get_float_raw(get_string(strings, prefix,
-                                    ignoreleadingcolon=ignoreleadingcolon,
-                                    precedingline=precedingline))
+    return get_float_raw(
+        get_string(
+            strings,
+            prefix,
+            ignoreleadingcolon=ignoreleadingcolon,
+            precedingline=precedingline,
+        )
+    )
 
 
 def get_int_raw(s: str) -> Optional[int]:
@@ -285,67 +306,104 @@ def get_float_raw(s: str) -> Optional[float]:
     return float(s)
 
 
-def get_bool(strings: Sequence[str],
-             prefix: str,
-             ignoreleadingcolon: bool = False,
-             precedingline: str = "") -> Optional[bool]:
+def get_bool(
+    strings: Sequence[str],
+    prefix: str,
+    ignoreleadingcolon: bool = False,
+    precedingline: str = "",
+) -> Optional[bool]:
     """
     Fetches a boolean parameter via :func:`get_string`.
     """
-    return get_bool_raw(get_string(strings, prefix,
-                                   ignoreleadingcolon=ignoreleadingcolon,
-                                   precedingline=precedingline))
+    return get_bool_raw(
+        get_string(
+            strings,
+            prefix,
+            ignoreleadingcolon=ignoreleadingcolon,
+            precedingline=precedingline,
+        )
+    )
 
 
-def get_bool_relative(strings: Sequence[str],
-                      prefix1: str,
-                      delta: int,
-                      prefix2: str,
-                      ignoreleadingcolon: bool = False) -> Optional[bool]:
+def get_bool_relative(
+    strings: Sequence[str],
+    prefix1: str,
+    delta: int,
+    prefix2: str,
+    ignoreleadingcolon: bool = False,
+) -> Optional[bool]:
     """
     Fetches a boolean parameter via :func:`get_string_relative`.
     """
-    return get_bool_raw(get_string_relative(
-        strings, prefix1, delta, prefix2,
-        ignoreleadingcolon=ignoreleadingcolon))
+    return get_bool_raw(
+        get_string_relative(
+            strings,
+            prefix1,
+            delta,
+            prefix2,
+            ignoreleadingcolon=ignoreleadingcolon,
+        )
+    )
 
 
-def get_float_relative(strings: Sequence[str],
-                       prefix1: str,
-                       delta: int,
-                       prefix2: str,
-                       ignoreleadingcolon: bool = False) -> Optional[float]:
+def get_float_relative(
+    strings: Sequence[str],
+    prefix1: str,
+    delta: int,
+    prefix2: str,
+    ignoreleadingcolon: bool = False,
+) -> Optional[float]:
     """
     Fetches a float parameter via :func:`get_string_relative`.
     """
-    return get_float_raw(get_string_relative(
-        strings, prefix1, delta, prefix2,
-        ignoreleadingcolon=ignoreleadingcolon))
+    return get_float_raw(
+        get_string_relative(
+            strings,
+            prefix1,
+            delta,
+            prefix2,
+            ignoreleadingcolon=ignoreleadingcolon,
+        )
+    )
 
 
-def get_int_relative(strings: Sequence[str],
-                     prefix1: str,
-                     delta: int,
-                     prefix2: str,
-                     ignoreleadingcolon: bool = False) -> Optional[int]:
+def get_int_relative(
+    strings: Sequence[str],
+    prefix1: str,
+    delta: int,
+    prefix2: str,
+    ignoreleadingcolon: bool = False,
+) -> Optional[int]:
     """
     Fetches an int parameter via :func:`get_string_relative`.
     """
-    return get_int_raw(get_string_relative(
-        strings, prefix1, delta, prefix2,
-        ignoreleadingcolon=ignoreleadingcolon))
+    return get_int_raw(
+        get_string_relative(
+            strings,
+            prefix1,
+            delta,
+            prefix2,
+            ignoreleadingcolon=ignoreleadingcolon,
+        )
+    )
 
 
-def get_datetime(strings: Sequence[str],
-                 prefix: str,
-                 datetime_format_string: str,
-                 ignoreleadingcolon: bool = False,
-                 precedingline: str = "") -> Optional[datetime.datetime]:
+def get_datetime(
+    strings: Sequence[str],
+    prefix: str,
+    datetime_format_string: str,
+    ignoreleadingcolon: bool = False,
+    precedingline: str = "",
+) -> Optional[datetime.datetime]:
     """
     Fetches a ``datetime.datetime`` parameter via :func:`get_string`.
     """
-    x = get_string(strings, prefix, ignoreleadingcolon=ignoreleadingcolon,
-                   precedingline=precedingline)
+    x = get_string(
+        strings,
+        prefix,
+        ignoreleadingcolon=ignoreleadingcolon,
+        precedingline=precedingline,
+    )
     if len(x) == 0:
         return None
     # For the format strings you can pass to datetime.datetime.strptime, see
@@ -355,8 +413,9 @@ def get_datetime(strings: Sequence[str],
     return d
 
 
-def find_line_beginning(strings: Sequence[str],
-                        linestart: Optional[str]) -> int:
+def find_line_beginning(
+    strings: Sequence[str], linestart: Optional[str]
+) -> int:
     """
     Finds the index of the line in ``strings`` that begins with ``linestart``,
     or ``-1`` if none is found.
@@ -385,10 +444,11 @@ def find_line_containing(strings: Sequence[str], contents: str) -> int:
     return -1
 
 
-def get_lines_from_to(strings: List[str],
-                      firstlinestart: str,
-                      list_of_lastline_starts: Iterable[Optional[str]]) \
-        -> List[str]:
+def get_lines_from_to(
+    strings: List[str],
+    firstlinestart: str,
+    list_of_lastline_starts: Iterable[Optional[str]],
+) -> List[str]:
     """
     Takes a list of ``strings``. Returns a list of strings FROM
     ``firstlinestart`` (inclusive) TO the first of ``list_of_lastline_starts``
@@ -422,9 +482,9 @@ def is_empty_string(s: str) -> bool:
     return len(s.strip()) == 0
 
 
-def csv_to_list_of_fields(lines: List[str],
-                          csvheader: str,
-                          quotechar: str = '"') -> List[List[str]]:
+def csv_to_list_of_fields(
+    lines: List[str], csvheader: str, quotechar: str = '"'
+) -> List[List[str]]:
     """
     Extracts data from a list of CSV lines (starting with a defined header
     line) embedded in a longer text block but ending with a blank line.
@@ -470,9 +530,9 @@ def csv_to_list_of_fields(lines: List[str],
     return data
 
 
-def csv_to_list_of_dicts(lines: List[str],
-                         csvheader: str,
-                         quotechar: str = '"') -> List[Dict[str, str]]:
+def csv_to_list_of_dicts(
+    lines: List[str], csvheader: str, quotechar: str = '"'
+) -> List[Dict[str, str]]:
     """
     Extracts data from a list of CSV lines (starting with a defined header
     line) embedded in a longer text block but ending with a blank line.
@@ -512,9 +572,9 @@ def dictlist_convert_to_string(dict_list: Iterable[Dict], key: str) -> None:
             d[key] = None
 
 
-def dictlist_convert_to_datetime(dict_list: Iterable[Dict],
-                                 key: str,
-                                 datetime_format_string: str) -> None:
+def dictlist_convert_to_datetime(
+    dict_list: Iterable[Dict], key: str, datetime_format_string: str
+) -> None:
     """
     Process an iterable of dictionaries. For each dictionary ``d``, convert
     (in place) ``d[key]`` to a ``datetime.datetime`` form, using

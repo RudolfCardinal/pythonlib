@@ -27,13 +27,12 @@
 """
 
 import re
-# import shlex
 import subprocess
 import sys
 from typing import List, Union
 
 
-def cmdline_split(s: str, platform: Union[int, str] = 'this') -> List[str]:
+def cmdline_split(s: str, platform: Union[int, str] = "this") -> List[str]:
     """
     As per
     https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex.
@@ -50,21 +49,21 @@ def cmdline_split(s: str, platform: Union[int, str] = 'this') -> List[str]:
             - ``0`` = Windows/CMD
             - (other values reserved)
     """  # noqa
-    if platform == 'this':
-        platform = (sys.platform != 'win32')  # RNC: includes 64-bit Windows
+    if platform == "this":
+        platform = sys.platform != "win32"  # RNC: includes 64-bit Windows
 
     if platform == 1:  # POSIX
-        re_cmd_lex = r'''"((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)'''  # noqa
+        re_cmd_lex = r""""((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)"""  # noqa
     elif platform == 0:  # Windows/CMD
-        re_cmd_lex = r'''"((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)'''  # noqa
+        re_cmd_lex = r""""((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)"""  # noqa
     else:
         raise AssertionError(f"unknown platform {platform!r}")
 
     args = []
-    accu = None   # collects pieces of one arg
+    accu = None  # collects pieces of one arg
     for qs, qss, esc, pipe, word, white, fail in re.findall(re_cmd_lex, s):
         if word:
-            pass   # most frequent
+            pass  # most frequent
         elif esc:
             word = esc[1]
         elif white or pipe:
@@ -77,15 +76,15 @@ def cmdline_split(s: str, platform: Union[int, str] = 'this') -> List[str]:
         elif fail:
             raise ValueError("invalid or incomplete shell string")
         elif qs:
-            word = qs.replace(r'\"', '"').replace(r'\\', '\\')
+            word = qs.replace(r"\"", '"').replace(r"\\", "\\")
             # ... raw strings can't end in single backslashes;
             # https://stackoverflow.com/questions/647769/why-cant-pythons-raw-string-literals-end-with-a-single-backslash  # noqa
             if platform == 0:
                 word = word.replace('""', '"')
         else:
-            word = qss   # may be even empty; must be last
+            word = qss  # may be even empty; must be last
 
-        accu = (accu or '') + word
+        accu = (accu or "") + word
 
     if accu is not None:
         args.append(accu)
@@ -106,7 +105,7 @@ def cmdline_quote_posix(seq: List[str]) -> str:
 
         # Add a space to separate this argument from the others
         if result:
-            result.append(' ')
+            result.append(" ")
 
         # Modified here: quote arguments with "*"
         needquote = (" " in arg) or ("\t" in arg) or ("*" in arg) or not arg
@@ -114,12 +113,12 @@ def cmdline_quote_posix(seq: List[str]) -> str:
             result.append('"')
 
         for c in arg:
-            if c == '\\':
+            if c == "\\":
                 # Don't know if we need to double yet.
                 bs_buf.append(c)
             elif c == '"':
                 # Double backslashes.
-                result.append('\\' * len(bs_buf) * 2)
+                result.append("\\" * len(bs_buf) * 2)
                 bs_buf = []
                 result.append('\\"')
             else:
@@ -137,16 +136,16 @@ def cmdline_quote_posix(seq: List[str]) -> str:
             result.extend(bs_buf)
             result.append('"')
 
-    return ''.join(result)
+    return "".join(result)
 
 
-def cmdline_quote(args: List[str], platform: Union[int, str] = 'this') -> str:
+def cmdline_quote(args: List[str], platform: Union[int, str] = "this") -> str:
     """
     Convert a list of command-line arguments to a suitably quoted command-line
     string that should be copy/pastable into a comand prompt.
     """
-    if platform == 'this':
-        platform = (sys.platform != 'win32')  # RNC: includes 64-bit Windows
+    if platform == "this":
+        platform = sys.platform != "win32"  # RNC: includes 64-bit Windows
 
     if platform == 1:  # POSIX
         return cmdline_quote_posix(args)

@@ -37,6 +37,7 @@ import string
 # Creating random strings
 # =============================================================================
 
+
 def create_base64encoded_randomness(num_bytes: int) -> str:
     """
     Create and return ``num_bytes`` of random data.
@@ -62,11 +63,10 @@ def create_base64encoded_randomness(num_bytes: int) -> str:
         randbytes = os.urandom(num_bytes)  # YES
     """
     randbytes = os.urandom(num_bytes)  # YES
-    return base64.urlsafe_b64encode(randbytes).decode('ascii')
+    return base64.urlsafe_b64encode(randbytes).decode("ascii")
 
 
-def generate_random_string(length: int,
-                           characters: str = None) -> str:
+def generate_random_string(length: int, characters: str = None) -> str:
     """
     Generates a random string of the specified length.
     """
@@ -81,6 +81,7 @@ def generate_random_string(length: int,
 # =============================================================================
 # Coin flips
 # =============================================================================
+
 
 def coin(p: float) -> bool:
     """
@@ -106,6 +107,7 @@ def coin(p: float) -> bool:
 # Testing
 # =============================================================================
 
+
 def _test_coin() -> None:
     """
     Tests the :func:`coin` function.
@@ -119,5 +121,5 @@ def _test_coin() -> None:
             print(f"coin: p = {p}, n = {n} -> {s} true")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     _test_coin()

@@ -48,9 +48,5 @@ class TestSubprocess(unittest.TestCase):
         for i in range(1, n_total + 1):
             # So that we can distinguish each one, we use e.g. "sleep 1 16",
             # "sleep 2 15", etc. -- each has the same total duration.
-            args_list.append([
-                "sleep",
-                str(i),
-                str(seconds_per_process - i)
-            ])
+            args_list.append(["sleep", str(i), str(seconds_per_process - i)])
         run_multiple_processes(args_list, max_workers=max_workers)

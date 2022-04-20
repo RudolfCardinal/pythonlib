@@ -47,6 +47,7 @@ class HeaderModifyMode(object):
     Options for
     :class:`cardinal_pythonlib.wsgi.headers_mw.AddHeadersMiddleware`.
     """
+
     ADD = 0
     ADD_IF_ABSENT = 1
 
@@ -70,10 +71,12 @@ class AddHeadersMiddleware(object):
       https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
     """
 
-    def __init__(self,
-                 app: TYPE_WSGI_APP,
-                 headers: TYPE_WSGI_RESPONSE_HEADERS,
-                 method: int = HeaderModifyMode.ADD) -> None:
+    def __init__(
+        self,
+        app: TYPE_WSGI_APP,
+        headers: TYPE_WSGI_RESPONSE_HEADERS,
+        method: int = HeaderModifyMode.ADD,
+    ) -> None:
         """
         Args:
             app:
@@ -87,40 +90,43 @@ class AddHeadersMiddleware(object):
             assert len(key_value_tuple) == 2
             assert isinstance(key_value_tuple[0], str)
             assert isinstance(key_value_tuple[1], str)
-        assert method in [
-            HeaderModifyMode.ADD,
-            HeaderModifyMode.ADD_IF_ABSENT,
-        ]
+        assert method in [HeaderModifyMode.ADD, HeaderModifyMode.ADD_IF_ABSENT]
 
         self.app = app
         self.headers = headers
         self.method = method
 
-    def __call__(self,
-                 environ: TYPE_WSGI_ENVIRON,
-                 start_response: TYPE_WSGI_START_RESPONSE) \
-            -> TYPE_WSGI_APP_RESULT:
+    def __call__(
+        self,
+        environ: TYPE_WSGI_ENVIRON,
+        start_response: TYPE_WSGI_START_RESPONSE,
+    ) -> TYPE_WSGI_APP_RESULT:
         """
         Called every time the WSGI app is used.
         """
 
-        def add(status: TYPE_WSGI_STATUS,
-                headers: TYPE_WSGI_RESPONSE_HEADERS,
-                exc_info: TYPE_WSGI_EXC_INFO = None) \
-                -> TYPE_WSGI_START_RESP_RESULT:
+        def add(
+            status: TYPE_WSGI_STATUS,
+            headers: TYPE_WSGI_RESPONSE_HEADERS,
+            exc_info: TYPE_WSGI_EXC_INFO = None,
+        ) -> TYPE_WSGI_START_RESP_RESULT:
             # Add headers. If they were present already, there will be
             # several versions now. See above.
             return start_response(status, headers + self.headers, exc_info)
 
-        def add_if_absent(status: TYPE_WSGI_STATUS,
-                          headers: TYPE_WSGI_RESPONSE_HEADERS,
-                          exc_info: TYPE_WSGI_EXC_INFO = None) \
-                -> TYPE_WSGI_START_RESP_RESULT:
+        def add_if_absent(
+            status: TYPE_WSGI_STATUS,
+            headers: TYPE_WSGI_RESPONSE_HEADERS,
+            exc_info: TYPE_WSGI_EXC_INFO = None,
+        ) -> TYPE_WSGI_START_RESP_RESULT:
             # Add headers, but not if that header was already present.
             # Note case-insensitivity.
             header_keys_lower = [kv[0].lower() for kv in headers]
-            new_headers = [x for x in self.headers
-                           if x[0].lower() not in header_keys_lower]
+            new_headers = [
+                x
+                for x in self.headers
+                if x[0].lower() not in header_keys_lower
+            ]
             return start_response(status, headers + new_headers, exc_info)
 
         method = self.method

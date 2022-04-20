@@ -47,9 +47,7 @@ from pyparsing import (
     ZeroOrMore,
 )
 
-from cardinal_pythonlib.logs import (
-    get_brace_style_log_with_null_handler,
-)
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sql.sql_grammar import (
     ALL,
     AND,
@@ -177,11 +175,13 @@ XOR = sql_keyword("XOR")
 # =============================================================================
 # http://dev.mysql.com/doc/refman/5.7/en/dynindex-statement.html
 
+
 class SqlGrammarMySQL(SqlGrammar):
     """
     SQL grammar (subclass of :class:`.SqlGrammar`) implementing
     MySQL syntax.
     """
+
     # -------------------------------------------------------------------------
     # Forward declarations
     # -------------------------------------------------------------------------
@@ -299,10 +299,14 @@ WARNINGS WEEK WEIGHT_STRING WITHOUT WORK WRAPPER
 X509 XA XID XML
 YEAR
     """
-    mysql_keywords = sorted(list(set(
-        mysql_reserved_words.split() +
-        ANSI92_RESERVED_WORD_LIST.split()
-    )))
+    mysql_keywords = sorted(
+        list(
+            set(
+                mysql_reserved_words.split()
+                + ANSI92_RESERVED_WORD_LIST.split()
+            )
+        )
+    )
     # log.critical(mysql_keywords)
     keyword = make_words_regex(mysql_keywords, caseless=True, name="keyword")
 
@@ -310,7 +314,7 @@ YEAR
     # Comments
     # -------------------------------------------------------------------------
     # http://dev.mysql.com/doc/refman/5.7/en/comments.html
-    comment = (ansi_comment | bash_comment | cStyleComment)
+    comment = ansi_comment | bash_comment | cStyleComment
 
     # -----------------------------------------------------------------------------
     # identifier
@@ -320,20 +324,18 @@ YEAR
         r"\b[a-zA-Z0-9$_]*\b",
         mysql_keywords,
         caseless=True,
-        name="bare_identifier_word"
+        name="bare_identifier_word",
     )
     liberal_identifier_word = make_pyparsing_regex(
-        r"\b[a-zA-Z0-9$_]*\b",
-        caseless=True,
-        name="liberal_identifier_word"
+        r"\b[a-zA-Z0-9$_]*\b", caseless=True, name="liberal_identifier_word"
     )
     identifier = (
-        bare_identifier_word |
-        QuotedString(quoteChar="`", unquoteResults=False)
+        bare_identifier_word
+        | QuotedString(quoteChar="`", unquoteResults=False)
     ).setName("identifier")
     liberal_identifier = (
-        liberal_identifier_word |
-        QuotedString(quoteChar="`", unquoteResults=False)
+        liberal_identifier_word
+        | QuotedString(quoteChar="`", unquoteResults=False)
     ).setName("liberal_identifier")
     # http://dev.mysql.com/doc/refman/5.7/en/charset-collate.html
     collation_name = identifier.copy()
@@ -347,30 +349,36 @@ YEAR
     database_name = identifier.copy()
     partition_name = identifier.copy()
 
-    no_dot = NotAny('.')
+    no_dot = NotAny(".")
     # MySQL allows keywords in the later parts of combined identifiers;
     # therefore, for example, "count.thing.thing" is not OK, but
     # "thing.thing.count" is.
     table_spec = (
-        Combine(database_name + '.' + liberal_identifier + no_dot) |
-        table_name + no_dot
+        Combine(database_name + "." + liberal_identifier + no_dot)
+        | table_name + no_dot
     ).setName("table_spec")
     column_spec = (
-        Combine(database_name + '.' + liberal_identifier + '.' +
-                liberal_identifier + no_dot) |
-        Combine(table_name + '.' + liberal_identifier + no_dot) |
-        Combine(column_name + no_dot)
+        Combine(
+            database_name
+            + "."
+            + liberal_identifier
+            + "."
+            + liberal_identifier
+            + no_dot
+        )
+        | Combine(table_name + "." + liberal_identifier + no_dot)
+        | Combine(column_name + no_dot)
     ).setName("column_spec")
 
     # http://dev.mysql.com/doc/refman/5.7/en/expressions.html
-    bind_parameter = Literal('?')
+    bind_parameter = Literal("?")
 
     # http://dev.mysql.com/doc/refman/5.7/en/user-variables.html
     variable = Regex(r"@[a-zA-Z0-9\.$_]+").setName("variable")
 
     # http://dev.mysql.com/doc/refman/5.7/en/functions.html
     argument_list = (
-        delimitedList(expr).setName("arglist").setParseAction(', '.join)
+        delimitedList(expr).setName("arglist").setParseAction(", ".join)
     )
     # ... we don't care about sub-parsing the argument list, so use combine=True
     # or setParseAction: https://stackoverflow.com/questions/37926516
@@ -386,23 +394,33 @@ YEAR
     # ... see pyparsing_bugtest_delimited_list_combine
     index_hint = (
         (
-            USE + (INDEX | KEY) +
-            Optional(FOR + (JOIN | (ORDER + BY) | (GROUP + BY))) +
-            LPAR + Optional(index_list) + RPAR
-        ) |
-        (
-            IGNORE + (INDEX | KEY) +
-            Optional(FOR + (JOIN | (ORDER + BY) | (GROUP + BY))) +
-            LPAR + index_list + RPAR
-        ) |
-        (
-            FORCE + (INDEX | KEY) +
-            Optional(FOR + (JOIN | (ORDER + BY) | (GROUP + BY))) +
-            LPAR + index_list + RPAR
+            USE
+            + (INDEX | KEY)
+            + Optional(FOR + (JOIN | (ORDER + BY) | (GROUP + BY)))
+            + LPAR
+            + Optional(index_list)
+            + RPAR
+        )
+        | (
+            IGNORE
+            + (INDEX | KEY)
+            + Optional(FOR + (JOIN | (ORDER + BY) | (GROUP + BY)))
+            + LPAR
+            + index_list
+            + RPAR
+        )
+        | (
+            FORCE
+            + (INDEX | KEY)
+            + Optional(FOR + (JOIN | (ORDER + BY) | (GROUP + BY)))
+            + LPAR
+            + index_list
+            + RPAR
         )
     )
     index_hint_list = delim_list(index_hint, combine=True).setName(
-        "index_hint_list")
+        "index_hint_list"
+    )
 
     # -----------------------------------------------------------------------------
     # CASE
@@ -411,15 +429,17 @@ YEAR
     # THIS: https://dev.mysql.com/doc/refman/5.7/en/control-flow-functions.html#operator_case  # noqa
     case_expr = (
         (
-            CASE + expr +
-            OneOrMore(WHEN + expr + THEN + expr) +
-            Optional(ELSE + expr) +
-            END
-        ) | (
-            CASE +
-            OneOrMore(WHEN + expr + THEN + expr) +
-            Optional(ELSE + expr) +
-            END
+            CASE
+            + expr
+            + OneOrMore(WHEN + expr + THEN + expr)
+            + Optional(ELSE + expr)
+            + END
+        )
+        | (
+            CASE
+            + OneOrMore(WHEN + expr + THEN + expr)
+            + Optional(ELSE + expr)
+            + END
         )
     ).setName("case_expr")
 
@@ -428,13 +448,20 @@ YEAR
     # -------------------------------------------------------------------------
     # https://dev.mysql.com/doc/refman/5.7/en/fulltext-search.html#function_match
     search_modifier = (
-        (IN + NATURAL + LANGUAGE + MODE + Optional(WITH + QUERY + EXPANSION)) |
-        (IN + BOOLEAN + MODE) |
-        (WITH + QUERY + EXPANSION)
+        (IN + NATURAL + LANGUAGE + MODE + Optional(WITH + QUERY + EXPANSION))
+        | (IN + BOOLEAN + MODE)
+        | (WITH + QUERY + EXPANSION)
     )
     match_expr = (
-        MATCH + LPAR + delim_list(column_spec) + RPAR +
-        AGAINST + LPAR + string_literal + Optional(search_modifier) + RPAR
+        MATCH
+        + LPAR
+        + delim_list(column_spec)
+        + RPAR
+        + AGAINST
+        + LPAR
+        + string_literal
+        + Optional(search_modifier)
+        + RPAR
     ).setName("match_expr")
     # ... don't use "expr"; MATCH AGAINST uses restricted expressions, and we
     # don't want it to think that "MATCH ... AGAINST ('+keyword' IN
@@ -447,43 +474,55 @@ YEAR
     # https://pyparsing.wikispaces.com/file/view/select_parser.py
     # http://dev.mysql.com/doc/refman/5.7/en/operator-precedence.html
     expr_term = (
-        INTERVAL + expr + time_unit |
+        INTERVAL + expr + time_unit
+        |
         # "{" + identifier + expr + "}" |  # see MySQL notes; antique ODBC syntax  # noqa
-        Optional(EXISTS) + LPAR + select_statement + RPAR |
+        Optional(EXISTS) + LPAR + select_statement + RPAR
+        |
         # ... e.g. mycol = EXISTS(SELECT ...)
         # ... e.g. mycol IN (SELECT ...)
-        LPAR + delim_list(expr) + RPAR |
+        LPAR + delim_list(expr) + RPAR
+        |
         # ... e.g. mycol IN (1, 2, 3) -- "(1, 2, 3)" being a term here
-        case_expr |
-        match_expr |
-        bind_parameter |
-        variable |
-        function_call |
-        literal_value |
-        column_spec  # not just identifier
+        case_expr
+        | match_expr
+        | bind_parameter
+        | variable
+        | function_call
+        | literal_value
+        | column_spec  # not just identifier
     )
     UNARY_OP, BINARY_OP, TERNARY_OP = 1, 2, 3
-    expr << infixNotation(expr_term, [
-        # https://pythonhosted.org/pyparsing/
-
-        # Having lots of operations in the list here SLOWS IT DOWN A LOT.
-        # Just combine them into an ordered list.
-        (BINARY | COLLATE | oneOf('! - + ~'), UNARY_OP, opAssoc.RIGHT),
-        (
+    expr << infixNotation(
+        expr_term,
+        [
+            # https://pythonhosted.org/pyparsing/
+            # Having lots of operations in the list here SLOWS IT DOWN A LOT.
+            # Just combine them into an ordered list.
+            (BINARY | COLLATE | oneOf("! - + ~"), UNARY_OP, opAssoc.RIGHT),
             (
-                oneOf('^ * / %') | DIV | MOD |
-                oneOf('+ - << >> & | = <=> >= > <= < <> !=') |
-                (IS + Optional(NOT)) | LIKE | REGEXP | (Optional(NOT) + IN) |
-                (SOUNDS + LIKE)
-            ),  # RNC; presumably at same level as LIKE
-            BINARY_OP,
-            opAssoc.LEFT
-        ),
-        ((BETWEEN, AND), TERNARY_OP, opAssoc.LEFT),
-        # CASE handled above (hoping precedence is not too much of a problem)
-        (NOT, UNARY_OP, opAssoc.RIGHT),
-        (AND | '&&' | XOR | OR | '||' | ':=', BINARY_OP, opAssoc.LEFT),
-    ], lpar=LPAR, rpar=RPAR)
+                (
+                    oneOf("^ * / %")
+                    | DIV
+                    | MOD
+                    | oneOf("+ - << >> & | = <=> >= > <= < <> !=")
+                    | (IS + Optional(NOT))
+                    | LIKE
+                    | REGEXP
+                    | (Optional(NOT) + IN)
+                    | (SOUNDS + LIKE)
+                ),  # RNC; presumably at same level as LIKE
+                BINARY_OP,
+                opAssoc.LEFT,
+            ),
+            ((BETWEEN, AND), TERNARY_OP, opAssoc.LEFT),
+            # CASE handled above (hoping precedence is not too much of a problem)
+            (NOT, UNARY_OP, opAssoc.RIGHT),
+            (AND | "&&" | XOR | OR | "||" | ":=", BINARY_OP, opAssoc.LEFT),
+        ],
+        lpar=LPAR,
+        rpar=RPAR,
+    )
     # ignores LIKE [ESCAPE]
 
     # -------------------------------------------------------------------------
@@ -499,32 +538,30 @@ YEAR
     # ... COLLATE can appear in lots of places;
     # http://dev.mysql.com/doc/refman/5.7/en/charset-collate.html
 
-    join_constraint = Optional(Group(  # join_condition in MySQL grammar
-        (ON + expr) |
-        (USING + LPAR + delim_list(column_name) + RPAR)
-    ))
+    join_constraint = Optional(
+        Group(  # join_condition in MySQL grammar
+            (ON + expr) | (USING + LPAR + delim_list(column_name) + RPAR)
+        )
+    )
 
     # http://dev.mysql.com/doc/refman/5.7/en/join.html
     join_op = Group(
-        COMMA |
-        STRAIGHT_JOIN |
-        NATURAL + (Optional(LEFT | RIGHT) + Optional(OUTER)) + JOIN |
-        (INNER | CROSS) + JOIN |
-        Optional(LEFT | RIGHT) + Optional(OUTER) + JOIN
+        COMMA
+        | STRAIGHT_JOIN
+        | NATURAL + (Optional(LEFT | RIGHT) + Optional(OUTER)) + JOIN
+        | (INNER | CROSS) + JOIN
+        | Optional(LEFT | RIGHT) + Optional(OUTER) + JOIN
         # ignores antique ODBC "{ OJ ... }" syntax
     )
 
     join_source = Forward()
     single_source = (
-        (
-            table_spec.copy().setResultsName("from_tables",
-                                             listAllMatches=True) +
-            Optional(PARTITION + partition_list) +
-            Optional(Optional(AS) + table_alias) +
-            Optional(index_hint_list)
-        ) |
-        (select_statement + Optional(AS) + table_alias) +
-        (LPAR + join_source + RPAR)
+        table_spec.copy().setResultsName("from_tables", listAllMatches=True)
+        + Optional(PARTITION + partition_list)
+        + Optional(Optional(AS) + table_alias)
+        + Optional(index_hint_list)
+    ) | (select_statement + Optional(AS) + table_alias) + (
+        LPAR + join_source + RPAR
     )
     join_source << Group(
         single_source + ZeroOrMore(join_op + single_source + join_constraint)
@@ -535,33 +572,40 @@ YEAR
 
     aggregate_function = (
         # https://dev.mysql.com/doc/refman/5.7/en/group-by-functions.html
-        AVG |
-        BIT_AND |
-        BIT_OR |
-        BIT_XOR |
-        COUNT |  # also: special handling for COUNT(DISTINCT ...), see below
-        GROUP_CONCAT |
-        MAX |
-        MIN |
-        STD |
-        STDDEV |
-        STDDEV_POP |
-        STDDEV_SAMP |
-        SUM |
-        VAR_POP |
-        VAR_SAMP |
-        VARIANCE
+        AVG
+        | BIT_AND
+        | BIT_OR
+        | BIT_XOR
+        | COUNT
+        | GROUP_CONCAT  # also: special handling for COUNT(DISTINCT ...), see below
+        | MAX
+        | MIN
+        | STD
+        | STDDEV
+        | STDDEV_POP
+        | STDDEV_SAMP
+        | SUM
+        | VAR_POP
+        | VAR_SAMP
+        | VARIANCE
     )
     result_base = (
         # Aggregate functions: e.g. "MAX(" allowed, "MAX (" not allowed
-        Combine(COUNT + LPAR) + '*' + RPAR |  # special aggregate function
-        Combine(COUNT + LPAR) + DISTINCT + expr + RPAR |  # special aggregate function  # noqa
-        Combine(aggregate_function + LPAR) + expr + RPAR |
-        expr |
-        '*' |
-        Combine(table_name + '.' + '*') |
-        column_spec |
-        literal_value
+        Combine(COUNT + LPAR) + "*" + RPAR
+        | Combine(COUNT + LPAR)  # special aggregate function
+        + DISTINCT
+        + expr
+        + RPAR
+        | Combine(  # special aggregate function  # noqa
+            aggregate_function + LPAR
+        )
+        + expr
+        + RPAR
+        | expr
+        | "*"
+        | Combine(table_name + "." + "*")
+        | column_spec
+        | literal_value
     )
     result_column = (
         result_base + Optional(Optional(AS) + column_alias)
@@ -601,49 +645,58 @@ YEAR
         [FOR UPDATE | LOCK IN SHARE MODE]]
     """
     where_expr = Group(expr).setResultsName("where_expr")
-    where_clause = Group(
-        Optional(WHERE + where_expr)
-    ).setResultsName("where_clause")
+    where_clause = Group(Optional(WHERE + where_expr)).setResultsName(
+        "where_clause"
+    )
     select_core = (
-        SELECT +
-        Group(Optional(ALL | DISTINCT | DISTINCTROW))("select_specifier") +
-        Optional(HIGH_PRIORITY) +
-        Optional(MAX_STATEMENT_TIME + '=' + integer) +
-        Optional(STRAIGHT_JOIN) +
-        Optional(SQL_SMALL_RESULT) +
-        Optional(SQL_BIG_RESULT) +
-        Optional(SQL_BUFFER_RESULT) +
-        Optional(SQL_CACHE | SQL_NO_CACHE) +
-        Optional(SQL_CALC_FOUND_ROWS) +
-        Group(delim_list(result_column))("select_expression") +
-        Optional(
-            FROM + join_source +
-            Optional(PARTITION + partition_list) +
-            where_clause +
-            Optional(
-                GROUP + BY +
-                delim_list(ordering_term +
-                           Optional(ASC | DESC))("group_by_term") +
-                Optional(WITH + ROLLUP)
-            ) +
-            Optional(HAVING + expr("having_expr"))
+        SELECT
+        + Group(Optional(ALL | DISTINCT | DISTINCTROW))("select_specifier")
+        + Optional(HIGH_PRIORITY)
+        + Optional(MAX_STATEMENT_TIME + "=" + integer)
+        + Optional(STRAIGHT_JOIN)
+        + Optional(SQL_SMALL_RESULT)
+        + Optional(SQL_BIG_RESULT)
+        + Optional(SQL_BUFFER_RESULT)
+        + Optional(SQL_CACHE | SQL_NO_CACHE)
+        + Optional(SQL_CALC_FOUND_ROWS)
+        + Group(delim_list(result_column))("select_expression")
+        + Optional(
+            FROM
+            + join_source
+            + Optional(PARTITION + partition_list)
+            + where_clause
+            + Optional(
+                GROUP
+                + BY
+                + delim_list(ordering_term + Optional(ASC | DESC))(
+                    "group_by_term"
+                )
+                + Optional(WITH + ROLLUP)
+            )
+            + Optional(HAVING + expr("having_expr"))
         )
     )
     select_statement << (
-        select_core +
-        ZeroOrMore(compound_operator + select_core) +
-        Optional(
-            ORDER + BY +
-            delim_list(ordering_term +
-                       Optional(ASC | DESC))("order_by_terms")
-        ) +
-        Optional(LIMIT + (
-            (Optional(integer("offset") + COMMA) + integer("row_count")) |
-            (integer("row_count") + OFFSET + integer("offset"))
-        )) +
+        select_core
+        + ZeroOrMore(compound_operator + select_core)
+        + Optional(
+            ORDER
+            + BY
+            + delim_list(ordering_term + Optional(ASC | DESC))(
+                "order_by_terms"
+            )
+        )
+        + Optional(
+            LIMIT
+            + (
+                (Optional(integer("offset") + COMMA) + integer("row_count"))
+                | (integer("row_count") + OFFSET + integer("offset"))
+            )
+        )
+        +
         # PROCEDURE ignored
         # rest ignored
-        Optional(';')
+        Optional(";")
     )
     select_statement.ignore(comment)
 
@@ -766,20 +819,29 @@ YEAR
         _test_succeed(cls.index_hint, "USE INDEX FOR JOIN (idx1, idx2)")
 
         log.info("Testing case_expr")
-        _test_succeed(cls.case_expr, """
+        _test_succeed(
+            cls.case_expr,
+            """
             CASE v
               WHEN 2 THEN x
               WHEN 3 THEN y
               ELSE -99
             END
-        """)
+        """,
+        )
 
         log.info("Testing match_expr")
-        _test_succeed(cls.match_expr, """
+        _test_succeed(
+            cls.match_expr,
+            """
              MATCH (content_field)
              AGAINST('+keyword1 +keyword2')
-        """)
-        _test_succeed(cls.match_expr, """
+        """,
+        )
+        _test_succeed(
+            cls.match_expr,
+            """
              MATCH (content_field)
              AGAINST('+keyword1 +keyword2' IN BOOLEAN MODE)
-        """)
+        """,
+        )

@@ -42,9 +42,9 @@ def assert_version_lt(version_str: str) -> None:
     Asserts that the cardinal_pythonlib version is less than the value supplied
     (as a semantic version string, e.g. "1.0.2").
     """
-    assert CARDINAL_PYTHONLIB_VERSION < Version(version_str), (
-        _get_version_failure_msg("<", version_str)
-    )
+    assert CARDINAL_PYTHONLIB_VERSION < Version(
+        version_str
+    ), _get_version_failure_msg("<", version_str)
 
 
 def assert_version_le(version_str: str) -> None:
@@ -52,9 +52,9 @@ def assert_version_le(version_str: str) -> None:
     Asserts that the cardinal_pythonlib version is less than or equal to the
     value supplied (as a semantic version string, e.g. "1.0.2").
     """
-    assert CARDINAL_PYTHONLIB_VERSION <= Version(version_str), (
-        _get_version_failure_msg("<=", version_str)
-    )
+    assert CARDINAL_PYTHONLIB_VERSION <= Version(
+        version_str
+    ), _get_version_failure_msg("<=", version_str)
 
 
 def assert_version_eq(version_str: str) -> None:
@@ -62,9 +62,9 @@ def assert_version_eq(version_str: str) -> None:
     Asserts that the cardinal_pythonlib version is equal to the value supplied
     (as a semantic version string, e.g. "1.0.2").
     """
-    assert CARDINAL_PYTHONLIB_VERSION == Version(version_str), (
-        _get_version_failure_msg("==", version_str)
-    )
+    assert CARDINAL_PYTHONLIB_VERSION == Version(
+        version_str
+    ), _get_version_failure_msg("==", version_str)
 
 
 def assert_version_ge(version_str: str) -> None:
@@ -72,9 +72,9 @@ def assert_version_ge(version_str: str) -> None:
     Asserts that the cardinal_pythonlib version is greater than or equal to the
     value supplied (as a semantic version string, e.g. "1.0.2").
     """
-    assert CARDINAL_PYTHONLIB_VERSION >= Version(version_str), (
-        _get_version_failure_msg(">=", version_str)
-    )
+    assert CARDINAL_PYTHONLIB_VERSION >= Version(
+        version_str
+    ), _get_version_failure_msg(">=", version_str)
 
 
 def assert_version_gt(version_str: str) -> None:
@@ -82,6 +82,6 @@ def assert_version_gt(version_str: str) -> None:
     Asserts that the cardinal_pythonlib version is greater than the value
     supplied (as a semantic version string, e.g. "1.0.2").
     """
-    assert CARDINAL_PYTHONLIB_VERSION > Version(version_str), (
-        _get_version_failure_msg(">", version_str)
-    )
+    assert CARDINAL_PYTHONLIB_VERSION > Version(
+        version_str
+    ), _get_version_failure_msg(">", version_str)

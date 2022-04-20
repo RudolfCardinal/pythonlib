@@ -65,6 +65,7 @@ from typing import Any, Callable, Dict, List, Tuple, Type
 
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import lazyload, load_only
+
 # noinspection PyProtectedMember
 from sqlalchemy.orm.session import make_transient, Session, sessionmaker
 from sqlalchemy.schema import sort_tables
@@ -98,6 +99,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # TableDependency; get_all_dependencies
 # =============================================================================
 
+
 class TableDependency(object):
     """
     Stores a table dependency for use in functions such as
@@ -106,34 +108,41 @@ class TableDependency(object):
     depends on ``parent`` (e.g. a field like ``child.parent_id`` refers to
     ``parent.id``).
     """
-    def __init__(self,
-                 parent_table_id: TableIdentity = None,
-                 child_table_id: TableIdentity = None,
-                 parent_table: Table = None,
-                 child_table: Table = None,
-                 parent_tablename: str = None,
-                 child_tablename: str = None,
-                 metadata: MetaData = None) -> None:
+
+    def __init__(
+        self,
+        parent_table_id: TableIdentity = None,
+        child_table_id: TableIdentity = None,
+        parent_table: Table = None,
+        child_table: Table = None,
+        parent_tablename: str = None,
+        child_tablename: str = None,
+        metadata: MetaData = None,
+    ) -> None:
         """
         The parent and child tables can be specified by name, :class:`Table`
         object, or our :class:`TableIdentity` descriptor class.
         """
-        overspecified = "Don't specify table with both TableIdentity and " \
-                        "Table/tablename"
+        overspecified = (
+            "Don't specify table with both TableIdentity and "
+            "Table/tablename"
+        )
         if parent_table_id:
             self._parent = parent_table_id
             assert parent_table is None and not parent_tablename, overspecified
         else:
-            self._parent = TableIdentity(table=parent_table,
-                                         tablename=parent_tablename,
-                                         metadata=metadata)
+            self._parent = TableIdentity(
+                table=parent_table,
+                tablename=parent_tablename,
+                metadata=metadata,
+            )
         if child_table_id:
             self._child = child_table_id
             assert child_table is None and not child_tablename, overspecified
         else:
-            self._child = TableIdentity(table=child_table,
-                                        tablename=child_tablename,
-                                        metadata=metadata)
+            self._child = TableIdentity(
+                table=child_table, tablename=child_tablename, metadata=metadata
+            )
 
     def __str__(self) -> str:
         return f"{self.child_tablename} -> {self.parent_tablename}"
@@ -195,10 +204,11 @@ class TableDependency(object):
         return self.parent_table, self.child_table
 
 
-def get_all_dependencies(metadata: MetaData,
-                         extra_dependencies: List[TableDependency] = None,
-                         sort: bool = True) \
-        -> List[TableDependency]:
+def get_all_dependencies(
+    metadata: MetaData,
+    extra_dependencies: List[TableDependency] = None,
+    sort: bool = True,
+) -> List[TableDependency]:
     """
     Describes how the tables found in the metadata depend on each other.
     (If table B contains a foreign key to table A, for example, then B depends
@@ -214,7 +224,9 @@ def get_all_dependencies(metadata: MetaData,
 
     See :func:`sort_tables_and_constraints` for method.
     """
-    extra_dependencies = extra_dependencies or []  # type: List[TableDependency]  # noqa
+    extra_dependencies = (
+        extra_dependencies or []
+    )  # type: List[TableDependency]  # noqa
     for td in extra_dependencies:
         td.set_metadata_if_none(metadata)
     dependencies = set([td.sqla_tuple() for td in extra_dependencies])
@@ -242,8 +254,9 @@ def get_all_dependencies(metadata: MetaData,
         for parent, child in dependencies
     ]
     if sort:
-        dependencies.sort(key=lambda td_: (td_.parent_tablename,
-                                           td_.child_tablename))
+        dependencies.sort(
+            key=lambda td_: (td_.parent_tablename, td_.child_tablename)
+        )
     return dependencies
 
 
@@ -251,14 +264,18 @@ def get_all_dependencies(metadata: MetaData,
 # TableDependencyClassification; classify_tables_by_dependency_type
 # =============================================================================
 
+
 class TableDependencyClassification(object):
     """
     Class to describe/classify a table in terms of its dependencies.
     """
-    def __init__(self,
-                 table: Table,
-                 children: List[Table] = None,
-                 parents: List[Table] = None) -> None:
+
+    def __init__(
+        self,
+        table: Table,
+        children: List[Table] = None,
+        parents: List[Table] = None,
+    ) -> None:
         """
         Args:
             table: the table in question
@@ -360,10 +377,10 @@ class TableDependencyClassification(object):
 
 
 def classify_tables_by_dependency_type(
-        metadata: MetaData,
-        extra_dependencies: List[TableDependency] = None,
-        sort: bool = True) \
-        -> List[TableDependencyClassification]:
+    metadata: MetaData,
+    extra_dependencies: List[TableDependency] = None,
+    sort: bool = True,
+) -> List[TableDependencyClassification]:
     """
     Inspects a metadata object (optionally adding other specified dependencies)
     and returns a list of objects describing their dependencies.
@@ -382,17 +399,20 @@ def classify_tables_by_dependency_type(
     all_deps = get_all_dependencies(metadata, extra_dependencies)
     tdcmap = {}  # type: Dict[Table, TableDependencyClassification]
     for table in tables:
-        parents = [td.parent_table for td in all_deps
-                   if td.child_table == table]
-        children = [td.child_table for td in all_deps
-                    if td.parent_table == table]
+        parents = [
+            td.parent_table for td in all_deps if td.child_table == table
+        ]
+        children = [
+            td.child_table for td in all_deps if td.parent_table == table
+        ]
         tdcmap[table] = TableDependencyClassification(
             table, parents=parents, children=children
         )
 
     # Check for circularity
-    def parents_contain(start: Table,
-                        probe: Table) -> Tuple[bool, List[Table]]:
+    def parents_contain(
+        start: Table, probe: Table
+    ) -> Tuple[bool, List[Table]]:
         tdc_ = tdcmap[start]
         if probe in tdc_.parents:
             return True, [start, probe]
@@ -402,8 +422,9 @@ def classify_tables_by_dependency_type(
                 return True, [start] + chain_
         return False, []
 
-    def children_contain(start: Table,
-                         probe: Table) -> Tuple[bool, List[Table]]:
+    def children_contain(
+        start: Table, probe: Table
+    ) -> Tuple[bool, List[Table]]:
         tdc_ = tdcmap[start]
         if probe in tdc_.children:
             return True, [start, probe]
@@ -434,6 +455,7 @@ def classify_tables_by_dependency_type(
 # =============================================================================
 # TranslationContext (for merge_db)
 # =============================================================================
+
 
 class TranslationContext(object):
     """
@@ -500,19 +522,22 @@ class TranslationContext(object):
     It is possible that ``oldobj`` and ``newobj`` are the SAME OBJECT.
 
     """
-    def __init__(self,
-                 oldobj: object,
-                 newobj: object,
-                 objmap: Dict[object, object],
-                 table: Table,
-                 tablename: str,
-                 src_session: Session,
-                 dst_session: Session,
-                 src_engine: Engine,
-                 dst_engine: Engine,
-                 src_table_names: List[str],
-                 missing_src_columns: List[str] = None,
-                 info: Dict[str, Any] = None) -> None:
+
+    def __init__(
+        self,
+        oldobj: object,
+        newobj: object,
+        objmap: Dict[object, object],
+        table: Table,
+        tablename: str,
+        src_session: Session,
+        dst_session: Session,
+        src_engine: Engine,
+        dst_engine: Engine,
+        src_table_names: List[str],
+        missing_src_columns: List[str] = None,
+        info: Dict[str, Any] = None,
+    ) -> None:
         self.oldobj = oldobj
         self.newobj = newobj
         self.objmap = objmap
@@ -531,25 +556,28 @@ class TranslationContext(object):
 # merge_db
 # =============================================================================
 
-def merge_db(base_class: Type,
-             src_engine: Engine,
-             dst_session: Session,
-             allow_missing_src_tables: bool = True,
-             allow_missing_src_columns: bool = True,
-             translate_fn: Callable[[TranslationContext], None] = None,
-             skip_tables: List[TableIdentity] = None,
-             only_tables: List[TableIdentity] = None,
-             tables_to_keep_pks_for: List[TableIdentity] = None,
-             extra_table_dependencies: List[TableDependency] = None,
-             dummy_run: bool = False,
-             info_only: bool = False,
-             report_every: int = 1000,
-             flush_per_table: bool = True,
-             flush_per_record: bool = False,
-             commit_with_flush: bool = False,
-             commit_at_end: bool = True,
-             prevent_eager_load: bool = True,
-             trcon_info: Dict[str, Any] = None) -> None:
+
+def merge_db(
+    base_class: Type,
+    src_engine: Engine,
+    dst_session: Session,
+    allow_missing_src_tables: bool = True,
+    allow_missing_src_columns: bool = True,
+    translate_fn: Callable[[TranslationContext], None] = None,
+    skip_tables: List[TableIdentity] = None,
+    only_tables: List[TableIdentity] = None,
+    tables_to_keep_pks_for: List[TableIdentity] = None,
+    extra_table_dependencies: List[TableDependency] = None,
+    dummy_run: bool = False,
+    info_only: bool = False,
+    report_every: int = 1000,
+    flush_per_table: bool = True,
+    flush_per_record: bool = False,
+    commit_with_flush: bool = False,
+    commit_at_end: bool = True,
+    prevent_eager_load: bool = True,
+    trcon_info: Dict[str, Any] = None,
+) -> None:
     """
     Copies an entire database as far as it is described by ``metadata`` and
     ``base_class``, from SQLAlchemy ORM session ``src_session`` to
@@ -668,8 +696,12 @@ def merge_db(base_class: Type,
     # Finalize parameters
     skip_tables = skip_tables or []  # type: List[TableIdentity]
     only_tables = only_tables or []  # type: List[TableIdentity]
-    tables_to_keep_pks_for = tables_to_keep_pks_for or []  # type: List[TableIdentity]  # noqa
-    extra_table_dependencies = extra_table_dependencies or []  # type: List[TableDependency]  # noqa
+    tables_to_keep_pks_for = (
+        tables_to_keep_pks_for or []
+    )  # type: List[TableIdentity]  # noqa
+    extra_table_dependencies = (
+        extra_table_dependencies or []
+    )  # type: List[TableDependency]  # noqa
     trcon_info = trcon_info or {}  # type: Dict[str, Any]
 
     # We need both Core and ORM for the source.
@@ -689,16 +721,18 @@ def merge_db(base_class: Type,
     # Get all lists of tables as their names
     skip_table_names = [ti.tablename for ti in skip_tables]
     only_table_names = [ti.tablename for ti in only_tables]
-    tables_to_keep_pks_for = [ti.tablename for ti in tables_to_keep_pks_for]  # type: List[str]  # noqa
+    tables_to_keep_pks_for = [
+        ti.tablename for ti in tables_to_keep_pks_for
+    ]  # type: List[str]  # noqa
     # ... now all are of type List[str]
 
     # Safety check: this is an imperfect check for source == destination, but
     # it is fairly easy to pass in the wrong URL, so let's try our best:
     _src_url = get_safe_url_from_engine(src_engine)
     _dst_url = get_safe_url_from_session(dst_session)
-    assert _src_url != _dst_url or _src_url == SQLITE_MEMORY_URL, (
-        "Source and destination databases are the same!"
-    )
+    assert (
+        _src_url != _dst_url or _src_url == SQLITE_MEMORY_URL
+    ), "Source and destination databases are the same!"
 
     # Check the right tables are present.
     src_tables = sorted(get_table_names(src_engine))
@@ -707,12 +741,15 @@ def merge_db(base_class: Type,
     log.debug("Destination tables: {!r}", dst_tables)
     if not allow_missing_src_tables:
         missing_tables = sorted(
-            d for d in dst_tables
+            d
+            for d in dst_tables
             if d not in src_tables and d not in skip_table_names
         )
         if missing_tables:
-            raise RuntimeError("The following tables are missing from the "
-                               "source database: " + repr(missing_tables))
+            raise RuntimeError(
+                "The following tables are missing from the "
+                "source database: " + repr(missing_tables)
+            )
 
     table_num = 0
     overall_record_num = 0
@@ -728,21 +765,30 @@ def merge_db(base_class: Type,
     # sorting in one step with sqlalchemy.schema.sort_tables:
     ordered_tables = sort_tables(
         tables,
-        extra_dependencies=[td.sqla_tuple() for td in extra_table_dependencies]
+        extra_dependencies=[
+            td.sqla_tuple() for td in extra_table_dependencies
+        ],
     )
     # Note that the ordering is NOT NECESSARILY CONSISTENT, though (in that
     # the order of stuff it doesn't care about varies across runs).
     all_dependencies = get_all_dependencies(metadata, extra_table_dependencies)
     dep_classifications = classify_tables_by_dependency_type(
-        metadata, extra_table_dependencies)
+        metadata, extra_table_dependencies
+    )
     circular = [tdc for tdc in dep_classifications if tdc.circular]
     assert not circular, f"Circular dependencies! {circular!r}"
-    log.debug("All table dependencies: {}",
-              "; ".join(str(td) for td in all_dependencies))
-    log.debug("Table dependency classifications: {}",
-              "; ".join(str(c) for c in dep_classifications))
-    log.info("Processing tables in the order: {!r}",
-             [table.name for table in ordered_tables])
+    log.debug(
+        "All table dependencies: {}",
+        "; ".join(str(td) for td in all_dependencies),
+    )
+    log.debug(
+        "Table dependency classifications: {}",
+        "; ".join(str(c) for c in dep_classifications),
+    )
+    log.info(
+        "Processing tables in the order: {!r}",
+        [table.name for table in ordered_tables],
+    )
 
     objmap = {}
 
@@ -757,18 +803,20 @@ def merge_db(base_class: Type,
     def translate(oldobj_: object, newobj_: object) -> object:
         if translate_fn is None:
             return newobj_
-        tc = TranslationContext(oldobj=oldobj_,
-                                newobj=newobj_,
-                                objmap=objmap,
-                                table=table,
-                                tablename=tablename,
-                                src_session=src_session,
-                                dst_session=dst_session,
-                                src_engine=src_engine,
-                                dst_engine=dst_engine,
-                                missing_src_columns=missing_columns,
-                                src_table_names=src_tables,
-                                info=trcon_info)
+        tc = TranslationContext(
+            oldobj=oldobj_,
+            newobj=newobj_,
+            objmap=objmap,
+            table=table,
+            tablename=tablename,
+            src_session=src_session,
+            dst_session=dst_session,
+            src_engine=src_engine,
+            dst_engine=dst_engine,
+            missing_src_columns=missing_columns,
+            src_table_names=src_tables,
+            info=trcon_info,
+        )
         translate_fn(tc)
         if tc.newobj is None:
             log.debug("Instance skipped by user-supplied translate_fn")
@@ -787,8 +835,9 @@ def merge_db(base_class: Type,
             log.info("... ignoring table {!r} (as per only_tables)", tablename)
             continue
         if allow_missing_src_tables and tablename not in src_tables:
-            log.info("... ignoring table {!r} (not in source database)",
-                     tablename)
+            log.info(
+                "... ignoring table {!r} (not in source database)", tablename
+            )
             continue
         table_num += 1
         table_record_num = 0
@@ -800,7 +849,8 @@ def merge_db(base_class: Type,
         if not allow_missing_src_columns and missing_columns:
             raise RuntimeError(
                 f"The following columns are missing from source table "
-                f"{tablename!r}: {missing_columns!r}")
+                f"{tablename!r}: {missing_columns!r}"
+            )
 
         orm_class = tablename_to_ormclass[tablename]
         pk_attrs = get_pk_attrnames(orm_class)
@@ -808,12 +858,16 @@ def merge_db(base_class: Type,
         missing_attrs = map_keys_to_values(missing_columns, c2a)
         tdc = [tdc for tdc in dep_classifications if tdc.table == table][0]
 
-        log.info("Processing table {!r} via ORM class {!r}",
-                 tablename, orm_class)
+        log.info(
+            "Processing table {!r} via ORM class {!r}", tablename, orm_class
+        )
         log.debug("PK attributes: {!r}", pk_attrs)
         log.debug("Table: {!r}", table)
-        log.debug("Dependencies: parents = {!r}; children = {!r}",
-                  tdc.parent_names, tdc.child_names)
+        log.debug(
+            "Dependencies: parents = {!r}; children = {!r}",
+            tdc.parent_names,
+            tdc.child_names,
+        )
 
         if info_only:
             log.debug("info_only; skipping table contents")
@@ -827,10 +881,16 @@ def merge_db(base_class: Type,
 
         if allow_missing_src_columns and missing_columns:
             src_attrs = map_keys_to_values(src_columns, c2a)
-            log.info("Table {} is missing columns {} in the source",
-                     tablename, missing_columns)
-            log.debug("... using only columns {} via attributes {}",
-                      src_columns, src_attrs)
+            log.info(
+                "Table {} is missing columns {} in the source",
+                tablename,
+                missing_columns,
+            )
+            log.debug(
+                "... using only columns {} via attributes {}",
+                src_columns,
+                src_attrs,
+            )
             query = query.options(load_only(*src_attrs))
             # PROBLEM: it will not ignore the PK.
 
@@ -870,11 +930,15 @@ def merge_db(base_class: Type,
             table_record_num += 1
             overall_record_num += 1
             if table_record_num % report_every == 0:
-                log.info("... progress{}: on table {} ({}); record {} this "
-                         "table; overall record {}",
-                         " (DUMMY RUN)" if dummy_run else "",
-                         table_num, tablename,
-                         table_record_num, overall_record_num)
+                log.info(
+                    "... progress{}: on table {} ({}); record {} this "
+                    "table; overall record {}",
+                    " (DUMMY RUN)" if dummy_run else "",
+                    table_num,
+                    tablename,
+                    table_record_num,
+                    overall_record_num,
+                )
 
             if tdc.standalone:
                 # Our table has neither parents nor children. We can therefore
@@ -906,12 +970,20 @@ def merge_db(base_class: Type,
 
                 oldobj = instance  # rename for clarity
                 newobj = copy_sqla_object(
-                    oldobj, omit_pk=wipe_pk, omit_fk=True,
-                    omit_attrs=missing_attrs, debug=False
+                    oldobj,
+                    omit_pk=wipe_pk,
+                    omit_fk=True,
+                    omit_attrs=missing_attrs,
+                    debug=False,
                 )
 
-                rewrite_relationships(oldobj, newobj, objmap, debug=False,
-                                      skip_table_names=skip_table_names)
+                rewrite_relationships(
+                    oldobj,
+                    newobj,
+                    objmap,
+                    debug=False,
+                    skip_table_names=skip_table_names,
+                )
 
                 newobj = translate(oldobj, newobj)
                 if not newobj:

@@ -32,6 +32,7 @@ import unicodedata
 # Finding
 # =============================================================================
 
+
 def find_nth(s: str, x: str, n: int = 0, overlap: bool = False) -> int:
     """
     Finds the position of *n*\ th occurrence of ``x`` in ``s``, or ``-1`` if
@@ -58,17 +59,19 @@ def find_nth(s: str, x: str, n: int = 0, overlap: bool = False) -> int:
 # Splitting
 # =============================================================================
 
+
 def split_string(x: str, n: int) -> List[str]:
     """
     Split string into chunks of length n
     """
     # https://stackoverflow.com/questions/9475241/split-string-every-nth-character  # noqa
-    return [x[i:i+n] for i in range(0, len(x), n)]
+    return [x[i : i + n] for i in range(0, len(x), n)]
 
 
 # =============================================================================
 # Replacement
 # =============================================================================
+
 
 def multiple_replace(text: str, rep: Dict[str, str]) -> str:
     """
@@ -83,8 +86,9 @@ def multiple_replace(text: str, rep: Dict[str, str]) -> str:
     return pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
 
 
-def replace_in_list(stringlist: Iterable[str],
-                    replacedict: Dict[str, str]) -> List[str]:
+def replace_in_list(
+    stringlist: Iterable[str], replacedict: Dict[str, str]
+) -> List[str]:
     """
     Returns a list produced by applying :func:`multiple_replace` to every
     string in ``stringlist``.
@@ -107,6 +111,7 @@ def replace_in_list(stringlist: Iterable[str],
 # Mangling to ASCII
 # =============================================================================
 
+
 def mangle_unicode_to_ascii(s: Any) -> str:
     """
     Mangle unicode to ASCII, losing accents etc. in the process.
@@ -117,15 +122,16 @@ def mangle_unicode_to_ascii(s: Any) -> str:
     if not isinstance(s, str):
         s = str(s)
     return (
-        unicodedata.normalize('NFKD', s)
-                   .encode('ascii', 'ignore')  # gets rid of accents
-                   .decode('ascii')  # back to a string
+        unicodedata.normalize("NFKD", s)
+        .encode("ascii", "ignore")  # gets rid of accents
+        .decode("ascii")  # back to a string
     )
 
 
 # =============================================================================
 # Making strings and string lists
 # =============================================================================
+
 
 def strnum(prefix: str, num: int, suffix: str = "") -> str:
     """

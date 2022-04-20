@@ -32,12 +32,16 @@ from typing import Any
 
 # noinspection PyUnresolvedReferences
 from django import forms
+
 # noinspection PyUnresolvedReferences
 from django.core.files.uploadedfile import UploadedFile
+
 # noinspection PyUnresolvedReferences
 from django.db import models
+
 # noinspection PyUnresolvedReferences
 from django.template.defaultfilters import filesizeformat
+
 # noinspection PyUnresolvedReferences
 from django.utils.translation import ugettext_lazy
 
@@ -45,6 +49,7 @@ from django.utils.translation import ugettext_lazy
 # =============================================================================
 # ContentTypeRestrictedFileField
 # =============================================================================
+
 
 class ContentTypeRestrictedFileField(models.FileField):
     """
@@ -72,6 +77,7 @@ class ContentTypeRestrictedFileField(models.FileField):
     - https://docs.djangoproject.com/en/1.8/ref/files/uploads/
     - https://stackoverflow.com/questions/2472422/django-file-upload-size-limit
     """
+
     def __init__(self, *args, **kwargs) -> None:
         self.content_types = kwargs.pop("content_types", None)
         if self.content_types is None:
@@ -89,21 +95,27 @@ class ContentTypeRestrictedFileField(models.FileField):
         # log.debug("f: {!r}", f)
         content_type = f.content_type
         if content_type not in self.content_types:
-            raise forms.ValidationError(ugettext_lazy(
-                'Filetype not supported.'))
+            raise forms.ValidationError(
+                ugettext_lazy("Filetype not supported.")
+            )
         if hasattr(f, "size"):  # e.g. Django 2.1.2
             uploaded_file_size = f.size
         elif hasattr(f, "_size"):  # e.g. Django 1.8 ?
             # noinspection PyProtectedMember,PyUnresolvedReferences
             uploaded_file_size = f._size
         else:
-            raise AssertionError(
-                f"Don't know how to get file size from {f!r}")
-        if (self.max_upload_size is not None and
-                uploaded_file_size > self.max_upload_size):
-            raise forms.ValidationError(ugettext_lazy(
-                'Please keep filesize under %s. Current filesize %s')
-                % (filesizeformat(self.max_upload_size),
-                   filesizeformat(uploaded_file_size)))
+            raise AssertionError(f"Don't know how to get file size from {f!r}")
+        if (
+            self.max_upload_size is not None
+            and uploaded_file_size > self.max_upload_size
+        ):
+            raise forms.ValidationError(
+                ugettext_lazy(
+                    "Please keep filesize under %s. Current filesize %s"
+                )
+                % (
+                    filesizeformat(self.max_upload_size),
+                    filesizeformat(uploaded_file_size),
+                )
+            )
         return data
-

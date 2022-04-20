@@ -30,8 +30,10 @@ from typing import Any, Callable
 
 # noinspection PyUnresolvedReferences
 from django.contrib.admin import AdminSite, ModelAdmin
+
 # noinspection PyUnresolvedReferences
 from django.utils.html import escape
+
 # noinspection PyUnresolvedReferences
 from django.urls import reverse
 
@@ -42,9 +44,8 @@ from django.urls import reverse
 # https://stackoverflow.com/questions/13990846/disable-on-off-icon-for-boolean-field-in-django  # noqa
 # ... extended to use closures
 
-def disable_bool_icon(
-        fieldname: str,
-        model) -> Callable[[Any], bool]:
+
+def disable_bool_icon(fieldname: str, model) -> Callable[[Any], bool]:
     """
     Disable boolean icons for a Django ModelAdmin field.
     The '_meta' attribute is present on Django model classes and instances.
@@ -56,6 +57,7 @@ def disable_bool_icon(
     # noinspection PyUnusedLocal
     def func(self, obj):
         return getattr(obj, fieldname)
+
     func.boolean = False
     func.admin_order_field = fieldname
     # func.short_description = \
@@ -64,8 +66,7 @@ def disable_bool_icon(
     # https://docs.djangoproject.com/en/1.8/ref/models/meta/
 
     # noinspection PyProtectedMember, PyUnresolvedReferences
-    func.short_description = \
-        model._meta.get_field(fieldname).verbose_name
+    func.short_description = model._meta.get_field(fieldname).verbose_name
     return func
 
 
@@ -74,10 +75,12 @@ def disable_bool_icon(
 # =============================================================================
 
 # noinspection PyProtectedMember
-def admin_view_url(admin_site: AdminSite,
-                   obj,
-                   view_type: str = "change",
-                   current_app: str = None) -> str:
+def admin_view_url(
+    admin_site: AdminSite,
+    obj,
+    view_type: str = "change",
+    current_app: str = None,
+) -> str:
     """
     Get a Django admin site URL for an object.
     """
@@ -92,13 +95,15 @@ def admin_view_url(admin_site: AdminSite,
 
 
 # noinspection PyProtectedMember
-def admin_view_fk_link(modeladmin: ModelAdmin,
-                       obj,
-                       fkfield: str,
-                       missing: str = "(None)",
-                       use_str: bool = True,
-                       view_type: str = "change",
-                       current_app: str = None) -> str:
+def admin_view_fk_link(
+    modeladmin: ModelAdmin,
+    obj,
+    fkfield: str,
+    missing: str = "(None)",
+    use_str: bool = True,
+    view_type: str = "change",
+    current_app: str = None,
+) -> str:
     """
     Get a Django admin site URL for an object that's found from a foreign
     key in our object of interest.
@@ -122,14 +127,16 @@ def admin_view_fk_link(modeladmin: ModelAdmin,
 
 
 # noinspection PyProtectedMember
-def admin_view_reverse_fk_links(modeladmin: ModelAdmin,
-                                obj,
-                                reverse_fk_set_field: str,
-                                missing: str = "(None)",
-                                use_str: bool = True,
-                                separator: str = "<br>",
-                                view_type: str = "change",
-                                current_app: str = None) -> str:
+def admin_view_reverse_fk_links(
+    modeladmin: ModelAdmin,
+    obj,
+    reverse_fk_set_field: str,
+    missing: str = "(None)",
+    use_str: bool = True,
+    separator: str = "<br>",
+    view_type: str = "change",
+    current_app: str = None,
+) -> str:
     """
     Get multiple Django admin site URL for multiple objects linked to our
     object of interest (where the other objects have foreign keys to our

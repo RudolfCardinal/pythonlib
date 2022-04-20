@@ -43,6 +43,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Get otput of extermnal commands
 # =============================================================================
 
+
 def get_external_command_output(command: str) -> bytes:
     """
     Takes a command-line command, executes it, and returns its ``stdout``
@@ -60,8 +61,9 @@ def get_external_command_output(command: str) -> bytes:
     return ret
 
 
-def get_pipe_series_output(commands: Sequence[str],
-                           stdinput: BinaryIO = None) -> bytes:
+def get_pipe_series_output(
+    commands: Sequence[str], stdinput: BinaryIO = None
+) -> bytes:
     """
     Get the output from a piped series of commands.
 
@@ -86,7 +88,7 @@ def get_pipe_series_output(commands: Sequence[str],
                 subprocess.Popen(
                     shlex.split(commands[i]),
                     stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE
+                    stdout=subprocess.PIPE,
                 )
             )
         else:  # subsequent ones
@@ -94,11 +96,12 @@ def get_pipe_series_output(commands: Sequence[str],
                 subprocess.Popen(
                     shlex.split(commands[i]),
                     stdin=processes[i - 1].stdout,
-                    stdout=subprocess.PIPE
+                    stdout=subprocess.PIPE,
                 )
             )
     return processes[len(processes) - 1].communicate(stdinput)[0]
     # communicate() returns a tuple; 0=stdout, 1=stderr; so this returns stdout
+
 
 # Also, simple commands: use os.system(command)
 
@@ -106,6 +109,7 @@ def get_pipe_series_output(commands: Sequence[str],
 # =============================================================================
 # Launch external file using OS's launcher
 # =============================================================================
+
 
 def launch_external_file(filename: str, raise_if_fails: bool = False) -> None:
     """
@@ -121,7 +125,7 @@ def launch_external_file(filename: str, raise_if_fails: bool = False) -> None:
     """
     log.info("Launching external file: {!r}", filename)
     try:
-        if sys.platform.startswith('linux'):
+        if sys.platform.startswith("linux"):
             cmdargs = ["xdg-open", filename]
             # log.debug("... command: {!r}", cmdargs)
             subprocess.call(cmdargs)
@@ -130,8 +134,12 @@ def launch_external_file(filename: str, raise_if_fails: bool = False) -> None:
             # noinspection PyUnresolvedReferences
             os.startfile(filename)
     except Exception as e:
-        log.critical("Error launching {!r}: error was {}.\n\n{}",
-                     filename, str(e), traceback.format_exc())
+        log.critical(
+            "Error launching {!r}: error was {}.\n\n{}",
+            filename,
+            str(e),
+            traceback.format_exc(),
+        )
         if raise_if_fails:
             raise
 
@@ -141,10 +149,10 @@ def launch_external_file(filename: str, raise_if_fails: bool = False) -> None:
 # (via subprocess) can leave orphans.
 # =============================================================================
 
-def kill_proc_tree(pid: int,
-                   including_parent: bool = True,
-                   timeout_s: float = 5) \
-        -> Tuple[Set[psutil.Process], Set[psutil.Process]]:
+
+def kill_proc_tree(
+    pid: int, including_parent: bool = True, timeout_s: float = 5
+) -> Tuple[Set[psutil.Process], Set[psutil.Process]]:
     """
     Kills a tree of processes, starting with the parent. Slightly modified from
     https://stackoverflow.com/questions/1230669/subprocess-deleting-child-processes-in-windows.
@@ -173,8 +181,10 @@ def kill_proc_tree(pid: int,
 # nice_call
 # =============================================================================
 
-def nice_call(*popenargs, timeout: float = None,
-              cleanup_timeout: float = None, **kwargs) -> int:
+
+def nice_call(
+    *popenargs, timeout: float = None, cleanup_timeout: float = None, **kwargs
+) -> int:
     """
     Like :func:`subprocess.call`, but give the child process time to
     clean up and communicate if a :exc:`KeyboardInterrupt` is raised.
@@ -189,8 +199,10 @@ def nice_call(*popenargs, timeout: float = None,
             log.error("KeyboardInterrupt received")
             if cleanup_timeout:
                 # Wait again, now that the child has received SIGINT, too.
-                log.info(f"Waiting {cleanup_timeout} seconds "
-                         f"for child process {p.pid} to finish...")
+                log.info(
+                    f"Waiting {cleanup_timeout} seconds "
+                    f"for child process {p.pid} to finish..."
+                )
                 try:
                     p.wait(timeout=cleanup_timeout)  # may raise TimeoutExpired
                     log.info(f"Child process {p.pid} shut down cleanly")

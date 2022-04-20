@@ -34,8 +34,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # noinspection PyUnresolvedReferences
 from django.db import models
+
 # noinspection PyUnresolvedReferences
 from django.db.models.fields import DateField, DateTimeField, Field
+
 # noinspection PyUnresolvedReferences
 from django.utils import timezone
 
@@ -52,8 +54,10 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Conversions: Python
 # -----------------------------------------------------------------------------
 
+
 def iso_string_to_python_datetime(
-        isostring: str) -> Optional[datetime.datetime]:
+    isostring: str
+) -> Optional[datetime.datetime]:
     """
     Takes an ISO-8601 string and returns a ``datetime``.
     """
@@ -63,7 +67,8 @@ def iso_string_to_python_datetime(
 
 
 def python_utc_datetime_to_sqlite_strftime_string(
-        value: datetime.datetime) -> str:
+    value: datetime.datetime
+) -> str:
     """
     Converts a Python datetime to a string literal compatible with SQLite,
     including the millisecond field.
@@ -90,6 +95,7 @@ def python_localized_datetime_to_human_iso(value: datetime.datetime) -> str:
 # -----------------------------------------------------------------------------
 # Field
 # -----------------------------------------------------------------------------
+
 
 class IsoDateTimeTzField(models.CharField):
     """
@@ -183,6 +189,7 @@ class IsoDateTimeTzField(models.CharField):
         https://docs.djangoproject.com/en/1.8/ref/databases/#fractional-seconds-support-for-time-and-datetime-fields
 
     """  # noqa
+
     # https://docs.djangoproject.com/en/1.8/ref/models/fields/#field-api-reference  # noqa
 
     description = "ISO-8601 date/time field with timezone, stored as text"
@@ -192,7 +199,7 @@ class IsoDateTimeTzField(models.CharField):
         Declare that we're a ``VARCHAR(32)`` on the database side.
         """
         # https://docs.djangoproject.com/en/1.8/howto/custom-model-fields/
-        kwargs['max_length'] = 32
+        kwargs["max_length"] = 32
         super().__init__(*args, **kwargs)
 
     def deconstruct(self) -> Tuple[str, str, List[Any], Dict[str, Any]]:
@@ -201,7 +208,7 @@ class IsoDateTimeTzField(models.CharField):
         to reconstruct it.
         """
         name, path, args, kwargs = super().deconstruct()
-        del kwargs['max_length']
+        del kwargs["max_length"]
         return name, path, args, kwargs
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
@@ -213,7 +220,7 @@ class IsoDateTimeTzField(models.CharField):
         # log.debug("from_db_value: {}, {}", value, type(value))
         if value is None:
             return value
-        if value == '':
+        if value == "":
             return None
         return iso_string_to_python_datetime(value)
 
@@ -230,7 +237,7 @@ class IsoDateTimeTzField(models.CharField):
             return value
         if value is None:
             return value
-        if value == '':
+        if value == "":
             return None
         return iso_string_to_python_datetime(value)
 
@@ -244,7 +251,7 @@ class IsoDateTimeTzField(models.CharField):
         """
         log.debug("get_prep_value: {}, {}", value, type(value))
         if not value:
-            return ''
+            return ""
             # For underlying (database) string types, e.g. VARCHAR, this
             # function must always return a string type.
             # https://docs.djangoproject.com/en/1.8/howto/custom-model-fields/
@@ -263,7 +270,7 @@ class IsoDateTimeTzField(models.CharField):
             return value
         # log.debug("connection.settings_dict['ENGINE']: {}",
         #           connection.settings_dict['ENGINE'])
-        if connection.settings_dict['ENGINE'] == 'django.db.backends.sqlite3':
+        if connection.settings_dict["ENGINE"] == "django.db.backends.sqlite3":
             return python_utc_datetime_to_sqlite_strftime_string(value)
         return value
 
@@ -274,7 +281,7 @@ class IsoDateTimeTzField(models.CharField):
         """
         log.debug("get_db_prep_save: {}, {}", value, type(value))
         if not value:
-            return ''
+            return ""
             # For underlying (database) string types, e.g. VARCHAR, this
             # function must always return a string type.
             # https://docs.djangoproject.com/en/1.8/howto/custom-model-fields/
@@ -284,6 +291,7 @@ class IsoDateTimeTzField(models.CharField):
 # -----------------------------------------------------------------------------
 # Conversions: MySQL
 # -----------------------------------------------------------------------------
+
 
 def iso_string_to_sql_utcdatetime_mysql(x: str) -> str:
     """
@@ -331,6 +339,7 @@ def iso_string_to_sql_date_mysql(x: str) -> str:
 # -----------------------------------------------------------------------------
 # Conversions: SQLite
 # -----------------------------------------------------------------------------
+
 
 def iso_string_to_sql_utcdatetime_sqlite(x: str) -> str:
     """
@@ -408,8 +417,10 @@ def iso_string_to_sql_date_sqlite(x: str) -> str:
 # Lookups
 # -----------------------------------------------------------------------------
 
-def isodt_lookup_mysql(lookup, compiler, connection,
-                       operator) -> Tuple[str, Any]:
+
+def isodt_lookup_mysql(
+    lookup, compiler, connection, operator
+) -> Tuple[str, Any]:
     """
     For a comparison "LHS *op* RHS", transforms the LHS from a column
     containing an ISO-8601 date/time into an SQL ``DATETIME``,
@@ -418,15 +429,17 @@ def isodt_lookup_mysql(lookup, compiler, connection,
     lhs, lhs_params = compiler.compile(lookup.lhs)
     rhs, rhs_params = lookup.process_rhs(compiler, connection)
     params = lhs_params + rhs_params
-    return '{lhs} {op} {rhs}'.format(
-        lhs=iso_string_to_sql_utcdatetime_mysql(lhs),
-        op=operator,
-        rhs=rhs,
-    ), params
+    return (
+        "{lhs} {op} {rhs}".format(
+            lhs=iso_string_to_sql_utcdatetime_mysql(lhs), op=operator, rhs=rhs
+        ),
+        params,
+    )
 
 
-def isodt_lookup_sqlite(lookup, compiler, connection,
-                        operator) -> Tuple[str, Any]:
+def isodt_lookup_sqlite(
+    lookup, compiler, connection, operator
+) -> Tuple[str, Any]:
     """
     For a comparison "LHS *op* RHS", transforms the LHS from a column
     containing an ISO-8601 date/time into an SQL ``DATETIME``,
@@ -435,11 +448,12 @@ def isodt_lookup_sqlite(lookup, compiler, connection,
     lhs, lhs_params = compiler.compile(lookup.lhs)
     rhs, rhs_params = lookup.process_rhs(compiler, connection)
     params = lhs_params + rhs_params
-    return '{lhs} {op} {rhs}'.format(
-        lhs=iso_string_to_sql_utcdatetime_sqlite(lhs),
-        op=operator,
-        rhs=rhs,
-    ), params
+    return (
+        "{lhs} {op} {rhs}".format(
+            lhs=iso_string_to_sql_utcdatetime_sqlite(lhs), op=operator, rhs=rhs
+        ),
+        params,
+    )
     # ... RHS conversion using STRFTIME() not necessary because we do the
     # appropriate thing in get_db_prep_value().
 
@@ -451,7 +465,8 @@ class IsoDateTimeLessThan(models.Lookup):
     Lookup for a '<' comparison where the LHS is a column containing an
     ISO-8601 field (and the RHS will be comparable to a ``DATETIME``).
     """
-    lookup_name = 'lt'
+
+    lookup_name = "lt"
 
     def as_mysql(self, compiler, connection) -> Tuple[str, Any]:
         return isodt_lookup_mysql(self, compiler, connection, "<")
@@ -467,7 +482,8 @@ class IsoDateTimeLessThanEqual(models.Lookup):
     Lookup for a '<=' comparison where the LHS is a column containing an
     ISO-8601 field (and the RHS will be comparable to a ``DATETIME``).
     """
-    lookup_name = 'lte'
+
+    lookup_name = "lte"
 
     def as_mysql(self, compiler, connection) -> Tuple[str, Any]:
         return isodt_lookup_mysql(self, compiler, connection, "<=")
@@ -483,7 +499,8 @@ class IsoDateTimeExact(models.Lookup):
     Lookup for a '=' comparison where the LHS is a column containing an
     ISO-8601 field (and the RHS will be comparable to a ``DATETIME``).
     """
-    lookup_name = 'exact'
+
+    lookup_name = "exact"
 
     def as_mysql(self, compiler, connection) -> Tuple[str, Any]:
         return isodt_lookup_mysql(self, compiler, connection, "=")
@@ -499,7 +516,8 @@ class IsoDateTimeGreaterThan(models.Lookup):
     Lookup for a '>' comparison where the LHS is a column containing an
     ISO-8601 field (and the RHS will be comparable to a ``DATETIME``).
     """
-    lookup_name = 'gt'
+
+    lookup_name = "gt"
 
     def as_mysql(self, compiler, connection) -> Tuple[str, Any]:
         return isodt_lookup_mysql(self, compiler, connection, ">")
@@ -515,7 +533,8 @@ class IsoDateTimeGreaterThanEqual(models.Lookup):
     Lookup for a '>=' comparison where the LHS is a column containing an
     ISO-8601 field (and the RHS will be comparable to a ``DATETIME``).
     """
-    lookup_name = 'gte'
+
+    lookup_name = "gte"
 
     def as_mysql(self, compiler, connection) -> Tuple[str, Any]:
         return isodt_lookup_mysql(self, compiler, connection, ">=")
@@ -534,7 +553,8 @@ class IsoStringToUtcDateTime(models.Transform):
     """
     SQL expression: converts ISO-8601 field into UTC DATETIME.
     """
-    lookup_name = 'utc'
+
+    lookup_name = "utc"
 
     # NOTE THAT SETTING output_field MEANS YOU HAVE TO MAKE THE OUTPUT
     # MATCH THE FORMAT EXPECTED FOR A DateTimeField. The class's own
@@ -549,8 +569,9 @@ class IsoStringToUtcDateTime(models.Transform):
         lhs, params = compiler.compile(self.lhs)
         return iso_string_to_sql_utcdatetime_mysql(lhs), params
 
-    def as_sqlite(self, compiler, connection,
-                  **extra_context) -> Tuple[str, Any]:
+    def as_sqlite(
+        self, compiler, connection, **extra_context
+    ) -> Tuple[str, Any]:
         log.debug("IsoStringToUtcDateTime.as_sqlite")
         lhs, params = compiler.compile(self.lhs)
         return iso_string_to_sql_utcdatetime_pythonformat_sqlite(lhs), params
@@ -562,7 +583,8 @@ class IsoStringToUtcDate(models.Transform):
     """
     SQL expression: converts ISO-8601 field into DATE, using the UTC date.
     """
-    lookup_name = 'utcdate'
+
+    lookup_name = "utcdate"
 
     @property
     def output_field(self) -> Field:
@@ -574,8 +596,9 @@ class IsoStringToUtcDate(models.Transform):
         lhs, params = compiler.compile(self.lhs)
         return iso_string_to_sql_utcdate_mysql(lhs), params
 
-    def as_sqlite(self, compiler, connection,
-                  **extra_context) -> Tuple[str, Any]:
+    def as_sqlite(
+        self, compiler, connection, **extra_context
+    ) -> Tuple[str, Any]:
         log.debug("IsoStringToUtcDate.as_sqlite")
         lhs, params = compiler.compile(self.lhs)
         return iso_string_to_sql_utcdate_sqlite(lhs), params
@@ -588,7 +611,8 @@ class IsoStringToSourceDate(models.Transform):
     SQL expression: converts ISO-8601 field into DATE, using the date part of
     the local ISO time (not the UTC date).
     """
-    lookup_name = 'sourcedate'
+
+    lookup_name = "sourcedate"
 
     @property
     def output_field(self) -> Field:
@@ -600,8 +624,9 @@ class IsoStringToSourceDate(models.Transform):
         lhs, params = compiler.compile(self.lhs)
         return iso_string_to_sql_date_mysql(lhs), params
 
-    def as_sqlite(self, compiler, connection,
-                  **extra_context) -> Tuple[str, Any]:
+    def as_sqlite(
+        self, compiler, connection, **extra_context
+    ) -> Tuple[str, Any]:
         log.debug("IsoStringToSourceDate.as_sqlite")
         lhs, params = compiler.compile(self.lhs)
         return iso_string_to_sql_date_sqlite(lhs), params

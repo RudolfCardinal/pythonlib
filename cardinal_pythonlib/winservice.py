@@ -273,12 +273,16 @@ except ImportError:
 try:
     # noinspection PyPackageRequirements
     import servicemanager  # part of pypiwin32
+
     # noinspection PyPackageRequirements
     import winerror  # part of pypiwin32
+
     # noinspection PyPackageRequirements
     import win32event  # part of pypiwin32
+
     # noinspection PyPackageRequirements
     import win32service  # part of pypiwin32
+
     # noinspection PyPackageRequirements
     import win32serviceutil  # part of pypiwin32
     from win32serviceutil import ServiceFramework
@@ -296,24 +300,28 @@ except ImportError:
 
 log = get_brace_style_log_with_null_handler(__name__)
 
-TEST_FILENAME = r'C:\test_win_svc.txt'
+TEST_FILENAME = r"C:\test_win_svc.txt"
 TEST_PERIOD_MS = 5000
-WINDOWS = platform.system() == 'Windows'
+WINDOWS = platform.system() == "Windows"
 
 
 # =============================================================================
 # Subprocess management
 # =============================================================================
 
+
 class ProcessDetails(object):
     """
     Description of a process.
     """
-    def __init__(self,
-                 name: str,
-                 procargs: List[str],
-                 logfile_out: str = '',
-                 logfile_err: str = '') -> None:
+
+    def __init__(
+        self,
+        name: str,
+        procargs: List[str],
+        logfile_out: str = "",
+        logfile_err: str = "",
+    ) -> None:
         """
         Args:
             name: cosmetic name of the process
@@ -331,6 +339,7 @@ class ProcessManager(object):
     """
     Object that manages a single process.
     """
+
     KILL_LEVEL_CTRL_C_OR_SOFT_KILL = 0
     KILL_LEVEL_CTRL_BREAK = 1
     KILL_LEVEL_TASKKILL = 2
@@ -344,12 +353,14 @@ class ProcessManager(object):
         KILL_LEVEL_HARD_KILL,
     ]
 
-    def __init__(self,
-                 details: ProcessDetails,
-                 procnum: int,
-                 nprocs: int,
-                 kill_timeout_sec: float = 5,
-                 debugging: bool = False):
+    def __init__(
+        self,
+        details: ProcessDetails,
+        procnum: int,
+        nprocs: int,
+        kill_timeout_sec: float = 5,
+        debugging: bool = False,
+    ):
         """
         Args:
             details: description of the process as a :class:`ProcessDetails`
@@ -377,7 +388,9 @@ class ProcessManager(object):
         """
         Description of the process.
         """
-        fullname = f"Process {self.procnum}/{self.nprocs} ({self.details.name})"  # noqa
+        fullname = (
+            f"Process {self.procnum}/{self.nprocs} ({self.details.name})"
+        )  # noqa
         if self.running:
             fullname += f" (PID={self.process.pid})"
         return fullname
@@ -436,14 +449,14 @@ class ProcessManager(object):
         Open Python disk logs.
         """
         if self.details.logfile_out:
-            self.stdout = open(self.details.logfile_out, 'a')
+            self.stdout = open(self.details.logfile_out, "a")
         else:
             self.stdout = None
         if self.details.logfile_err:
             if self.details.logfile_err == self.details.logfile_out:
                 self.stderr = subprocess.STDOUT
             else:
-                self.stderr = open(self.details.logfile_err, 'a')
+                self.stderr = open(self.details.logfile_err, "a")
         else:
             self.stderr = None
 
@@ -471,13 +484,18 @@ class ProcessManager(object):
         self.info(
             f"Starting: {self.details.procargs} (with logs "
             f"stdout={self.details.logfile_out}, "
-            f"stderr={self.details.logfile_err})")
+            f"stderr={self.details.logfile_err})"
+        )
         self.open_logs()
         creationflags = CREATE_NEW_PROCESS_GROUP if WINDOWS else 0
         # self.warning("creationflags: {}".format(creationflags))
-        self.process = subprocess.Popen(self.details.procargs, stdin=None,
-                                        stdout=self.stdout, stderr=self.stderr,
-                                        creationflags=creationflags)
+        self.process = subprocess.Popen(
+            self.details.procargs,
+            stdin=None,
+            stdout=self.stdout,
+            stderr=self.stderr,
+            creationflags=creationflags,
+        )
         self.running = True
 
     def stop(self) -> None:
@@ -497,7 +515,9 @@ class ProcessManager(object):
             # If we get here: stopped already
         except subprocess.TimeoutExpired:  # still running
             for kill_level in self.ALL_KILL_LEVELS:
-                tried_to_kill = self._terminate(level=kill_level)  # please stop
+                tried_to_kill = self._terminate(
+                    level=kill_level
+                )  # please stop
                 if tried_to_kill:
                     try:
                         self.wait(timeout_s=self.kill_timeout_sec)
@@ -528,7 +548,8 @@ class ProcessManager(object):
         if level == self.KILL_LEVEL_CTRL_C_OR_SOFT_KILL:
             if WINDOWS:
                 success = 0 != ctypes.windll.kernel32.GenerateConsoleCtrlEvent(
-                    CTRL_C_EVENT, self.process.pid)
+                    CTRL_C_EVENT, self.process.pid
+                )
                 if success:
                     self.info("Sent CTRL-C to request stop" + suffix)
                     # ... but that doesn't mean it'll stop...
@@ -544,7 +565,8 @@ class ProcessManager(object):
             if not WINDOWS:
                 return False
             success = 0 != ctypes.windll.kernel32.GenerateConsoleCtrlEvent(
-                CTRL_BREAK_EVENT, self.process.pid)
+                CTRL_BREAK_EVENT, self.process.pid
+            )
             if success:
                 self.info("Sent CTRL-BREAK to request stop" + suffix)
             else:
@@ -647,7 +669,8 @@ class ProcessManager(object):
         """  # noqa
         args = [
             "taskkill",  # built in to Windows XP and higher
-            "/pid", str(self.process.pid),
+            "/pid",
+            str(self.process.pid),
             "/t",  # tree kill: kill all children
         ]
         if force:
@@ -660,22 +683,25 @@ class ProcessManager(object):
             self.info("Killed with " + repr(callname))
         elif retcode == winerror.ERROR_INVALID_FUNCTION:  # 1
             self.warning(
-                repr(callname) +
-                " failed (error code 1 = ERROR_INVALID_FUNCTION; "
+                repr(callname)
+                + " failed (error code 1 = ERROR_INVALID_FUNCTION; "
                 "can mean 'Access denied', or 'This process can only be "
-                "terminated forcefully (with /F option)').")
+                "terminated forcefully (with /F option)')."
+            )
         elif retcode == winerror.ERROR_WAIT_NO_CHILDREN:  # 128
             self.warning(
-                repr(callname) +
-                " failed (error code 128 = ERROR_WAIT_NO_CHILDREN "
+                repr(callname)
+                + " failed (error code 128 = ERROR_WAIT_NO_CHILDREN "
                 "= 'There are no child processes to wait for', but also "
                 "occurs when the process doesn't exist, and when processes "
-                "require a forceful [/F] termination)")
+                "require a forceful [/F] termination)"
+            )
         elif retcode == winerror.ERROR_EA_LIST_INCONSISTENT:  # 255
             self.warning(
-                repr(callname) +
-                " failed (error code 255 = ERROR_EA_LIST_INCONSISTENT "
-                "= 'The extended attributes are inconsistent.')")
+                repr(callname)
+                + " failed (error code 255 = ERROR_EA_LIST_INCONSISTENT "
+                "= 'The extended attributes are inconsistent.')"
+            )
         else:
             self.warning(callname + " failed: error code {}".format(retcode))
         return retcode
@@ -693,8 +719,9 @@ class ProcessManager(object):
         """  # noqa
         self.warning("Using a recursive hard kill; will assume it worked")
         pid = self.process.pid
-        gone, still_alive = kill_proc_tree(pid, including_parent=True,
-                                           timeout_s=self.kill_timeout_sec)
+        gone, still_alive = kill_proc_tree(
+            pid, including_parent=True, timeout_s=self.kill_timeout_sec
+        )
         self.debug("Killed: {!r}".format(gone))
         self.warning("Still alive: {!r}".format(still_alive))
 
@@ -726,9 +753,9 @@ class ProcessManager(object):
             self.error(
                 "Subprocess finished, but FAILED (return code {}). "
                 "Logs were: {} (stdout), {} (stderr)".format(
-                    retcode,
-                    self.details.logfile_out,
-                    self.details.logfile_err))
+                    retcode, self.details.logfile_out, self.details.logfile_err
+                )
+            )
         self.running = False
         return retcode
 
@@ -736,6 +763,7 @@ class ProcessManager(object):
 # =============================================================================
 # Windows service framework
 # =============================================================================
+
 
 class WindowsService(ServiceFramework):
     """
@@ -839,17 +867,21 @@ class WindowsService(ServiceFramework):
         # noinspection PyUnresolvedReferences
         self.debug("Sending PYS_SERVICE_STARTED message")
         # noinspection PyUnresolvedReferences
-        servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
-                              servicemanager.PYS_SERVICE_STARTED,
-                              (self._svc_name_, ''))
+        servicemanager.LogMsg(
+            servicemanager.EVENTLOG_INFORMATION_TYPE,
+            servicemanager.PYS_SERVICE_STARTED,
+            (self._svc_name_, ""),
+        )
 
         # self.test_service()  # test service
         self.main()  # real service
 
         # noinspection PyUnresolvedReferences
-        servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
-                              servicemanager.PYS_SERVICE_STOPPED,
-                              (self._svc_name_, ''))
+        servicemanager.LogMsg(
+            servicemanager.EVENTLOG_INFORMATION_TYPE,
+            servicemanager.PYS_SERVICE_STOPPED,
+            (self._svc_name_, ""),
+        )
         # noinspection PyUnresolvedReferences
         self.ReportServiceStatus(win32service.SERVICE_STOPPED)
 
@@ -857,9 +889,9 @@ class WindowsService(ServiceFramework):
     # Testing
     # -------------------------------------------------------------------------
 
-    def test_service(self,
-                     filename: str = TEST_FILENAME,
-                     period_ms: int = TEST_PERIOD_MS) -> None:
+    def test_service(
+        self, filename: str = TEST_FILENAME, period_ms: int = TEST_PERIOD_MS
+    ) -> None:
         """
         A test service.
 
@@ -871,23 +903,26 @@ class WindowsService(ServiceFramework):
         """
         # A test service. This works! (As long as you can write to the file.)
         def write(msg):
-            f.write(f'{pendulum.now()}: {msg}\n')
+            f.write(f"{pendulum.now()}: {msg}\n")
             f.flush()
 
-        self.info("Starting test service; writing data periodically to "
-                  "{}".format(TEST_FILENAME))
-        f = open(filename, 'a')  # open for append
-        write('STARTING')
+        self.info(
+            "Starting test service; writing data periodically to "
+            "{}".format(TEST_FILENAME)
+        )
+        f = open(filename, "a")  # open for append
+        write("STARTING")
         retcode = None
         # if the stop event hasn't been fired keep looping
         # noinspection PyUnresolvedReferences
         while retcode != win32event.WAIT_OBJECT_0:
-            write('Test data; will now wait {} ms'.format(period_ms))
+            write("Test data; will now wait {} ms".format(period_ms))
             # block for a while seconds and listen for a stop event
             # noinspection PyUnresolvedReferences
-            retcode = win32event.WaitForSingleObject(self.h_stop_event,
-                                                     period_ms)
-        write('SHUTTING DOWN')
+            retcode = win32event.WaitForSingleObject(
+                self.h_stop_event, period_ms
+            )
+        write("SHUTTING DOWN")
         f.close()
         self.info("Test service FINISHED.")
 
@@ -910,8 +945,11 @@ class WindowsService(ServiceFramework):
         try:
             self.service()
         except Exception as e:
-            self.error("Unexpected exception: {e}\n{t}".format(
-                e=e, t=traceback.format_exc()))
+            self.error(
+                "Unexpected exception: {e}\n{t}".format(
+                    e=e, t=traceback.format_exc()
+                )
+            )
 
     def service(self) -> None:
         """
@@ -919,11 +957,13 @@ class WindowsService(ServiceFramework):
         """
         raise NotImplementedError()
 
-    def run_processes(self,
-                      procdetails: List[ProcessDetails],
-                      subproc_run_timeout_sec: float = 1,
-                      stop_event_timeout_ms: int = 1000,
-                      kill_timeout_sec: float = 5) -> None:
+    def run_processes(
+        self,
+        procdetails: List[ProcessDetails],
+        subproc_run_timeout_sec: float = 1,
+        stop_event_timeout_ms: int = 1000,
+        kill_timeout_sec: float = 5,
+    ) -> None:
         """
         Run multiple child processes.
 
@@ -955,9 +995,13 @@ class WindowsService(ServiceFramework):
         self.process_managers = []  # type: List[ProcessManager]
         n = len(procdetails)
         for i, details in enumerate(procdetails):
-            pmgr = ProcessManager(details, i + 1, n,
-                                  kill_timeout_sec=kill_timeout_sec,
-                                  debugging=self.debugging)
+            pmgr = ProcessManager(
+                details,
+                i + 1,
+                n,
+                kill_timeout_sec=kill_timeout_sec,
+                debugging=self.debugging,
+            )
             self.process_managers.append(pmgr)
 
         # Start processes
@@ -971,9 +1015,12 @@ class WindowsService(ServiceFramework):
         subproc_failed = False
         while something_running and not stop_requested and not subproc_failed:
             # noinspection PyUnresolvedReferences
-            if (win32event.WaitForSingleObject(
-                    self.h_stop_event,
-                    stop_event_timeout_ms) == win32event.WAIT_OBJECT_0):
+            if (
+                win32event.WaitForSingleObject(
+                    self.h_stop_event, stop_event_timeout_ms
+                )
+                == win32event.WAIT_OBJECT_0
+            ):
                 stop_requested = True
                 self.info("Stop requested; stopping")
             else:
@@ -1011,6 +1058,7 @@ class WindowsService(ServiceFramework):
 # =============================================================================
 # Main
 # =============================================================================
+
 
 def generic_service_main(cls: Type[WindowsService], name: str) -> None:
     """
@@ -1050,7 +1098,7 @@ def generic_service_main(cls: Type[WindowsService], name: str) -> None:
             if errnum == winerror.ERROR_FAILED_SERVICE_CONTROLLER_CONNECT:
                 # noinspection PyUnresolvedReferences
                 win32serviceutil.usage()
-    elif argc == 2 and sys.argv[1] == 'debug':
+    elif argc == 2 and sys.argv[1] == "debug":
         s = cls()
         s.run_debug()
     else:

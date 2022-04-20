@@ -33,6 +33,7 @@ import zlib
 
 # noinspection PyUnresolvedReferences
 from pyramid.request import Request
+
 # noinspection PyUnresolvedReferences
 from webob.headers import EnvironHeaders
 
@@ -61,8 +62,9 @@ X_GZIP_ENCODING = "x-gzip"
 IDENTITY_ENCODING = "identity"
 
 
-def gen_accept_encoding_definitions(accept_encoding: str) \
-        -> Generator[str, None, None]:
+def gen_accept_encoding_definitions(
+    accept_encoding: str
+) -> Generator[str, None, None]:
     """
     For a given HTTP ``Accept-Encoding`` field value, generate encoding
     definitions. An example might be:
@@ -84,8 +86,7 @@ def gen_accept_encoding_definitions(accept_encoding: str) \
         yield definition.strip()
 
 
-def gen_accept_encodings(accept_encoding: str) \
-        -> Generator[str, None, None]:
+def gen_accept_encodings(accept_encoding: str) -> Generator[str, None, None]:
     """
     For a given HTTP ``Accept-Encoding`` field value, generate encodings.
     An example might be:
@@ -148,8 +149,9 @@ def gen_content_encodings(request: Request) -> Generator[str, None, None]:
         yield encoding.strip()
 
 
-def gen_content_encodings_reversed(request: Request) \
-        -> Generator[str, None, None]:
+def gen_content_encodings_reversed(
+    request: Request
+) -> Generator[str, None, None]:
     """
     Generates content encodings in reverse order -- that is, in the order
     required to reverse them.
@@ -178,7 +180,8 @@ def decompress_request(request: Request) -> None:
             else:
                 raise NotImplementedError(
                     f"Content-Encoding {encoding} not supported "
-                    f"(brotlipy package not installed)")
+                    f"(brotlipy package not installed)"
+                )
         else:
             raise ValueError(f"Unknown Content-Encoding: {encoding}")
             # ... e.g. "compress"; LZW; patent expired; see

@@ -35,6 +35,7 @@ from typing import Any, Callable, Iterable, List, Sequence, Tuple
 # Lists and similar
 # =============================================================================
 
+
 def contains_duplicates(values: Iterable[Any]) -> bool:
     """
     Does the iterable contain any duplicate values?
@@ -45,8 +46,9 @@ def contains_duplicates(values: Iterable[Any]) -> bool:
     return False
 
 
-def index_list_for_sort_order(x: List[Any], key: Callable[[Any], Any] = None,
-                              reverse: bool = False) -> List[int]:
+def index_list_for_sort_order(
+    x: List[Any], key: Callable[[Any], Any] = None, reverse: bool = False
+) -> List[int]:
     """
     Returns a list of indexes of ``x``, IF ``x`` WERE TO BE SORTED.
 
@@ -71,8 +73,10 @@ def index_list_for_sort_order(x: List[Any], key: Callable[[Any], Any] = None,
         index_list_for_sort_order(q, key=itemgetter(1))
 
     """
+
     def key_with_user_func(idx_val: Tuple[int, Any]):
         return key(idx_val[1])
+
     if key:
         sort_key = key_with_user_func
         # see the simpler version below
@@ -162,7 +166,7 @@ def chunks(x: List[Any], n: int) -> Iterable[List[Any]]:
 
     """
     for i in range(0, len(x), n):
-        yield x[i:i + n]
+        yield x[i : i + n]
 
 
 def count_bool(blist: Iterable[Any]) -> int:
@@ -179,8 +183,7 @@ def count_bool(blist: Iterable[Any]) -> int:
     return sum([1 if x else 0 for x in blist])
 
 
-def delete_elements_by_index(x: List[Any],
-                             indices: Sequence[int]) -> None:
+def delete_elements_by_index(x: List[Any], indices: Sequence[int]) -> None:
     """
     Deletes (in place) objects from a list, by (zero-based) index values.
     

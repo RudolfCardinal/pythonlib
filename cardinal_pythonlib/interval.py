@@ -55,87 +55,107 @@ SECONDS_PER_YEAR = SECONDS_PER_DAY * DAYS_PER_YEAR  # approx...
 NORMAL_DAY_START_H = 7
 NORMAL_DAY_END_H = 19
 
-BANK_HOLIDAYS = [datetime.datetime.strptime(x, "%Y-%m-%d").date() for x in [
-    # https://www.gov.uk/bank-holidays
-    # All bank holiday dates vary, even the date-based ones; e.g. if Christmas
-    # Day is a Sunday, then the Christmas Day substitute bank holiday is Tue 27
-    # Dec, after the Boxing Day Monday bank holiday.
-
-    # 2014
-    "2014-01-01",  # New Year's Day
-    "2014-04-18",  # Good Friday
-    "2014-04-21",  # Easter Monday
-    "2014-05-05",  # Early May Bank Holiday
-    "2014-05-26",  # Spring Bank Holiday
-    "2014-08-25",  # Summer Bank Holiday
-    "2014-12-25",  # Christmas Day
-    "2014-12-26",  # Boxing Day
-    # 2015
-    "2015-01-01",  # New Year's Day
-    "2015-04-03",  # Good Friday
-    "2015-04-06",  # Easter Monday
-    "2015-05-04",  # Early May Bank Holiday
-    "2015-05-25",  # Spring Bank Holiday
-    "2015-08-31",  # Summer Bank Holiday
-    "2015-12-25",  # Christmas Day
-    "2015-12-28",  # Boxing Day (substitute)
-    # 2016
-    "2016-01-01",  # New Year's Day
-    "2016-03-25",  # Good Friday
-    "2016-03-28",  # Easter Monday
-    "2016-05-02",  # Early May Bank Holiday
-    "2016-05-30",  # Spring Bank Holiday
-    "2016-08-29",  # Summer Bank Holiday
-    "2016-12-26",  # Boxing Day
-    "2016-12-27",  # Christmas Day (substitute)
-    # 2017
-    "2017-01-02",  # New Year's Day (substitute day)
-    "2017-04-14",  # Good Friday
-    "2017-04-17",  # Easter Monday
-    "2017-05-01",  # Early May bank holiday
-    "2017-05-29",  # Spring bank holiday
-    "2017-08-28",  # Summer bank holiday
-    "2017-12-25",  # Christmas Day
-    "2017-12-26",  # Boxing Day
-    # 2018
-    "2018-01-01",  # New Year's Day
-    "2018-03-30",  # Good Friday
-    "2018-04-02",  # Easter Monday
-    "2018-05-07",  # Early May bank holiday
-    "2018-05-28",  # Spring bank holiday
-    "2018-08-28",  # Summer bank holiday
-    "2018-12-25",  # Christmas Day
-    "2018-12-26",  # Boxing Day
-    # 2019
-    "2019-01-01",  # New Year's Day
-    "2019-04-19",  # Good Friday
-    "2019-04-22",  # Easter Monday
-    "2019-05-06",  # Early May bank holiday
-    "2019-05-27",  # Spring bank holiday
-    "2019-08-26",  # Summer bank holiday
-    "2019-12-25",  # Christmas Day
-    "2019-12-26",  # Boxing Day
-    # 2020
-    "2020-01-01",  # New Year's Day
-    "2020-04-10",  # Good Friday
-    "2020-04-13",  # Easter Monday
-    "2020-05-08",  # Early May bank holiday (VE Day)
-    "2020-05-25",  # Spring bank holiday
-    "2020-08-31",  # Summer bank holiday
-    "2020-12-25",  # Christmas Day
-    "2020-12-28",  # Boxing Day (substitute day)
-    # 2021
-    "2020-01-01",  # New Year's Day
-    "2020-04-02",  # Good Friday
-    "2020-04-05",  # Easter Monday
-    "2020-05-03",  # Early May bank holiday
-    "2020-05-31",  # Spring bank holiday
-    "2020-08-30",  # Summer bank holiday
-    "2020-12-27",  # Christmas Day (substitute day)
-    "2020-12-28",  # Boxing Day (substitute day)
-
-    # Don't forget to add more in years to come.
-]]
+BANK_HOLIDAYS = [
+    datetime.datetime.strptime(x, "%Y-%m-%d").date()
+    for x in [
+        # https://www.gov.uk/bank-holidays
+        # All bank holiday dates vary, even the date-based ones; e.g. if Christmas
+        # Day is a Sunday, then the Christmas Day substitute bank holiday is Tue 27
+        # Dec, after the Boxing Day Monday bank holiday.
+        # 2014
+        "2014-01-01",  # New Year's Day
+        "2014-04-18",  # Good Friday
+        "2014-04-21",  # Easter Monday
+        "2014-05-05",  # Early May Bank Holiday
+        "2014-05-26",  # Spring Bank Holiday
+        "2014-08-25",  # Summer Bank Holiday
+        "2014-12-25",  # Christmas Day
+        "2014-12-26",  # Boxing Day
+        # 2015
+        "2015-01-01",  # New Year's Day
+        "2015-04-03",  # Good Friday
+        "2015-04-06",  # Easter Monday
+        "2015-05-04",  # Early May Bank Holiday
+        "2015-05-25",  # Spring Bank Holiday
+        "2015-08-31",  # Summer Bank Holiday
+        "2015-12-25",  # Christmas Day
+        "2015-12-28",  # Boxing Day (substitute)
+        # 2016
+        "2016-01-01",  # New Year's Day
+        "2016-03-25",  # Good Friday
+        "2016-03-28",  # Easter Monday
+        "2016-05-02",  # Early May Bank Holiday
+        "2016-05-30",  # Spring Bank Holiday
+        "2016-08-29",  # Summer Bank Holiday
+        "2016-12-26",  # Boxing Day
+        "2016-12-27",  # Christmas Day (substitute)
+        # 2017
+        "2017-01-02",  # New Year's Day (substitute day)
+        "2017-04-14",  # Good Friday
+        "2017-04-17",  # Easter Monday
+        "2017-05-01",  # Early May bank holiday
+        "2017-05-29",  # Spring bank holiday
+        "2017-08-28",  # Summer bank holiday
+        "2017-12-25",  # Christmas Day
+        "2017-12-26",  # Boxing Day
+        # 2018
+        "2018-01-01",  # New Year's Day
+        "2018-03-30",  # Good Friday
+        "2018-04-02",  # Easter Monday
+        "2018-05-07",  # Early May bank holiday
+        "2018-05-28",  # Spring bank holiday
+        "2018-08-28",  # Summer bank holiday
+        "2018-12-25",  # Christmas Day
+        "2018-12-26",  # Boxing Day
+        # 2019
+        "2019-01-01",  # New Year's Day
+        "2019-04-19",  # Good Friday
+        "2019-04-22",  # Easter Monday
+        "2019-05-06",  # Early May bank holiday
+        "2019-05-27",  # Spring bank holiday
+        "2019-08-26",  # Summer bank holiday
+        "2019-12-25",  # Christmas Day
+        "2019-12-26",  # Boxing Day
+        # 2020
+        "2020-01-01",  # New Year's Day
+        "2020-04-10",  # Good Friday
+        "2020-04-13",  # Easter Monday
+        "2020-05-08",  # Early May bank holiday (VE Day)
+        "2020-05-25",  # Spring bank holiday
+        "2020-08-31",  # Summer bank holiday
+        "2020-12-25",  # Christmas Day
+        "2020-12-28",  # Boxing Day (substitute day)
+        # 2021
+        "2021-01-01",  # New Year's Day
+        "2021-04-02",  # Good Friday
+        "2021-04-05",  # Easter Monday
+        "2021-05-03",  # Early May bank holiday
+        "2021-05-31",  # Spring bank holiday
+        "2021-08-30",  # Summer bank holiday
+        "2021-12-27",  # Christmas Day (substitute day)
+        "2021-12-28",  # Boxing Day (substitute day)
+        # 2022
+        "2022-01-03",  # New Year's Day
+        "2022-04-15",  # Good Friday
+        "2022-04-18",  # Easter Monday
+        "2022-05-02",  # Early May bank holiday
+        "2022-06-02",  # Spring bank holiday
+        "2022-06-03",  # Platinum Jubilee bank holiday
+        "2022-08-29",  # Summer bank holiday
+        "2022-12-26",  # Boxing Day
+        "2022-12-27",  # Christmas Day (substitute day)
+        # 2023
+        "2023-01-02",  # New Year's Day (substitute day)
+        "2023-04-07",  # Good Friday
+        "2023-04-10",  # Easter Monday
+        "2023-05-01",  # Early May bank holiday
+        "2023-05-29",  # Spring bank holiday
+        "2023-08-28",  # Summer bank holiday
+        "2023-12-25",  # Christmas Day
+        "2023-12-26",  # Boxing Day
+        # Don't forget to add more in years to come.
+    ]
+]
 FIRST_KNOWN_BANK_HOLIDAY = min(x for x in BANK_HOLIDAYS)
 LAST_KNOWN_BANK_HOLIDAY = max(x for x in BANK_HOLIDAYS)
 
@@ -143,6 +163,7 @@ LAST_KNOWN_BANK_HOLIDAY = max(x for x in BANK_HOLIDAYS)
 # =============================================================================
 # Helper functions
 # =============================================================================
+
 
 def formatdt(date: datetime.date, include_time: bool = True) -> str:
     """
@@ -155,8 +176,9 @@ def formatdt(date: datetime.date, include_time: bool = True) -> str:
         return date.strftime("%Y-%m-%d")
 
 
-def convert_duration(duration: datetime.timedelta,
-                     units: str) -> Optional[float]:
+def convert_duration(
+    duration: datetime.timedelta, units: str
+) -> Optional[float]:
     """
     Convert a ``datetime.timedelta`` object -- a duration -- into other
     units. Possible units:
@@ -171,17 +193,17 @@ def convert_duration(duration: datetime.timedelta,
     if duration is None:
         return None
     s = duration.total_seconds()
-    if units in ['s', 'sec', 'seconds']:
+    if units in ["s", "sec", "seconds"]:
         return s
-    if units in ['m', 'min', 'minutes']:
+    if units in ["m", "min", "minutes"]:
         return s / SECONDS_PER_MINUTE
-    if units in ['h', 'hr', 'hours']:
+    if units in ["h", "hr", "hours"]:
         return s / SECONDS_PER_HOUR
-    if units in ['d', 'days']:
+    if units in ["d", "days"]:
         return s / SECONDS_PER_DAY
-    if units in ['w', 'weeks']:
+    if units in ["w", "weeks"]:
         return s / SECONDS_PER_WEEK
-    if units in ['y', 'years']:
+    if units in ["y", "years"]:
         return s / SECONDS_PER_YEAR
     raise ValueError(f"Unknown units: {units}")
 
@@ -193,13 +215,17 @@ def is_uk_bank_holiday(date: datetime.date) -> bool:
     Uses the ``BANK_HOLIDAYS`` list.
     """
     if date < FIRST_KNOWN_BANK_HOLIDAY:
-        log.warning(f"Date {date} is earlier than first known bank holiday of "
-                    f"{FIRST_KNOWN_BANK_HOLIDAY}; cardinal_pythonlib.interval "
-                    f"may need updating")
+        log.warning(
+            f"Date {date} is earlier than first known bank holiday of "
+            f"{FIRST_KNOWN_BANK_HOLIDAY}; cardinal_pythonlib.interval "
+            f"may need updating"
+        )
     elif date > LAST_KNOWN_BANK_HOLIDAY:
-        log.warning(f"Date {date} is later than last known bank holiday of "
-                    f"{LAST_KNOWN_BANK_HOLIDAY}; cardinal_pythonlib.interval "
-                    f"may need updating")
+        log.warning(
+            f"Date {date} is later than last known bank holiday of "
+            f"{LAST_KNOWN_BANK_HOLIDAY}; cardinal_pythonlib.interval "
+            f"may need updating"
+        )
     return date in BANK_HOLIDAYS
 
 
@@ -229,12 +255,13 @@ def is_normal_uk_working_day(date: datetime.date) -> bool:
     Is the specified date (a ``datetime.date`` object) a normal working day,
     i.e. not a weekend or a bank holiday?
     """
-    return not(is_weekend(date) or is_uk_bank_holiday(date))
+    return not (is_weekend(date) or is_uk_bank_holiday(date))
 
 
 # =============================================================================
 # Interval
 # =============================================================================
+
 
 class Interval(object):
     """
@@ -248,8 +275,9 @@ class Interval(object):
     There's probably an existing class for this...
     """
 
-    def __init__(self, start: datetime.datetime,
-                 end: datetime.datetime) -> None:
+    def __init__(
+        self, start: datetime.datetime, end: datetime.datetime
+    ) -> None:
         """
         Creates the interval.
         """
@@ -309,16 +337,17 @@ class Interval(object):
             S---S              S---S
                 O---O      O---O
         """
-        return not(self.end <= other.start or self.start >= other.end)
+        return not (self.end <= other.start or self.start >= other.end)
 
     def contiguous(self, other: "Interval") -> bool:
         """
         Does this interval overlap or touch the other?
         """
-        return not(self.end < other.start or self.start > other.end)
+        return not (self.end < other.start or self.start > other.end)
 
-    def contains(self, time: datetime.datetime,
-                 inclusive: bool = True) -> bool:
+    def contains(
+        self, time: datetime.datetime, inclusive: bool = True
+    ) -> bool:
         """
         Does the interval contain a momentary time?
 
@@ -350,10 +379,7 @@ class Interval(object):
         """
         Returns an interval spanning the extent of this and the ``other``.
         """
-        return Interval(
-            min(self.start, other.start),
-            max(self.end, other.end)
-        )
+        return Interval(min(self.start, other.start), max(self.end, other.end))
 
     def intersection(self, other: "Interval") -> Optional["Interval"]:
         """
@@ -362,13 +388,11 @@ class Interval(object):
         """
         if not self.contiguous(other):
             return None
-        return Interval(
-            max(self.start, other.start),
-            min(self.end, other.end)
-        )
+        return Interval(max(self.start, other.start), min(self.end, other.end))
 
-    def cut(self, times: Union[datetime.datetime,
-                               List[datetime.datetime]]) -> List["Interval"]:
+    def cut(
+        self, times: Union[datetime.datetime, List[datetime.datetime]]
+    ) -> List["Interval"]:
         """
         Returns a list of intervals produced by using times (a list of
         ``datetime.datetime`` objects, or a single such object) as a set of
@@ -379,10 +403,7 @@ class Interval(object):
             time = times
             if not self.contains(time):
                 return []
-            return [
-                Interval(self.start, time),
-                Interval(time, self.end)
-            ]
+            return [Interval(self.start, time), Interval(time, self.end)]
         else:
             # Multiple times
             times = [t for t in times if self.contains(t)]  # discard others
@@ -414,16 +435,14 @@ class Interval(object):
         start of that day to midnight at the start of the next day).
         """
         start = datetime.datetime.combine(date, datetime.time())
-        return Interval(
-            start,
-            start + datetime.timedelta(days=1)
-        )
+        return Interval(start, start + datetime.timedelta(days=1))
 
     @staticmethod
-    def daytime(date: datetime.date,
-                daybreak: datetime.time = datetime.time(NORMAL_DAY_START_H),
-                nightfall: datetime.time = datetime.time(NORMAL_DAY_END_H)) \
-            -> "Interval":
+    def daytime(
+        date: datetime.date,
+        daybreak: datetime.time = datetime.time(NORMAL_DAY_START_H),
+        nightfall: datetime.time = datetime.time(NORMAL_DAY_END_H),
+    ) -> "Interval":
         """
         Returns an :class:`Interval` representing daytime on the date given.
         """
@@ -433,9 +452,11 @@ class Interval(object):
         )
 
     @staticmethod
-    def dayspan(startdate: datetime.date,
-                enddate: datetime.date,
-                include_end: bool = True) -> Optional["Interval"]:
+    def dayspan(
+        startdate: datetime.date,
+        enddate: datetime.date,
+        include_end: bool = True,
+    ) -> Optional["Interval"]:
         """
         Returns an :class:`Interval` representing the date range given, from
         midnight at the start of the first day to midnight at the end of the
@@ -462,10 +483,10 @@ class Interval(object):
         return self.intersection(Interval.wholeday(date))
 
     def day_night_duration(
-            self,
-            daybreak: datetime.time = datetime.time(NORMAL_DAY_START_H),
-            nightfall: datetime.time = datetime.time(NORMAL_DAY_END_H)) \
-            -> Tuple[datetime.timedelta, datetime.timedelta]:
+        self,
+        daybreak: datetime.time = datetime.time(NORMAL_DAY_START_H),
+        nightfall: datetime.time = datetime.time(NORMAL_DAY_END_H),
+    ) -> Tuple[datetime.timedelta, datetime.timedelta]:
         """
         Returns a ``(day, night)`` tuple of ``datetime.timedelta`` objects
         giving the duration of this interval that falls into day and night
@@ -490,11 +511,12 @@ class Interval(object):
         return daytotal, nighttotal
 
     def duration_outside_uk_normal_working_hours(
-            self,
-            starttime: datetime.time = datetime.time(NORMAL_DAY_START_H),
-            endtime: datetime.time = datetime.time(NORMAL_DAY_END_H),
-            weekdays_only: bool = False,
-            weekends_only: bool = False) -> datetime.timedelta:
+        self,
+        starttime: datetime.time = datetime.time(NORMAL_DAY_START_H),
+        endtime: datetime.time = datetime.time(NORMAL_DAY_END_H),
+        weekdays_only: bool = False,
+        weekends_only: bool = False,
+    ) -> datetime.timedelta:
         """
         Returns a duration (a ``datetime.timedelta`` object) representing the
         number of hours outside normal working hours.
@@ -573,6 +595,7 @@ class Interval(object):
 # IntervalList
 # =============================================================================
 
+
 class IntervalList(object):
     """
     Object representing a list of Intervals.
@@ -587,10 +610,12 @@ class IntervalList(object):
     # Constructor, representations, copying
     # -------------------------------------------------------------------------
 
-    def __init__(self,
-                 intervals: List[Interval] = None,
-                 no_overlap: bool = True,
-                 no_contiguous: bool = True) -> None:
+    def __init__(
+        self,
+        intervals: List[Interval] = None,
+        no_overlap: bool = True,
+        no_contiguous: bool = True,
+    ) -> None:
         """
         Creates the :class:`IntervalList`.
 
@@ -612,7 +637,8 @@ class IntervalList(object):
             if not isinstance(i, Interval):
                 raise TypeError(
                     f"IntervalList creation failed: contents are not all "
-                    f"Interval: {self.intervals!r}")
+                    f"Interval: {self.intervals!r}"
+                )
         self._tidy()
 
     def __repr__(self) -> str:
@@ -622,10 +648,12 @@ class IntervalList(object):
         return (
             f"IntervalList(intervals={self.intervals!r}, "
             f"no_overlap={self.no_overlap}, "
-            f"no_contiguous={self.no_contiguous})")
+            f"no_contiguous={self.no_contiguous})"
+        )
 
-    def copy(self, no_overlap: bool = None,
-             no_contiguous: bool = None) -> "IntervalList":
+    def copy(
+        self, no_overlap: bool = None, no_contiguous: bool = None
+    ) -> "IntervalList":
         """
         Makes and returns a copy of the :class:`IntervalList`. The
         ``no_overlap``/``no_contiguous`` parameters can be changed.
@@ -640,8 +668,9 @@ class IntervalList(object):
             no_overlap = self.no_overlap
         if no_contiguous is None:
             no_contiguous = self.no_contiguous
-        return IntervalList(self.intervals, no_overlap=no_overlap,
-                            no_contiguous=no_contiguous)
+        return IntervalList(
+            self.intervals, no_overlap=no_overlap, no_contiguous=no_contiguous
+        )
 
     def list(self) -> List[Interval]:
         """
@@ -661,8 +690,7 @@ class IntervalList(object):
         if interval is None:
             return
         if not isinstance(interval, Interval):
-            raise TypeError(
-                "Attempt to insert non-Interval into IntervalList")
+            raise TypeError("Attempt to insert non-Interval into IntervalList")
         self.intervals.append(interval)
         self._tidy()
 
@@ -888,8 +916,9 @@ class IntervalList(object):
                 return i
         return None
 
-    def first_interval_starting(self, start: datetime.datetime) -> \
-            Optional[Interval]:
+    def first_interval_starting(
+        self, start: datetime.datetime
+    ) -> Optional[Interval]:
         """
         Returns our first interval that starts with the ``start`` parameter, or
         ``None``.
@@ -899,8 +928,9 @@ class IntervalList(object):
                 return i
         return None
 
-    def first_interval_ending(self, end: datetime.datetime) \
-            -> Optional[Interval]:
+    def first_interval_ending(
+        self, end: datetime.datetime
+    ) -> Optional[Interval]:
         """
         Returns our first interval that ends with the ``end`` parameter, or
         ``None``.
@@ -922,10 +952,7 @@ class IntervalList(object):
             return IntervalList(None)
         gaps = []
         for i in range(len(self.intervals) - 1):
-            gap = Interval(
-                self.intervals[i].end,
-                self.intervals[i + 1].start
-            )
+            gap = Interval(self.intervals[i].end, self.intervals[i + 1].start)
             gaps.append(gap)
         return IntervalList(gaps)
 
@@ -944,8 +971,9 @@ class IntervalList(object):
         gaps = self.gaps()
         return gaps.shortest_duration()
 
-    def subset(self, interval: Interval,
-               flexibility: int = 2) -> "IntervalList":
+    def subset(
+        self, interval: Interval, flexibility: int = 2
+    ) -> "IntervalList":
         """
         Returns an IntervalList that's a subset of this one, only containing
         intervals that meet the "interval" parameter criterion. What "meet"
@@ -995,8 +1023,9 @@ class IntervalList(object):
                 permitted.append(i)
         return IntervalList(permitted)
 
-    def gap_subset(self, interval: Interval,
-                   flexibility: int = 2) -> "IntervalList":
+    def gap_subset(
+        self, interval: Interval, flexibility: int = 2
+    ) -> "IntervalList":
         """
         Returns an IntervalList that's a subset of this one, only containing
         *gaps* between intervals that meet the interval criterion.
@@ -1021,10 +1050,10 @@ class IntervalList(object):
         return len(saturdays)
 
     def duration_outside_nwh(
-            self,
-            starttime: datetime.time = datetime.time(NORMAL_DAY_START_H),
-            endtime: datetime.time = datetime.time(NORMAL_DAY_END_H)) \
-            -> datetime.timedelta:
+        self,
+        starttime: datetime.time = datetime.time(NORMAL_DAY_START_H),
+        endtime: datetime.time = datetime.time(NORMAL_DAY_END_H),
+    ) -> datetime.timedelta:
         """
         Returns the total duration outside normal working hours, i.e.
         evenings/nights, weekends (and Bank Holidays).
@@ -1032,7 +1061,8 @@ class IntervalList(object):
         total = datetime.timedelta()
         for interval in self.intervals:
             total += interval.duration_outside_uk_normal_working_hours(
-                starttime, endtime)
+                starttime, endtime
+            )
         return total
 
     def max_consecutive_days(self) -> Optional[Tuple[int, Interval]]:
@@ -1051,30 +1081,32 @@ class IntervalList(object):
             return None
         startdate = self.start_date()
         enddate = self.end_date()
-        seq = ''
+        seq = ""
         ndays = (enddate - startdate).days + 1
         for i in range(ndays):
             date = startdate + datetime.timedelta(days=i)
             wholeday = Interval.wholeday(date)
             if any([x.overlaps(wholeday) for x in self.intervals]):
-                seq += '+'
+                seq += "+"
             else:
-                seq += ' '
+                seq += " "
         # noinspection PyTypeChecker
         longest = max(seq.split(), key=len)
         longest_len = len(longest)
         longest_idx = seq.index(longest)
         longest_interval = Interval.dayspan(
             startdate + datetime.timedelta(days=longest_idx),
-            startdate + datetime.timedelta(days=longest_idx + longest_len)
+            startdate + datetime.timedelta(days=longest_idx + longest_len),
         )
         return longest_len, longest_interval
 
-    def _sufficient_gaps(self,
-                         startdate: datetime.date,
-                         enddate: datetime.date,
-                         requiredgaps: List[datetime.timedelta],
-                         flexibility: int) -> Tuple[bool, Optional[Interval]]:
+    def _sufficient_gaps(
+        self,
+        startdate: datetime.date,
+        enddate: datetime.date,
+        requiredgaps: List[datetime.timedelta],
+        flexibility: int,
+    ) -> Tuple[bool, Optional[Interval]]:
         """
         Are there sufficient gaps (specified by ``requiredgaps``) in the date
         range specified? This is a worker function for :meth:`sufficient_gaps`.
@@ -1105,11 +1137,12 @@ class IntervalList(object):
         # log.debug("<<< success")
         return True, None
 
-    def sufficient_gaps(self,
-                        every_n_days: int,
-                        requiredgaps: List[datetime.timedelta],
-                        flexibility: int = 2) \
-            -> Tuple[bool, Optional[Interval]]:
+    def sufficient_gaps(
+        self,
+        every_n_days: int,
+        requiredgaps: List[datetime.timedelta],
+        flexibility: int = 2,
+    ) -> Tuple[bool, Optional[Interval]]:
         """
         Are gaps present sufficiently often?
         For example:
@@ -1140,14 +1173,16 @@ class IntervalList(object):
         ndays = (enddate - startdate).days + 1
         if ndays <= every_n_days:
             # Our interval is too short, or just right
-            return self._sufficient_gaps(startdate, enddate, requiredgaps,
-                                         flexibility)
+            return self._sufficient_gaps(
+                startdate, enddate, requiredgaps, flexibility
+            )
         for i in range(ndays - every_n_days):
             j = i + every_n_days
             a = startdate + datetime.timedelta(days=i)
             b = startdate + datetime.timedelta(days=j)
-            sufficient, ffi = self._sufficient_gaps(a, b, requiredgaps,
-                                                    flexibility)
+            sufficient, ffi = self._sufficient_gaps(
+                a, b, requiredgaps, flexibility
+            )
             if not sufficient:
                 return False, ffi
         return True, None
@@ -1156,8 +1191,9 @@ class IntervalList(object):
     # Cumulative time calculations
     # -------------------------------------------------------------------------
 
-    def cumulative_time_to(self,
-                           when: datetime.datetime) -> datetime.timedelta:
+    def cumulative_time_to(
+        self, when: datetime.datetime
+    ) -> datetime.timedelta:
         """
         Returns the cumulative time contained in our intervals up to the
         specified time point.
@@ -1174,8 +1210,9 @@ class IntervalList(object):
                 cumulative += when - interval.start
         return cumulative
 
-    def cumulative_gaps_to(self,
-                           when: datetime.datetime) -> datetime.timedelta:
+    def cumulative_gaps_to(
+        self, when: datetime.datetime
+    ) -> datetime.timedelta:
         """
         Return the cumulative time within our gaps, up to ``when``.
         """
@@ -1183,7 +1220,8 @@ class IntervalList(object):
         return gaps.cumulative_time_to(when)
 
     def time_afterwards_preceding(
-            self, when: datetime.datetime) -> Optional[datetime.timedelta]:
+        self, when: datetime.datetime
+    ) -> Optional[datetime.timedelta]:
         """
         Returns the time after our last interval, but before ``when``.
         If ``self`` is an empty list, returns ``None``.
@@ -1196,12 +1234,9 @@ class IntervalList(object):
         else:
             return when - end_time
 
-    def cumulative_before_during_after(self,
-                                       start: datetime.datetime,
-                                       when: datetime.datetime) -> \
-            Tuple[datetime.timedelta,
-                  datetime.timedelta,
-                  datetime.timedelta]:
+    def cumulative_before_during_after(
+        self, start: datetime.datetime, when: datetime.datetime
+    ) -> Tuple[datetime.timedelta, datetime.timedelta, datetime.timedelta]:
         """
         For a given time, ``when``, returns the cumulative time
 
@@ -1234,9 +1269,9 @@ class IntervalList(object):
             after:               -------     -------     ----
 
         """
-        assert self.no_overlap, (
-            "Only implemented for IntervalList objects with no_overlap == True"
-        )
+        assert (
+            self.no_overlap
+        ), "Only implemented for IntervalList objects with no_overlap == True"
         no_time = datetime.timedelta()
         earliest_interval_start = self.start_datetime()
 
@@ -1260,9 +1295,8 @@ class IntervalList(object):
         # During
         during = self.cumulative_time_to(when)
 
-        after = (
-            self.cumulative_gaps_to(when) +
-            self.time_afterwards_preceding(when)
+        after = self.cumulative_gaps_to(when) + self.time_afterwards_preceding(
+            when
         )
 
         return before, during, after

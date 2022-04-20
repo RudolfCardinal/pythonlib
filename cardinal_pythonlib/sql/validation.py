@@ -186,38 +186,34 @@ SQLTYPES_OTHER = (
     "UNIQUEIDENTIFIER",  # SQL Server
     "UUID",  # PostgreSQL
     "XML",  # PostgreSQL, SQL Server
-
     # "CURSOR",  # SQL Server, but not a *column* data type
     # "TABLE": SQL Server, but not a *column* data type
 )
 
 SQLTYPES_DATETIME_ALL = SQLTYPES_WITH_DATE + SQLTYPES_DATETIME_OTHER
 SQLTYPES_ALL = (
-    SQLTYPES_INTEGER +
-    SQLTYPES_FLOAT +
-    SQLTYPES_OTHER_NUMERIC +
-    SQLTYPES_TEXT +
-    SQLTYPES_BINARY +
-    SQLTYPES_DATETIME_ALL +
-    SQLTYPES_OTHER
+    SQLTYPES_INTEGER
+    + SQLTYPES_FLOAT
+    + SQLTYPES_OTHER_NUMERIC
+    + SQLTYPES_TEXT
+    + SQLTYPES_BINARY
+    + SQLTYPES_DATETIME_ALL
+    + SQLTYPES_OTHER
 )
 SQLTYPES_NOT_TEXT = (
-    SQLTYPES_INTEGER +
-    SQLTYPES_FLOAT +
-    SQLTYPES_OTHER_NUMERIC +
-    SQLTYPES_DATETIME_ALL +
-    SQLTYPES_OTHER
+    SQLTYPES_INTEGER
+    + SQLTYPES_FLOAT
+    + SQLTYPES_OTHER_NUMERIC
+    + SQLTYPES_DATETIME_ALL
+    + SQLTYPES_OTHER
 )
-SQLTYPES_NUMERIC = (
-    SQLTYPES_INTEGER +
-    SQLTYPES_FLOAT +
-    SQLTYPES_OTHER_NUMERIC
-)
+SQLTYPES_NUMERIC = SQLTYPES_INTEGER + SQLTYPES_FLOAT + SQLTYPES_OTHER_NUMERIC
 
 
 # =============================================================================
 # SQL types and validation: functions
 # =============================================================================
+
 
 def is_valid_field_name(f: Optional[str]) -> bool:
     if not f:
@@ -247,7 +243,7 @@ def split_long_sqltype(datatype_long: str) -> Tuple[str, Optional[int]]:
     find_close = datatype_long.find(")")
     if 0 <= find_open < find_close:
         try:
-            length = int(datatype_long[find_open + 1:find_close])
+            length = int(datatype_long[find_open + 1 : find_close])
         except (TypeError, IndexError, ValueError):  # e.g. for "VARCHAR(MAX)"
             length = None
     else:
@@ -270,8 +266,9 @@ def is_sqltype_text(datatype_long: str) -> bool:
     return datatype_short in SQLTYPES_TEXT
 
 
-def is_sqltype_text_of_length_at_least(datatype_long: str,
-                                       min_length: int) -> bool:
+def is_sqltype_text_of_length_at_least(
+    datatype_long: str, min_length: int
+) -> bool:
     (datatype_short, length) = split_long_sqltype(datatype_long)
     if datatype_short not in SQLTYPES_TEXT:
         return False
@@ -304,6 +301,7 @@ def does_sqltype_require_index_len(datatype_long: str) -> bool:
     return datatype_short in ["TEXT", "BLOB"]
 
 
-def does_sqltype_merit_fulltext_index(datatype_long: str,
-                                      min_length: int = 1000) -> bool:
+def does_sqltype_merit_fulltext_index(
+    datatype_long: str, min_length: int = 1000
+) -> bool:
     return is_sqltype_text_of_length_at_least(datatype_long, min_length)

@@ -33,12 +33,15 @@ from typing import Any, Dict, Iterable, List, Tuple
 # Mapping
 # =============================================================================
 
-def map_value(value: Any,
-              maplist: Iterable[Tuple[Iterable[Any], Any]],
-              transmit_none: bool = True,
-              required: bool = True,
-              default: Any = None,
-              name: str = None) -> Any:
+
+def map_value(
+    value: Any,
+    maplist: Iterable[Tuple[Iterable[Any], Any]],
+    transmit_none: bool = True,
+    required: bool = True,
+    default: Any = None,
+    name: str = None,
+) -> Any:
     """
     1. If the value is ``None`` and ``transmit_none`` is true, return ``None``.
 
@@ -70,7 +73,4 @@ def dict_to_map(d: Dict[Any, Any]) -> List[Tuple[List[Any], Any]]:
     """
     Converts a dictionary into a structure usable by :func:`map_value`.
     """
-    return [
-        ([k], v)
-        for k, v in d.items()
-    ]
+    return [([k], v) for k, v in d.items()]

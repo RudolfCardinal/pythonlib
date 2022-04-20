@@ -111,7 +111,10 @@ import tempfile
 from typing import List, NoReturn, Tuple
 
 from cardinal_pythonlib.cmdline import cmdline_quote
-from cardinal_pythonlib.logs import BraceStyleAdapter, main_only_quicksetup_rootlogger  # noqa
+from cardinal_pythonlib.logs import (
+    BraceStyleAdapter,
+    main_only_quicksetup_rootlogger,
+)  # noqa
 
 log = BraceStyleAdapter(logging.getLogger(__name__))
 
@@ -135,6 +138,7 @@ EXIT_FAILURE = 1
 # =============================================================================
 # Calculate page sequence
 # =============================================================================
+
 
 def calc_n_sheets(n_pages: int) -> int:
     """
@@ -188,18 +192,22 @@ def page_sequence(n_sheets: int, one_based: bool = True) -> List[int]:
 # PDF processor
 # =============================================================================
 
+
 def require(executable: str, explanation: str = "") -> None:
     """
     Ensures that the external tool is available.
     Asserts upon failure.
     """
     assert shutil.which(executable), "Need {!r} on the PATH.{}".format(
-        executable, "\n" + explanation if explanation else "")
+        executable, "\n" + explanation if explanation else ""
+    )
 
 
-def run(args: List[str],
-        get_output: bool = False,
-        encoding: str = sys.getdefaultencoding()) -> Tuple[str, str]:
+def run(
+    args: List[str],
+    get_output: bool = False,
+    encoding: str = sys.getdefaultencoding(),
+) -> Tuple[str, str]:
     """
     Run an external command +/- return the results.
     Returns a ``(stdout, stderr)`` tuple (both are blank strings if the output
@@ -208,8 +216,9 @@ def run(args: List[str],
     printable = cmdline_quote(args)
     log.debug(f"Running external command: {printable}")
     if get_output:
-        p = subprocess.run(args, stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE, check=True)
+        p = subprocess.run(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+        )
         stdout, stderr = p.stdout.decode(encoding), p.stderr.decode(encoding)
     else:
         subprocess.check_call(args)
@@ -241,8 +250,12 @@ def make_blank_pdf(filename: str, paper: str = "A4") -> None:
     run([CONVERT, "xc:none", "-page", paper, filename])
 
 
-def slice_pdf(input_filename: str, output_filename: str,
-              slice_horiz: int, slice_vert: int) -> str:
+def slice_pdf(
+    input_filename: str,
+    output_filename: str,
+    slice_horiz: int,
+    slice_vert: int,
+) -> str:
     """
     Slice each page of the original, to convert to "one real page per PDF
     page". Return the output filename.
@@ -250,23 +263,33 @@ def slice_pdf(input_filename: str, output_filename: str,
     if slice_horiz == 1 and slice_vert == 1:
         log.debug("No slicing required")
         return input_filename  # nothing to do
-    log.info("Slicing each source page mv into {} horizontally x {} vertically",
-             slice_horiz, slice_vert)
+    log.info(
+        "Slicing each source page mv into {} horizontally x {} vertically",
+        slice_horiz,
+        slice_vert,
+    )
     log.debug("... from {!r} to {!r}", input_filename, output_filename)
     require(MUTOOL, HELP_MISSING_MUTOOL)
-    run([
-        MUTOOL,
-        "poster",
-        "-x", str(slice_horiz),
-        "-y", str(slice_vert),
-        input_filename,
-        output_filename
-    ])
+    run(
+        [
+            MUTOOL,
+            "poster",
+            "-x",
+            str(slice_horiz),
+            "-y",
+            str(slice_vert),
+            input_filename,
+            output_filename,
+        ]
+    )
     return output_filename
 
 
-def booklet_nup_pdf(input_filename: str, output_filename: str,
-                    latex_paper_size: str = LATEX_PAPER_SIZE_A4) -> str:
+def booklet_nup_pdf(
+    input_filename: str,
+    output_filename: str,
+    latex_paper_size: str = LATEX_PAPER_SIZE_A4,
+) -> str:
     """
     Takes a PDF (e.g. A4) and makes a 2x1 booklet (e.g. 2xA5 per A4).
     The booklet can be folded like a book and the final pages will be in order.
@@ -279,22 +302,25 @@ def booklet_nup_pdf(input_filename: str, output_filename: str,
     n_sheets = calc_n_sheets(n_pages)
     log.debug("{} pages => {} sheets", n_pages, n_sheets)
     pagenums = page_sequence(n_sheets, one_based=True)
-    pagespeclist = [str(p) if p <= n_pages else "{}"
-                    for p in pagenums]
+    pagespeclist = [str(p) if p <= n_pages else "{}" for p in pagenums]
     # ... switches empty pages to "{}", which is pdfjam notation for
     # an empty page.
     pagespec = ",".join(pagespeclist)
     pdfjam_tidy = True  # clean up after yourself?
     args = [
         PDFJAM,
-        "--paper", latex_paper_size,
+        "--paper",
+        latex_paper_size,
         "--landscape",
-        "--nup", "2x1",
+        "--nup",
+        "2x1",
         "--keepinfo",  # e.g. author information
-        "--outfile", output_filename,
+        "--outfile",
+        output_filename,
         "--tidy" if pdfjam_tidy else "--no-tidy",
         "--",  # "no more options"
-        input_filename, pagespec
+        input_filename,
+        pagespec,
     ]
     run(args)
     return output_filename
@@ -305,8 +331,10 @@ def rotate_even_pages_180(input_filename: str, output_filename: str) -> str:
     Rotates even-numbered pages 180 degrees.
     Returns the output filename.
     """
-    log.info("Rotating even-numbered pages 180 degrees for long-edge "
-             "duplex printing")
+    log.info(
+        "Rotating even-numbered pages 180 degrees for long-edge "
+        "duplex printing"
+    )
     log.debug("... {!r} -> {!r}", input_filename, output_filename)
     require(PDFTK, HELP_MISSING_PDFTK)
     args = [
@@ -316,19 +344,22 @@ def rotate_even_pages_180(input_filename: str, output_filename: str) -> str:
         "shuffle",
         "Aoddnorth",  # for 'A', keep odd pages as they are
         "Aevensouth",  # for 'A', rotate even pages 180 degrees
-        "output", output_filename,
+        "output",
+        output_filename,
     ]
     run(args)
     return output_filename
 
 
-def convert_to_foldable(input_filename: str,
-                        output_filename: str,
-                        slice_horiz: int,
-                        slice_vert: int,
-                        overwrite: bool = False,
-                        longedge: bool = False,
-                        latex_paper_size: str = LATEX_PAPER_SIZE_A4) -> bool:
+def convert_to_foldable(
+    input_filename: str,
+    output_filename: str,
+    slice_horiz: int,
+    slice_vert: int,
+    overwrite: bool = False,
+    longedge: bool = False,
+    latex_paper_size: str = LATEX_PAPER_SIZE_A4,
+) -> bool:
     """
     Runs a chain of tasks to convert a PDF to a useful booklet PDF.
     """
@@ -336,8 +367,10 @@ def convert_to_foldable(input_filename: str,
         log.warning("Input file does not exist or is not a file")
         return False
     if not overwrite and os.path.isfile(output_filename):
-        log.error("Output file exists; not authorized to overwrite (use "
-                  "--overwrite if you are sure)")
+        log.error(
+            "Output file exists; not authorized to overwrite (use "
+            "--overwrite if you are sure)"
+        )
         return False
     log.info("Processing {!r}", input_filename)
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -347,8 +380,7 @@ def convert_to_foldable(input_filename: str,
         def make_intermediate() -> str:
             nonlocal intermediate_num
             intermediate_num += 1
-            return os.path.join(tmpdir,
-                                f"intermediate_{intermediate_num}.pdf")
+            return os.path.join(tmpdir, f"intermediate_{intermediate_num}.pdf")
 
         # Run this as a chain, rewriting input_filename at each step:
         # Slice, if necessary.
@@ -356,13 +388,13 @@ def convert_to_foldable(input_filename: str,
             input_filename=input_filename,
             output_filename=make_intermediate(),
             slice_horiz=slice_horiz,
-            slice_vert=slice_vert
+            slice_vert=slice_vert,
         )
         # Make the final n-up
         input_filename = booklet_nup_pdf(
             input_filename=input_filename,
             output_filename=make_intermediate(),
-            latex_paper_size=latex_paper_size
+            latex_paper_size=latex_paper_size,
         )
         # Rotate?
         if longedge:
@@ -380,6 +412,7 @@ def convert_to_foldable(input_filename: str,
 # main
 # =============================================================================
 
+
 def main() -> NoReturn:
     """
     Command-line processor. See ``--help`` for details.
@@ -390,23 +423,31 @@ def main() -> NoReturn:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "input_file",
-        help="Input PDF (which is not modified by this program)")
+        "input_file", help="Input PDF (which is not modified by this program)"
+    )
+    parser.add_argument("output_file", help="Output PDF")
     parser.add_argument(
-        "output_file",
-        help="Output PDF")
+        "--slice_horiz",
+        type=int,
+        default=1,
+        help="Slice the input PDF first into this many parts horizontally",
+    )
     parser.add_argument(
-        "--slice_horiz", type=int, default=1,
-        help="Slice the input PDF first into this many parts horizontally")
+        "--slice_vert",
+        type=int,
+        default=1,
+        help="Slice the input PDF first into this many parts vertically",
+    )
     parser.add_argument(
-        "--slice_vert", type=int, default=1,
-        help="Slice the input PDF first into this many parts vertically")
+        "--longedge",
+        action="store_true",
+        help="Create PDF for long-edge duplex printing, not short edge",
+    )
     parser.add_argument(
-        "--longedge", action="store_true",
-        help="Create PDF for long-edge duplex printing, not short edge")
-    parser.add_argument(
-        "--overwrite", action="store_true",
-        help="Allow overwriting of an existing output file")
+        "--overwrite",
+        action="store_true",
+        help="Allow overwriting of an existing output file",
+    )
     args = parser.parse_args()
 
     success = convert_to_foldable(
@@ -415,7 +456,7 @@ def main() -> NoReturn:
         slice_horiz=args.slice_horiz,
         slice_vert=args.slice_vert,
         overwrite=args.overwrite,
-        longedge=args.longedge
+        longedge=args.longedge,
     )
     sys.exit(EXIT_SUCCESS if success else EXIT_FAILURE)
 

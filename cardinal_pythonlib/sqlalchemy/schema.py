@@ -37,13 +37,21 @@ import re
 from typing import Any, Dict, Generator, List, Optional, Type, Union
 
 from sqlalchemy.dialects import mssql, mysql
+
 # noinspection PyProtectedMember
 from sqlalchemy.engine import Connection, Engine, ResultProxy
 from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.dialects.mssql.base import TIMESTAMP as MSSQL_TIMESTAMP
-from sqlalchemy.schema import (Column, CreateColumn, DDL, MetaData, Index,
-                               Sequence, Table)
+from sqlalchemy.schema import (
+    Column,
+    CreateColumn,
+    DDL,
+    MetaData,
+    Index,
+    Sequence,
+    Table,
+)
 from sqlalchemy.sql import sqltypes, text
 from sqlalchemy.sql.sqltypes import BigInteger, TypeEngine
 from sqlalchemy.sql.visitors import VisitableType
@@ -61,13 +69,14 @@ log = get_brace_style_log_with_null_handler(__name__)
 # =============================================================================
 
 MIN_TEXT_LENGTH_FOR_FREETEXT_INDEX = 1000
-MSSQL_DEFAULT_SCHEMA = 'dbo'
-POSTGRES_DEFAULT_SCHEMA = 'public'
+MSSQL_DEFAULT_SCHEMA = "dbo"
+POSTGRES_DEFAULT_SCHEMA = "public"
 
 
 # =============================================================================
 # Inspect tables (SQLAlchemy Core)
 # =============================================================================
+
 
 def get_table_names(engine: Engine) -> List[str]:
     """
@@ -115,6 +124,7 @@ class SqlaColumnInspectionInfo(object):
     A clearer way of getting information than the plain ``dict`` that SQLAlchemy
     uses.
     """
+
     def __init__(self, sqla_info_dict: Dict[str, Any]) -> None:
         """
         Args:
@@ -125,18 +135,20 @@ class SqlaColumnInspectionInfo(object):
                 - https://bitbucket.org/zzzeek/sqlalchemy/issues/4051/sqlalchemyenginereflectioninspectorget_col
         """  # noqa
         # log.debug(repr(sqla_info_dict))
-        self.name = sqla_info_dict['name']  # type: str
-        self.type = sqla_info_dict['type']  # type: TypeEngine
-        self.nullable = sqla_info_dict['nullable']  # type: bool
-        self.default = sqla_info_dict['default']  # type: str  # SQL string expression  # noqa
-        self.attrs = sqla_info_dict.get('attrs', {})  # type: Dict[str, Any]
-        self.comment = sqla_info_dict.get('comment', '')
+        self.name = sqla_info_dict["name"]  # type: str
+        self.type = sqla_info_dict["type"]  # type: TypeEngine
+        self.nullable = sqla_info_dict["nullable"]  # type: bool
+        self.default = sqla_info_dict[
+            "default"
+        ]  # type: str  # SQL string expression  # noqa
+        self.attrs = sqla_info_dict.get("attrs", {})  # type: Dict[str, Any]
+        self.comment = sqla_info_dict.get("comment", "")
         # ... NB not appearing in
 
 
-def gen_columns_info(engine: Engine,
-                     tablename: str) -> Generator[SqlaColumnInspectionInfo,
-                                                  None, None]:
+def gen_columns_info(
+    engine: Engine, tablename: str
+) -> Generator[SqlaColumnInspectionInfo, None, None]:
     """
     For the specified table, generate column information as
     :class:`SqlaColumnInspectionInfo` objects.
@@ -148,8 +160,9 @@ def gen_columns_info(engine: Engine,
         yield SqlaColumnInspectionInfo(d)
 
 
-def get_column_info(engine: Engine, tablename: str,
-                    columnname: str) -> Optional[SqlaColumnInspectionInfo]:
+def get_column_info(
+    engine: Engine, tablename: str, columnname: str
+) -> Optional[SqlaColumnInspectionInfo]:
     """
     For the specified column in the specified table, get column information
     as a :class:`SqlaColumnInspectionInfo` object (or ``None`` if such a
@@ -161,8 +174,9 @@ def get_column_info(engine: Engine, tablename: str,
     return None
 
 
-def get_column_type(engine: Engine, tablename: str,
-                    columnname: str) -> Optional[TypeEngine]:
+def get_column_type(
+    engine: Engine, tablename: str, columnname: str
+) -> Optional[TypeEngine]:
     """
     For the specified column in the specified table, get its type as an
     instance of an SQLAlchemy column type class (or ``None`` if such a column
@@ -187,6 +201,7 @@ def get_column_names(engine: Engine, tablename: str) -> List[str]:
 # =============================================================================
 # More introspection
 # =============================================================================
+
 
 def get_pk_colnames(table_: Table) -> List[str]:
     """
@@ -260,8 +275,9 @@ def get_single_int_autoincrement_colname(table_: Table) -> Optional[str]:
             if is_sqlatype_integer(col.type):
                 int_autoinc_names.append(col.name)
     if n_autoinc > 1:
-        log.warning("Table {!r} has {} autoincrement columns",
-                    table_.name, n_autoinc)
+        log.warning(
+            "Table {!r} has {} autoincrement columns", table_.name, n_autoinc
+        )
     if n_autoinc == 1 and len(int_autoinc_names) == 1:
         return int_autoinc_names[0]
     return None
@@ -273,9 +289,9 @@ def get_effective_int_pk_col(table_: Table) -> Optional[str]:
     ``AUTOINCREMENT`` column, return its column name; otherwise, ``None``.
     """
     return (
-        get_single_int_pk_colname(table_) or
-        get_single_int_autoincrement_colname(table_) or
-        None
+        get_single_int_pk_colname(table_)
+        or get_single_int_autoincrement_colname(table_)
+        or None
     )
 
 
@@ -283,17 +299,18 @@ def get_effective_int_pk_col(table_: Table) -> Optional[str]:
 # Indexes
 # =============================================================================
 
+
 def index_exists(engine: Engine, tablename: str, indexname: str) -> bool:
     """
     Does the specified index exist for the specified table?
     """
     insp = Inspector.from_engine(engine)
-    return any(i['name'] == indexname for i in insp.get_indexes(tablename))
+    return any(i["name"] == indexname for i in insp.get_indexes(tablename))
 
 
-def mssql_get_pk_index_name(engine: Engine,
-                            tablename: str,
-                            schemaname: str = MSSQL_DEFAULT_SCHEMA) -> str:
+def mssql_get_pk_index_name(
+    engine: Engine, tablename: str, schemaname: str = MSSQL_DEFAULT_SCHEMA
+) -> str:
     """
     For Microsoft SQL Server specifically: fetch the name of the PK index
     for the specified table (in the specified schema), or ``''`` if none is
@@ -303,7 +320,8 @@ def mssql_get_pk_index_name(engine: Engine,
     # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html#sqlalchemy.sql.expression.text  # noqa
     # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html#sqlalchemy.sql.expression.TextClause.bindparams  # noqa
     # http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.ResultProxy  # noqa
-    query = text("""
+    query = text(
+        """
 SELECT
     kc.name AS index_name
 FROM
@@ -314,24 +332,24 @@ WHERE
     kc.[type] = 'PK'
     AND ta.name = :tablename
     AND s.name = :schemaname
-    """).bindparams(
-        tablename=tablename,
-        schemaname=schemaname,
-    )
+    """
+    ).bindparams(tablename=tablename, schemaname=schemaname)
     with contextlib.closing(
-            engine.execute(query)) as result:  # type: ResultProxy  # noqa
+        engine.execute(query)
+    ) as result:  # type: ResultProxy  # noqa
         row = result.fetchone()
-        return row[0] if row else ''
+        return row[0] if row else ""
 
 
-def mssql_table_has_ft_index(engine: Engine,
-                             tablename: str,
-                             schemaname: str = MSSQL_DEFAULT_SCHEMA) -> bool:
+def mssql_table_has_ft_index(
+    engine: Engine, tablename: str, schemaname: str = MSSQL_DEFAULT_SCHEMA
+) -> bool:
     """
     For Microsoft SQL Server specifically: does the specified table (in the
     specified schema) have at least one full-text index?
     """
-    query = text("""
+    query = text(
+        """
 SELECT
     COUNT(*)
 FROM
@@ -342,12 +360,11 @@ FROM
 WHERE
     ta.name = :tablename
     AND s.name = :schemaname
-    """).bindparams(
-        tablename=tablename,
-        schemaname=schemaname,
-    )
+    """
+    ).bindparams(tablename=tablename, schemaname=schemaname)
     with contextlib.closing(
-            engine.execute(query)) as result:  # type: ResultProxy  # noqa
+        engine.execute(query)
+    ) as result:  # type: ResultProxy  # noqa
         row = result.fetchone()
         return row[0] > 0
 
@@ -361,17 +378,20 @@ def mssql_transaction_count(engine_or_conn: Union[Connection, Engine]) -> int:
     """
     sql = "SELECT @@TRANCOUNT"
     with contextlib.closing(
-            engine_or_conn.execute(sql)) as result:  # type: ResultProxy  # noqa
+        engine_or_conn.execute(sql)
+    ) as result:  # type: ResultProxy  # noqa
         row = result.fetchone()
         return row[0] if row else None
 
 
-def add_index(engine: Engine,
-              sqla_column: Column = None,
-              multiple_sqla_columns: List[Column] = None,
-              unique: bool = False,
-              fulltext: bool = False,
-              length: int = None) -> None:
+def add_index(
+    engine: Engine,
+    sqla_column: Column = None,
+    multiple_sqla_columns: List[Column] = None,
+    unique: bool = False,
+    fulltext: bool = False,
+    length: int = None,
+) -> None:
     """
     Adds an index to a database column (or, in restricted circumstances,
     several columns).
@@ -408,8 +428,10 @@ def add_index(engine: Engine,
 
     multiple_sqla_columns = multiple_sqla_columns or []  # type: List[Column]
     if multiple_sqla_columns and not (fulltext and is_mssql):
-        raise ValueError("add_index: Use multiple_sqla_columns only for mssql "
-                         "(Microsoft SQL Server) full-text indexing")
+        raise ValueError(
+            "add_index: Use multiple_sqla_columns only for mssql "
+            "(Microsoft SQL Server) full-text indexing"
+        )
     if bool(multiple_sqla_columns) == (sqla_column is not None):
         raise ValueError(
             f"add_index: Use either sqla_column or multiple_sqla_columns, "
@@ -427,18 +449,21 @@ def add_index(engine: Engine,
         if any(c.table.name != tablename for c in multiple_sqla_columns[1:]):
             raise ValueError(
                 f"add_index: tablenames are inconsistent in "
-                f"multiple_sqla_columns = {multiple_sqla_columns!r}")
+                f"multiple_sqla_columns = {multiple_sqla_columns!r}"
+            )
 
     if fulltext:
         if is_mssql:
-            idxname = ''  # they are unnamed
+            idxname = ""  # they are unnamed
         else:
             idxname = "_idxft_{}".format("_".join(colnames))
     else:
         idxname = "_idx_{}".format("_".join(colnames))
     if idxname and index_exists(engine, tablename, idxname):
-        log.info(f"Skipping creation of index {idxname} on "
-                 f"table {tablename}; already exists")
+        log.info(
+            f"Skipping creation of index {idxname} on "
+            f"table {tablename}; already exists"
+        )
         return
         # because it will crash if you add it again!
     log.info(
@@ -451,8 +476,10 @@ def add_index(engine: Engine,
 
     if fulltext:
         if is_mysql:
-            log.info('OK to ignore this warning, if it follows next: '
-                     '"InnoDB rebuilding table to add column FTS_DOC_ID"')
+            log.info(
+                "OK to ignore this warning, if it follows next: "
+                '"InnoDB rebuilding table to add column FTS_DOC_ID"'
+            )
             # https://dev.mysql.com/doc/refman/5.6/en/innodb-fulltext-index.html
             sql = (
                 "ALTER TABLE {tablename} "
@@ -471,24 +498,28 @@ def add_index(engine: Engine,
             # Note that the database must also have had a
             #   CREATE FULLTEXT CATALOG somename AS DEFAULT;
             # statement executed on it beforehand.
-            schemaname = engine.schema_for_object(
-                sqla_table) or MSSQL_DEFAULT_SCHEMA  # noqa
-            if mssql_table_has_ft_index(engine=engine,
-                                        tablename=tablename,
-                                        schemaname=schemaname):
+            schemaname = (
+                engine.schema_for_object(sqla_table) or MSSQL_DEFAULT_SCHEMA
+            )  # noqa
+            if mssql_table_has_ft_index(
+                engine=engine, tablename=tablename, schemaname=schemaname
+            ):
                 log.info(
                     f"... skipping creation of full-text index on table "
                     f"{tablename}; a full-text index already exists for that "
                     f"table; you can have only one full-text index per table, "
-                    f"though it can be on multiple columns")
+                    f"though it can be on multiple columns"
+                )
                 return
             pk_index_name = mssql_get_pk_index_name(
-                engine=engine, tablename=tablename, schemaname=schemaname)
+                engine=engine, tablename=tablename, schemaname=schemaname
+            )
             if not pk_index_name:
                 raise ValueError(
                     f"To make a FULLTEXT index under SQL Server, we need to "
                     f"know the name of the PK index, but couldn't find one "
-                    f"via mssql_get_pk_index_name() for table {tablename!r}")
+                    f"via mssql_get_pk_index_name() for table {tablename!r}"
+                )
             # We don't name the FULLTEXT index itself, but it has to relate
             # to an existing unique index.
             sql = (
@@ -513,8 +544,10 @@ def add_index(engine: Engine,
             #     pyodbc); see create_indexes()
             transaction_count = mssql_transaction_count(engine)
             if transaction_count != 0:
-                log.critical(f"SQL Server transaction count (should be 0): "
-                             f"{transaction_count}")
+                log.critical(
+                    f"SQL Server transaction count (should be 0): "
+                    f"{transaction_count}"
+                )
                 # Executing serial COMMITs or a ROLLBACK won't help here if
                 # this transaction is due to Python DBAPI default behaviour.
             DDL(sql, bind=engine).execute()
@@ -522,8 +555,10 @@ def add_index(engine: Engine,
             # The reversal procedure is DROP FULLTEXT INDEX ON tablename;
 
         else:
-            log.error(f"Don't know how to make full text index on dialect "
-                      f"{engine.dialect.name}")
+            log.error(
+                f"Don't know how to make full text index on dialect "
+                f"{engine.dialect.name}"
+            )
 
     else:
         index = Index(idxname, sqla_column, unique=unique, mysql_length=length)
@@ -535,22 +570,28 @@ def add_index(engine: Engine,
 # More DDL
 # =============================================================================
 
-def make_bigint_autoincrement_column(column_name: str,
-                                     dialect: Dialect) -> Column:
+
+def make_bigint_autoincrement_column(
+    column_name: str, dialect: Dialect
+) -> Column:
     """
     Returns an instance of :class:`Column` representing a :class:`BigInteger`
     ``AUTOINCREMENT`` column in the specified :class:`Dialect`.
     """
     # noinspection PyUnresolvedReferences
     if dialect.name == SqlaDialectName.MSSQL:
-        return Column(column_name, BigInteger,
-                      Sequence('dummy_name', start=1, increment=1))
+        return Column(
+            column_name,
+            BigInteger,
+            Sequence("dummy_name", start=1, increment=1),
+        )
     else:
         # return Column(column_name, BigInteger, autoincrement=True)
         # noinspection PyUnresolvedReferences
         raise AssertionError(
             f"SQLAlchemy doesn't support non-PK autoincrement fields yet for "
-            f"dialect {dialect.name!r}")
+            f"dialect {dialect.name!r}"
+        )
         # see https://stackoverflow.com/questions/2937229
 
 
@@ -604,9 +645,9 @@ def giant_text_sqltype(dialect: Dialect) -> str:
         and 'NVARCHAR(MAX)' for SQL Server.
     """
     if dialect.name == SqlaDialectName.SQLSERVER:
-        return 'NVARCHAR(MAX)'
+        return "NVARCHAR(MAX)"
     elif dialect.name == SqlaDialectName.MYSQL:
-        return 'LONGTEXT'
+        return "LONGTEXT"
     else:
         raise ValueError(f"Unknown dialect: {dialect.name}")
 
@@ -619,20 +660,22 @@ def giant_text_sqltype(dialect: Dialect) -> str:
 # Reverse a textual SQL column type to an SQLAlchemy column type
 # -----------------------------------------------------------------------------
 
-RE_MYSQL_ENUM_COLTYPE = re.compile(r'ENUM\((?P<valuelist>.+)\)')
-RE_COLTYPE_WITH_COLLATE = re.compile(r'(?P<maintype>.+) COLLATE .+')
-RE_COLTYPE_WITH_ONE_PARAM = re.compile(r'(?P<type>\w+)\((?P<size>\w+)\)')
+RE_MYSQL_ENUM_COLTYPE = re.compile(r"ENUM\((?P<valuelist>.+)\)")
+RE_COLTYPE_WITH_COLLATE = re.compile(r"(?P<maintype>.+) COLLATE .+")
+RE_COLTYPE_WITH_ONE_PARAM = re.compile(r"(?P<type>\w+)\((?P<size>\w+)\)")
 # ... e.g. "VARCHAR(10)"
 RE_COLTYPE_WITH_TWO_PARAMS = re.compile(
-    r'(?P<type>\w+)\((?P<size>\w+),\s*(?P<dp>\w+)\)')
+    r"(?P<type>\w+)\((?P<size>\w+),\s*(?P<dp>\w+)\)"
+)
 # ... e.g. "DECIMAL(10, 2)"
 
 
 # http://www.w3schools.com/sql/sql_create_table.asp
 
 
-def _get_sqla_coltype_class_from_str(coltype: str,
-                                     dialect: Dialect) -> Type[TypeEngine]:
+def _get_sqla_coltype_class_from_str(
+    coltype: str, dialect: Dialect
+) -> Type[TypeEngine]:
     """
     Returns the SQLAlchemy class corresponding to a particular SQL column
     type in a given dialect.
@@ -656,15 +699,21 @@ def get_list_of_sql_string_literals_from_quoted_csv(x: str) -> List[str]:
     ``"'a', 'b', 'c', 'd'"`` and converts it to ``['a', 'b', 'c', 'd']``.
     """
     f = io.StringIO(x)
-    reader = csv.reader(f, delimiter=',', quotechar="'", quoting=csv.QUOTE_ALL,
-                        skipinitialspace=True)
+    reader = csv.reader(
+        f,
+        delimiter=",",
+        quotechar="'",
+        quoting=csv.QUOTE_ALL,
+        skipinitialspace=True,
+    )
     for line in reader:  # should only be one
         return [x for x in line]
 
 
 @lru_cache(maxsize=None)
-def get_sqla_coltype_from_dialect_str(coltype: str,
-                                      dialect: Dialect) -> TypeEngine:
+def get_sqla_coltype_from_dialect_str(
+    coltype: str, dialect: Dialect
+) -> TypeEngine:
     """
     Returns an SQLAlchemy column type, given a column type name (a string) and
     an SQLAlchemy dialect. For example, this might convert the string
@@ -729,14 +778,14 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
     dp = None  # type: Optional[int]
     args = []  # type: List[Any]
     kwargs = {}  # type: Dict[str, Any]
-    basetype = ''
+    basetype = ""
 
     # noinspection PyPep8,PyBroadException
     try:
         # Split e.g. "VARCHAR(32) COLLATE blah" into "VARCHAR(32)", "who cares"
         m = RE_COLTYPE_WITH_COLLATE.match(coltype)
         if m is not None:
-            coltype = m.group('maintype')
+            coltype = m.group("maintype")
 
         found = False
 
@@ -745,29 +794,30 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
             m = RE_MYSQL_ENUM_COLTYPE.match(coltype)
             if m is not None:
                 # Convert to VARCHAR with max size being that of largest enum
-                basetype = 'VARCHAR'
+                basetype = "VARCHAR"
                 values = get_list_of_sql_string_literals_from_quoted_csv(
-                    m.group('valuelist'))
+                    m.group("valuelist")
+                )
                 length = max(len(x) for x in values)
-                kwargs = {'length': length}
+                kwargs = {"length": length}
                 found = True
 
         if not found:
             # Split e.g. "DECIMAL(10, 2)" into DECIMAL, 10, 2
             m = RE_COLTYPE_WITH_TWO_PARAMS.match(coltype)
             if m is not None:
-                basetype = m.group('type').upper()
-                size = ast.literal_eval(m.group('size'))
-                dp = ast.literal_eval(m.group('dp'))
+                basetype = m.group("type").upper()
+                size = ast.literal_eval(m.group("size"))
+                dp = ast.literal_eval(m.group("dp"))
                 found = True
 
         if not found:
             # Split e.g. "VARCHAR(32)" into VARCHAR, 32
             m = RE_COLTYPE_WITH_ONE_PARAM.match(coltype)
             if m is not None:
-                basetype = m.group('type').upper()
-                size_text = m.group('size').strip().upper()
-                if size_text != 'MAX':
+                basetype = m.group("type").upper()
+                size_text = m.group("size").strip().upper()
+                if size_text != "MAX":
                     size = ast.literal_eval(size_text)
                 found = True
 
@@ -776,18 +826,20 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
 
         # Special cases: pre-processing
         # noinspection PyUnresolvedReferences
-        if (dialect.name == SqlaDialectName.MSSQL and
-                basetype.lower() == 'integer'):
-            basetype = 'int'
+        if (
+            dialect.name == SqlaDialectName.MSSQL
+            and basetype.lower() == "integer"
+        ):
+            basetype = "int"
 
         cls = _get_sqla_coltype_class_from_str(basetype, dialect)
 
         # Special cases: post-processing
-        if basetype == 'DATETIME' and size:
+        if basetype == "DATETIME" and size:
             # First argument to DATETIME() is timezone, so...
             # noinspection PyUnresolvedReferences
             if dialect.name == SqlaDialectName.MYSQL:
-                kwargs = {'fsp': size}
+                kwargs = {"fsp": size}
             else:
                 pass
         else:
@@ -800,8 +852,10 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
 
     except:
         # noinspection PyUnresolvedReferences
-        raise ValueError(f"Failed to convert SQL type {coltype!r} in dialect "
-                         f"{dialect.name!r} to an SQLAlchemy type")
+        raise ValueError(
+            f"Failed to convert SQL type {coltype!r} in dialect "
+            f"{dialect.name!r} to an SQLAlchemy type"
+        )
 
 
 # get_sqla_coltype_from_dialect_str("INTEGER", engine.dialect)
@@ -815,11 +869,12 @@ def get_sqla_coltype_from_dialect_str(coltype: str,
 # Do special dialect conversions on SQLAlchemy SQL types (of class type)
 # =============================================================================
 
+
 def remove_collation(coltype: TypeEngine) -> TypeEngine:
     """
     Returns a copy of the specific column type with any ``COLLATION`` removed.
     """
-    if not getattr(coltype, 'collation', None):
+    if not getattr(coltype, "collation", None):
         return coltype
     newcoltype = copy.copy(coltype)
     newcoltype.collation = None
@@ -828,11 +883,12 @@ def remove_collation(coltype: TypeEngine) -> TypeEngine:
 
 @lru_cache(maxsize=None)
 def convert_sqla_type_for_dialect(
-        coltype: TypeEngine,
-        dialect: Dialect,
-        strip_collation: bool = True,
-        convert_mssql_timestamp: bool = True,
-        expand_for_scrubbing: bool = False) -> TypeEngine:
+    coltype: TypeEngine,
+    dialect: Dialect,
+    strip_collation: bool = True,
+    convert_mssql_timestamp: bool = True,
+    expand_for_scrubbing: bool = False,
+) -> TypeEngine:
     """
     Converts an SQLAlchemy column type from one SQL dialect to another.
 
@@ -943,8 +999,10 @@ def convert_sqla_type_for_dialect(
 # class A(object), class B(object), and class C(A, B), followed by x = C(),
 # then all of isinstance(x, A), isinstance(x, B), isinstance(x, C) are True
 
-def _coltype_to_typeengine(coltype: Union[TypeEngine,
-                                          VisitableType]) -> TypeEngine:
+
+def _coltype_to_typeengine(
+    coltype: Union[TypeEngine, VisitableType]
+) -> TypeEngine:
     """
     An example is simplest: if you pass in ``Integer()`` (an instance of
     :class:`TypeEngine`), you'll get ``Integer()`` back. If you pass in
@@ -979,9 +1037,8 @@ def is_sqlatype_date(coltype: Union[TypeEngine, VisitableType]) -> bool:
     coltype = _coltype_to_typeengine(coltype)
     # No longer valid in SQLAlchemy 1.2.11:
     # return isinstance(coltype, sqltypes._DateAffinity)
-    return (
-        isinstance(coltype, sqltypes.DateTime) or
-        isinstance(coltype, sqltypes.Date)
+    return isinstance(coltype, sqltypes.DateTime) or isinstance(
+        coltype, sqltypes.Date
     )
 
 
@@ -1011,8 +1068,9 @@ def is_sqlatype_string(coltype: Union[TypeEngine, VisitableType]) -> bool:
 
 
 def is_sqlatype_text_of_length_at_least(
-        coltype: Union[TypeEngine, VisitableType],
-        min_length: int = MIN_TEXT_LENGTH_FOR_FREETEXT_INDEX) -> bool:
+    coltype: Union[TypeEngine, VisitableType],
+    min_length: int = MIN_TEXT_LENGTH_FOR_FREETEXT_INDEX,
+) -> bool:
     """
     Is the SQLAlchemy column type a string type that's at least the specified
     length?
@@ -1026,7 +1084,8 @@ def is_sqlatype_text_of_length_at_least(
 
 
 def is_sqlatype_text_over_one_char(
-        coltype: Union[TypeEngine, VisitableType]) -> bool:
+    coltype: Union[TypeEngine, VisitableType]
+) -> bool:
     """
     Is the SQLAlchemy column type a string type that's more than one character
     long?
@@ -1036,8 +1095,9 @@ def is_sqlatype_text_over_one_char(
 
 
 def does_sqlatype_merit_fulltext_index(
-        coltype: Union[TypeEngine, VisitableType],
-        min_length: int = MIN_TEXT_LENGTH_FOR_FREETEXT_INDEX) -> bool:
+    coltype: Union[TypeEngine, VisitableType],
+    min_length: int = MIN_TEXT_LENGTH_FOR_FREETEXT_INDEX,
+) -> bool:
     """
     Is the SQLAlchemy column type a type that might merit a ``FULLTEXT``
     index (meaning a string type of at least ``min_length``)?
@@ -1047,7 +1107,8 @@ def does_sqlatype_merit_fulltext_index(
 
 
 def does_sqlatype_require_index_len(
-        coltype: Union[TypeEngine, VisitableType]) -> bool:
+    coltype: Union[TypeEngine, VisitableType]
+) -> bool:
     """
     Is the SQLAlchemy column type one that requires its indexes to have a
     length specified?
@@ -1068,6 +1129,7 @@ def does_sqlatype_require_index_len(
 # Hack in new type
 # =============================================================================
 
+
 def hack_in_mssql_xml_type():
     r"""
     Modifies SQLAlchemy's type map for Microsoft SQL Server to support XML.
@@ -1083,7 +1145,7 @@ def hack_in_mssql_xml_type():
 
     """  # noqa
     log.debug("Adding type 'xml' to SQLAlchemy reflection for dialect 'mssql'")
-    mssql.base.ischema_names['xml'] = mssql.base.TEXT
+    mssql.base.ischema_names["xml"] = mssql.base.TEXT
     # https://stackoverflow.com/questions/32917867/sqlalchemy-making-schema-reflection-find-use-a-custom-type-for-all-instances  # noqa
 
     # print(repr(mssql.base.ischema_names.keys()))
@@ -1093,6 +1155,7 @@ def hack_in_mssql_xml_type():
 # =============================================================================
 # Check column definition equality
 # =============================================================================
+
 
 def column_types_equal(a_coltype: TypeEngine, b_coltype: TypeEngine) -> bool:
     """
@@ -1115,9 +1178,9 @@ def columns_equal(a: Column, b: Column) -> bool:
     - ``nullable``
     """
     return (
-        a.name == b.name and
-        column_types_equal(a.type, b.type) and
-        a.nullable == b.nullable
+        a.name == b.name
+        and column_types_equal(a.type, b.type)
+        and a.nullable == b.nullable
     )
 
 

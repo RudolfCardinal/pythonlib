@@ -45,6 +45,7 @@ from sqlalchemy.sql.type_api import TypeDecorator
 # Semantic version column type
 # =============================================================================
 
+
 def make_semantic_version(value: Any) -> Optional[Version]:
     """
     Returns a :class:`semantic_version.Version` from its input or raises
@@ -73,10 +74,11 @@ class SemanticVersionColType(TypeDecorator):
     _coltype_name = "SemanticVersionColType"
 
     def __init__(
-            self,
-            *args,
-            make_version: MakeSemanticVersionFnType = make_semantic_version,
-            **kwargs) -> None:
+        self,
+        *args,
+        make_version: MakeSemanticVersionFnType = make_semantic_version,
+        **kwargs
+    ) -> None:
         """
         Args:
             *args:
@@ -100,22 +102,25 @@ class SemanticVersionColType(TypeDecorator):
         """
         return Version
 
-    def process_bind_param(self, value: Optional[Version],
-                           dialect: Dialect) -> Optional[str]:
+    def process_bind_param(
+        self, value: Optional[Version], dialect: Dialect
+    ) -> Optional[str]:
         """
         Convert parameters on the way from Python to the database.
         """
         return str(value) if value is not None else None
 
-    def process_literal_param(self, value: Optional[Version],
-                              dialect: Dialect) -> Optional[str]:
+    def process_literal_param(
+        self, value: Optional[Version], dialect: Dialect
+    ) -> Optional[str]:
         """
         Convert literals on the way from Python to the database.
         """
         return str(value) if value is not None else None
 
-    def process_result_value(self, value: Optional[str],
-                             dialect: Dialect) -> Optional[Version]:
+    def process_result_value(
+        self, value: Optional[str], dialect: Dialect
+    ) -> Optional[Version]:
         """
         Convert things on the way from the database to Python.
         """

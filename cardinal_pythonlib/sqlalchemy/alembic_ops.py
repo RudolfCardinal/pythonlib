@@ -37,6 +37,7 @@ from alembic.operations import Operations, MigrateOperation
 # The thing (e.g. view) we are representing
 # =============================================================================
 
+
 class ReplaceableObject(object):
     def __init__(self, name, sqltext):
         """
@@ -70,11 +71,13 @@ class ReplaceableObject(object):
 # An operation that can be reversed
 # =============================================================================
 
+
 class ReversibleOp(MigrateOperation):
     """
     Represents a DDL (SQL) migration operation that can be reversed; e.g. the
     combination of ``CREATE VIEW`` and ``DROP VIEW``.
     """
+
     def __init__(self, target):
         """
         Args:
@@ -147,12 +150,14 @@ class ReversibleOp(MigrateOperation):
 # Operations that will become part of the op.* namespace
 # =============================================================================
 
+
 @Operations.register_operation("create_view", "invoke_for_target")
 @Operations.register_operation("replace_view", "replace")
 class CreateViewOp(ReversibleOp):
     """
     Represents ``CREATE VIEW`` (reversed by ``DROP VIEW``).
     """
+
     def reverse(self):
         return DropViewOp(self.target)
 
@@ -162,6 +167,7 @@ class DropViewOp(ReversibleOp):
     """
     Represents ``DROP VIEW`` (reversed by ``CREATE VIEW``).
     """
+
     def reverse(self):
         return CreateViewOp(self.view)
 
@@ -173,6 +179,7 @@ class CreateSPOp(ReversibleOp):
     Represents ``CREATE FUNCTION`` (reversed by ``DROP FUNCTION``)
     [sp = stored procedure].
     """
+
     def reverse(self):
         return DropSPOp(self.target)
 
@@ -183,6 +190,7 @@ class DropSPOp(ReversibleOp):
     Represents ``DROP FUNCTION`` (reversed by ``CREATE FUNCTION``)
     [sp = stored procedure].
     """
+
     def reverse(self):
         return CreateSPOp(self.target)
 
@@ -190,6 +198,7 @@ class DropSPOp(ReversibleOp):
 # =============================================================================
 # Implementation of these operations
 # =============================================================================
+
 
 @Operations.implementation_for(CreateViewOp)
 def create_view(operations, operation):
@@ -203,10 +212,10 @@ def create_view(operations, operation):
     Returns:
         ``None``
     """
-    operations.execute("CREATE VIEW %s AS %s" % (
-        operation.target.name,
-        operation.target.sqltext
-    ))
+    operations.execute(
+        "CREATE VIEW %s AS %s"
+        % (operation.target.name, operation.target.sqltext)
+    )
 
 
 @Operations.implementation_for(DropViewOp)
@@ -237,9 +246,8 @@ def create_sp(operations, operation):
         ``None``
     """
     operations.execute(
-        "CREATE FUNCTION %s %s" % (
-            operation.target.name, operation.target.sqltext
-        )
+        "CREATE FUNCTION %s %s"
+        % (operation.target.name, operation.target.sqltext)
     )
 
 

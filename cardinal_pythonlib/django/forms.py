@@ -38,6 +38,7 @@ from cardinal_pythonlib.nhs import is_valid_nhs_number
 # Multiple values from a text area
 # =============================================================================
 
+
 def clean_int(x) -> int:
     """
     Returns its parameter as an integer, or raises
@@ -67,6 +68,7 @@ class MultipleIntAreaField(forms.Field):
     """
     Django ``forms.Field`` to capture multiple integers.
     """
+
     # See also https://stackoverflow.com/questions/29303902/django-form-with-list-of-integers  # noqa
     widget = forms.Textarea
 
@@ -78,6 +80,7 @@ class MultipleNhsNumberAreaField(forms.Field):
     """
     Django ``forms.Field`` to capture multiple NHS numbers.
     """
+
     widget = forms.Textarea
 
     def clean(self, value) -> List[int]:
@@ -88,6 +91,7 @@ class MultipleWordAreaField(forms.Field):
     """
     Django ``forms.Field`` to capture multiple words.
     """
+
     widget = forms.Textarea
 
     def clean(self, value) -> List[str]:
@@ -98,5 +102,6 @@ class SingleNhsNumberField(forms.IntegerField):
     """
     Django ``forms.Field`` to capture a single NHS number.
     """
+
     def clean(self, value) -> int:
         return clean_nhs_number(value)

@@ -38,29 +38,37 @@ from sqlalchemy.sql.compiler import IdentifierPreparer, SQLCompiler
 # Constants
 # =============================================================================
 
+
 class SqlaDialectName(object):
     """
     Dialect names used by SQLAlchemy.
     """
+
     FIREBIRD = "firebird"
-    MYSQL = 'mysql'
-    MSSQL = 'mssql'
-    ORACLE = 'oracle'
-    POSTGRES = 'postgresql'
-    SQLITE = 'sqlite'
+    MYSQL = "mysql"
+    MSSQL = "mssql"
+    ORACLE = "oracle"
+    POSTGRES = "postgresql"
+    SQLITE = "sqlite"
     SQLSERVER = MSSQL  # synonym
-    SYBASE = 'sybase'
+    SYBASE = "sybase"
 
 
-ALL_SQLA_DIALECTS = list(set(
-    [getattr(SqlaDialectName, k)
-     for k in dir(SqlaDialectName) if not k.startswith("_")]
-))
+ALL_SQLA_DIALECTS = list(
+    set(
+        [
+            getattr(SqlaDialectName, k)
+            for k in dir(SqlaDialectName)
+            if not k.startswith("_")
+        ]
+    )
+)
 
 
 # =============================================================================
 # Dialect stuff
 # =============================================================================
+
 
 def get_dialect(mixed: Union[SQLCompiler, Engine, Dialect]) -> Dialect:
     """
@@ -98,8 +106,9 @@ def get_dialect_name(mixed: Union[SQLCompiler, Engine, Dialect]) -> str:
     return dialect.name
 
 
-def get_preparer(mixed: Union[SQLCompiler, Engine,
-                              Dialect]) -> IdentifierPreparer:
+def get_preparer(
+    mixed: Union[SQLCompiler, Engine, Dialect]
+) -> IdentifierPreparer:
     """
     Returns the SQLAlchemy :class:`IdentifierPreparer` in use for the dialect
     being used.
@@ -116,8 +125,9 @@ def get_preparer(mixed: Union[SQLCompiler, Engine,
     return dialect.preparer(dialect)  # type: IdentifierPreparer
 
 
-def quote_identifier(identifier: str,
-                     mixed: Union[SQLCompiler, Engine, Dialect]) -> str:
+def quote_identifier(
+    identifier: str, mixed: Union[SQLCompiler, Engine, Dialect]
+) -> str:
     """
     Converts an SQL identifier to a quoted version, via the SQL dialect in
     use.
@@ -144,6 +154,7 @@ def get_dialect_from_name(dialect_name: str) -> Dialect:
     def null_executor(querysql, *multiparams, **params):
         pass
 
-    engine = create_engine(f"{dialect_name}://", strategy="mock",
-                           executor=null_executor)
+    engine = create_engine(
+        f"{dialect_name}://", strategy="mock", executor=null_executor
+    )
     return engine.dialect

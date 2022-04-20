@@ -33,6 +33,7 @@ from typing import Iterable, Tuple
 # Field choice assistance
 # =============================================================================
 
+
 def valid_choice(strvalue: str, choices: Iterable[Tuple[str, str]]) -> bool:
     """
     Checks that value is one of the valid option in choices, where choices
@@ -60,4 +61,4 @@ def choice_explanation(value: str, choices: Iterable[Tuple[str, str]]) -> str:
     for k, v in choices:
         if k == value:
             return v
-    return ''
+    return ""

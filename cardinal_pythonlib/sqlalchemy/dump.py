@@ -32,6 +32,7 @@ import sys
 from typing import Any, Callable, Dict, TextIO, Type, Union
 
 import pendulum
+
 # noinspection PyProtectedMember
 from sqlalchemy.engine import Connectable, create_engine
 from sqlalchemy.engine.base import Engine
@@ -62,6 +63,7 @@ SEP2 = sql_comment("-" * 76)
 # Dump functions: get DDL and/or data as SQL commands
 # =============================================================================
 
+
 def dump_connection_info(engine: Engine, fileobj: TextIO = sys.stdout) -> None:
     """
     Dumps some connection info, as an SQL comment. Obscures passwords.
@@ -73,13 +75,15 @@ def dump_connection_info(engine: Engine, fileobj: TextIO = sys.stdout) -> None:
             information to
     """
     meta = MetaData(bind=engine)
-    writeline_nl(fileobj, sql_comment(f'Database info: {meta}'))
+    writeline_nl(fileobj, sql_comment(f"Database info: {meta}"))
 
 
-def dump_ddl(metadata: MetaData,
-             dialect_name: str,
-             fileobj: TextIO = sys.stdout,
-             checkfirst: bool = True) -> None:
+def dump_ddl(
+    metadata: MetaData,
+    dialect_name: str,
+    fileobj: TextIO = sys.stdout,
+    checkfirst: bool = True,
+) -> None:
     """
     Sends schema-creating DDL from the metadata to the dump engine.
     This makes ``CREATE TABLE`` statements.
@@ -99,10 +103,10 @@ def dump_ddl(metadata: MetaData,
         compsql = querysql.compile(dialect=engine.dialect)
         writeline_nl(fileobj, f"{compsql};")
 
-    writeline_nl(fileobj,
-                 sql_comment(f"Schema (for dialect {dialect_name}):"))
-    engine = create_engine(f"{dialect_name}://",
-                           strategy="mock", executor=dump)
+    writeline_nl(fileobj, sql_comment(f"Schema (for dialect {dialect_name}):"))
+    engine = create_engine(
+        f"{dialect_name}://", strategy="mock", executor=dump
+    )
     metadata.create_all(engine, checkfirst=checkfirst)
     # ... checkfirst doesn't seem to be working for the mock strategy...
     # http://docs.sqlalchemy.org/en/latest/core/metadata.html
@@ -139,8 +143,10 @@ class StringLiteral(String):
     See
     https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
     """
-    def literal_processor(self,
-                          dialect: DefaultDialect) -> Callable[[Any], str]:
+
+    def literal_processor(
+        self, dialect: DefaultDialect
+    ) -> Callable[[Any], str]:
         super_processor = super().literal_processor(dialect)
 
         def process(value: Any) -> str:
@@ -153,6 +159,7 @@ class StringLiteral(String):
             if isinstance(result, bytes):
                 result = result.decode(dialect.encoding)
             return result
+
         return process
 
 
@@ -180,17 +187,21 @@ def make_literal_query_fn(dialect: DefaultDialect) -> Callable[[str], str]:
         # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
         if isinstance(statement, Query):
             statement = statement.statement
-        return statement.compile(
-            dialect=LiteralDialect(),
-            compile_kwargs={'literal_binds': True},
-        ).string + ";"
+        return (
+            statement.compile(
+                dialect=LiteralDialect(),
+                compile_kwargs={"literal_binds": True},
+            ).string
+            + ";"
+        )
 
     return literal_query
 
 
 # noinspection PyProtectedMember
-def get_literal_query(statement: Union[Query, Executable],
-                      bind: Connectable = None) -> str:
+def get_literal_query(
+    statement: Union[Query, Executable], bind: Connectable = None
+) -> str:
     """
     Takes an SQLAlchemy statement and produces a literal SQL version, with
     values filled in.
@@ -221,8 +232,10 @@ def get_literal_query(statement: Union[Query, Executable],
     elif bind is None:
         bind = statement.bind
     if bind is None:  # despite all that
-        raise ValueError("Attempt to call get_literal_query with an unbound "
-                         "statement and no 'bind' parameter")
+        raise ValueError(
+            "Attempt to call get_literal_query with an unbound "
+            "statement and no 'bind' parameter"
+        )
 
     # noinspection PyUnresolvedReferences
     dialect = bind.dialect
@@ -230,16 +243,18 @@ def get_literal_query(statement: Union[Query, Executable],
 
     class LiteralCompiler(compiler.__class__):
         # noinspection PyMethodMayBeStatic
-        def visit_bindparam(self,
-                            bindparam: BindParameter,
-                            within_columns_clause: bool = False,
-                            literal_binds: bool = False,
-                            **kwargs) -> str:
+        def visit_bindparam(
+            self,
+            bindparam: BindParameter,
+            within_columns_clause: bool = False,
+            literal_binds: bool = False,
+            **kwargs,
+        ) -> str:
             return super().render_literal_bindparam(
                 bindparam,
                 within_columns_clause=within_columns_clause,
                 literal_binds=literal_binds,
-                **kwargs
+                **kwargs,
             )
 
         # noinspection PyUnusedLocal
@@ -261,12 +276,14 @@ def get_literal_query(statement: Union[Query, Executable],
                 return repr(value)
             elif isinstance(value, decimal.Decimal):
                 return str(value)
-            elif (isinstance(value, datetime.datetime) or
-                  isinstance(value, datetime.date) or
-                  isinstance(value, datetime.time) or
-                  isinstance(value, pendulum.DateTime) or
-                  isinstance(value, pendulum.Date) or
-                  isinstance(value, pendulum.Time)):
+            elif (
+                isinstance(value, datetime.datetime)
+                or isinstance(value, datetime.date)
+                or isinstance(value, datetime.time)
+                or isinstance(value, pendulum.DateTime)
+                or isinstance(value, pendulum.Date)
+                or isinstance(value, pendulum.Time)
+            ):
                 # All have an isoformat() method.
                 return f"'{value.isoformat()}'"
                 # return (
@@ -275,18 +292,21 @@ def get_literal_query(statement: Union[Query, Executable],
                 # )
             else:
                 raise NotImplementedError(
-                    "Don't know how to literal-quote value %r" % value)
+                    "Don't know how to literal-quote value %r" % value
+                )
 
     compiler = LiteralCompiler(dialect, statement)
     return compiler.process(statement) + ";"
 
 
-def dump_table_as_insert_sql(engine: Engine,
-                             table_name: str,
-                             fileobj: TextIO,
-                             wheredict: Dict[str, Any] = None,
-                             include_ddl: bool = False,
-                             multirow: bool = False) -> None:
+def dump_table_as_insert_sql(
+    engine: Engine,
+    table_name: str,
+    fileobj: TextIO,
+    wheredict: Dict[str, Any] = None,
+    include_ddl: bool = False,
+    multirow: bool = False,
+) -> None:
     """
     Reads a table from the database, and writes SQL to replicate the table's
     data to the output ``fileobj``.
@@ -305,18 +325,23 @@ def dump_table_as_insert_sql(engine: Engine,
     # http://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/  # noqa
     # https://github.com/plq/scripts/blob/master/pg_dump.py
     log.info("dump_data_as_insert_sql: table_name={}", table_name)
-    writelines_nl(fileobj, [
-        SEP1,
-        sql_comment(f"Data for table: {table_name}"),
-        SEP2,
-        sql_comment(f"Filters: {wheredict}"),
-    ])
+    writelines_nl(
+        fileobj,
+        [
+            SEP1,
+            sql_comment(f"Data for table: {table_name}"),
+            SEP2,
+            sql_comment(f"Filters: {wheredict}"),
+        ],
+    )
     dialect = engine.dialect
     if not dialect.supports_multivalues_insert:
         multirow = False
     if multirow:
-        log.warning("dump_data_as_insert_sql: multirow parameter substitution "
-                    "not working yet")
+        log.warning(
+            "dump_data_as_insert_sql: multirow parameter substitution "
+            "not working yet"
+        )
         multirow = False
 
     # literal_query = make_literal_query_fn(dialect)
@@ -326,8 +351,9 @@ def dump_table_as_insert_sql(engine: Engine,
     table = Table(table_name, meta, autoload=True)
     if include_ddl:
         log.debug("... producing DDL")
-        dump_ddl(table.metadata, dialect_name=engine.dialect.name,
-                 fileobj=fileobj)
+        dump_ddl(
+            table.metadata, dialect_name=engine.dialect.name, fileobj=fileobj
+        )
     # NewRecord = quick_mapper(table)
     # columns = table.columns.keys()
     log.debug("... fetching records")
@@ -373,10 +399,12 @@ def dump_table_as_insert_sql(engine: Engine,
     log.debug("... done")
 
 
-def dump_database_as_insert_sql(engine: Engine,
-                                fileobj: TextIO = sys.stdout,
-                                include_ddl: bool = False,
-                                multirow: bool = False) -> None:
+def dump_database_as_insert_sql(
+    engine: Engine,
+    fileobj: TextIO = sys.stdout,
+    include_ddl: bool = False,
+    multirow: bool = False,
+) -> None:
     """
     Reads an entire database and writes SQL to replicate it to the output
     file-like object.
@@ -393,13 +421,13 @@ def dump_database_as_insert_sql(engine: Engine,
             table_name=tablename,
             fileobj=fileobj,
             include_ddl=include_ddl,
-            multirow=multirow
+            multirow=multirow,
         )
 
 
-def dump_orm_object_as_insert_sql(engine: Engine,
-                                  obj: object,
-                                  fileobj: TextIO) -> None:
+def dump_orm_object_as_insert_sql(
+    engine: Engine, obj: object, fileobj: TextIO
+) -> None:
     """
     Takes a SQLAlchemy ORM object, and writes ``INSERT`` SQL to replicate it
     to the output file-like object.
@@ -447,9 +475,9 @@ def dump_orm_object_as_insert_sql(engine: Engine,
     writeline_nl(fileobj, insert_str)
 
 
-def bulk_insert_extras(dialect_name: str,
-                       fileobj: TextIO,
-                       start: bool) -> None:
+def bulk_insert_extras(
+    dialect_name: str, fileobj: TextIO, start: bool
+) -> None:
     """
     Writes bulk ``INSERT`` preamble (start=True) or end (start=False).
 
@@ -478,9 +506,9 @@ def bulk_insert_extras(dialect_name: str,
     writelines_nl(fileobj, lines)
 
 
-def dump_orm_tree_as_insert_sql(engine: Engine,
-                                baseobj: object,
-                                fileobj: TextIO) -> None:
+def dump_orm_tree_as_insert_sql(
+    engine: Engine, baseobj: object, fileobj: TextIO
+) -> None:
     """
     Sends an object, and all its relations (discovered via "relationship"
     links) as ``INSERT`` commands in SQL, to ``fileobj``.
@@ -503,7 +531,8 @@ def dump_orm_tree_as_insert_sql(engine: Engine,
     """  # noqa
     writeline_nl(
         fileobj,
-        sql_comment("Data for all objects related to the first below:"))
+        sql_comment("Data for all objects related to the first below:"),
+    )
     bulk_insert_extras(engine.dialect.name, fileobj, start=True)
     for part in walk_orm_tree(baseobj):
         dump_orm_object_as_insert_sql(engine, part, fileobj)

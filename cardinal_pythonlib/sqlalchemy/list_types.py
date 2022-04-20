@@ -42,6 +42,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # StringListType
 # =============================================================================
 
+
 class StringListType(TypeDecorator):
     r"""
     Store a list of strings as CSV.
@@ -201,18 +202,23 @@ class StringListType(TypeDecorator):
             return list(csv.reader([dbstr]))[0]
             # ... list( generator( list_of_lines ) )[first_line]
         except csv.Error:
-            log.warning("StringListType: Unable to convert database value of "
-                        "{!r} to Python; returning empty list", dbstr)
+            log.warning(
+                "StringListType: Unable to convert database value of "
+                "{!r} to Python; returning empty list",
+                dbstr,
+            )
             return []
 
-    def process_bind_param(self, value: Optional[List[str]],
-                           dialect: Dialect) -> str:
+    def process_bind_param(
+        self, value: Optional[List[str]], dialect: Dialect
+    ) -> str:
         """Convert things on the way from Python to the database."""
         retval = self._strlist_to_dbstr(value)
         return retval
 
-    def process_literal_param(self, value: Optional[List[str]],
-                              dialect: Dialect) -> str:
+    def process_literal_param(
+        self, value: Optional[List[str]], dialect: Dialect
+    ) -> str:
         """Convert things on the way from Python to the database."""
         retval = self._strlist_to_dbstr(value)
         return retval
@@ -220,8 +226,9 @@ class StringListType(TypeDecorator):
     # Could also use "process_literal_param = process_bind_param"
     # or vice versa, but this adds some clarity via docstrings.
 
-    def process_result_value(self, value: Optional[str],
-                             dialect: Dialect) -> List[str]:
+    def process_result_value(
+        self, value: Optional[str], dialect: Dialect
+    ) -> List[str]:
         """Convert things on the way from the database to Python."""
         retval = self._dbstr_to_strlist(value)
         return retval
@@ -231,6 +238,7 @@ class StringListType(TypeDecorator):
 # IntListType
 # =============================================================================
 
+
 class IntListType(TypeDecorator):
     """
     Store a list of integers as CSV.
@@ -239,6 +247,7 @@ class IntListType(TypeDecorator):
     SQLAlchemy types where the Python representation is a list; they can seem
     slightly unusual.
     """
+
     impl = Text()
 
     @property
@@ -258,24 +267,30 @@ class IntListType(TypeDecorator):
         try:
             return [int(x) for x in dbstr.split(",")]
         except (TypeError, ValueError):
-            log.warning("IntListType: Unable to convert database value of {!r}"
-                        " to Python; returning empty list", dbstr)
+            log.warning(
+                "IntListType: Unable to convert database value of {!r}"
+                " to Python; returning empty list",
+                dbstr,
+            )
             return []
 
-    def process_bind_param(self, value: Optional[List[int]],
-                           dialect: Dialect) -> str:
+    def process_bind_param(
+        self, value: Optional[List[int]], dialect: Dialect
+    ) -> str:
         """Convert things on the way from Python to the database."""
         retval = self._intlist_to_dbstr(value)
         return retval
 
-    def process_literal_param(self, value: Optional[List[int]],
-                              dialect: Dialect) -> str:
+    def process_literal_param(
+        self, value: Optional[List[int]], dialect: Dialect
+    ) -> str:
         """Convert things on the way from Python to the database."""
         retval = self._intlist_to_dbstr(value)
         return retval
 
-    def process_result_value(self, value: Optional[str],
-                             dialect: Dialect) -> List[int]:
+    def process_result_value(
+        self, value: Optional[str], dialect: Dialect
+    ) -> List[int]:
         """Convert things on the way from the database to Python."""
         retval = self._dbstr_to_intlist(value)
         return retval

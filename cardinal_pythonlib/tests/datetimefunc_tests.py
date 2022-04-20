@@ -38,7 +38,6 @@ from cardinal_pythonlib.datetimefunc import (
     coerce_to_date,
     coerce_to_datetime,
     coerce_to_pendulum,
-    coerce_to_pendulum_date,
     duration_from_iso,
     duration_to_iso,
     get_pendulum_duration_nonyear_nonmonth_seconds,
@@ -54,9 +53,10 @@ log = logging.getLogger(__name__)
 # Unit testing
 # =============================================================================
 
+
 class TestCoerceToPendulum(unittest.TestCase):
     def test_returns_none_if_falsey(self) -> None:
-        self.assertIsNone(coerce_to_pendulum(''))
+        self.assertIsNone(coerce_to_pendulum(""))
 
     def test_returns_input_if_pendulum_datetime(self) -> None:
         datetime_in = DateTime.now()
@@ -81,8 +81,12 @@ class TestCoerceToPendulum(unittest.TestCase):
     def test_converts_python_datetime_with_tz(self) -> None:
         utc_offset = datetime.timedelta(hours=5, minutes=30)
         datetime_in = datetime.datetime(
-            2020, 6, 15, hour=15, minute=42,
-            tzinfo=datetime.timezone(utc_offset)
+            2020,
+            6,
+            15,
+            hour=15,
+            minute=42,
+            tzinfo=datetime.timezone(utc_offset),
         )
         datetime_out = coerce_to_pendulum(datetime_in)
 
@@ -109,8 +113,7 @@ class TestCoerceToPendulum(unittest.TestCase):
 
         self.assertIsInstance(datetime_out, DateTime)
         self.assertEqual(
-            datetime_out.utcoffset(),
-            datetime.timedelta(hours=5, minutes=30)
+            datetime_out.utcoffset(), datetime.timedelta(hours=5, minutes=30)
         )
 
     def test_parses_datetime_string_with_utc_tz(self) -> None:
@@ -155,7 +158,7 @@ class TestDurations(unittest.TestCase):
         self.assertEqual(
             d1,
             d2,
-            f"Failed conversion {iso_duration!r} -> {d1!r} -> {i2!r} -> {d2!r}"
+            f"Failed conversion {iso_duration!r} -> {d1!r} -> {i2!r} -> {d2!r}",
         )
 
     def _assert_bad_iso(self, iso_duration: str) -> None:
@@ -170,9 +173,9 @@ class TestDurations(unittest.TestCase):
         with self.assertRaises(OverflowError):
             duration_from_iso(iso_duration)
 
-    def _assert_iso_microsecond_fails(self,
-                                      iso_duration: str,
-                                      correct_microseconds: int) -> None:
+    def _assert_iso_microsecond_fails(
+        self, iso_duration: str, correct_microseconds: int
+    ) -> None:
         """
         For conversions that do NOT work.
         """
@@ -180,11 +183,12 @@ class TestDurations(unittest.TestCase):
         self.assertNotEqual(
             d1.microseconds,
             correct_microseconds,
-            f"Unexpected microsecond success: {iso_duration!r} -> {d1!r}"
+            f"Unexpected microsecond success: {iso_duration!r} -> {d1!r}",
         )
 
     def assert_isodateduration_eq_pendulumduration(
-            self, i: isodate.Duration, p: Duration) -> None:
+        self, i: isodate.Duration, p: Duration
+    ) -> None:
         # We test via a timedelta class.
         start = datetime.datetime(year=1970, month=1, day=1)
         # ... an start time used transiently by isodate.Duration.totimedelta
@@ -198,7 +202,7 @@ class TestDurations(unittest.TestCase):
             end_p,
             f"From a starting point of {start}, "
             f"{i!r} -> {end_i!r} != "
-            f"{p!r} -> {end_p!r}."
+            f"{p!r} -> {end_p!r}.",
         )
 
     def test_duration_conversions_from_iso(self) -> None:
@@ -243,8 +247,7 @@ class TestDurations(unittest.TestCase):
         self._assert_iso_converts(i9longest)
         longest_feasible_iso_duration_no_year_month = 29
         self.assertEqual(
-            len(i9longest),
-            longest_feasible_iso_duration_no_year_month
+            len(i9longest), longest_feasible_iso_duration_no_year_month
         )
 
         i11longest_with_us = "-P0Y0MT1000000000.000009S"
@@ -252,12 +255,14 @@ class TestDurations(unittest.TestCase):
 
         i12toolong_rounds_us = "-P0Y0MT10000000000.000009S"
         self._assert_iso_microsecond_fails(
-            i12toolong_rounds_us, correct_microseconds=9)
+            i12toolong_rounds_us, correct_microseconds=9
+        )
         self._assert_iso_converts(i12toolong_rounds_us)
 
         i13toolong_drops_us = "-P0Y0MT10000000000000.000009S"
         self._assert_iso_microsecond_fails(
-            i13toolong_drops_us, correct_microseconds=9)
+            i13toolong_drops_us, correct_microseconds=9
+        )
         # ... drops microseconds (within datetime.timedelta)
         self._assert_iso_converts(i13toolong_drops_us)
 
@@ -265,8 +270,7 @@ class TestDurations(unittest.TestCase):
         self._assert_iso_overflows(i14toolong_parse_fails)  # too many days
 
         longest_without_ym = duration_to_iso(
-            duration_from_iso(i11longest_with_us),
-            permit_years_months=False
+            duration_from_iso(i11longest_with_us), permit_years_months=False
         )
         assert longest_without_ym == "-PT1000000000.000009S"
         assert len(longest_without_ym) == 21
@@ -286,19 +290,15 @@ class TestDurations(unittest.TestCase):
         self.assertEqual(
             td.total_seconds(),
             pd.total_seconds(),
-            f"{td!r}.total_seconds() != {pd!r}.total_seconds()"
+            f"{td!r}.total_seconds() != {pd!r}.total_seconds()",
         )
 
     def test_pendulum_duration_from_timedelta(self) -> None:
         self._check_td_to_pd(
             datetime.timedelta(days=5, hours=3, minutes=2, microseconds=5)
         )
-        self._check_td_to_pd(
-            datetime.timedelta(microseconds=5010293989234)
-        )
-        self._check_td_to_pd(
-            datetime.timedelta(days=5000)
-        )
+        self._check_td_to_pd(datetime.timedelta(microseconds=5010293989234))
+        self._check_td_to_pd(datetime.timedelta(days=5000))
 
     # -------------------------------------------------------------------------
     # isodate.isoduration.Duration versus pendulum.Duration
@@ -310,8 +310,7 @@ class TestDurations(unittest.TestCase):
         equivalently.
         """
         self.assert_isodateduration_eq_pendulumduration(
-            IsodateDuration(years=1, seconds=1),
-            Duration(years=1, seconds=1)
+            IsodateDuration(years=1, seconds=1), Duration(years=1, seconds=1)
         )
 
     def _check_id_to_pd(self, isodur: IsodateDuration) -> None:
@@ -320,35 +319,32 @@ class TestDurations(unittest.TestCase):
             isodur.years,
             pendur.years,
             f"Year mismatch: {isodur!r} -> {isodur.years!r} != "
-            f"{pendur!r} -> {pendur.years!r}"
+            f"{pendur!r} -> {pendur.years!r}",
         )
         self.assertEqual(
             isodur.months,
             pendur.months,
             f"Month mismatch: {isodur!r} -> {isodur.months!r} != "
-            f"{pendur!r} -> {pendur.months!r}"
+            f"{pendur!r} -> {pendur.months!r}",
         )
         id_non_ym_seconds = isodur.tdelta.total_seconds()
         pd_non_ym_seconds = get_pendulum_duration_nonyear_nonmonth_seconds(
-            pendur)
+            pendur
+        )
         self.assertEqual(
             id_non_ym_seconds,
             pd_non_ym_seconds,
             f"Seconds mismatch (ignoring year/month component): "
             f"{isodur!r} -> {id_non_ym_seconds} != "
-            f"{pendur!r} -> {pd_non_ym_seconds!r}"
+            f"{pendur!r} -> {pd_non_ym_seconds!r}",
         )
 
     def test_pendulum_duration_from_isodate_duration(self) -> None:
         self._check_id_to_pd(
             IsodateDuration(days=5, hours=3, minutes=2, microseconds=5)
         )
-        self._check_id_to_pd(
-            IsodateDuration(microseconds=5010293989234)
-        )
-        self._check_id_to_pd(
-            IsodateDuration(days=5000)
-        )
+        self._check_id_to_pd(IsodateDuration(microseconds=5010293989234))
+        self._check_id_to_pd(IsodateDuration(days=5000))
         self._check_id_to_pd(
             IsodateDuration(days=5000, years=5, months=2)
             # ... doesn't normalize across years/months; see explanation above
@@ -367,25 +363,23 @@ class TestDurations(unittest.TestCase):
         # calculations:
         basedate1 = DateTime(year=2000, month=1, day=1)  # 2000-01-01
         self.assertEqual(
-            basedate1 + Duration(years=1),
-            DateTime(year=2001, month=1, day=1)
+            basedate1 + Duration(years=1), DateTime(year=2001, month=1, day=1)
         )
         self.assertEqual(
-            basedate1 + Duration(months=1),
-            DateTime(year=2000, month=2, day=1)
+            basedate1 + Duration(months=1), DateTime(year=2000, month=2, day=1)
         )
-        basedate2 = DateTime(year=2004, month=2, day=1)  # 2004-02-01; leap year
+        basedate2 = DateTime(
+            year=2004, month=2, day=1
+        )  # 2004-02-01; leap year
         self.assertEqual(
-            basedate2 + Duration(years=1),
-            DateTime(year=2005, month=2, day=1)
+            basedate2 + Duration(years=1), DateTime(year=2005, month=2, day=1)
         )
         self.assertEqual(
-            basedate2 + Duration(months=1),
-            DateTime(year=2004, month=3, day=1)
+            basedate2 + Duration(months=1), DateTime(year=2004, month=3, day=1)
         )
         self.assertEqual(
             basedate2 + Duration(months=1, days=1),
-            DateTime(year=2004, month=3, day=2)
+            DateTime(year=2004, month=3, day=2),
         )
 
 
@@ -396,8 +390,13 @@ class TestCoerceToDateTime(unittest.TestCase):
         # With timezone:
         d2 = datetime.datetime(
             # 11pm on 27 Feb in New York, which is 4am on 28 Feb in UTC.
-            2022, 2, 27, 23, 0, 0,
-            tzinfo=datetime.timezone(datetime.timedelta(hours=-5))
+            2022,
+            2,
+            27,
+            23,
+            0,
+            0,
+            tzinfo=datetime.timezone(datetime.timedelta(hours=-5)),
         )
         correct_from_to_tuples = (
             # No timezone:
@@ -405,12 +404,20 @@ class TestCoerceToDateTime(unittest.TestCase):
             (DateTime(2022, 2, 28, 1, 0, 0), d1),
             # ... from string:
             ("2022-02-28T01:00", d1),
-
             # With timezone:
             # ... from Pendulum DateTime:
-            (DateTime(2022, 2, 27, 23, 0, 0,
-                      tzinfo=datetime.timezone(datetime.timedelta(hours=-5))),
-             d2),
+            (
+                DateTime(
+                    2022,
+                    2,
+                    27,
+                    23,
+                    0,
+                    0,
+                    tzinfo=datetime.timezone(datetime.timedelta(hours=-5)),
+                ),
+                d2,
+            ),
             # ... from string:
             ("2022-02-27T23:00-05:00", d2),
         )
@@ -423,13 +430,13 @@ class TestCoerceToDateTime(unittest.TestCase):
             self.assertEqual(
                 coerce_to_datetime(from_),
                 to_,
-                f"Should convert {from_!r} -> {to_!r}"
+                f"Should convert {from_!r} -> {to_!r}",
             )
         for from_, to_ in wrong_from_to_tuples:
             self.assertNotEqual(
                 coerce_to_datetime(from_),
                 to_,
-                f"Should NOT convert {from_!r} -> {to_!r}"
+                f"Should NOT convert {from_!r} -> {to_!r}",
             )
 
 
@@ -443,9 +450,18 @@ class TestCoerceToDate(unittest.TestCase):
             (Date(2022, 2, 28), d1),
             # ... from Pendulum DateTime:
             (DateTime(2022, 2, 28, 23, 59, 59), d1),
-            (DateTime(2022, 2, 28, 23, 59, 59,
-                      tzinfo=datetime.timezone(datetime.timedelta(hours=-5))),
-             d1),
+            (
+                DateTime(
+                    2022,
+                    2,
+                    28,
+                    23,
+                    59,
+                    59,
+                    tzinfo=datetime.timezone(datetime.timedelta(hours=-5)),
+                ),
+                d1,
+            ),
             # ... from string:
             ("2022-02-28", d1),
             ("2022-02-28T01:00", d1),

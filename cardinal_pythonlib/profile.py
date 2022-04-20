@@ -41,6 +41,7 @@ def do_cprofile(func: Callable, sort: str = "tottime") -> Callable:
         profiled_func(args_to_original_func)
 
     """
+
     def profiled_func(*args, **kwargs) -> Any:
         profile = cProfile.Profile()
         try:
@@ -50,4 +51,5 @@ def do_cprofile(func: Callable, sort: str = "tottime") -> Callable:
             return result
         finally:
             profile.print_stats(sort=sort)
+
     return profiled_func

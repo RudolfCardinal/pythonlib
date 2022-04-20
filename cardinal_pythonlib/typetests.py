@@ -33,6 +33,7 @@ from typing import Any, Iterable
 # Testers/validators
 # =============================================================================
 
+
 def is_integer(s: Any) -> bool:
     """
     Is the parameter an integer?
@@ -58,6 +59,7 @@ def raise_if_attr_blank(obj: Any, attrs: Iterable[str]) -> None:
 # =============================================================================
 # bool
 # =============================================================================
+
 
 def is_false(x: Any) -> bool:
     """

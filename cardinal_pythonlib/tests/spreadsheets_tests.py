@@ -38,8 +38,8 @@ from cardinal_pythonlib.spreadsheets import (
 # Self-testing
 # =============================================================================
 
-class TestRoundingAndReversal(unittest.TestCase):
 
+class TestRoundingAndReversal(unittest.TestCase):
     def test_column_lettering(self) -> None:
         assert column_lettering(0) == "A"
         assert column_lettering(25) == "Z"

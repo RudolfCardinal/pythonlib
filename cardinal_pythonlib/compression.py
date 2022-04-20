@@ -33,6 +33,7 @@ import gzip
 # gzip compression/decompression
 # =============================================================================
 
+
 def gzip_string(text: str, encoding: str = "utf-8") -> bytes:
     """
     Encodes a string, then compresses it with gzip.

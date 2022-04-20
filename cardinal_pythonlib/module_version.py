@@ -57,6 +57,7 @@ else:
 # Report Python module versions
 # =============================================================================
 
+
 def module_version_string(module_name: str) -> str:
     """
     The string version of a Python module.
@@ -70,5 +71,7 @@ def module_semantic_version(module_name: str) -> Version:
     """
     The semantic version of a Python module.
     """
-    version_string = module_version_string(module_name)  # may raise PackageNotFoundError  # noqa
+    version_string = module_version_string(
+        module_name
+    )  # may raise PackageNotFoundError  # noqa
     return Version(version_string)  # may raise ValueError

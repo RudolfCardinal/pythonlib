@@ -65,35 +65,37 @@ def main() -> NoReturn:
     parser = ArgumentParser(
         description="Pauses and resumes a process by disk space; LINUX ONLY."
     )
+    parser.add_argument("process_id", type=int, help="Process ID.")
     parser.add_argument(
-        "process_id", type=int,
-        help="Process ID."
+        "--path", required=True, help="Path to check free space for (e.g. '/')"
     )
     parser.add_argument(
-        "--path", required=True,
-        help="Path to check free space for (e.g. '/')"
-    )
-    parser.add_argument(
-        "--pause_when_free_below", type=str, required=True,
+        "--pause_when_free_below",
+        type=str,
+        required=True,
         help="Pause process when free disk space below this value (in bytes "
-             "or as e.g. '50G')"
+        "or as e.g. '50G')",
     )
     parser.add_argument(
-        "--resume_when_free_above", type=str, required=True,
+        "--resume_when_free_above",
+        type=str,
+        required=True,
         help="Resume process when free disk space above this value (in bytes "
-             "or as e.g. '70G')"
+        "or as e.g. '70G')",
     )
     parser.add_argument(
-        "--check_every", type=int, required=True,
-        help="Check every n seconds (where this is n)"
+        "--check_every",
+        type=int,
+        required=True,
+        help="Check every n seconds (where this is n)",
     )
     parser.add_argument(
-        "--verbose", action="store_true",
-        help="Verbose output"
+        "--verbose", action="store_true", help="Verbose output"
     )
     args = parser.parse_args()
     main_only_quicksetup_rootlogger(
-        level=logging.DEBUG if args.verbose else logging.INFO)
+        level=logging.DEBUG if args.verbose else logging.INFO
+    )
 
     minimum = human2bytes(args.pause_when_free_below)
     maximum = human2bytes(args.resume_when_free_above)
@@ -124,18 +126,24 @@ def main() -> NoReturn:
         space = shutil.disk_usage(path).free
         log.debug("Disk space on {} is {}", path, sizeof_fmt(space))
         if space < minimum and not paused:
-            log.info("Disk space down to {}: pausing process {}",
-                     sizeof_fmt(space), process_id)
+            log.info(
+                "Disk space down to {}: pausing process {}",
+                sizeof_fmt(space),
+                process_id,
+            )
             subprocess.check_call(pause_args)
             paused = True
         elif space >= maximum and paused:
-            log.info("Disk space up to {}: resuming process {}",
-                     sizeof_fmt(space), process_id)
+            log.info(
+                "Disk space up to {}: resuming process {}",
+                sizeof_fmt(space),
+                process_id,
+            )
             subprocess.check_call(resume_args)
             paused = False
         log.debug("Sleeping for {} seconds...", period)
         sleep(period)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

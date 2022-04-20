@@ -62,8 +62,8 @@ MAX_E_EXPONENT = int(np.log(sys.float_info.max))  # typically, 709
 # Softmax
 # =============================================================================
 
-def softmax(x: np.ndarray,
-            b: float = 1.0) -> np.ndarray:
+
+def softmax(x: np.ndarray, b: float = 1.0) -> np.ndarray:
     r"""
     Standard softmax function:
 
@@ -105,7 +105,8 @@ def softmax(x: np.ndarray,
     if products.max() > MAX_E_EXPONENT:
         log.warning(
             f"OVERFLOW in softmax(): x = {x}, b = {b}, constant = {constant}, "
-            f"x*b - constant = {products}")
+            f"x*b - constant = {products}"
+        )
         # map the maximum to 1, other things to zero
         index_of_max = np.argmax(products)
         answer = np.zeros(n)
@@ -122,8 +123,9 @@ def softmax(x: np.ndarray,
     return exponented / np.sum(exponented)
 
 
-def pick_from_probabilities(probabilities: Union[List[float],
-                                                 np.ndarray]) -> int:
+def pick_from_probabilities(
+    probabilities: Union[List[float], np.ndarray]
+) -> int:
     """
     Given a list of probabilities like ``[0.1, 0.3, 0.6]``, returns the index
     of the probabilistically chosen item. In this example, we would return
@@ -160,9 +162,10 @@ def pick_from_probabilities(probabilities: Union[List[float],
 # Logistic
 # =============================================================================
 
-def logistic(x: Union[float, np.ndarray],
-             k: float,
-             theta: float) -> Optional[float]:
+
+def logistic(
+    x: Union[float, np.ndarray], k: float, theta: float
+) -> Optional[float]:
     r"""
     Standard logistic function.
 
@@ -186,9 +189,9 @@ def logistic(x: Union[float, np.ndarray],
     return 1 / (1 + np.exp(-k * (x - theta)))
 
 
-def inv_logistic(y: Union[float, np.ndarray],
-                 k: float,
-                 theta: float) -> Optional[float]:
+def inv_logistic(
+    y: Union[float, np.ndarray], k: float, theta: float
+) -> Optional[float]:
     r"""
     Inverse standard logistic function:
 
@@ -215,6 +218,7 @@ def inv_logistic(y: Union[float, np.ndarray],
 # Testing
 # =============================================================================
 
+
 def _test_softmax() -> None:
     """
     Tests the :func`softmax` function.
@@ -227,9 +231,7 @@ def _test_softmax() -> None:
         [1, 2, 3, 4, 1000],
         [1, 2, 3, 4, 5.0 ** 400],
     ]
-    betas = [
-        0, 0.5, 1, 2, 10, 100,
-    ]
+    betas = [0, 0.5, 1, 2, 10, 100]
     for x in arrays:
         for b in betas:
             y = softmax(np.array(x), b=b)
@@ -256,6 +258,6 @@ def _test_pick_from_probabilities() -> None:
             print(f"_test_pick_from_probabilities: p = {p}, n = {n} -> {sc}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     _test_softmax()
     _test_pick_from_probabilities()

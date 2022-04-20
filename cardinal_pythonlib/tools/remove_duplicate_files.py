@@ -50,8 +50,9 @@ INITIAL_HASH_SIZE = 1024
 MAIN_READ_CHUNK_SIZE = 4096
 
 
-def deduplicate(directories: List[str], recursive: bool,
-                dummy_run: bool) -> None:
+def deduplicate(
+    directories: List[str], recursive: bool, dummy_run: bool
+) -> None:
     """
     De-duplicate files within one or more directories. Remove files
     that are identical to ones already considered.
@@ -64,7 +65,9 @@ def deduplicate(directories: List[str], recursive: bool,
     # -------------------------------------------------------------------------
     # Catalogue files by their size
     # -------------------------------------------------------------------------
-    files_by_size = {}  # type: Dict[int, List[str]]  # maps size to list of filenames  # noqa
+    files_by_size = (
+        {}
+    )  # type: Dict[int, List[str]]  # maps size to list of filenames  # noqa
     num_considered = 0
     for filename in gen_filenames(directories, recursive=recursive):
         if not os.path.isfile(filename):
@@ -97,7 +100,7 @@ def deduplicate(directories: List[str], recursive: bool,
             if not os.path.isfile(filename):
                 continue
             log.debug("Quick-scanning file: {}", filename)
-            with open(filename, 'rb') as fd:
+            with open(filename, "rb") as fd:
                 hasher = md5()
                 hasher.update(fd.read(INITIAL_HASH_SIZE))
                 hash_value = hasher.digest()
@@ -119,11 +122,16 @@ def deduplicate(directories: List[str], recursive: bool,
 
     del files_by_size
 
-    log.info("Found {} sets of potential duplicates, based on hashing the "
-             "first {} bytes of each...", potential_count, INITIAL_HASH_SIZE)
+    log.info(
+        "Found {} sets of potential duplicates, based on hashing the "
+        "first {} bytes of each...",
+        potential_count,
+        INITIAL_HASH_SIZE,
+    )
 
-    log.debug("potential_duplicate_sets =\n{}",
-              pformat(potential_duplicate_sets))
+    log.debug(
+        "potential_duplicate_sets =\n{}", pformat(potential_duplicate_sets)
+    )
 
     # -------------------------------------------------------------------------
     # Within each set, check for duplicates using a hash of the entire file
@@ -138,9 +146,10 @@ def deduplicate(directories: List[str], recursive: bool,
         hashes = {}
         for filename in one_set:
             num_scanned += 1
-            log.info("Scanning file [{}/{}]: {}",
-                     num_scanned, num_to_scan, filename)
-            with open(filename, 'rb') as fd:
+            log.info(
+                "Scanning file [{}/{}]: {}", num_scanned, num_to_scan, filename
+            )
+            with open(filename, "rb") as fd:
                 hasher = md5()
                 while True:
                     r = fd.read(MAIN_READ_CHUNK_SIZE)
@@ -181,7 +190,7 @@ def deduplicate(directories: List[str], recursive: bool,
             d=num_deleted,
             o=num_originals,
             u=num_unique,
-            c=num_considered
+            c=num_considered,
         )
     )
 
@@ -190,46 +199,48 @@ def main() -> None:
     """
     Command-line processor. See ``--help`` for details.
     """
-    parser = ArgumentParser(
-        description="Remove duplicate files"
+    parser = ArgumentParser(description="Remove duplicate files")
+    parser.add_argument(
+        "directory",
+        nargs="+",
+        help="Files and/or directories to check and remove duplicates from.",
     )
     parser.add_argument(
-        "directory", nargs="+",
-        help="Files and/or directories to check and remove duplicates from."
+        "--recursive",
+        action="store_true",
+        help="Recurse through any directories found",
     )
     parser.add_argument(
-        "--recursive", action="store_true",
-        help="Recurse through any directories found"
+        "--dummy_run",
+        action="store_true",
+        help="Dummy run only; don't actually delete anything",
     )
     parser.add_argument(
-        "--dummy_run", action="store_true",
-        help="Dummy run only; don't actually delete anything"
-    )
-    parser.add_argument(
-        "--run_repeatedly", type=int,
+        "--run_repeatedly",
+        type=int,
         help="Run the tool repeatedly with a pause of <run_repeatedly> "
-             "seconds between runs. (For this to work well,"
-             "you should specify one or more DIRECTORIES in "
-             "the 'filename' arguments, not files, and you will need the "
-             "--recursive option.)"
+        "seconds between runs. (For this to work well,"
+        "you should specify one or more DIRECTORIES in "
+        "the 'filename' arguments, not files, and you will need the "
+        "--recursive option.)",
     )
     parser.add_argument(
-        "--verbose", action="store_true",
-        help="Verbose output"
+        "--verbose", action="store_true", help="Verbose output"
     )
     args = parser.parse_args()
     main_only_quicksetup_rootlogger(
-        level=logging.DEBUG if args.verbose else logging.INFO)
+        level=logging.DEBUG if args.verbose else logging.INFO
+    )
 
     while True:
-        deduplicate(args.directory,
-                    recursive=args.recursive,
-                    dummy_run=args.dummy_run)
+        deduplicate(
+            args.directory, recursive=args.recursive, dummy_run=args.dummy_run
+        )
         if args.run_repeatedly is None:
             break
         log.info("Sleeping for {} s...", args.run_repeatedly)
         sleep(args.run_repeatedly)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

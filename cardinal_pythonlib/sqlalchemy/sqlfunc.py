@@ -29,6 +29,7 @@
 from typing import NoReturn, TYPE_CHECKING
 
 from sqlalchemy.ext.compiler import compiles
+
 # noinspection PyProtectedMember
 from sqlalchemy.sql.expression import FunctionElement
 from sqlalchemy.sql.sqltypes import Numeric
@@ -47,6 +48,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Support functions
 # =============================================================================
 
+
 def fail_unknown_dialect(compiler: "SQLCompiler", task: str) -> NoReturn:
     """
     Raise :exc:`NotImplementedError` in relation to a dialect for which a
@@ -60,15 +62,18 @@ def fail_unknown_dialect(compiler: "SQLCompiler", task: str) -> NoReturn:
     )
 
 
-def fetch_processed_single_clause(element: "ClauseElement",
-                                  compiler: "SQLCompiler") -> str:
+def fetch_processed_single_clause(
+    element: "ClauseElement", compiler: "SQLCompiler"
+) -> str:
     """
     Takes a clause element that must have a single clause, and converts it
     to raw SQL text.
     """
     if len(element.clauses) != 1:
-        raise TypeError(f"Only one argument supported; "
-                        f"{len(element.clauses)} were passed")
+        raise TypeError(
+            f"Only one argument supported; "
+            f"{len(element.clauses)} were passed"
+        )
     clauselist = element.clauses  # type: ClauseList
     first = clauselist.get_children()[0]
     return compiler.process(first)
@@ -111,14 +116,16 @@ class extract_year(FunctionElement):
         ]
 
     """
+
     type = Numeric()
-    name = 'extract_year'
+    name = "extract_year"
 
 
 # noinspection PyUnusedLocal
 @compiles(extract_year)
-def extract_year_default(element: "ClauseElement",
-                         compiler: "SQLCompiler", **kw) -> NoReturn:
+def extract_year_default(
+    element: "ClauseElement", compiler: "SQLCompiler", **kw
+) -> NoReturn:
     """
     Default implementation of :func:, which raises :exc:`NotImplementedError`.
     """
@@ -128,8 +135,9 @@ def extract_year_default(element: "ClauseElement",
 # noinspection PyUnusedLocal
 @compiles(extract_year, SqlaDialectName.SQLSERVER)
 @compiles(extract_year, SqlaDialectName.MYSQL)
-def extract_year_year(element: "ClauseElement",
-                      compiler: "SQLCompiler", **kw) -> str:
+def extract_year_year(
+    element: "ClauseElement", compiler: "SQLCompiler", **kw
+) -> str:
     # https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_year  # noqa
     # https://docs.microsoft.com/en-us/sql/t-sql/functions/year-transact-sql
     clause = fetch_processed_single_clause(element, compiler)
@@ -139,8 +147,9 @@ def extract_year_year(element: "ClauseElement",
 # noinspection PyUnusedLocal
 @compiles(extract_year, SqlaDialectName.ORACLE)
 @compiles(extract_year, SqlaDialectName.POSTGRES)
-def extract_year_extract(element: "ClauseElement",
-                         compiler: "SQLCompiler", **kw) -> str:
+def extract_year_extract(
+    element: "ClauseElement", compiler: "SQLCompiler", **kw
+) -> str:
     # https://docs.oracle.com/cd/B19306_01/server.102/b14200/functions050.htm
     clause = fetch_processed_single_clause(element, compiler)
     return f"EXTRACT(YEAR FROM {clause})"
@@ -148,8 +157,9 @@ def extract_year_extract(element: "ClauseElement",
 
 # noinspection PyUnusedLocal
 @compiles(extract_year, SqlaDialectName.SQLITE)
-def extract_year_strftime(element: "ClauseElement",
-                          compiler: "SQLCompiler", **kw) -> str:
+def extract_year_strftime(
+    element: "ClauseElement", compiler: "SQLCompiler", **kw
+) -> str:
     # https://sqlite.org/lang_datefunc.html
     clause = fetch_processed_single_clause(element, compiler)
     return f"STRFTIME('%Y', {clause})"
@@ -165,22 +175,25 @@ class extract_month(FunctionElement):
     Implements an SQLAlchemy :func:`extract_month` function. See
     :func:`extract_year`.
     """
+
     type = Numeric()
-    name = 'extract_month'
+    name = "extract_month"
 
 
 # noinspection PyUnusedLocal
 @compiles(extract_month)
-def extract_month_default(element: "ClauseElement",
-                          compiler: "SQLCompiler", **kw) -> NoReturn:
+def extract_month_default(
+    element: "ClauseElement", compiler: "SQLCompiler", **kw
+) -> NoReturn:
     fail_unknown_dialect(compiler, "extract month from date")
 
 
 # noinspection PyUnusedLocal
 @compiles(extract_month, SqlaDialectName.SQLSERVER)
 @compiles(extract_month, SqlaDialectName.MYSQL)
-def extract_month_month(element: "ClauseElement",
-                        compiler: "SQLCompiler", **kw) -> str:
+def extract_month_month(
+    element: "ClauseElement", compiler: "SQLCompiler", **kw
+) -> str:
     clause = fetch_processed_single_clause(element, compiler)
     return f"MONTH({clause})"
 
@@ -188,16 +201,18 @@ def extract_month_month(element: "ClauseElement",
 # noinspection PyUnusedLocal
 @compiles(extract_month, SqlaDialectName.ORACLE)
 @compiles(extract_year, SqlaDialectName.POSTGRES)
-def extract_month_extract(element: "ClauseElement",
-                          compiler: "SQLCompiler", **kw) -> str:
+def extract_month_extract(
+    element: "ClauseElement", compiler: "SQLCompiler", **kw
+) -> str:
     clause = fetch_processed_single_clause(element, compiler)
     return f"EXTRACT(MONTH FROM {clause})"
 
 
 # noinspection PyUnusedLocal
 @compiles(extract_month, SqlaDialectName.SQLITE)
-def extract_month_strftime(element: "ClauseElement",
-                           compiler: "SQLCompiler", **kw) -> str:
+def extract_month_strftime(
+    element: "ClauseElement", compiler: "SQLCompiler", **kw
+) -> str:
     clause = fetch_processed_single_clause(element, compiler)
     return f"STRFTIME('%m', {clause})"
 
@@ -212,22 +227,25 @@ class extract_day_of_month(FunctionElement):
     Implements an SQLAlchemy :func:`extract_day` function (to extract the day
     of the month from a date/datetime expression). See :func:`extract_year`.
     """
+
     type = Numeric()
-    name = 'extract_day'
+    name = "extract_day"
 
 
 # noinspection PyUnusedLocal
 @compiles(extract_day_of_month)
-def extract_day_of_month_default(element: "ClauseElement",
-                                 compiler: "SQLCompiler", **kw) -> NoReturn:
+def extract_day_of_month_default(
+    element: "ClauseElement", compiler: "SQLCompiler", **kw
+) -> NoReturn:
     fail_unknown_dialect(compiler, "extract day-of-month from date")
 
 
 # noinspection PyUnusedLocal
 @compiles(extract_day_of_month, SqlaDialectName.SQLSERVER)
 @compiles(extract_day_of_month, SqlaDialectName.MYSQL)
-def extract_day_of_month_day(element: "ClauseElement",
-                             compiler: "SQLCompiler", **kw) -> str:
+def extract_day_of_month_day(
+    element: "ClauseElement", compiler: "SQLCompiler", **kw
+) -> str:
     clause = fetch_processed_single_clause(element, compiler)
     return f"DAY({clause})"
 
@@ -235,15 +253,17 @@ def extract_day_of_month_day(element: "ClauseElement",
 # noinspection PyUnusedLocal
 @compiles(extract_day_of_month, SqlaDialectName.ORACLE)
 @compiles(extract_year, SqlaDialectName.POSTGRES)
-def extract_day_of_month_extract(element: "ClauseElement",
-                                 compiler: "SQLCompiler", **kw) -> str:
+def extract_day_of_month_extract(
+    element: "ClauseElement", compiler: "SQLCompiler", **kw
+) -> str:
     clause = fetch_processed_single_clause(element, compiler)
     return f"EXTRACT(DAY FROM {clause})"
 
 
 # noinspection PyUnusedLocal
 @compiles(extract_day_of_month, SqlaDialectName.SQLITE)
-def extract_day_of_month_strftime(element: "ClauseElement",
-                                  compiler: "SQLCompiler", **kw) -> str:
+def extract_day_of_month_strftime(
+    element: "ClauseElement", compiler: "SQLCompiler", **kw
+) -> str:
     clause = fetch_processed_single_clause(element, compiler)
     return f"STRFTIME('%d', {clause})"

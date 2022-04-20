@@ -38,6 +38,7 @@ from typing import Any, Iterable, Tuple
 from sqlalchemy.event import listens_for
 from sqlalchemy.orm.attributes import instance_state
 from sqlalchemy.orm.exc import NoResultFound
+
 # noinspection PyProtectedMember
 from sqlalchemy.orm.session import make_transient, Session
 from sqlalchemy.sql.schema import Column, ForeignKey
@@ -74,8 +75,10 @@ from cardinal_pythonlib.sysops import EXIT_FAILURE
 try:
     from cryptography.fernet import Fernet
 except ImportError:
-    print("First, please install the 'cryptography' module with "
-          "'pip install cryptography'.")
+    print(
+        "First, please install the 'cryptography' module with "
+        "'pip install cryptography'."
+    )
     sys.exit(EXIT_FAILURE)
 
 log = logging.getLogger(__name__)
@@ -100,7 +103,7 @@ def make_table_args(*args, **kwargs) -> Tuple[Any]:
     kwargs["mysql_charset"] = "utf8mb4 COLLATE utf8mb4_unicode_ci"
 
     # Return the tuple:
-    return tuple(args + (kwargs, ))
+    return tuple(args + (kwargs,))
 
 
 # =============================================================================
@@ -136,9 +139,7 @@ class Config(Base):
     """  # noqa
 
     __tablename__ = "config"
-    __table_args__ = make_table_args(
-        comment="Stores configuration records."
-    )
+    __table_args__ = make_table_args(comment="Stores configuration records.")
 
     # -------------------------------------------------------------------------
     # Columns
@@ -152,46 +153,37 @@ class Config(Base):
         # https://dev.mysql.com/doc/refman/8.0/en/create-table-check-constraints.html  # noqa
         primary_key=True,
         autoincrement=True,
-        comment=f"Primary key."
+        comment=f"Primary key.",
     )
     database_creation_datetime = Column(
-        DateTime,
-        comment="Date/time this database was created."
+        DateTime, comment="Date/time this database was created."
     )
     host = Column(
         String(length=HOSTNAME_MAX_LENGTH),
         nullable=False,
-        comment="Mail (SMTP) server hostname"
+        comment="Mail (SMTP) server hostname",
     )
     port = Column(
-        Integer,
-        nullable=False,
-        comment="Mail (SMTP) server TCP port"
+        Integer, nullable=False, comment="Mail (SMTP) server TCP port"
     )
-    use_tls = Column(
-        Boolean,
-        nullable=False,
-        comment="Use TLS?"
-    )
+    use_tls = Column(Boolean, nullable=False, comment="Use TLS?")
     username = Column(
         String(length=USERNAME_MAX_LENGTH),
         nullable=False,
-        comment="Mail (SMTP) server username"
+        comment="Mail (SMTP) server username",
     )
     password_encrypted = Column(
         String(length=PASSWORD_MAX_LENGTH),
         nullable=False,
-        comment="Mail (SMTP) server password (reversibly encrypted)"
+        comment="Mail (SMTP) server password (reversibly encrypted)",
     )
     encryption_key = Column(
         String(length=FERNET_KEY_BASE64_LENGTH),
         nullable=False,
-        comment="Encryption key for password"
+        comment="Encryption key for password",
     )
     time_between_emails = Column(
-        Float,
-        nullable=False,
-        comment="Time (in seconds) between each e-mail."
+        Float, nullable=False, comment="Time (in seconds) between each e-mail."
     )
 
     # -------------------------------------------------------------------------
@@ -209,8 +201,9 @@ class Config(Base):
             .first()  # returns object or None
         )
         if cfg is None:
-            error = "No configuration found. " \
-                    "Run the 'configure' command first."
+            error = (
+                "No configuration found. " "Run the 'configure' command first."
+            )
             log.critical(error)
             raise ValueError(error)
         return cfg
@@ -285,30 +278,27 @@ class Config(Base):
 # Recipient
 # =============================================================================
 
+
 class Recipient(Base):
     """
     Details of an e-mail recipient.
     """
+
     __tablename__ = "recipient"
-    __table_args__ = make_table_args(
-        comment="E-mail recipients."
-    )
+    __table_args__ = make_table_args(comment="E-mail recipients.")
 
     # -------------------------------------------------------------------------
     # Columns
     # -------------------------------------------------------------------------
 
     recipient_id = Column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-        comment="Primary key."
+        Integer, primary_key=True, autoincrement=True, comment="Primary key."
     )  # type: int
     email = Column(
         String(length=EMAIL_ADDRESS_MAX_LEN),
         nullable=False,
         unique=True,
-        comment="E-mail address."
+        comment="E-mail address.",
     )
 
     # -------------------------------------------------------------------------
@@ -321,9 +311,7 @@ class Recipient(Base):
         Fetch or create/add the recipient.
         """
         try:
-            return session.query(cls).filter_by(
-                email=email
-            ).one()
+            return session.query(cls).filter_by(email=email).one()
         except NoResultFound:
             newvar = cls(email=email)
             session.add(newvar)
@@ -348,15 +336,17 @@ class Recipient(Base):
 # Content
 # =============================================================================
 
+
 class Content(Base):
     """
     Contents of an e-mail that will be, or has been, sent to one or many
     recipients.
     """
+
     __tablename__ = "content"
     __table_args__ = make_table_args(
         comment="Contents of an e-mail (without recipient details; these are "
-                "templates that may be sent to multiple recipients)."
+        "templates that may be sent to multiple recipients)."
     )
 
     # -------------------------------------------------------------------------
@@ -364,49 +354,43 @@ class Content(Base):
     # -------------------------------------------------------------------------
 
     content_id = Column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-        comment="Primary key."
+        Integer, primary_key=True, autoincrement=True, comment="Primary key."
     )  # type: int
     from_addr = Column(
         String(length=EMAIL_ADDRESS_MAX_LEN),
         nullable=False,
-        comment="From (sender's) e-mail address."
+        comment="From (sender's) e-mail address.",
     )
     reply_to_addr = Column(
         String(length=EMAIL_ADDRESS_MAX_LEN),
         nullable=False,
-        comment="Reply-To (sender's) e-mail address."
+        comment="Reply-To (sender's) e-mail address.",
     )
     email_datetime = Column(
         DateTime,
-        comment='E-mail creation date/time, or NULL for '
-                '"the time of sending".'
+        comment="E-mail creation date/time, or NULL for "
+        '"the time of sending".',
     )
     subject = Column(
         Text,
         # There is no limit to the subject length in RFC 2822; you can have
         # multiple lines (each up to 998 characters).
-        comment="E-mail subject"
+        comment="E-mail subject",
     )
-    body = Column(
-        Text,
-        comment="E-mail body"
-    )
+    body = Column(Text, comment="E-mail body")
     content_type = Column(
         String(length=CONTENT_TYPE_MAX_LENGTH),
         nullable=False,
         default=CONTENT_TYPE_TEXT,
         server_default=CONTENT_TYPE_TEXT,
-        comment=f"Character set (encoding). Default: {UTF8!r}."
+        comment=f"Character set (encoding). Default: {UTF8!r}.",
     )
     charset = Column(
         String(length=ENCODING_NAME_MAX_LENGTH),
         nullable=False,
         default=UTF8,
         server_default=UTF8,
-        comment=f"Character set (encoding). Default: {UTF8!r}."
+        comment=f"Character set (encoding). Default: {UTF8!r}.",
     )
 
     # -------------------------------------------------------------------------
@@ -423,10 +407,12 @@ class Content(Base):
 # Job
 # =============================================================================
 
+
 class Job(Base):
     """
     A task to send one e-mail to one recipient.
     """
+
     __tablename__ = "job"
     __table_args__ = make_table_args(
         comment="Attempts to send e-mails, successfully or otherwise."
@@ -437,22 +423,19 @@ class Job(Base):
     # -------------------------------------------------------------------------
 
     job_id = Column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-        comment="Primary key."
+        Integer, primary_key=True, autoincrement=True, comment="Primary key."
     )  # type: int
     recipient_id = Column(
         Integer,
         ForeignKey("recipient.recipient_id", ondelete="CASCADE"),
         nullable=False,
-        comment="Which recipient? Foreign key to recipient.recipient_id"
+        comment="Which recipient? Foreign key to recipient.recipient_id",
     )
     content_id = Column(
         Integer,
         ForeignKey("content.content_id", ondelete="CASCADE"),
         nullable=False,
-        comment="What content? Foreign key to content.content_id"
+        comment="What content? Foreign key to content.content_id",
     )
 
     # -------------------------------------------------------------------------
@@ -468,14 +451,13 @@ class Job(Base):
 
     @staticmethod
     def _pending_job_query(session: Session) -> CountStarSpecializedQuery:
-        return (
-            CountStarSpecializedQuery([Job], session=session)
-            .filter(
-                ~exists().select_from(SendAttempt).where(
-                    and_(
-                        SendAttempt.job_id == Job.job_id,
-                        SendAttempt.success == True  # noqa
-                    )
+        return CountStarSpecializedQuery([Job], session=session).filter(
+            ~exists()
+            .select_from(SendAttempt)
+            .where(
+                and_(
+                    SendAttempt.job_id == Job.job_id,
+                    SendAttempt.success == True,  # noqa
                 )
             )
         )
@@ -511,12 +493,14 @@ class Job(Base):
 # Attempt
 # =============================================================================
 
+
 class SendAttempt(Base):
     """
     Records the attempt to send an e-mail. Success means that it was accepted
     by our local server -- that doesn't imply final delivery (e.g. if the
     address is wrong).
     """
+
     __tablename__ = "send_attempt"
     __table_args__ = make_table_args(
         comment="Attempts to send e-mails, successfully or otherwise."
@@ -527,37 +511,30 @@ class SendAttempt(Base):
     # -------------------------------------------------------------------------
 
     send_attempt_id = Column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-        comment="Primary key."
+        Integer, primary_key=True, autoincrement=True, comment="Primary key."
     )  # type: int
     job_id = Column(
         Integer,
         ForeignKey("job.job_id", ondelete="CASCADE"),
         nullable=False,
-        comment="Which job is this for? Foreign key to job.job_id"
+        comment="Which job is this for? Foreign key to job.job_id",
     )
     config_id = Column(
         Integer,
         ForeignKey("config.config_id", ondelete="CASCADE"),
         nullable=False,
-        comment="Which config was used? Foreign key to config.config_id"
+        comment="Which config was used? Foreign key to config.config_id",
     )
     when_attempt = Column(
-        DateTime,
-        nullable=False,
-        comment="When was the attempt made?"
+        DateTime, nullable=False, comment="When was the attempt made?"
     )
     success = Column(
-        Boolean,
-        nullable=False,
-        comment="Was the sending attempt successful?"
+        Boolean, nullable=False, comment="Was the sending attempt successful?"
     )
     details = Column(
         Text,
         comment="If unsuccessful, error details may be here. If successful, "
-                "success messages go here."
+        "success messages go here.",
     )
 
     # -------------------------------------------------------------------------

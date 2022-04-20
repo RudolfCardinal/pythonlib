@@ -31,6 +31,7 @@ import ssl
 
 # noinspection PyUnresolvedReferences
 from django.core.mail.backends.smtp import EmailBackend
+
 # noinspection PyUnresolvedReferences
 from django.core.mail.utils import DNS_NAME
 
@@ -101,18 +102,20 @@ class SmtpEmailBackendTls1(EmailBackend):
             # Nothing to do if the connection is already open.
             return False
 
-        connection_params = {'local_hostname': DNS_NAME.get_fqdn()}
+        connection_params = {"local_hostname": DNS_NAME.get_fqdn()}
         if self.timeout is not None:
-            connection_params['timeout'] = self.timeout
+            connection_params["timeout"] = self.timeout
         try:
-            self.connection = smtplib.SMTP(self.host, self.port,
-                                           **connection_params)
+            self.connection = smtplib.SMTP(
+                self.host, self.port, **connection_params
+            )
 
             # TLS
             context = ssl.SSLContext(self._protocol())
             if self.ssl_certfile:
-                context.load_cert_chain(certfile=self.ssl_certfile,
-                                        keyfile=self.ssl_keyfile)
+                context.load_cert_chain(
+                    certfile=self.ssl_certfile, keyfile=self.ssl_keyfile
+                )
             self.connection.ehlo()
             self.connection.starttls(context=context)
             self.connection.ehlo()

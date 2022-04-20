@@ -59,12 +59,15 @@ def gut_message(message: Message) -> Message:
     Remove body from a message, and wrap in a message/external-body.
     """
     wrapper = Message()
-    wrapper.add_header('Content-Type', 'message/external-body',
-                       access_type='x-spam-deleted',
-                       expiration=time.strftime("%a, %d %b %Y %H:%M:%S %z"),
-                       size=str(len(message.get_payload())))
+    wrapper.add_header(
+        "Content-Type",
+        "message/external-body",
+        access_type="x-spam-deleted",
+        expiration=time.strftime("%a, %d %b %Y %H:%M:%S %z"),
+        size=str(len(message.get_payload())),
+    )
 
-    message.set_payload('')
+    message.set_payload("")
     wrapper.set_payload([message])
 
     return wrapper
@@ -74,7 +77,7 @@ def message_is_binary(message: Message) -> bool:
     """
     Determine if a non-multipart message is of binary type.
     """
-    return message.get_content_maintype() not in ('text', 'message')
+    return message.get_content_maintype() not in ("text", "message")
 
 
 def clean_message(message: Message, topmost: bool = False) -> Message:
@@ -87,7 +90,7 @@ def clean_message(message: Message, topmost: bool = False) -> Message:
     """
     if message.is_multipart():
         # Don't recurse in already-deleted attachments
-        if message.get_content_type() != 'message/external-body':
+        if message.get_content_type() != "message/external-body":
             parts = message.get_payload()
             parts[:] = map(clean_message, parts)
     elif message_is_binary(message):
@@ -101,31 +104,31 @@ def clean_message(message: Message, topmost: bool = False) -> Message:
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Parse a mailbox file from stdin to stdout, "
-                    "removing any attachments",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        "removing any attachments",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("input", type=str, help="Filename for input")
+    parser.add_argument("output", type=str, help="Filename for output")
     parser.add_argument(
-        "input", type=str,
-        help="Filename for input")
+        "--verbose", "-v", action="store_true", help="Be verbose"
+    )
     parser.add_argument(
-        "output", type=str,
-        help="Filename for output")
-    parser.add_argument(
-        "--verbose", "-v", action="store_true",
-        help="Be verbose")
-    parser.add_argument(
-        "--report", type=int, default=100,
-        help="Report every n messages")
+        "--report", type=int, default=100, help="Report every n messages"
+    )
     args = parser.parse_args()
-    main_only_quicksetup_rootlogger(level=logging.DEBUG if args.verbose
-                                    else logging.INFO)
+    main_only_quicksetup_rootlogger(
+        level=logging.DEBUG if args.verbose else logging.INFO
+    )
 
     if os.path.exists(args.output):
         errmsg = f"Output file exists: {args.output}"
         log.critical(errmsg)
         raise ValueError(errmsg)
-    log.info("Opening input file: {filename} ({size})",
-             filename=args.input,
-             size=bytes2human(os.path.getsize(args.input)))
+    log.info(
+        "Opening input file: {filename} ({size})",
+        filename=args.input,
+        size=bytes2human(os.path.getsize(args.input)),
+    )
     input_box = mailbox.mbox(args.input, create=False)
     log.info("Opening output file: {} (new file)", args.output)
     output_box = mailbox.mbox(args.output, create=True)
@@ -139,9 +142,8 @@ def main() -> None:
         processed_msg = clean_message(message, topmost=True)
         output_box.add(processed_msg)
     log.info("Done; processed {} messages.", msg_count)
-    log.info("Output size: {}",
-             bytes2human(os.path.getsize(args.output)))
+    log.info("Output size: {}", bytes2human(os.path.getsize(args.output)))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

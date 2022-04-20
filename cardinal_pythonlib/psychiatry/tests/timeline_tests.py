@@ -54,10 +54,12 @@ DEFAULT_QUERY_DATETIME_COLNAME = "when"
 # Unit testing
 # =============================================================================
 
+
 class TestTimeline(unittest.TestCase):
     """
     Unit tests.
     """
+
     DATEFORMAT = "%Y-%m-%d"
     DATETIMEFORMAT = "%Y-%m-%d %H:%M"
 
@@ -65,8 +67,9 @@ class TestTimeline(unittest.TestCase):
     QUERY_EVENT_TIME = " 00:00"  # " 12:00"
 
     @classmethod
-    def dateseq(cls, first: str, last: str,
-                time_suffix: str = "") -> List[datetime.datetime]:
+    def dateseq(
+        cls, first: str, last: str, time_suffix: str = ""
+    ) -> List[datetime.datetime]:
         fmt = cls.DATETIMEFORMAT if time_suffix else cls.DATEFORMAT
         if time_suffix:
             first += time_suffix
@@ -97,18 +100,20 @@ class TestTimeline(unittest.TestCase):
             dtype=[
                 (DEFAULT_PATIENT_COLNAME, DTYPE_STRING),
                 (DEFAULT_DRUG_EVENT_DATETIME_COLNAME, DTYPE_DATETIME),
-            ]
+            ],
         )
         drug_events_df = DataFrame.from_records(drug_events_arr)
         log.debug("drug_events_df:\n{!r}", drug_events_df)
 
-        start = datetime.datetime.strptime("2017-01-01" + self.DRUG_EVENT_TIME,
-                                           self.DATETIMEFORMAT)
+        start = datetime.datetime.strptime(
+            "2017-01-01" + self.DRUG_EVENT_TIME, self.DATETIMEFORMAT
+        )
         log.debug("start: {!r}", start)
 
         qdata_rows = []
-        for dt in self.dateseq("2018-01-01", "2018-05-30",
-                               time_suffix=self.QUERY_EVENT_TIME):
+        for dt in self.dateseq(
+            "2018-01-01", "2018-05-30", time_suffix=self.QUERY_EVENT_TIME
+        ):
             qdata_rows.append((alice, start, dt))
         query_times_arr = array(
             qdata_rows,
@@ -116,7 +121,7 @@ class TestTimeline(unittest.TestCase):
                 (DEFAULT_PATIENT_COLNAME, DTYPE_STRING),
                 (DEFAULT_START_DATETIME_COLNAME, DTYPE_DATETIME),
                 (DEFAULT_QUERY_DATETIME_COLNAME, DTYPE_DATETIME),
-            ]
+            ],
         )
         query_times_df = DataFrame.from_records(query_times_arr)
         log.debug("query_times_df:\n{!r}", query_times_df)
@@ -125,7 +130,7 @@ class TestTimeline(unittest.TestCase):
             drug_events_df=drug_events_df,
             event_lasts_for=event_lasts_for,
             patient_colname=DEFAULT_PATIENT_COLNAME,
-            event_datetime_colname=DEFAULT_DRUG_EVENT_DATETIME_COLNAME
+            event_datetime_colname=DEFAULT_DRUG_EVENT_DATETIME_COLNAME,
         )
         log.debug("timelines: {!r}", timelines)
 
@@ -136,6 +141,6 @@ class TestTimeline(unittest.TestCase):
             patient_colname=DEFAULT_PATIENT_COLNAME,
             event_datetime_colname=DEFAULT_DRUG_EVENT_DATETIME_COLNAME,
             start_colname=DEFAULT_START_DATETIME_COLNAME,
-            when_colname=DEFAULT_QUERY_DATETIME_COLNAME
+            when_colname=DEFAULT_QUERY_DATETIME_COLNAME,
         )
         log.debug("cumulative:\n{}", cumulative)

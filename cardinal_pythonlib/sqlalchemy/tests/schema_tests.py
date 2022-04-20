@@ -44,33 +44,37 @@ from cardinal_pythonlib.sqlalchemy.schema import (
 # Tests
 # =============================================================================
 
+
 class SchemaTests(unittest.TestCase):
     def test_schema_functions(self) -> None:
         d_mssql = MSDialect()
         d_mysql = MySQLDialect()
-        col1 = Column('hello', BigInteger, nullable=True)
-        col2 = Column('world', BigInteger, autoincrement=True)
+        col1 = Column("hello", BigInteger, nullable=True)
+        col2 = Column("world", BigInteger, autoincrement=True)
         # ... used NOT to generate IDENTITY, but now does (2022-02-26, with
         #     SQLAlchemy==1.3.18)
-        col3 = make_bigint_autoincrement_column('you', d_mssql)
+        col3 = make_bigint_autoincrement_column("you", d_mssql)
         metadata = MetaData()
-        t = Table('mytable', metadata)
+        t = Table("mytable", metadata)
         t.append_column(col1)
         t.append_column(col2)
         t.append_column(col3)
 
         print("Checking Column -> DDL: SQL Server (mssql)")
-        self.assertEqual(column_creation_ddl(col1, d_mssql),
-                         "hello BIGINT NULL")
+        self.assertEqual(
+            column_creation_ddl(col1, d_mssql), "hello BIGINT NULL"
+        )
         self.assertEqual(
             column_creation_ddl(col2, d_mssql),
             # Old:
             # "world BIGINT NULL"
             # New:
-            "world BIGINT NOT NULL IDENTITY(1,1)"
+            "world BIGINT NOT NULL IDENTITY(1,1)",
         )
-        self.assertEqual(column_creation_ddl(col3, d_mssql),
-                         "you BIGINT NOT NULL IDENTITY(1,1)")
+        self.assertEqual(
+            column_creation_ddl(col3, d_mssql),
+            "you BIGINT NOT NULL IDENTITY(1,1)",
+        )
 
         print("Checking Column -> DDL: MySQL (mysql)")
         self.assertEqual(column_creation_ddl(col1, d_mysql), "hello BIGINT")
@@ -90,5 +94,7 @@ class SchemaTests(unittest.TestCase):
             ("ENUM('red','green','blue')", d_mysql),
         ]
         for coltype, dialect in to_check:
-            print(f"... {coltype!r} -> dialect {dialect.name!r} -> "
-                  f"{get_sqla_coltype_from_dialect_str(coltype, dialect)!r}")
+            print(
+                f"... {coltype!r} -> dialect {dialect.name!r} -> "
+                f"{get_sqla_coltype_from_dialect_str(coltype, dialect)!r}"
+            )

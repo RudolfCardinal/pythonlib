@@ -42,12 +42,13 @@ log = logging.getLogger(__name__)
 
 
 def gen_parallel_results_efficiently(
-        fn: Callable,
-        *iterables: Iterable,
-        max_workers: int = None,
-        threaded: bool = False,
-        verbose: bool = False,
-        loglevel: int = logging.INFO) -> Iterable:
+    fn: Callable,
+    *iterables: Iterable,
+    max_workers: int = None,
+    threaded: bool = False,
+    verbose: bool = False,
+    loglevel: int = logging.INFO,
+) -> Iterable:
     """
     Memory-efficient way of using concurrent.futures.ProcessPoolExecutor, as
     per https://alexwlchan.net/2019/10/adventures-with-concurrent-futures/.
@@ -121,8 +122,7 @@ def gen_parallel_results_efficiently(
         # Schedule the first N futures.  We don't want to schedule them all
         # at once, to avoid consuming excessive amounts of memory.
         futures = {
-            submit(executor, args)
-            for args in islice(arggroups, max_workers)
+            submit(executor, args) for args in islice(arggroups, max_workers)
         }
 
         while futures:

@@ -63,19 +63,21 @@ log = get_brace_style_log_with_null_handler(__name__)
 SLURM_TIMEDELTA_FMT = "{D}-{H:02}:{M:02}:{S:02}"
 
 
-def launch_slurm(jobname: str,
-                 cmd: str,
-                 memory_mb: int,
-                 project: str,
-                 qos: str,
-                 email: str,
-                 duration: timedelta,
-                 tasks_per_node: int,
-                 cpus_per_task: int,
-                 partition: str = "",
-                 modules: List[str] = None,
-                 directory: str = os.getcwd(),
-                 encoding: str = "ascii") -> None:
+def launch_slurm(
+    jobname: str,
+    cmd: str,
+    memory_mb: int,
+    project: str,
+    qos: str,
+    email: str,
+    duration: timedelta,
+    tasks_per_node: int,
+    cpus_per_task: int,
+    partition: str = "",
+    modules: List[str] = None,
+    directory: str = os.getcwd(),
+    encoding: str = "ascii",
+) -> None:
     """
     Launch a job into the SLURM environment.
 
@@ -200,19 +202,20 @@ eval $CMD
 
 
 def launch_cambridge_hphi(
-        jobname: str,
-        cmd: str,
-        memory_mb: int,
-        qos: str,
-        email: str,
-        duration: timedelta,
-        cpus_per_task: int,
-        project: str = "hphi",
-        tasks_per_node: int = 1,
-        partition: str = "wbic-cs",  # 2018-02: was "wbic", now "wbic-cs"
-        modules: List[str] = None,
-        directory: str = os.getcwd(),
-        encoding: str = "ascii") -> None:
+    jobname: str,
+    cmd: str,
+    memory_mb: int,
+    qos: str,
+    email: str,
+    duration: timedelta,
+    cpus_per_task: int,
+    project: str = "hphi",
+    tasks_per_node: int = 1,
+    partition: str = "wbic-cs",  # 2018-02: was "wbic", now "wbic-cs"
+    modules: List[str] = None,
+    directory: str = os.getcwd(),
+    encoding: str = "ascii",
+) -> None:
     """
     Specialization of :func:`launch_slurm` (q.v.) with defaults for the
     University of Cambridge WBIC HPHI.

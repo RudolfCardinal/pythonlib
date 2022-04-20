@@ -44,6 +44,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Find or require executables
 # =============================================================================
 
+
 def which_with_envpath(executable: str, env: Dict[str, str]) -> str:
     """
     Performs a :func:`shutil.which` command using the PATH from the specified
@@ -97,6 +98,7 @@ def which_and_require(executable: str, fullpath: bool = False) -> str:
 # Create directories
 # =============================================================================
 
+
 def mkdir_p(path: str) -> None:
     """
     Makes a directory, and any intermediate (parent) directories if required.
@@ -111,6 +113,7 @@ def mkdir_p(path: str) -> None:
 # =============================================================================
 # Change directories
 # =============================================================================
+
 
 @contextmanager
 def pushd(directory: str) -> None:
@@ -153,6 +156,7 @@ def preserve_cwd(func: Callable) -> Callable:
         result = func(*args_, **kwargs)
         os.chdir(cwd)
         return result
+
     return decorator
 
 
@@ -168,8 +172,13 @@ def root_path() -> str:
 # Copy or move things
 # =============================================================================
 
-def copyglob(src: str, dest: str, allow_nothing: bool = False,
-             allow_nonfiles: bool = False) -> None:
+
+def copyglob(
+    src: str,
+    dest: str,
+    allow_nothing: bool = False,
+    allow_nonfiles: bool = False,
+) -> None:
     """
     Copies files whose filenames match the glob src" into the directory
     "dest". Raises an error if no files are copied, unless allow_nothing is
@@ -195,8 +204,12 @@ def copyglob(src: str, dest: str, allow_nothing: bool = False,
     raise ValueError(f"No files found matching: {src}")
 
 
-def moveglob(src: str, dest: str, allow_nothing: bool = False,
-             allow_nonfiles: bool = False) -> None:
+def moveglob(
+    src: str,
+    dest: str,
+    allow_nothing: bool = False,
+    allow_nonfiles: bool = False,
+) -> None:
     """
     As for :func:`copyglob`, but moves instead.
     """
@@ -240,8 +253,9 @@ def copy_tree_root(src_dir: str, dest_parent: str) -> None:
     shutil.copytree(src_dir, dest_dir)
 
 
-def copy_tree_contents(srcdir: str, destdir: str,
-                       destroy: bool = False) -> None:
+def copy_tree_contents(
+    srcdir: str, destdir: str, destroy: bool = False
+) -> None:
     """
     Recursive copy. Unlike :func:`copy_tree_root`, :func:`copy_tree_contents`
     works as follows. With the file structure:
@@ -283,6 +297,7 @@ def copy_tree_contents(srcdir: str, destdir: str,
 # Delete things
 # =============================================================================
 
+
 def rmglob(pattern: str) -> None:
     """
     Deletes all files whose filename matches the glob ``pattern`` (via
@@ -323,9 +338,9 @@ EXC_INFO_TYPE = Tuple[
 # https://docs.python.org/3/library/sys.html#sys.exc_info
 
 
-def shutil_rmtree_onerror(func: Callable[[str], None],
-                          path: str,
-                          exc_info: EXC_INFO_TYPE) -> None:
+def shutil_rmtree_onerror(
+    func: Callable[[str], None], path: str, exc_info: EXC_INFO_TYPE
+) -> None:
     """
     Error handler for ``shutil.rmtree``.
 
@@ -359,6 +374,7 @@ def rmtree(directory: str) -> None:
 # =============================================================================
 # Change ownership or permissions
 # =============================================================================
+
 
 def chown_r(path: str, user: str, group: str) -> None:
     """
@@ -398,6 +414,7 @@ def chmod_r(root: str, permission: int) -> None:
 # Find files
 # =============================================================================
 
+
 def find(pattern: str, path: str) -> List[str]:
     """
     Finds files in ``path`` whose filenames match ``pattern`` (via
@@ -423,8 +440,9 @@ def find_first(pattern: str, path: str) -> str:
         raise
 
 
-def gen_filenames(starting_filenames: List[str],
-                  recursive: bool) -> Generator[str, None, None]:
+def gen_filenames(
+    starting_filenames: List[str], recursive: bool
+) -> Generator[str, None, None]:
     """
     From a starting list of files and/or directories, generates filenames of
     all files in the list, and (if ``recursive`` is set) all files within
@@ -451,6 +469,7 @@ def gen_filenames(starting_filenames: List[str],
 # Check lock status
 # =============================================================================
 
+
 def exists_locked(filepath: str) -> Tuple[bool, bool]:
     """
     Checks if a file is locked by opening it in append mode.
@@ -473,7 +492,7 @@ def exists_locked(filepath: str) -> Tuple[bool, bool]:
         try:
             buffer_size = 8
             # Opening file in append mode and read the first 8 characters.
-            file_object = open(filepath, 'a', buffer_size)
+            file_object = open(filepath, "a", buffer_size)
             if file_object:
                 locked = False  # exists and not locked
         except IOError:
@@ -487,6 +506,7 @@ def exists_locked(filepath: str) -> Tuple[bool, bool]:
 # =============================================================================
 # Filename/path processing
 # =============================================================================
+
 
 def relative_filename_within_dir(filename: str, directory: str) -> str:
     """
@@ -505,6 +525,7 @@ def relative_filename_within_dir(filename: str, directory: str) -> str:
 # =============================================================================
 # Disk space
 # =============================================================================
+
 
 def get_directory_contents_size(directory: str = ".") -> int:
     """

@@ -38,6 +38,7 @@ FLOATS_TYPE = Union[List[float], np.ndarray]
 # Filters
 # =============================================================================
 
+
 def normalized_frequency(f: float, sampling_freq: float) -> float:
     """
     Returns a normalized frequency:
@@ -68,10 +69,12 @@ def normalized_frequency(f: float, sampling_freq: float) -> float:
     return f / (sampling_freq / 2.0)
 
 
-def lowpass_filter(data: FLOATS_TYPE,
-                   sampling_freq_hz: float,
-                   cutoff_freq_hz: float,
-                   numtaps: int) -> FLOATS_TYPE:
+def lowpass_filter(
+    data: FLOATS_TYPE,
+    sampling_freq_hz: float,
+    cutoff_freq_hz: float,
+    numtaps: int,
+) -> FLOATS_TYPE:
     """
     Apply a low-pass filter to the data.
 
@@ -92,16 +95,18 @@ def lowpass_filter(data: FLOATS_TYPE,
     coeffs = firwin(
         numtaps=numtaps,
         cutoff=normalized_frequency(cutoff_freq_hz, sampling_freq_hz),
-        pass_zero=True
+        pass_zero=True,
     )  # coefficients of a finite impulse response (FIR) filter using window method  # noqa
     filtered_data = lfilter(b=coeffs, a=1.0, x=data)
     return filtered_data
 
 
-def highpass_filter(data: FLOATS_TYPE,
-                    sampling_freq_hz: float,
-                    cutoff_freq_hz: float,
-                    numtaps: int) -> FLOATS_TYPE:
+def highpass_filter(
+    data: FLOATS_TYPE,
+    sampling_freq_hz: float,
+    cutoff_freq_hz: float,
+    numtaps: int,
+) -> FLOATS_TYPE:
     """
     Apply a high-pass filter to the data.
 
@@ -122,17 +127,19 @@ def highpass_filter(data: FLOATS_TYPE,
     coeffs = firwin(
         numtaps=numtaps,
         cutoff=normalized_frequency(cutoff_freq_hz, sampling_freq_hz),
-        pass_zero=False
+        pass_zero=False,
     )
     filtered_data = lfilter(b=coeffs, a=1.0, x=data)
     return filtered_data
 
 
-def bandpass_filter(data: FLOATS_TYPE,
-                    sampling_freq_hz: float,
-                    lower_freq_hz: float,
-                    upper_freq_hz: float,
-                    numtaps: int) -> FLOATS_TYPE:
+def bandpass_filter(
+    data: FLOATS_TYPE,
+    sampling_freq_hz: float,
+    lower_freq_hz: float,
+    upper_freq_hz: float,
+    numtaps: int,
+) -> FLOATS_TYPE:
     """
     Apply a band-pass filter to the data.
 
@@ -154,19 +161,17 @@ def bandpass_filter(data: FLOATS_TYPE,
     f1 = normalized_frequency(lower_freq_hz, sampling_freq_hz)
     f2 = normalized_frequency(upper_freq_hz, sampling_freq_hz)
     # noinspection PyTypeChecker
-    coeffs = firwin(
-        numtaps=numtaps,
-        cutoff=[f1, f2],
-        pass_zero=False
-    )
+    coeffs = firwin(numtaps=numtaps, cutoff=[f1, f2], pass_zero=False)
     filtered_data = lfilter(b=coeffs, a=1.0, x=data)
     return filtered_data
 
 
-def notch_filter(data: FLOATS_TYPE,
-                 sampling_freq_hz: float,
-                 notch_freq_hz: float,
-                 quality_factor: float) -> FLOATS_TYPE:
+def notch_filter(
+    data: FLOATS_TYPE,
+    sampling_freq_hz: float,
+    notch_freq_hz: float,
+    quality_factor: float,
+) -> FLOATS_TYPE:
     """
     Design and use a notch (band reject) filter to filter the data.
 
@@ -183,7 +188,7 @@ def notch_filter(data: FLOATS_TYPE,
     """
     b, a = iirnotch(
         w0=normalized_frequency(notch_freq_hz, sampling_freq_hz),
-        Q=quality_factor
+        Q=quality_factor,
     )
     filtered_data = lfilter(b=b, a=a, x=data)
     return filtered_data

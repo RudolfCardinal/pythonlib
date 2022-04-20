@@ -43,6 +43,7 @@ class MultiTimer(object):
 
     See example in :class:`MultiTimerContext`.
     """
+
     def __init__(self, start: bool = True) -> None:
         """
         Args:
@@ -122,7 +123,8 @@ class MultiTimer(object):
         if self._stack[-1] != name:
             raise AssertionError(
                 f"MultiTimer.stop({name!r}) when "
-                f"{self._stack[-1]!r} is running")
+                f"{self._stack[-1]!r} is running"
+            )
 
         # Finish what we were asked to
         self._totaldurations[name] += now - self._starttimes[name]
@@ -153,14 +155,17 @@ class MultiTimer(object):
             total_sec = duration.total_seconds()
             mean = total_sec / n if n > 0 else None
 
-            summaries.append({
-                'total': total_sec,
-                'description': (
-                    f"- {name}: {total_sec:.3f} s "
-                    f"({(100 * total_sec / grand_total.total_seconds()):.2f}%, "  # noqa
-                    f"n={n}, mean={mean:.3f}s)"),
-            })
-        summaries.sort(key=lambda x: x['total'], reverse=True)
+            summaries.append(
+                {
+                    "total": total_sec,
+                    "description": (
+                        f"- {name}: {total_sec:.3f} s "
+                        f"({(100 * total_sec / grand_total.total_seconds()):.2f}%, "  # noqa
+                        f"n={n}, mean={mean:.3f}s)"
+                    ),
+                }
+            )
+        summaries.sort(key=lambda x: x["total"], reverse=True)
         for s in summaries:
             # noinspection PyTypeChecker
             log.info(s["description"])
@@ -171,7 +176,7 @@ class MultiTimer(object):
         log.info(
             "Unmetered time: {:.3f} s ({:.2f}%)",
             unmetered.total_seconds(),
-            100 * unmetered.total_seconds() / overall_duration.total_seconds()
+            100 * unmetered.total_seconds() / overall_duration.total_seconds(),
         )
         log.info("Total time: {:.3f} s", grand_total.total_seconds())
 
@@ -209,6 +214,7 @@ class MultiTimerContext(object):
         timer.report()
 
     """
+
     def __init__(self, multitimer: MultiTimer, name: str) -> None:
         """
         Args:

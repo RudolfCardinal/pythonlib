@@ -38,8 +38,7 @@ import html
 import os
 import re
 import sys
-from typing import (Any, Callable, Dict, Iterable, List, Optional,
-                    Tuple, Union)
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from cardinal_pythonlib.wsgi.constants import (
     TYPE_WSGI_APP_RESULT,
@@ -69,11 +68,12 @@ PNG_SIGNATURE_HEX = binascii.unhexlify(PNG_SIGNATURE_HEXSTRING)
 # Misc
 # =============================================================================
 
+
 def print_utf8(s: str) -> None:
     """
     Writes a Unicode string to ``sys.stdout`` in UTF-8 encoding.
     """
-    sys.stdout.buffer.write(s.encode('utf-8'))
+    sys.stdout.buffer.write(s.encode("utf-8"))
 
 
 def get_int_or_none(s: str) -> Optional[int]:
@@ -107,10 +107,12 @@ def is_1(s: str) -> bool:
     return True if s == "1" else False
 
 
-def number_to_dp(number: Optional[float],
-                 dp: int,
-                 default: Optional[str] = "",
-                 en_dash_for_minus: bool = True) -> str:
+def number_to_dp(
+    number: Optional[float],
+    dp: int,
+    default: Optional[str] = "",
+    en_dash_for_minus: bool = True,
+) -> str:
     """
     Format number to ``dp`` decimal places, optionally using a UTF-8 en dash
     for minus signs.
@@ -118,13 +120,13 @@ def number_to_dp(number: Optional[float],
     if number is None:
         return default
     if number == float("inf"):
-        return u"∞"
+        return "∞"
     if number == float("-inf"):
-        s = u"-∞"
+        s = "-∞"
     else:
         s = f"{number:.{dp}f}"
     if en_dash_for_minus:
-        s = s.replace("-", u"–")  # hyphen becomes en dash for minus sign
+        s = s.replace("-", "–")  # hyphen becomes en dash for minus sign
     return s
 
 
@@ -132,9 +134,10 @@ def number_to_dp(number: Optional[float],
 # CGI
 # =============================================================================
 
-def debug_form_contents(form: cgi.FieldStorage,
-                        to_stderr: bool = True,
-                        to_logger: bool = False) -> None:
+
+def debug_form_contents(
+    form: cgi.FieldStorage, to_stderr: bool = True, to_logger: bool = False
+) -> None:
     """
     Writes the keys and values of a CGI form to ``stderr``.
     """
@@ -157,9 +160,9 @@ def cgi_method_is_post(environ: Dict[str, str]) -> bool:
     return method.upper() == "POST"
 
 
-def get_cgi_parameter_str(form: cgi.FieldStorage,
-                          key: str,
-                          default: str = None) -> str:
+def get_cgi_parameter_str(
+    form: cgi.FieldStorage, key: str, default: str = None
+) -> str:
     """
     Extracts a string parameter from a CGI form.
     Note: ``key`` is CASE-SENSITIVE.
@@ -170,8 +173,9 @@ def get_cgi_parameter_str(form: cgi.FieldStorage,
     return paramlist[0]
 
 
-def get_cgi_parameter_str_or_none(form: cgi.FieldStorage,
-                                  key: str) -> Optional[str]:
+def get_cgi_parameter_str_or_none(
+    form: cgi.FieldStorage, key: str
+) -> Optional[str]:
     """
     Extracts a string parameter from a CGI form, or ``None`` if the key doesn't
     exist or the string is zero-length.
@@ -197,9 +201,9 @@ def get_cgi_parameter_bool(form: cgi.FieldStorage, key: str) -> bool:
     return is_1(get_cgi_parameter_str(form, key))
 
 
-def get_cgi_parameter_bool_or_default(form: cgi.FieldStorage,
-                                      key: str,
-                                      default: bool = None) -> Optional[bool]:
+def get_cgi_parameter_bool_or_default(
+    form: cgi.FieldStorage, key: str, default: bool = None
+) -> Optional[bool]:
     """
     Extracts a boolean parameter from a CGI form (``"1"`` = ``True``,
     other string = ``False``, absent/zero-length string = default value).
@@ -210,8 +214,9 @@ def get_cgi_parameter_bool_or_default(form: cgi.FieldStorage,
     return is_1(s)
 
 
-def get_cgi_parameter_bool_or_none(form: cgi.FieldStorage,
-                                   key: str) -> Optional[bool]:
+def get_cgi_parameter_bool_or_none(
+    form: cgi.FieldStorage, key: str
+) -> Optional[bool]:
     """
     Extracts a boolean parameter from a CGI form (``"1"`` = ``True``,
     other string = False, absent/zero-length string = ``None``).
@@ -227,8 +232,9 @@ def get_cgi_parameter_int(form: cgi.FieldStorage, key: str) -> Optional[int]:
     return get_int_or_none(get_cgi_parameter_str(form, key))
 
 
-def get_cgi_parameter_float(form: cgi.FieldStorage,
-                            key: str) -> Optional[float]:
+def get_cgi_parameter_float(
+    form: cgi.FieldStorage, key: str
+) -> Optional[float]:
     """
     Extracts a float parameter from a CGI form, or None if the key is
     absent or the string value is not convertible to ``float``.
@@ -236,8 +242,9 @@ def get_cgi_parameter_float(form: cgi.FieldStorage,
     return get_float_or_none(get_cgi_parameter_str(form, key))
 
 
-def get_cgi_parameter_datetime(form: cgi.FieldStorage,
-                               key: str) -> Optional[datetime.datetime]:
+def get_cgi_parameter_datetime(
+    form: cgi.FieldStorage, key: str
+) -> Optional[datetime.datetime]:
     """
     Extracts a date/time parameter from a CGI form. Applies the LOCAL
     timezone if none specified.
@@ -256,8 +263,9 @@ def get_cgi_parameter_datetime(form: cgi.FieldStorage,
         return None
 
 
-def get_cgi_parameter_file(form: cgi.FieldStorage,
-                           key: str) -> Optional[bytes]:
+def get_cgi_parameter_file(
+    form: cgi.FieldStorage, key: str
+) -> Optional[bytes]:
     """
     Extracts a file's contents from a "file" input in a CGI form, or None
     if no such file was uploaded.
@@ -266,26 +274,32 @@ def get_cgi_parameter_file(form: cgi.FieldStorage,
     return filecontents
 
 
-def get_cgi_parameter_filename_and_file(form: cgi.FieldStorage, key: str) \
-        -> Tuple[Optional[str], Optional[bytes]]:
+def get_cgi_parameter_filename_and_file(
+    form: cgi.FieldStorage, key: str
+) -> Tuple[Optional[str], Optional[bytes]]:
     """
     Extracts a file's name and contents from a "file" input in a CGI form.
     Returns ``(name, contents)``, or ``(None, None)`` if no such file was
     uploaded.
     """
     if not (key in form):
-        log.warning('get_cgi_parameter_file: form has no key {}', key)
+        log.warning("get_cgi_parameter_file: form has no key {}", key)
         return None, None
     fileitem = form[key]  # a nested FieldStorage instance; see
     # http://docs.python.org/2/library/cgi.html#using-the-cgi-module
     if isinstance(fileitem, cgi.MiniFieldStorage):
-        log.warning('get_cgi_parameter_file: MiniFieldStorage found - did you '
-                    'forget to set enctype="multipart/form-data" in '
-                    'your form?')
+        log.warning(
+            "get_cgi_parameter_file: MiniFieldStorage found - did you "
+            'forget to set enctype="multipart/form-data" in '
+            "your form?"
+        )
         return None, None
     if not isinstance(fileitem, cgi.FieldStorage):
-        log.warning('get_cgi_parameter_file: no FieldStorage instance with '
-                    'key {} found', key)
+        log.warning(
+            "get_cgi_parameter_file: no FieldStorage instance with "
+            "key {} found",
+            key,
+        )
         return None, None
     if fileitem.filename and fileitem.file:  # can check "file" or "filename"
         return fileitem.filename, fileitem.file.read()
@@ -295,11 +309,11 @@ def get_cgi_parameter_filename_and_file(form: cgi.FieldStorage, key: str) \
         # return get_cgi_parameter_str(form, key) # contents of the file
     # Otherwise, information about problems:
     if not fileitem.file:
-        log.warning('get_cgi_parameter_file: fileitem has no file')
+        log.warning("get_cgi_parameter_file: fileitem has no file")
     elif not fileitem.filename:
-        log.warning('get_cgi_parameter_file: fileitem has no filename')
+        log.warning("get_cgi_parameter_file: fileitem has no filename")
     else:
-        log.warning('get_cgi_parameter_file: unknown failure reason')
+        log.warning("get_cgi_parameter_file: unknown failure reason")
     return None, None
 
     # "If a field represents an uploaded file, accessing the value
@@ -332,7 +346,7 @@ def checkbox_checked(b: Any) -> str:
             are. The newer, more stringent requirement is ' checked="checked"'.
         </label>
     """
-    return ' checked="checked"' if b else ''
+    return ' checked="checked"' if b else ""
 
 
 def option_selected(variable: Any, testvalue: Any) -> str:
@@ -340,12 +354,13 @@ def option_selected(variable: Any, testvalue: Any) -> str:
     Returns ``' selected="selected"'`` if ``variable == testvalue`` else
     ``''``; for use with HTML select options.
     """
-    return ' selected="selected"' if variable == testvalue else ''
+    return ' selected="selected"' if variable == testvalue else ""
 
 
 # =============================================================================
 # Environment
 # =============================================================================
+
 
 def getenv_escaped(key: str, default: str = None) -> Optional[str]:
     """
@@ -355,9 +370,9 @@ def getenv_escaped(key: str, default: str = None) -> Optional[str]:
     return html.escape(value) if value is not None else None
 
 
-def getconfigvar_escaped(config: configparser.ConfigParser,
-                         section: str,
-                         key: str) -> Optional[str]:
+def getconfigvar_escaped(
+    config: configparser.ConfigParser, section: str, key: str
+) -> Optional[str]:
     """
     Returns a CGI-escaped version of the value read from an INI file using
     :class:`ConfigParser`, or ``None``.
@@ -368,19 +383,17 @@ def getconfigvar_escaped(config: configparser.ConfigParser,
 
 
 def get_cgi_fieldstorage_from_wsgi_env(
-        env: Dict[str, str],
-        include_query_string: bool = True) -> cgi.FieldStorage:
+    env: Dict[str, str], include_query_string: bool = True
+) -> cgi.FieldStorage:
     """
     Returns a :class:`cgi.FieldStorage` object from the WSGI environment.
     """
     # https://stackoverflow.com/questions/530526/accessing-post-data-from-wsgi
     post_env = env.copy()
     if not include_query_string:
-        post_env['QUERY_STRING'] = ''
+        post_env["QUERY_STRING"] = ""
     form = cgi.FieldStorage(
-        fp=env['wsgi.input'],
-        environ=post_env,
-        keep_blank_values=True
+        fp=env["wsgi.input"], environ=post_env, keep_blank_values=True
     )
     return form
 
@@ -388,6 +401,7 @@ def get_cgi_fieldstorage_from_wsgi_env(
 # =============================================================================
 # Blobs, pictures...
 # =============================================================================
+
 
 def is_valid_png(blob: Optional[bytes]) -> bool:
     """
@@ -402,17 +416,18 @@ def get_png_data_url(blob: Optional[bytes]) -> str:
     """
     Converts a PNG blob into a local URL encapsulating the PNG.
     """
-    return BASE64_PNG_URL_PREFIX + base64.b64encode(blob).decode('ascii')
+    return BASE64_PNG_URL_PREFIX + base64.b64encode(blob).decode("ascii")
 
 
-def get_png_img_html(blob: Union[bytes, memoryview],
-                     extra_html_class: str = None) -> str:
+def get_png_img_html(
+    blob: Union[bytes, memoryview], extra_html_class: str = None
+) -> str:
     """
     Converts a PNG blob to an HTML IMG tag with embedded data.
     """
     return '<img {}src="{}" />'.format(
         f'class="{extra_html_class}" ' if extra_html_class else "",
-        get_png_data_url(blob)
+        get_png_data_url(blob),
     )
 
 
@@ -424,91 +439,100 @@ def get_png_img_html(blob: Union[bytes, memoryview],
 #   https://stackoverflow.com/questions/151079
 #   http://greenbytes.de/tech/tc2231/#inlwithasciifilenamepdf
 
-def pdf_result(pdf_binary: bytes,
-               extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None,
-               filename: str = None) -> WSGI_TUPLE_TYPE:
+
+def pdf_result(
+    pdf_binary: bytes,
+    extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None,
+    filename: str = None,
+) -> WSGI_TUPLE_TYPE:
     """
     Returns ``(contenttype, extraheaders, data)`` tuple for a PDF.
     """
     extraheaders = extraheaders or []
     if filename:
         extraheaders.append(
-            ('content-disposition', f'inline; filename="{filename}"')
+            ("content-disposition", f'inline; filename="{filename}"')
         )
-    contenttype = 'application/pdf'
+    contenttype = "application/pdf"
     if filename:
         contenttype += f'; filename="{filename}"'
     # log.debug("type(pdf_binary): {}", type(pdf_binary))
     return contenttype, extraheaders, pdf_binary
 
 
-def zip_result(zip_binary: bytes,
-               extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None,
-               filename: str = None) -> WSGI_TUPLE_TYPE:
+def zip_result(
+    zip_binary: bytes,
+    extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None,
+    filename: str = None,
+) -> WSGI_TUPLE_TYPE:
     """
     Returns ``(contenttype, extraheaders, data)`` tuple for a ZIP.
     """
     extraheaders = extraheaders or []
     if filename:
         extraheaders.append(
-            ('content-disposition', f'inline; filename="{filename}"')
+            ("content-disposition", f'inline; filename="{filename}"')
         )
-    contenttype = 'application/zip'
+    contenttype = "application/zip"
     if filename:
         contenttype += f'; filename="{filename}"'
     return contenttype, extraheaders, zip_binary
 
 
 # noinspection PyShadowingNames
-def html_result(html: str,
-                extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None) \
-        -> WSGI_TUPLE_TYPE:
+def html_result(
+    html: str, extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None
+) -> WSGI_TUPLE_TYPE:
     """
     Returns ``(contenttype, extraheaders, data)`` tuple for UTF-8 HTML.
     """
     extraheaders = extraheaders or []
-    return 'text/html; charset=utf-8', extraheaders, html.encode("utf-8")
+    return "text/html; charset=utf-8", extraheaders, html.encode("utf-8")
 
 
-def xml_result(xml: str,
-               extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None) \
-        -> WSGI_TUPLE_TYPE:
+def xml_result(
+    xml: str, extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None
+) -> WSGI_TUPLE_TYPE:
     """
     Returns ``(contenttype, extraheaders, data)`` tuple for UTF-8 XML.
     """
     extraheaders = extraheaders or []
-    return 'text/xml; charset=utf-8', extraheaders, xml.encode("utf-8")
+    return "text/xml; charset=utf-8", extraheaders, xml.encode("utf-8")
 
 
-def text_result(text: str,
-                extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None,
-                filename: str = None) -> WSGI_TUPLE_TYPE:
+def text_result(
+    text: str,
+    extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None,
+    filename: str = None,
+) -> WSGI_TUPLE_TYPE:
     """
     Returns ``(contenttype, extraheaders, data)`` tuple for UTF-8 text.
     """
     extraheaders = extraheaders or []
     if filename:
         extraheaders.append(
-            ('content-disposition', f'inline; filename="{filename}"')
+            ("content-disposition", f'inline; filename="{filename}"')
         )
-    contenttype = 'text/plain; charset=utf-8'
+    contenttype = "text/plain; charset=utf-8"
     if filename:
         contenttype += f'; filename="{filename}"'
     return contenttype, extraheaders, text.encode("utf-8")
 
 
-def tsv_result(text: str,
-               extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None,
-               filename: str = None) -> WSGI_TUPLE_TYPE:
+def tsv_result(
+    text: str,
+    extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None,
+    filename: str = None,
+) -> WSGI_TUPLE_TYPE:
     """
     Returns ``(contenttype, extraheaders, data)`` tuple for UTF-8 TSV.
     """
     extraheaders = extraheaders or []
     if filename:
         extraheaders.append(
-            ('content-disposition', f'inline; filename="{filename}"')
+            ("content-disposition", f'inline; filename="{filename}"')
         )
-    contenttype = 'text/tab-separated-values; charset=utf-8'
+    contenttype = "text/tab-separated-values; charset=utf-8"
     if filename:
         contenttype += f'; filename="{filename}"'
     return contenttype, extraheaders, text.encode("utf-8")
@@ -518,9 +542,10 @@ def tsv_result(text: str,
 # CGI
 # =============================================================================
 
+
 def print_result_for_plain_cgi_script_from_tuple(
-        contenttype_headers_content: WSGI_TUPLE_TYPE,
-        status: str = '200 OK') -> None:
+    contenttype_headers_content: WSGI_TUPLE_TYPE, status: str = "200 OK"
+) -> None:
     """
     Writes HTTP result to stdout.
 
@@ -534,10 +559,12 @@ def print_result_for_plain_cgi_script_from_tuple(
     print_result_for_plain_cgi_script(contenttype, headers, content, status)
 
 
-def print_result_for_plain_cgi_script(contenttype: str,
-                                      headers: TYPE_WSGI_RESPONSE_HEADERS,
-                                      content: bytes,
-                                      status: str = '200 OK') -> None:
+def print_result_for_plain_cgi_script(
+    contenttype: str,
+    headers: TYPE_WSGI_RESPONSE_HEADERS,
+    content: bytes,
+    status: str = "200 OK",
+) -> None:
     """
     Writes HTTP request result to stdout.
     """
@@ -554,13 +581,14 @@ def print_result_for_plain_cgi_script(contenttype: str,
 # WSGI
 # =============================================================================
 
+
 def wsgi_simple_responder(
-        result: Union[str, bytes],
-        handler: Callable[[Union[str, bytes]], WSGI_TUPLE_TYPE],
-        start_response: TYPE_WSGI_START_RESPONSE,
-        status: str = '200 OK',
-        extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None) \
-        -> TYPE_WSGI_APP_RESULT:
+    result: Union[str, bytes],
+    handler: Callable[[Union[str, bytes]], WSGI_TUPLE_TYPE],
+    start_response: TYPE_WSGI_START_RESPONSE,
+    status: str = "200 OK",
+    extraheaders: TYPE_WSGI_RESPONSE_HEADERS = None,
+) -> TYPE_WSGI_APP_RESULT:
     """
     Simple WSGI app.
 
@@ -578,8 +606,10 @@ def wsgi_simple_responder(
     """
     extraheaders = extraheaders or []
     (contenttype, extraheaders2, output) = handler(result)
-    response_headers = [('Content-Type', contenttype),
-                        ('Content-Length', str(len(output)))]
+    response_headers = [
+        ("Content-Type", contenttype),
+        ("Content-Length", str(len(output))),
+    ]
     response_headers.extend(extraheaders)
     if extraheaders2 is not None:
         response_headers.extend(extraheaders2)
@@ -591,6 +621,7 @@ def wsgi_simple_responder(
 # =============================================================================
 # HTML
 # =============================================================================
+
 
 def webify(v: Any, preserve_newlines: bool = True) -> str:
     """
@@ -613,7 +644,7 @@ def websafe(value: str) -> str:
     """
     Makes a string safe for inclusion in ASCII-encoded HTML.
     """
-    return html.escape(value).encode('ascii', 'xmlcharrefreplace')
+    return html.escape(value).encode("ascii", "xmlcharrefreplace")
     # https://stackoverflow.com/questions/1061697
 
 
@@ -647,7 +678,7 @@ def make_urls_hyperlinks(text: str) -> str:
 
     - http://stackp.online.fr/?p=19
     """
-    find_url = r'''
+    find_url = r"""
         (?x)(              # verbose identify URLs within text
         (http|ftp|gopher)  # make sure we find a resource type
         ://                # ...needs to be followed by colon-slash-slash
@@ -657,9 +688,9 @@ def make_urls_hyperlinks(text: str) -> str:
         [\w/])             # resource name ends in alphanumeric or slash
         (?=[\s\.,>)'"\]])  # assert: followed by white or clause ending
         )                  # end of match group
-    '''
+    """
     replace_url = r'<a href="\1">\1</a>'
-    find_email = re.compile(r'([.\w\-]+@(\w[\w\-]+\.)+[\w\-]+)')
+    find_email = re.compile(r"([.\w\-]+@(\w[\w\-]+\.)+[\w\-]+)")
     # '.' doesn't need escaping inside square brackets
     # https://stackoverflow.com/questions/10397968/escape-dot-in-a-regex-range
     replace_email = r'<a href="mailto:\1">\1</a>'
@@ -669,31 +700,33 @@ def make_urls_hyperlinks(text: str) -> str:
 
 
 # noinspection PyShadowingNames
-def html_table_from_query(rows: Iterable[Iterable[Optional[str]]],
-                          descriptions: Iterable[Optional[str]]) -> str:
+def html_table_from_query(
+    rows: Iterable[Iterable[Optional[str]]],
+    descriptions: Iterable[Optional[str]],
+) -> str:
     """
     Converts rows from an SQL query result to an HTML table.
     Suitable for processing output from the defunct function
     ``rnc_db.fetchall_with_fieldnames(sql)``.
     """
-    html = u"<table>\n"
+    html = "<table>\n"
 
     # Header row
-    html += u"<tr>"
+    html += "<tr>"
     for x in descriptions:
         if x is None:
-            x = u""
+            x = ""
         html += f"<th>{webify(x)}</th>"
-    html += u"</tr>\n"
+    html += "</tr>\n"
 
     # Data rows
     for row in rows:
-        html += u"<tr>"
+        html += "<tr>"
         for x in row:
             if x is None:
-                x = u""
+                x = ""
             html += f"<td>{webify(x)}</td>"
-        html += u"<tr>\n"
+        html += "<tr>\n"
 
-    html += u"</table>\n"
+    html += "</table>\n"
     return html

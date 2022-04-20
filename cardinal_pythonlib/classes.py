@@ -66,13 +66,13 @@ derived_class_implements_method(Derived, Base, 'three')  # should be False
 
 """
 
-T1 = TypeVar('T1')
-T2 = TypeVar('T2')
+T1 = TypeVar("T1")
+T2 = TypeVar("T2")
 
 
-def derived_class_implements_method(derived: Type[T1],
-                                    base: Type[T2],
-                                    method_name: str) -> bool:
+def derived_class_implements_method(
+    derived: Type[T1], base: Type[T2], method_name: str
+) -> bool:
     """
     Does a derived class implement a method (and not just inherit a base
     class's version)?
@@ -106,6 +106,7 @@ def derived_class_implements_method(derived: Type[T1],
 # Subclasses
 # =============================================================================
 # https://stackoverflow.com/questions/3862310/how-can-i-find-all-subclasses-of-a-class-given-its-name  # noqa
+
 
 def gen_all_subclasses(cls: Type) -> Generator[Type, None, None]:
     """
@@ -143,6 +144,7 @@ def all_subclasses(cls: Type) -> List[Type]:
 # Class properties
 # =============================================================================
 
+
 class ClassProperty(property):
     """
     One way to mark a function as a class property (logically, a combination of
@@ -154,6 +156,7 @@ class ClassProperty(property):
     However, in practice we use :class:`classproperty`, a slightly different
     version.
     """
+
     # https://stackoverflow.com/questions/128573/using-property-on-classmethods
     # noinspection PyMethodOverriding
     def __get__(self, cls, owner):
@@ -170,6 +173,7 @@ class classproperty(object):
     See
     https://stackoverflow.com/questions/128573/using-property-on-classmethods
     """
+
     def __init__(self, fget):
         self.fget = fget
 
@@ -181,10 +185,12 @@ class classproperty(object):
 # Class attributes and their values
 # =============================================================================
 
+
 def class_attribute_dict(
-        cls: Type,
-        exclude_underscore: bool = True,
-        exclude_double_underscore: bool = True) -> Dict[str, Any]:
+    cls: Type,
+    exclude_underscore: bool = True,
+    exclude_double_underscore: bool = True,
+) -> Dict[str, Any]:
     """
     When given a class, returns a dictionary of all its attributes, by default
     excluding those starting with single and double underscores.
@@ -201,9 +207,11 @@ def class_attribute_dict(
     return d
 
 
-def class_attribute_names(cls: Type,
-                          exclude_underscore: bool = True,
-                          exclude_double_underscore: bool = True) -> List[str]:
+def class_attribute_names(
+    cls: Type,
+    exclude_underscore: bool = True,
+    exclude_double_underscore: bool = True,
+) -> List[str]:
     """
     When given a class, returns the NAMES of all its attributes, by default
     excluding those starting with single and double underscores.
@@ -213,14 +221,16 @@ def class_attribute_names(cls: Type,
     d = class_attribute_dict(
         cls,
         exclude_underscore=exclude_underscore,
-        exclude_double_underscore=exclude_double_underscore
+        exclude_double_underscore=exclude_double_underscore,
     )
     return list(d.keys())
 
 
-def class_attribute_values(cls: Type,
-                           exclude_underscore: bool = True,
-                           exclude_double_underscore: bool = True) -> List[str]:
+def class_attribute_values(
+    cls: Type,
+    exclude_underscore: bool = True,
+    exclude_double_underscore: bool = True,
+) -> List[str]:
     """
     When given a class, returns the VALUES of all its attributes, by default
     excluding those starting with single and double underscores.
@@ -230,6 +240,6 @@ def class_attribute_values(cls: Type,
     d = class_attribute_dict(
         cls,
         exclude_underscore=exclude_underscore,
-        exclude_double_underscore=exclude_double_underscore
+        exclude_double_underscore=exclude_double_underscore,
     )
     return list(d.values())

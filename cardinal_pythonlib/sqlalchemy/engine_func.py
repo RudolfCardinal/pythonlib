@@ -42,6 +42,7 @@ if TYPE_CHECKING:
 # Helper functions for MySQL
 # =============================================================================
 
+
 def is_mysql(engine: "Engine") -> bool:
     """
     Is the SQLAlchemy :class:`Engine` a MySQL/MariaDB database?
@@ -53,6 +54,7 @@ def is_mysql(engine: "Engine") -> bool:
 # =============================================================================
 # Helper functions for SQL Server
 # =============================================================================
+
 
 def is_sqlserver(engine: "Engine") -> bool:
     """
@@ -126,4 +128,4 @@ def is_sqlserver_2008_or_later(engine: "Engine") -> bool:
     if not is_sqlserver(engine):
         return False
     version_tuple = get_sqlserver_product_version(engine)
-    return version_tuple >= (SQLSERVER_MAJOR_VERSION_2008, )
+    return version_tuple >= (SQLSERVER_MAJOR_VERSION_2008,)

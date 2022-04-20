@@ -144,6 +144,7 @@ SNOMED_XML_NAME = "snomed_ct_expression"
 # Quoting strings
 # =============================================================================
 
+
 def double_quoted(s: str) -> str:
     r"""
     Returns a representation of the string argument with double quotes and
@@ -189,7 +190,7 @@ def double_quoted(s: str) -> str:
         elif c == TAB:
             ret.append(r"\t")
         elif c == QM:
-            ret.append(r'\"')
+            ret.append(r"\"")
         elif c == BACKSLASH:
             ret.append(r"\\")
         elif ord(c) < 32:
@@ -205,10 +206,12 @@ def double_quoted(s: str) -> str:
 # SNOMED-CT concepts
 # =============================================================================
 
+
 class SnomedBase(object):
     """
     Common functions for SNOMED-CT classes
     """
+
     def as_string(self, longform: bool = True) -> str:
         """
         Returns the string form.
@@ -237,23 +240,24 @@ class SnomedConcept(SnomedBase):
     """
     Represents a SNOMED concept with its description (associated term).
     """
+
     def __init__(self, identifier: int, term: str) -> None:
         """
         Args:
             identifier: SNOMED-CT identifier (code)
             term: associated term (description)
         """
-        assert isinstance(identifier, int), (
-            f"SNOMED-CT concept identifier is not an integer: {identifier!r}"
-        )
+        assert isinstance(
+            identifier, int
+        ), f"SNOMED-CT concept identifier is not an integer: {identifier!r}"
         ndigits = len(str(identifier))
         assert ID_MIN_DIGITS <= ndigits <= ID_MAX_DIGITS, (
             f"SNOMED-CT concept identifier has wrong number of digits: "
             f"{identifier!r}"
         )
-        assert PIPE not in term, (
-            f"SNOMED-CT term has invalid pipe character: {term!r}"
-        )
+        assert (
+            PIPE not in term
+        ), f"SNOMED-CT term has invalid pipe character: {term!r}"
         self.identifier = identifier
         self.term = term
 
@@ -281,6 +285,7 @@ class SnomedConcept(SnomedBase):
 # SNOMED-CT expressions
 # =============================================================================
 
+
 class SnomedValue(SnomedBase):
     """
     Represents a value: either a concrete value (e.g. int, float, str), or a
@@ -289,15 +294,15 @@ class SnomedValue(SnomedBase):
     Implements the grammar elements: attributeValue, expressionValue,
     stringValue, numericValue, integerValue, decimalValue.
     """
+
     def __init__(self, value: VALUE_TYPE) -> None:
         """
         Args:
             value: the value
         """
-        assert isinstance(value, (SnomedConcept, SnomedExpression,
-                                  int, float, str)), (
-            f"Invalid value type to SnomedValue: {value!r}"
-        )
+        assert isinstance(
+            value, (SnomedConcept, SnomedExpression, int, float, str)
+        ), f"Invalid value type to SnomedValue: {value!r}"
         self.value = value
 
     def as_string(self, longform: bool = True) -> str:
@@ -325,9 +330,10 @@ class SnomedFocusConcept(SnomedBase):
     """
     Represents a SNOMED-CT focus concept, which is one or more concepts.
     """
-    def __init__(self,
-                 concept: Union[SnomedConcept, Iterable[SnomedConcept]]) \
-            -> None:
+
+    def __init__(
+        self, concept: Union[SnomedConcept, Iterable[SnomedConcept]]
+    ) -> None:
         """
         Args:
             concept: the core concept(s); a :class:`SnomedCode` or an
@@ -352,6 +358,7 @@ class SnomedAttribute(SnomedBase):
     """
     Represents a SNOMED-CT attribute, being a name/value pair.
     """
+
     def __init__(self, name: SnomedConcept, value: VALUE_TYPE) -> None:
         """
         Args:
@@ -380,15 +387,18 @@ class SnomedAttributeSet(SnomedBase):
     """
     Represents an attribute set.
     """
-    def __init__(self, attributes: Union[DICT_ATTR_TYPE,
-                                         Iterable[SnomedAttribute]]) -> None:
+
+    def __init__(
+        self, attributes: Union[DICT_ATTR_TYPE, Iterable[SnomedAttribute]]
+    ) -> None:
         """
         Args:
             attributes: the attributes
         """
         if isinstance(attributes, dict):
-            self.attributes = [SnomedAttribute(k, v)
-                               for k, v in attributes.items()]
+            self.attributes = [
+                SnomedAttribute(k, v) for k, v in attributes.items()
+            ]
         else:
             self.attributes = list(attributes)
         assert all(isinstance(x, SnomedAttribute) for x in self.attributes)
@@ -396,8 +406,9 @@ class SnomedAttributeSet(SnomedBase):
     def as_string(self, longform: bool = True) -> str:
         # Docstring in base class.
         attrsep = COMMA + " "
-        return attrsep.join(attr.as_string(longform)
-                            for attr in self.attributes)
+        return attrsep.join(
+            attr.as_string(longform) for attr in self.attributes
+        )
 
     def __repr__(self) -> str:
         return simple_repr(self, ["attributes"])
@@ -407,8 +418,10 @@ class SnomedAttributeGroup(SnomedBase):
     """
     Represents a collected group of attribute/value pairs.
     """
-    def __init__(self, attribute_set: Union[DICT_ATTR_TYPE,
-                                            SnomedAttributeSet]) -> None:
+
+    def __init__(
+        self, attribute_set: Union[DICT_ATTR_TYPE, SnomedAttributeSet]
+    ) -> None:
         """
         Args:
             attribute_set: a :class:`SnomedAttributeSet` to group
@@ -431,11 +444,14 @@ class SnomedRefinement(SnomedBase):
     Implements a SNOMED-CT "refinement", which is an attribute set +/- some
     attribute groups.
     """
-    def __init__(self,
-                 refinements: Union[DICT_ATTR_TYPE,
-                                    Iterable[Union[SnomedAttributeSet,
-                                                   SnomedAttributeGroup]]]) \
-            -> None:
+
+    def __init__(
+        self,
+        refinements: Union[
+            DICT_ATTR_TYPE,
+            Iterable[Union[SnomedAttributeSet, SnomedAttributeGroup]],
+        ],
+    ) -> None:
         """
         Args:
             refinements: iterable of :class:`SnomedAttributeSet` (but only
@@ -448,8 +464,10 @@ class SnomedRefinement(SnomedBase):
         for r in refinements:
             if isinstance(r, SnomedAttributeSet):
                 if self.attrsets:
-                    raise ValueError("Only one SnomedAttributeSet allowed "
-                                     "to SnomedRefinement")
+                    raise ValueError(
+                        "Only one SnomedAttributeSet allowed "
+                        "to SnomedRefinement"
+                    )
                 self.attrsets.append(r)
             elif isinstance(r, SnomedAttributeGroup):
                 self.attrgroups.append(r)
@@ -461,8 +479,9 @@ class SnomedRefinement(SnomedBase):
         # Ungrouped before grouped; see 6.5 in "SNOMED CT Compositional Grammar
         # v2.3.1"
         sep = COMMA + " "
-        return sep.join(x.as_string(longform)
-                        for x in self.attrsets + self.attrgroups)
+        return sep.join(
+            x.as_string(longform) for x in self.attrsets + self.attrgroups
+        )
 
     def __repr__(self) -> str:
         return simple_repr(self, ["attrsets", "attrgroups"])
@@ -472,13 +491,16 @@ class SnomedExpression(SnomedBase):
     """
     An expression containing several SNOMED-CT codes in relationships.
     """
-    def __init__(self,
-                 focus_concept: Union[SnomedConcept, SnomedFocusConcept],
-                 refinement: Union[SnomedRefinement,
-                                   DICT_ATTR_TYPE,
-                                   List[Union[SnomedAttributeSet,
-                                              SnomedAttributeGroup]]] = None) \
-            -> None:
+
+    def __init__(
+        self,
+        focus_concept: Union[SnomedConcept, SnomedFocusConcept],
+        refinement: Union[
+            SnomedRefinement,
+            DICT_ATTR_TYPE,
+            List[Union[SnomedAttributeSet, SnomedAttributeGroup]],
+        ] = None,
+    ) -> None:
         """
         Args:
             focus_concept: the core concept(s); a :class:`SnomedFocusConcept`

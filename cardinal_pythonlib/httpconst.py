@@ -56,6 +56,7 @@ https://docs.python.org/3.6/library/mimetypes.html.
 # HTTP methods
 # =============================================================================
 
+
 class HttpMethod(object):
     """
     HTTP request methods, as upper-case constants.
@@ -65,6 +66,7 @@ class HttpMethod(object):
     - https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods
     https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
     """
+
     CONNECT = "CONNECT"  # HTTP/1.1
     DELETE = "DELETE"  # HTTP/1.1
     GET = "GET"  # HTTP/1.0
@@ -80,12 +82,14 @@ class HttpMethod(object):
 # HTTP status codes
 # =============================================================================
 
+
 class HttpStatus(object):
     """
     HTTP status codes.
 
     https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
     """
+
     # 1xx: informational
     CONTINUE = 100
     SWITCHING_PROTOCOLS = 101
@@ -172,6 +176,7 @@ class HttpStatus(object):
 # MIME types
 # =============================================================================
 
+
 class MimeType(object):
     """
     Some MIME type constants.
@@ -211,6 +216,7 @@ class MimeType(object):
       - https://stackoverflow.com/questions/31489757/what-is-correct-mimetype-with-apache-openoffice-files-like-odt-ods-odp
 
     """  # noqa
+
     BINARY = "application/octet-stream"
     CSV = "text/csv"
     DOC = "application/msword"

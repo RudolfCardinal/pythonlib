@@ -36,6 +36,7 @@ from typing import Any, List, Union
 # =============================================================================
 # https://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside  # noqa
 
+
 def atoi(text: str) -> Union[int, str]:
     """
     Converts strings to integers if they're composed of digits; otherwise
@@ -69,18 +70,20 @@ def natural_keys(text: str) -> List[Union[int, str]]:
         ['something1', 'something2', 'something12', 'something17', 'something25', 'something29']
 
     """  # noqa
-    return [atoi(c) for c in re.split(r'(\d+)', text)]
+    return [atoi(c) for c in re.split(r"(\d+)", text)]
 
 
 # =============================================================================
 # Sorting where None counts as the minimum
 # =============================================================================
 
+
 @total_ordering
 class MinType(object):
     """
     An object that compares less than anything else.
     """
+
     def __le__(self, other: Any) -> bool:
         return True
 
@@ -101,14 +104,15 @@ class attrgetter_nonesort:
     Returns an object's attributes, or the ``mintype_singleton`` if the
     attribute is ``None``.
     """
-    __slots__ = ('_attrs', '_call')
+
+    __slots__ = ("_attrs", "_call")
 
     def __init__(self, attr, *attrs):
         if not attrs:
             if not isinstance(attr, str):
-                raise TypeError('attribute name must be a string')
+                raise TypeError("attribute name must be a string")
             self._attrs = (attr,)
-            names = attr.split('.')
+            names = attr.split(".")
 
             def func(obj):
                 for name in names:
@@ -132,9 +136,11 @@ class attrgetter_nonesort:
         return self._call(obj)
 
     def __repr__(self):
-        return '%s.%s(%s)' % (self.__class__.__module__,
-                              self.__class__.__qualname__,
-                              ', '.join(map(repr, self._attrs)))
+        return "%s.%s(%s)" % (
+            self.__class__.__module__,
+            self.__class__.__qualname__,
+            ", ".join(map(repr, self._attrs)),
+        )
 
     def __reduce__(self):
         return self.__class__, self._attrs
@@ -145,7 +151,8 @@ class methodcaller_nonesort:
     """
     As per :class:`attrgetter_nonesort` (q.v.), but for ``methodcaller``.
     """
-    __slots__ = ('_name', '_args', '_kwargs')
+
+    __slots__ = ("_name", "_args", "_kwargs")
 
     def __init__(*args, **kwargs):
         if len(args) < 2:
@@ -154,7 +161,7 @@ class methodcaller_nonesort:
         self = args[0]
         self._name = args[1]
         if not isinstance(self._name, str):
-            raise TypeError('method name must be a string')
+            raise TypeError("method name must be a string")
         self._args = args[2:]
         self._kwargs = kwargs
 
@@ -168,10 +175,12 @@ class methodcaller_nonesort:
     def __repr__(self):
         args = [repr(self._name)]
         args.extend(map(repr, self._args))
-        args.extend('%s=%r' % (k, v) for k, v in self._kwargs.items())
-        return '%s.%s(%s)' % (self.__class__.__module__,
-                              self.__class__.__name__,
-                              ', '.join(args))
+        args.extend("%s=%r" % (k, v) for k, v in self._kwargs.items())
+        return "%s.%s(%s)" % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            ", ".join(args),
+        )
 
     def __reduce__(self):
         if not self._kwargs:
@@ -179,5 +188,5 @@ class methodcaller_nonesort:
         else:
             return (
                 partial(self.__class__, self._name, **self._kwargs),
-                self._args
+                self._args,
             )

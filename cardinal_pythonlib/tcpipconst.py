@@ -31,6 +31,7 @@
 # Common TCP/IP ports
 # =============================================================================
 
+
 class Ports(object):
     """
     Common TCP/UDP ports.
@@ -133,9 +134,13 @@ class Ports(object):
     # Some non-standard ports:
     # -------------------------------------------------------------------------
 
-    FLOWER_NONSTANDARD = 5555  # default internal port for Flower, https://flower.readthedocs.io/  # noqa
+    FLOWER_NONSTANDARD = (
+        5555
+    )  # default internal port for Flower, https://flower.readthedocs.io/  # noqa
     ALTERNATIVE_HTTP_NONSTANDARD = 8000
-    RABBITMQ_ADMIN_NONSTANDARD = 15672  # default internal port for RabbitMQ admin interface; https://www.rabbitmq.com/  # noqa
+    RABBITMQ_ADMIN_NONSTANDARD = (
+        15672
+    )  # default internal port for RabbitMQ admin interface; https://www.rabbitmq.com/  # noqa
 
 
 class UriSchemes:
@@ -143,6 +148,7 @@ class UriSchemes:
     Common URI schemes.
     See https://en.wikipedia.org/wiki/List_of_URI_schemes.
     """
+
     FTP = "ftp"
     HTTP = "http"
     HTTPS = "https"

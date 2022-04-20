@@ -39,9 +39,11 @@ from cardinal_pythonlib.sqlalchemy.session import get_engine_from_session
 # Workarounds for SQL Server "DELETE takes forever" bug
 # =============================================================================
 
+
 @contextmanager
-def if_sqlserver_disable_constraints(session: SqlASession,
-                                     tablename: str) -> None:
+def if_sqlserver_disable_constraints(
+    session: SqlASession, tablename: str
+) -> None:
     """
     If we're running under SQL Server, disable constraint checking for the
     specified table while the resource is held.
@@ -57,17 +59,20 @@ def if_sqlserver_disable_constraints(session: SqlASession,
     if is_sqlserver(engine):
         quoted_tablename = quote_identifier(tablename, engine)
         session.execute(
-            f"ALTER TABLE {quoted_tablename} NOCHECK CONSTRAINT all")
+            f"ALTER TABLE {quoted_tablename} NOCHECK CONSTRAINT all"
+        )
         yield
         session.execute(
-            f"ALTER TABLE {quoted_tablename} WITH CHECK CHECK CONSTRAINT all")
+            f"ALTER TABLE {quoted_tablename} WITH CHECK CHECK CONSTRAINT all"
+        )
     else:
         yield
 
 
 @contextmanager
-def if_sqlserver_disable_triggers(session: SqlASession,
-                                  tablename: str) -> None:
+def if_sqlserver_disable_triggers(
+    session: SqlASession, tablename: str
+) -> None:
     """
     If we're running under SQL Server, disable triggers for the specified table
     while the resource is held.
@@ -82,18 +87,17 @@ def if_sqlserver_disable_triggers(session: SqlASession,
     engine = get_engine_from_session(session)
     if is_sqlserver(engine):
         quoted_tablename = quote_identifier(tablename, engine)
-        session.execute(
-            f"ALTER TABLE {quoted_tablename} DISABLE TRIGGER all")
+        session.execute(f"ALTER TABLE {quoted_tablename} DISABLE TRIGGER all")
         yield
-        session.execute(
-            f"ALTER TABLE {quoted_tablename} ENABLE TRIGGER all")
+        session.execute(f"ALTER TABLE {quoted_tablename} ENABLE TRIGGER all")
     else:
         yield
 
 
 @contextmanager
-def if_sqlserver_disable_constraints_triggers(session: SqlASession,
-                                              tablename: str) -> None:
+def if_sqlserver_disable_constraints_triggers(
+    session: SqlASession, tablename: str
+) -> None:
     """
     If we're running under SQL Server, disable triggers AND constraints for the
     specified table while the resource is held.

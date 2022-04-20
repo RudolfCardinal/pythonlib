@@ -49,16 +49,26 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Unit tests
 # =============================================================================
 
+
 class MergeTestMixin(object):
     """
     Mixin to create source/destination databases as in-memory SQLite databases
     for unit testing purposes.
     """
+
     def __init__(self, *args, echo: bool = False, **kwargs) -> None:
-        self.src_engine = create_engine(SQLITE_MEMORY_URL, echo=echo)  # type: Engine  # noqa
-        self.dst_engine = create_engine(SQLITE_MEMORY_URL, echo=echo)  # type: Engine  # noqa
-        self.src_session = sessionmaker(bind=self.src_engine)()  # type: Session  # noqa
-        self.dst_session = sessionmaker(bind=self.dst_engine)()  # type: Session  # noqa
+        self.src_engine = create_engine(
+            SQLITE_MEMORY_URL, echo=echo
+        )  # type: Engine  # noqa
+        self.dst_engine = create_engine(
+            SQLITE_MEMORY_URL, echo=echo
+        )  # type: Engine  # noqa
+        self.src_session = sessionmaker(
+            bind=self.src_engine
+        )()  # type: Session  # noqa
+        self.dst_session = sessionmaker(
+            bind=self.dst_engine
+        )()  # type: Session  # noqa
         # log.critical("SRC SESSION: {}", self.src_session)
         # log.critical("DST SESSION: {}", self.dst_session)
 
@@ -73,7 +83,7 @@ class MergeTestMixin(object):
             engine=self.src_engine,
             fileobj=sys.stdout,
             include_ddl=True,
-            multirow=True
+            multirow=True,
         )
 
     def dump_destination(self) -> None:
@@ -82,7 +92,7 @@ class MergeTestMixin(object):
             engine=self.dst_engine,
             fileobj=sys.stdout,
             include_ddl=True,
-            multirow=True
+            multirow=True,
         )
 
     def do_merge(self, dummy_run: bool = False) -> None:
@@ -97,7 +107,7 @@ class MergeTestMixin(object):
             only_tables=None,
             extra_table_dependencies=None,
             dummy_run=dummy_run,
-            report_every=1000
+            report_every=1000,
         )
 
 
@@ -126,6 +136,7 @@ class MergeTestPlain(MergeTestMixin, unittest.TestCase):
       https://stackoverflow.com/questions/1323455/python-unit-test-with-base-and-sub-class
 
     """  # noqa
+
     def setUp(self) -> None:
         # log.info('In setUp()')
 
@@ -189,7 +200,6 @@ class MergeTestCircular(MergeTestMixin, unittest.TestCase):
 
     @unittest.expectedFailure
     def test_setup_circular(self):
-
         class Parent(self.Base):
             __tablename__ = "parent"
             id = Column(Integer, primary_key=True, autoincrement=True)

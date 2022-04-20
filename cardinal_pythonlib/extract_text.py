@@ -81,9 +81,17 @@ import subprocess
 import sys
 import textwrap
 from typing import (
-    BinaryIO, Dict, Generator, Iterable, Iterator, List, Optional, Union,
+    BinaryIO,
+    Dict,
+    Generator,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Union,
 )
 from xml.etree import ElementTree as ElementTree
+
 # ... cElementTree used to be the fast implementation; now ElementTree is fast
 # and cElementTree is deprecated; see
 # https://docs.python.org/3.4/library/xml.etree.elementtree.html
@@ -92,6 +100,7 @@ import zipfile
 import bs4
 import prettytable
 from semantic_version import Version
+
 # import texttable  # ... can't deal with Unicode properly
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
@@ -106,21 +115,28 @@ except ImportError:
 try:
     # noinspection PyPackageRequirements
     import docx  # pip install python-docx (NOT docx) - BUT python-docx requires lxml which has C dependencies  # noqa
+
     # noinspection PyPackageRequirements
     import docx.document
+
     # noinspection PyPackageRequirements
     import docx.oxml.table
+
     # noinspection PyPackageRequirements
     import docx.oxml.text.paragraph
+
     # noinspection PyPackageRequirements
     import docx.table
+
     # noinspection PyPackageRequirements
     import docx.text.paragraph
+
     DOCX_DOCUMENT_TYPE = "docx.document.Document"
     DOCX_TABLE_TYPE = Union["docx.table.Table", "CustomDocxTable"]
     DOCX_CONTAINER_TYPE = Union[DOCX_DOCUMENT_TYPE, "docx.table._Cell"]
-    DOCX_BLOCK_ITEM_TYPE = Union["docx.text.paragraph.Paragraph",
-                                 "docx.table.Table"]
+    DOCX_BLOCK_ITEM_TYPE = Union[
+        "docx.text.paragraph.Paragraph", "docx.table.Table"
+    ]
 except ImportError:
     docx = None
     DOCX_DOCUMENT_TYPE = None
@@ -136,12 +152,16 @@ except ImportError:
 try:
     # noinspection PyPackageRequirements
     import pdfminer  # pip install pdfminer
+
     # noinspection PyPackageRequirements
     import pdfminer.pdfinterp
+
     # noinspection PyPackageRequirements
     import pdfminer.converter
+
     # noinspection PyPackageRequirements
     import pdfminer.layout
+
     # noinspection PyPackageRequirements
     import pdfminer.pdfpage
 except ImportError:
@@ -150,8 +170,10 @@ except ImportError:
 try:
     # noinspection PyPackageRequirements
     import pyth  # pip install pyth (PYTHON 2 ONLY; https://pypi.python.org/pypi/pyth/0.5.4)  # noqa
+
     # noinspection PyPackageRequirements
     import pyth.plugins.rtf15.reader
+
     # noinspection PyPackageRequirements
     import pyth.plugins.plaintext.writer
 except ImportError:
@@ -163,8 +185,8 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Constants
 # =============================================================================
 
-AVAILABILITY = 'availability'
-CONVERTER = 'converter'
+AVAILABILITY = "availability"
+CONVERTER = "converter"
 DEFAULT_WIDTH = 120
 DEFAULT_MIN_COL_WIDTH = 15
 SYS_ENCODING = sys.getdefaultencoding()
@@ -175,13 +197,13 @@ ENCODING = "utf-8"
 # =============================================================================
 
 tools = {
-    'antiword': shutil.which('antiword'),  # sudo apt-get install antiword
-    'pdftotext': shutil.which('pdftotext'),  # core part of Linux?
-    'strings': shutil.which('strings'),  # part of standard Unix
-    'strings2': shutil.which('strings2'),
+    "antiword": shutil.which("antiword"),  # sudo apt-get install antiword
+    "pdftotext": shutil.which("pdftotext"),  # core part of Linux?
+    "strings": shutil.which("strings"),  # part of standard Unix
+    "strings2": shutil.which("strings2"),
     # ... Windows: https://technet.microsoft.com/en-us/sysinternals/strings.aspx  # noqa
     # ... Windows: http://split-code.com/strings2.html
-    'unrtf': shutil.which('unrtf'),  # sudo apt-get install unrtf
+    "unrtf": shutil.which("unrtf"),  # sudo apt-get install unrtf
 }
 
 
@@ -195,12 +217,12 @@ def does_unrtf_support_quiet() -> bool:
     # ... probably: http://hg.savannah.gnu.org/hgweb/unrtf/
     # ... 0.21.9 definitely supports --quiet
     # ... 0.19.3 definitely doesn't support it
-    unrtf_filename = shutil.which('unrtf')
+    unrtf_filename = shutil.which("unrtf")
     if not unrtf_filename:
         return False
-    p = subprocess.Popen(["unrtf", "--version"],
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
+    p = subprocess.Popen(
+        ["unrtf", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     _, err_bytes = p.communicate()
     text = err_bytes.decode(sys.getdefaultencoding())
     lines = text.split()
@@ -230,6 +252,7 @@ def update_external_tools(tooldict: Dict[str, str]) -> None:
 # Text-processing config class
 # =============================================================================
 
+
 class TextProcessingConfig(object):
     """
     Class to manage control parameters for text extraction, without having
@@ -239,21 +262,23 @@ class TextProcessingConfig(object):
     All converter functions take one of these objects as a parameter.
     """
 
-    def __init__(self,
-                 encoding: str = None,
-                 width: int = DEFAULT_WIDTH,
-                 min_col_width: int = DEFAULT_MIN_COL_WIDTH,
-                 plain: bool = False,
-                 semiplain: bool = False,
-                 docx_in_order: bool = True,
-                 horizontal_char="─",
-                 vertical_char="│",
-                 junction_char="┼",
-                 plain_table_start: str = None,
-                 plain_table_end: str = None,
-                 plain_table_col_boundary: str = None,
-                 plain_table_row_boundary: str = None,
-                 rstrip: bool = True) -> None:
+    def __init__(
+        self,
+        encoding: str = None,
+        width: int = DEFAULT_WIDTH,
+        min_col_width: int = DEFAULT_MIN_COL_WIDTH,
+        plain: bool = False,
+        semiplain: bool = False,
+        docx_in_order: bool = True,
+        horizontal_char="─",
+        vertical_char="│",
+        junction_char="┼",
+        plain_table_start: str = None,
+        plain_table_end: str = None,
+        plain_table_col_boundary: str = None,
+        plain_table_row_boundary: str = None,
+        rstrip: bool = True,
+    ) -> None:
         """
         Args:
             encoding:
@@ -378,8 +403,8 @@ _DEFAULT_CONFIG = TextProcessingConfig()
 # Support functions
 # =============================================================================
 
-def get_filelikeobject(filename: str = None,
-                       blob: bytes = None) -> BinaryIO:
+
+def get_filelikeobject(filename: str = None, blob: bytes = None) -> BinaryIO:
     """
     Open a file-like object.
 
@@ -397,7 +422,7 @@ def get_filelikeobject(filename: str = None,
     if filename and blob:
         raise ValueError("specify either filename or blob")
     if filename:
-        return open(filename, 'rb')
+        return open(filename, "rb")
     else:
         return io.BytesIO(blob)
 
@@ -413,7 +438,7 @@ def get_file_contents(filename: str = None, blob: bytes = None) -> bytes:
         raise ValueError("specify either filename or blob")
     if blob:
         return blob
-    with open(filename, 'rb') as f:
+    with open(filename, "rb") as f:
         return f.read()
 
 
@@ -443,15 +468,17 @@ def get_chardet_encoding(binary_contents: bytes) -> Optional[str]:
             break
     guess = detector.result
     # Handle result
-    if 'encoding' not in guess:
+    if "encoding" not in guess:
         log.warning("Something went wrong within chardet; no encoding")
         return None
-    return guess['encoding']
+    return guess["encoding"]
 
 
 def get_file_contents_text(
-        filename: str = None, blob: bytes = None,
-        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+    filename: str = None,
+    blob: bytes = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
     """
     Returns the string contents of a file, or of a BLOB.
     """
@@ -474,10 +501,13 @@ def get_file_contents_text(
     #    http://chardet.readthedocs.io/en/latest/usage.html
     if chardet:
         guess = chardet.detect(binary_contents)
-        if guess['encoding']:
-            return binary_contents.decode(guess['encoding'])
-    raise ValueError("Unknown encoding ({})".format(
-        f"filename={filename!r}" if filename else "blob"))
+        if guess["encoding"]:
+            return binary_contents.decode(guess["encoding"])
+    raise ValueError(
+        "Unknown encoding ({})".format(
+            f"filename={filename!r}" if filename else "blob"
+        )
+    )
 
 
 def get_cmd_output(*args, encoding: str = SYS_ENCODING) -> str:
@@ -487,27 +517,25 @@ def get_cmd_output(*args, encoding: str = SYS_ENCODING) -> str:
     log.debug("get_cmd_output(): args = {!r}", args)
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
     stdout, stderr = p.communicate()
-    return stdout.decode(encoding, errors='ignore')
+    return stdout.decode(encoding, errors="ignore")
 
 
-def get_cmd_output_from_stdin(stdint_content_binary: bytes,
-                              *args, encoding: str = SYS_ENCODING) -> str:
+def get_cmd_output_from_stdin(
+    stdint_content_binary: bytes, *args, encoding: str = SYS_ENCODING
+) -> str:
     """
     Returns text output of a command, passing binary data in via stdin.
     """
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     stdout, stderr = p.communicate(input=stdint_content_binary)
-    return stdout.decode(encoding, errors='ignore')
+    return stdout.decode(encoding, errors="ignore")
 
 
 def rstrip_all_lines(text: str) -> str:
     """
     Right-strips all lines in a string and returns the result.
     """
-    return "\n".join(
-        line.rstrip()
-        for line in text.splitlines()
-    )
+    return "\n".join(line.rstrip() for line in text.splitlines())
 
 
 # =============================================================================
@@ -515,18 +543,21 @@ def rstrip_all_lines(text: str) -> str:
 # =============================================================================
 
 # noinspection PyUnresolvedReferences,PyUnusedLocal
-def convert_pdf_to_txt(filename: str = None, blob: bytes = None,
-                       config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+def convert_pdf_to_txt(
+    filename: str = None,
+    blob: bytes = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
     """
     Converts a PDF file to text.
     Pass either a filename or a binary object.
     """
-    pdftotext = tools['pdftotext']
+    pdftotext = tools["pdftotext"]
     if pdftotext:  # External command method
         if filename:
-            return get_cmd_output(pdftotext, filename, '-')
+            return get_cmd_output(pdftotext, filename, "-")
         else:
-            return get_cmd_output_from_stdin(blob, pdftotext, '-', '-')
+            return get_cmd_output_from_stdin(blob, pdftotext, "-", "-")
     elif pdfminer:  # Memory-hogging method
         with get_filelikeobject(filename, blob) as fp:
             rsrcmgr = pdfminer.pdfinterp.PDFResourceManager()
@@ -534,16 +565,23 @@ def convert_pdf_to_txt(filename: str = None, blob: bytes = None,
             codec = ENCODING
             laparams = pdfminer.layout.LAParams()
             device = pdfminer.converter.TextConverter(
-                rsrcmgr, retstr, codec=codec, laparams=laparams)
-            interpreter = pdfminer.pdfinterp.PDFPageInterpreter(rsrcmgr,
-                                                                device)
+                rsrcmgr, retstr, codec=codec, laparams=laparams
+            )
+            interpreter = pdfminer.pdfinterp.PDFPageInterpreter(
+                rsrcmgr, device
+            )
             password = ""
             maxpages = 0
             caching = True
             pagenos = set()
             for page in pdfminer.pdfpage.PDFPage.get_pages(
-                    fp, pagenos, maxpages=maxpages, password=password,
-                    caching=caching, check_extractable=True):
+                fp,
+                pagenos,
+                maxpages=maxpages,
+                password=password,
+                caching=caching,
+                check_extractable=True,
+            ):
                 interpreter.process_page(page)
             text = retstr.getvalue().decode(ENCODING)
         return text
@@ -555,12 +593,14 @@ def availability_pdf() -> bool:
     """
     Is a PDF-to-text tool available?
     """
-    pdftotext = tools['pdftotext']
+    pdftotext = tools["pdftotext"]
     if pdftotext:
         return True
     elif pdfminer:
-        log.warning("PDF conversion: pdftotext missing; "
-                    "using pdfminer (less efficient)")
+        log.warning(
+            "PDF conversion: pdftotext missing; "
+            "using pdfminer (less efficient)"
+        )
         return True
     else:
         return False
@@ -575,23 +615,27 @@ def availability_pdf() -> bool:
 # -----------------------------------------------------------------------------
 # DOCX specification: http://www.ecma-international.org/news/TC45_current_work/TC45_available_docs.htm  # noqa
 
-DOCX_HEADER_FILE_REGEX = re.compile('word/header[0-9]*.xml')
-DOCX_DOC_FILE = 'word/document.xml'
-DOCX_FOOTER_FILE_REGEX = re.compile('word/footer[0-9]*.xml')
-DOCX_SCHEMA_URL = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'  # noqa
+DOCX_HEADER_FILE_REGEX = re.compile("word/header[0-9]*.xml")
+DOCX_DOC_FILE = "word/document.xml"
+DOCX_FOOTER_FILE_REGEX = re.compile("word/footer[0-9]*.xml")
+DOCX_SCHEMA_URL = (
+    "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+)  # noqa
 
 
 def docx_qn(tagroot):
-    return f'{{{DOCX_SCHEMA_URL}}}{tagroot}'
+    return f"{{{DOCX_SCHEMA_URL}}}{tagroot}"
 
 
-DOCX_TEXT = docx_qn('t')
-DOCX_TABLE = docx_qn('tbl')  # https://github.com/python-openxml/python-docx/blob/master/docx/table.py  # noqa
-DOCX_TAB = docx_qn('tab')
-DOCX_NEWLINES = [docx_qn('br'), docx_qn('cr')]
-DOCX_NEWPARA = docx_qn('p')
-DOCX_TABLE_ROW = docx_qn('tr')
-DOCX_TABLE_CELL = docx_qn('tc')
+DOCX_TEXT = docx_qn("t")
+DOCX_TABLE = docx_qn(
+    "tbl"
+)  # https://github.com/python-openxml/python-docx/blob/master/docx/table.py  # noqa
+DOCX_TAB = docx_qn("tab")
+DOCX_NEWLINES = [docx_qn("br"), docx_qn("cr")]
+DOCX_NEWPARA = docx_qn("p")
+DOCX_TABLE_ROW = docx_qn("tr")
+DOCX_TABLE_CELL = docx_qn("tc")
 
 
 def gen_xml_files_from_docx(fp: BinaryIO) -> Iterator[str]:
@@ -636,8 +680,9 @@ class DocxFragment(object):
         self.wordwrap = wordwrap
 
 
-def docx_gen_wordwrapped_fragments(fragments: Iterable[DocxFragment],
-                                   width: int) -> Generator[str, None, None]:
+def docx_gen_wordwrapped_fragments(
+    fragments: Iterable[DocxFragment], width: int
+) -> Generator[str, None, None]:
     """
     Generates word-wrapped fragments.
     """
@@ -651,8 +696,7 @@ def docx_gen_wordwrapped_fragments(fragments: Iterable[DocxFragment],
         if to_wrap:
             block = "".join(x.text for x in to_wrap)
             wrapped = "\n".join(
-                wordwrap(line, width)
-                for line in block.splitlines()
+                wordwrap(line, width) for line in block.splitlines()
             )
             yield wrapped
             to_wrap.clear()
@@ -670,8 +714,9 @@ def docx_gen_wordwrapped_fragments(fragments: Iterable[DocxFragment],
     yield from yield_wrapped()  # any leftovers
 
 
-def docx_wordwrap_fragments(fragments: Iterable[DocxFragment],
-                            width: int) -> str:
+def docx_wordwrap_fragments(
+    fragments: Iterable[DocxFragment], width: int
+) -> str:
     """
     Joins multiple fragments and word-wraps them as necessary.
     """
@@ -679,9 +724,8 @@ def docx_wordwrap_fragments(fragments: Iterable[DocxFragment],
 
 
 def docx_gen_fragments_from_xml_node(
-        node: ElementTree.Element,
-        level: int,
-        config: TextProcessingConfig) -> Generator[DocxFragment, None, None]:
+    node: ElementTree.Element, level: int, config: TextProcessingConfig
+) -> Generator[DocxFragment, None, None]:
     """
     Returns text from an XML node within a DOCX file.
 
@@ -717,18 +761,20 @@ def docx_gen_fragments_from_xml_node(
     if tag == DOCX_TABLE:
         log.debug("Table")
         yield DocxFragment("\n", wordwrap=False)
-        yield DocxFragment(docx_table_from_xml_node(node, level, config),
-                           wordwrap=False)
+        yield DocxFragment(
+            docx_table_from_xml_node(node, level, config), wordwrap=False
+        )
     else:
         for child in node:
             for fragment in docx_gen_fragments_from_xml_node(
-                    child, level + 1, config):
+                child, level + 1, config
+            ):
                 yield fragment
 
 
-def docx_text_from_xml_node(node: ElementTree.Element,
-                            level: int,
-                            config: TextProcessingConfig) -> str:
+def docx_text_from_xml_node(
+    node: ElementTree.Element, level: int, config: TextProcessingConfig
+) -> str:
     """
     Returns text from an XML node within a DOCX file.
 
@@ -743,8 +789,8 @@ def docx_text_from_xml_node(node: ElementTree.Element,
 
     """
     return docx_wordwrap_fragments(
-        docx_gen_fragments_from_xml_node(node, level, config),
-        config.width)
+        docx_gen_fragments_from_xml_node(node, level, config), config.width
+    )
 
 
 def docx_text_from_xml(xml: str, config: TextProcessingConfig) -> str:
@@ -766,8 +812,9 @@ class CustomDocxParagraph(object):
     """
     Represents a paragraph of text in a DOCX file.
     """
-    def __init__(self, text: str = '') -> None:
-        self.text = text or ''
+
+    def __init__(self, text: str = "") -> None:
+        self.text = text or ""
 
     def __repr__(self) -> str:
         return f"CustomDocxParagraph(text={self.text!r})"
@@ -778,6 +825,7 @@ class CustomDocxTableCell(object):
     Represents a cell within a table of a DOCX file.
     May contain several paragraphs.
     """
+
     def __init__(self, paragraphs: List[CustomDocxParagraph] = None) -> None:
         self.paragraphs = paragraphs or []
 
@@ -793,6 +841,7 @@ class CustomDocxTableRow(object):
     Represents a row within a table of a DOCX file.
     May contain several cells (one per column).
     """
+
     def __init__(self, cells: List[CustomDocxTableCell] = None) -> None:
         self.cells = cells or []
 
@@ -814,6 +863,7 @@ class CustomDocxTable(object):
     Represents a table of a DOCX file.
     May contain several rows.
     """
+
     def __init__(self, rows: List[CustomDocxTableRow] = None) -> None:
         self.rows = rows or []
 
@@ -833,9 +883,9 @@ class CustomDocxTable(object):
         return f"CustomDocxTable(rows={self.rows!r})"
 
 
-def docx_table_from_xml_node(table_node: ElementTree.Element,
-                             level: int,
-                             config: TextProcessingConfig) -> str:
+def docx_table_from_xml_node(
+    table_node: ElementTree.Element, level: int, config: TextProcessingConfig
+) -> str:
     """
     Converts an XML node representing a DOCX table into a textual
     representation.
@@ -870,6 +920,7 @@ def docx_table_from_xml_node(table_node: ElementTree.Element,
 # Generic
 # -----------------------------------------------------------------------------
 
+
 def wordwrap(text: str, width: int) -> str:
     """
     Word-wraps text.
@@ -891,14 +942,15 @@ def wordwrap(text: str, width: int) -> str:
         print(docx_wordwrap(text, 80))
     """
     if not text:
-        return ''
+        return ""
     if width:
-        return '\n'.join(textwrap.wrap(text, width=width))
+        return "\n".join(textwrap.wrap(text, width=width))
     return text
 
 
-def docx_process_table(table: DOCX_TABLE_TYPE,
-                       config: TextProcessingConfig) -> str:
+def docx_process_table(
+    table: DOCX_TABLE_TYPE, config: TextProcessingConfig
+) -> str:
     """
     Converts a DOCX table to text.
 
@@ -932,10 +984,11 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
     """
 
     def get_cell_text(cell_) -> str:
-        cellparagraphs = [paragraph.text.strip()
-                          for paragraph in cell_.paragraphs]
+        cellparagraphs = [
+            paragraph.text.strip() for paragraph in cell_.paragraphs
+        ]
         cellparagraphs = [x for x in cellparagraphs if x]
-        return '\n\n'.join(cellparagraphs)
+        return "\n\n".join(cellparagraphs)
 
     if config.plain:
         # ---------------------------------------------------------------------
@@ -975,8 +1028,8 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
             vertical_char=config.vertical_char,  # default "|"
             junction_char=config.junction_char,  # default "+"
         )
-        pt.align = 'l'
-        pt.valign = 't'
+        pt.align = "l"
+        pt.valign = "t"
         pt.max_width = max(config.width // ncols, config.min_col_width)
         if config.semiplain:
             # noinspection PyTypeChecker
@@ -988,11 +1041,11 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
                     #     is not constant, but prettytable wants a fixed
                     #     number. (changed in v0.2.8)
                     ptrow = (
-                        [''] * n_before +
-                        [get_cell_text(cell)] +
-                        [''] * n_after
+                        [""] * n_before
+                        + [get_cell_text(cell)]
+                        + [""] * n_after
                     )
-                    assert(len(ptrow) == ncols)
+                    assert len(ptrow) == ncols
                     pt.add_row(ptrow)
         else:
             # noinspection PyTypeChecker
@@ -1001,8 +1054,8 @@ def docx_process_table(table: DOCX_TABLE_TYPE,
                 # noinspection PyTypeChecker
                 for cell in row.cells:
                     ptrow.append(get_cell_text(cell))
-                ptrow += [''] * (ncols - len(ptrow))  # added in v0.2.8
-                assert (len(ptrow) == ncols)
+                ptrow += [""] * (ncols - len(ptrow))  # added in v0.2.8
+                assert len(ptrow) == ncols
                 pt.add_row(ptrow)
         return pt.get_string()
 
@@ -1073,8 +1126,10 @@ def docx_docx_gen_text(doc: DOCX_DOCUMENT_TYPE,
 
 # noinspection PyUnusedLocal
 def convert_docx_to_text(
-        filename: str = None, blob: bytes = None,
-        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+    filename: str = None,
+    blob: bytes = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
     """
     Converts a DOCX file to text.
     Pass either a filename or a binary object.
@@ -1150,7 +1205,7 @@ def convert_docx_to_text(
 
     """
 
-    text = ''
+    text = ""
     with get_filelikeobject(filename, blob) as fp:
         for xml in gen_xml_files_from_docx(fp):
             text += docx_text_from_xml(xml, config)
@@ -1176,9 +1231,11 @@ def convert_docx_to_text(
 # =============================================================================
 
 # noinspection PyUnusedLocal
-def convert_odt_to_text(filename: str = None,
-                        blob: bytes = None,
-                        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+def convert_odt_to_text(
+    filename: str = None,
+    blob: bytes = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
     """
     Converts an OpenOffice ODT file to text.
 
@@ -1189,13 +1246,13 @@ def convert_odt_to_text(filename: str = None,
     # KeyError: "There is no item named 'word/document.xml' in the archive"
     with get_filelikeobject(filename, blob) as fp:
         z = zipfile.ZipFile(fp)
-        tree = ElementTree.fromstring(z.read('content.xml'))
+        tree = ElementTree.fromstring(z.read("content.xml"))
         # ... may raise zipfile.BadZipfile
         textlist = []  # type: List[str]
         for element in tree.iter():
             if element.text:
                 textlist.append(element.text.strip())
-    return '\n\n'.join(textlist)
+    return "\n\n".join(textlist)
 
 
 # =============================================================================
@@ -1204,9 +1261,10 @@ def convert_odt_to_text(filename: str = None,
 
 # noinspection PyUnusedLocal
 def convert_html_to_text(
-        filename: str = None,
-        blob: bytes = None,
-        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+    filename: str = None,
+    blob: bytes = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
     """
     Converts HTML to text.
     """
@@ -1220,9 +1278,11 @@ def convert_html_to_text(
 # =============================================================================
 
 # noinspection PyUnusedLocal
-def convert_xml_to_text(filename: str = None,
-                        blob: bytes = None,
-                        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+def convert_xml_to_text(
+    filename: str = None,
+    blob: bytes = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
     """
     Converts XML to text.
     """
@@ -1236,17 +1296,19 @@ def convert_xml_to_text(filename: str = None,
 # =============================================================================
 
 # noinspection PyUnresolvedReferences,PyUnusedLocal
-def convert_rtf_to_text(filename: str = None,
-                        blob: bytes = None,
-                        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+def convert_rtf_to_text(
+    filename: str = None,
+    blob: bytes = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
     """
     Converts RTF to text.
     """
-    unrtf = tools['unrtf']
+    unrtf = tools["unrtf"]
     if unrtf:  # Best
-        args = [unrtf, '--text', '--nopict']
+        args = [unrtf, "--text", "--nopict"]
         if UNRTF_SUPPORTS_QUIET:
-            args.append('--quiet')
+            args.append("--quiet")
         if filename:
             args.append(filename)
             return get_cmd_output(*args)
@@ -1256,9 +1318,9 @@ def convert_rtf_to_text(filename: str = None,
         # https://github.com/brendonh/pyth/blob/master/pyth/plugins/rtf15/reader.py  # noqa
         with get_filelikeobject(filename, blob) as fp:
             doc = pyth.plugins.rtf15.reader.Rtf15Reader.read(fp)
-        return (
-            pyth.plugins.plaintext.writer.PlaintextWriter.write(doc).getvalue()
-        )
+        return pyth.plugins.plaintext.writer.PlaintextWriter.write(
+            doc
+        ).getvalue()
     else:
         raise AssertionError("No RTF-reading tool available")
 
@@ -1267,12 +1329,13 @@ def availability_rtf() -> bool:
     """
     Is an RTF processor available?
     """
-    unrtf = tools['unrtf']
+    unrtf = tools["unrtf"]
     if unrtf:
         return True
     elif pyth:
-        log.warning("RTF conversion: unrtf missing; "
-                    "using pyth (less efficient)")
+        log.warning(
+            "RTF conversion: unrtf missing; " "using pyth (less efficient)"
+        )
         return True
     else:
         return False
@@ -1283,19 +1346,22 @@ def availability_rtf() -> bool:
 # =============================================================================
 
 # noinspection PyUnusedLocal
-def convert_doc_to_text(filename: str = None,
-                        blob: bytes = None,
-                        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+def convert_doc_to_text(
+    filename: str = None,
+    blob: bytes = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
     """
     Converts Microsoft Word DOC files to text.
     """
-    antiword = tools['antiword']
+    antiword = tools["antiword"]
     if antiword:
         if filename:
-            return get_cmd_output(antiword, '-w', str(config.width), filename)
+            return get_cmd_output(antiword, "-w", str(config.width), filename)
         else:
-            return get_cmd_output_from_stdin(blob, antiword, '-w',
-                                             str(config.width), '-')
+            return get_cmd_output_from_stdin(
+                blob, antiword, "-w", str(config.width), "-"
+            )
     else:
         raise AssertionError("No DOC-reading tool available")
 
@@ -1304,7 +1370,7 @@ def availability_doc() -> bool:
     """
     Is a DOC processor available?
     """
-    antiword = tools['antiword']
+    antiword = tools["antiword"]
     return bool(antiword)
 
 
@@ -1314,14 +1380,15 @@ def availability_doc() -> bool:
 
 # noinspection PyUnusedLocal
 def convert_anything_to_text(
-        filename: str = None,
-        blob: bytes = None,
-        config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+    filename: str = None,
+    blob: bytes = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
     """
     Convert arbitrary files to text, using ``strings`` or ``strings2``.
     (``strings`` is a standard Unix command to get text from any old rubbish.)
     """
-    strings = tools['strings'] or tools['strings2']
+    strings = tools["strings"] or tools["strings2"]
     if strings:
         if filename:
             return get_cmd_output(strings, filename)
@@ -1336,7 +1403,7 @@ def availability_anything() -> bool:
     Is a generic "something-to-text" processor available?
     """
 
-    strings = tools['strings'] or tools['strings2']
+    strings = tools["strings"] or tools["strings2"]
     return bool(strings)
 
 
@@ -1348,66 +1415,25 @@ ext_map = {
     # Converter functions must be of the form: func(filename, blob, config).
     # Availability must be either a boolean literal or a function that takes no
     # params.
-    '.csv': {
-        CONVERTER: get_file_contents_text,
-        AVAILABILITY: True,
-    },
-    '.doc': {
-        CONVERTER: convert_doc_to_text,
-        AVAILABILITY: availability_doc,
-    },
-    '.docm': {
-        CONVERTER: convert_docx_to_text,
-        AVAILABILITY: True,
-    },
-    '.docx': {
-        CONVERTER: convert_docx_to_text,
-        AVAILABILITY: True,
-    },
-    '.dot': {
-        CONVERTER: convert_doc_to_text,
-        AVAILABILITY: availability_doc,
-    },
-    '.htm': {
-        CONVERTER: convert_html_to_text,
-        AVAILABILITY: True,
-    },
-    '.html': {
-        CONVERTER: convert_html_to_text,
-        AVAILABILITY: True,
-    },
-    '.log': {
-        CONVERTER: get_file_contents_text,
-        AVAILABILITY: True,
-    },
-
+    ".csv": {CONVERTER: get_file_contents_text, AVAILABILITY: True},
+    ".doc": {CONVERTER: convert_doc_to_text, AVAILABILITY: availability_doc},
+    ".docm": {CONVERTER: convert_docx_to_text, AVAILABILITY: True},
+    ".docx": {CONVERTER: convert_docx_to_text, AVAILABILITY: True},
+    ".dot": {CONVERTER: convert_doc_to_text, AVAILABILITY: availability_doc},
+    ".htm": {CONVERTER: convert_html_to_text, AVAILABILITY: True},
+    ".html": {CONVERTER: convert_html_to_text, AVAILABILITY: True},
+    ".log": {CONVERTER: get_file_contents_text, AVAILABILITY: True},
     # .msg is often Outlook binary, not text
     #
     # '.msg': {
     #     CONVERTER: get_file_contents_text,
     #     AVAILABILITY: True,
     # },
-
-    '.odt': {
-        CONVERTER: convert_odt_to_text,
-        AVAILABILITY: True,
-    },
-    '.pdf': {
-        CONVERTER: convert_pdf_to_txt,
-        AVAILABILITY: availability_pdf,
-    },
-    '.rtf': {
-        CONVERTER: convert_rtf_to_text,
-        AVAILABILITY: availability_rtf,
-    },
-    '.txt': {
-        CONVERTER: get_file_contents_text,
-        AVAILABILITY: True,
-    },
-    '.xml': {
-        CONVERTER: convert_xml_to_text,
-        AVAILABILITY: True,
-    },
+    ".odt": {CONVERTER: convert_odt_to_text, AVAILABILITY: True},
+    ".pdf": {CONVERTER: convert_pdf_to_txt, AVAILABILITY: availability_pdf},
+    ".rtf": {CONVERTER: convert_rtf_to_text, AVAILABILITY: availability_rtf},
+    ".txt": {CONVERTER: get_file_contents_text, AVAILABILITY: True},
+    ".xml": {CONVERTER: convert_xml_to_text, AVAILABILITY: True},
     None: {  # fallback
         CONVERTER: convert_anything_to_text,
         AVAILABILITY: availability_anything,
@@ -1415,10 +1441,12 @@ ext_map = {
 }
 
 
-def document_to_text(filename: str = None,
-                     blob: bytes = None,
-                     extension: str = None,
-                     config: TextProcessingConfig = _DEFAULT_CONFIG) -> str:
+def document_to_text(
+    filename: str = None,
+    blob: bytes = None,
+    extension: str = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
     """
     Converts a document to text.
 
@@ -1466,7 +1494,8 @@ def document_to_text(filename: str = None,
     log.debug(
         f"filename: {filename}, blob type: {type(blob)}, "
         f"blob length: {len(blob) if blob is not None else None}, "
-        f"extension: {extension}")
+        f"extension: {extension}"
+    )
 
     # If we were given a filename and the file doesn't exist, don't bother.
     if filename and not os.path.isfile(filename):
@@ -1499,8 +1528,7 @@ def is_text_extractor_available(extension: str) -> bool:
     elif callable(availability):
         return availability()
     else:
-        raise ValueError(
-            f"Bad information object for extension: {extension}")
+        raise ValueError(f"Bad information object for extension: {extension}")
 
 
 def require_text_extractor(extension: str) -> None:
@@ -1510,12 +1538,14 @@ def require_text_extractor(extension: str) -> None:
     """
     if not is_text_extractor_available(extension):
         raise ValueError(
-            f"No text extractor available for extension: {extension}")
+            f"No text extractor available for extension: {extension}"
+        )
 
 
 # =============================================================================
 # main, for command-line use
 # =============================================================================
+
 
 def main() -> None:
     """
@@ -1523,29 +1553,39 @@ def main() -> None:
     """
     logging.basicConfig(level=logging.DEBUG)
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument("inputfile", nargs="?", help="Input file name")
     parser.add_argument(
-        "--availability", nargs='*',
+        "--availability",
+        nargs="*",
         help="File extensions to check availability for (use a '.' prefix, "
-             "and use the special extension 'None' to check the fallback "
-             "processor")
+        "and use the special extension 'None' to check the fallback "
+        "processor",
+    )
     parser.add_argument(
-        '--plain', action='store_true',
-        help="Use plainest format (re e.g. table layouts)")
+        "--plain",
+        action="store_true",
+        help="Use plainest format (re e.g. table layouts)",
+    )
     parser.add_argument(
-        '--semiplain', action='store_true',
-        help="Use semi-plain format (re e.g. table layouts)")
+        "--semiplain",
+        action="store_true",
+        help="Use semi-plain format (re e.g. table layouts)",
+    )
     parser.add_argument(
-        "--width", type=int, default=DEFAULT_WIDTH,
-        help=f"Word wrapping width")
+        "--width", type=int, default=DEFAULT_WIDTH, help=f"Word wrapping width"
+    )
     parser.add_argument(
-        "--min-col-width", type=int, default=DEFAULT_MIN_COL_WIDTH,
-        help=f"Minimum column width for tables")
+        "--min-col-width",
+        type=int,
+        default=DEFAULT_MIN_COL_WIDTH,
+        help=f"Minimum column width for tables",
+    )
     args = parser.parse_args()
     if args.availability:
         for ext in args.availability:
-            if ext.lower() == 'none':
+            if ext.lower() == "none":
                 ext = None
             available = is_text_extractor_available(ext)
             print(f"Extractor for extension {ext} present: {available}")
@@ -1566,7 +1606,7 @@ def main() -> None:
         print(result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 
 

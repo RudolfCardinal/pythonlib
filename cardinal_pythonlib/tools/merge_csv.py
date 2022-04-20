@@ -42,12 +42,14 @@ from cardinal_pythonlib.logs import (
 log = BraceStyleAdapter(logging.getLogger(__name__))
 
 
-def merge_csv(filenames: List[str],
-              outfile: TextIO = sys.stdout,
-              input_dialect: str = 'excel',
-              output_dialect: str = 'excel',
-              debug: bool = False,
-              headers: bool = True) -> None:
+def merge_csv(
+    filenames: List[str],
+    outfile: TextIO = sys.stdout,
+    input_dialect: str = "excel",
+    output_dialect: str = "excel",
+    debug: bool = False,
+    headers: bool = True,
+) -> None:
     """
     Amalgamate multiple CSV/TSV/similar files into one.
 
@@ -64,7 +66,7 @@ def merge_csv(filenames: List[str],
     header_items = []  # type: List[str]
     for filename in filenames:
         log.info("Processing file " + repr(filename))
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             reader = csv.reader(f, dialect=input_dialect)
             if headers:
                 if not written_header:
@@ -79,7 +81,8 @@ def merge_csv(filenames: List[str],
                         raise ValueError(
                             f"Header line in file {filename!r} doesn't match "
                             f"- it was {new_headers!r} but previous was "
-                            f"{header_items!r}")
+                            f"{header_items!r}"
+                        )
                     if debug:
                         log.debug("Header row matches previous")
             else:
@@ -99,9 +102,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "filenames",
-        nargs="+",
-        help="Names of CSV/TSV files to merge"
+        "filenames", nargs="+", help="Names of CSV/TSV files to merge"
     )
     parser.add_argument(
         "--outfile",
@@ -124,12 +125,10 @@ def main():
         "--noheaders",
         action="store_true",
         help="By default, files are assumed to have column headers. "
-             "Specify this option to assume no headers.",
+        "Specify this option to assume no headers.",
     )
     parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Verbose debugging output.",
+        "--debug", action="store_true", help="Verbose debugging output."
     )
     progargs = parser.parse_args()
 
@@ -140,15 +139,15 @@ def main():
         "debug": progargs.debug,
         "headers": not progargs.noheaders,
     }
-    if progargs.outfile == '-':
+    if progargs.outfile == "-":
         log.info("Writing to stdout")
         merge_csv(outfile=sys.stdout, **kwargs)
     else:
         log.info("Writing to " + repr(progargs.outfile))
-        with open(progargs.outfile, 'w') as outfile:
+        with open(progargs.outfile, "w") as outfile:
             # noinspection PyTypeChecker
             merge_csv(outfile=outfile, **kwargs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

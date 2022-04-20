@@ -26,32 +26,52 @@
 from typing import Union
 
 
-def sizeof_fmt(num: float, suffix: str = 'B') -> str:
+def sizeof_fmt(num: float, suffix: str = "B") -> str:
     """
     Formats a number of bytes in a human-readable binary format (e.g. ``2048``
     becomes ``'2 KiB'``); from https://stackoverflow.com/questions/1094841.
     """
-    for unit in ('', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi'):
+    for unit in ("", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"):
         if abs(num) < 1024.0:
             return "%3.1f%s%s" % (num, unit, suffix)
         num /= 1024.0
-    return "%.1f%s%s" % (num, 'Yi', suffix)
+    return "%.1f%s%s" % (num, "Yi", suffix)
 
 
 # see: https://en.wikipedia.org/wiki/Binary_prefix
 SYMBOLS = {
-    'customary': ('B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'),
-    'customary_ext': ('byte', 'kilo', 'mega', 'giga', 'tera', 'peta', 'exa',
-                      'zetta', 'iotta'),
-    'iec': ('Bi', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi', 'Yi'),
-    'iec_ext': ('byte', 'kibi', 'mebi', 'gibi', 'tebi', 'pebi', 'exbi',
-                'zebi', 'yobi'),
+    "customary": ("B", "K", "M", "G", "T", "P", "E", "Z", "Y"),
+    "customary_ext": (
+        "byte",
+        "kilo",
+        "mega",
+        "giga",
+        "tera",
+        "peta",
+        "exa",
+        "zetta",
+        "iotta",
+    ),
+    "iec": ("Bi", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"),
+    "iec_ext": (
+        "byte",
+        "kibi",
+        "mebi",
+        "gibi",
+        "tebi",
+        "pebi",
+        "exbi",
+        "zebi",
+        "yobi",
+    ),
 }
 
 
-def bytes2human(n: Union[int, float],
-                format: str = '%(value).1f %(symbol)s',
-                symbols: str = 'customary') -> str:
+def bytes2human(
+    n: Union[int, float],
+    format: str = "%(value).1f %(symbol)s",
+    symbols: str = "customary",
+) -> str:
     """
     Converts a number of bytes into a human-readable format.
     From https://code.activestate.com/recipes/578019-bytes-to-human-human-to-bytes-converter/.
@@ -152,7 +172,7 @@ def human2bytes(s: str) -> int:
         pass
     init = s
     num = ""
-    while s and s[0:1].isdigit() or s[0:1] == '.':
+    while s and s[0:1].isdigit() or s[0:1] == ".":
         num += s[0]
         s = s[1:]
     num = float(num)
@@ -161,9 +181,9 @@ def human2bytes(s: str) -> int:
         if letter in sset:
             break
     else:
-        if letter == 'k':
+        if letter == "k":
             # treat 'k' as an alias for 'K' as per https://en.wikipedia.org/wiki/Binary_prefix  # noqa
-            sset = SYMBOLS['customary']
+            sset = SYMBOLS["customary"]
             letter = letter.upper()
         else:
             raise ValueError("can't interpret %r" % init)

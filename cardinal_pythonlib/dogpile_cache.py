@@ -87,6 +87,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 # noinspection PyUnresolvedReferences,PyPackageRequirements
 from dogpile.cache import make_region
+
 # from dogpile.util import compat  # repr used as the default instead of compat.to_str  # noqa
 
 from cardinal_pythonlib.logs import (
@@ -105,6 +106,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # =============================================================================
 # Helper functions
 # =============================================================================
+
 
 def repr_parameter(param: inspect.Parameter) -> str:
     """
@@ -146,10 +148,10 @@ def get_namespace(fn: Callable, namespace: Optional[str]) -> str:
 # New function key generators
 # =============================================================================
 
+
 def fkg_allowing_type_hints(
-        namespace: Optional[str],
-        fn: Callable,
-        to_str: Callable[[Any], str] = repr) -> Callable[[Any], str]:
+    namespace: Optional[str], fn: Callable, to_str: Callable[[Any], str] = repr
+) -> Callable[[Any], str]:
     """
     Replacement for :func:`dogpile.cache.util.function_key_generator` that
     handles type-hinted functions like
@@ -183,9 +185,12 @@ def fkg_allowing_type_hints(
     namespace = get_namespace(fn, namespace)
 
     sig = inspect.signature(fn)
-    argnames = [p.name for p in sig.parameters.values()
-                if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD]
-    has_self = bool(argnames and argnames[0] in ('self', 'cls'))
+    argnames = [
+        p.name
+        for p in sig.parameters.values()
+        if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+    ]
+    has_self = bool(argnames and argnames[0] in ("self", "cls"))
 
     def generate_key(*args: Any, **kw: Any) -> str:
         """
@@ -193,9 +198,11 @@ def fkg_allowing_type_hints(
         with particular ``args``/``kwargs``.
         """
         if kw:
-            raise ValueError("This dogpile.cache key function generator, "
-                             "fkg_allowing_type_hints, "
-                             "does not accept keyword arguments.")
+            raise ValueError(
+                "This dogpile.cache key function generator, "
+                "fkg_allowing_type_hints, "
+                "does not accept keyword arguments."
+            )
         if has_self:
             # Unlike dogpile's default, make it instance- (or class-) specific
             # by including a representation of the "self" or "cls" argument:
@@ -209,9 +216,8 @@ def fkg_allowing_type_hints(
 
 
 def multikey_fkg_allowing_type_hints(
-        namespace: Optional[str],
-        fn: Callable,
-        to_str: Callable[[Any], str] = repr) -> Callable[[Any], List[str]]:
+    namespace: Optional[str], fn: Callable, to_str: Callable[[Any], str] = repr
+) -> Callable[[Any], List[str]]:
     """
     Equivalent of :func:`dogpile.cache.util.function_multi_key_generator`, but
     using :func:`inspect.signature` instead.
@@ -223,15 +229,20 @@ def multikey_fkg_allowing_type_hints(
     namespace = get_namespace(fn, namespace)
 
     sig = inspect.signature(fn)
-    argnames = [p.name for p in sig.parameters.values()
-                if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD]
-    has_self = bool(argnames and argnames[0] in ('self', 'cls'))
+    argnames = [
+        p.name
+        for p in sig.parameters.values()
+        if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+    ]
+    has_self = bool(argnames and argnames[0] in ("self", "cls"))
 
     def generate_keys(*args: Any, **kw: Any) -> List[str]:
         if kw:
-            raise ValueError("This dogpile.cache key function generator, "
-                             "multikey_fkg_allowing_type_hints, "
-                             "does not accept keyword arguments.")
+            raise ValueError(
+                "This dogpile.cache key function generator, "
+                "multikey_fkg_allowing_type_hints, "
+                "does not accept keyword arguments."
+            )
         if has_self:
             # Unlike dogpile's default, make it instance- (or class-) specific
             # by including a representation of the "self" or "cls" argument:
@@ -240,16 +251,16 @@ def multikey_fkg_allowing_type_hints(
         if DEBUG_INTERNALS:
             log.debug(
                 "multikey_fkg_allowing_type_hints.generate_keys() -> {!r}",
-                keys)
+                keys,
+            )
         return keys
 
     return generate_keys
 
 
 def kw_fkg_allowing_type_hints(
-        namespace: Optional[str],
-        fn: Callable,
-        to_str: Callable[[Any], str] = repr) -> Callable[[Any], str]:
+    namespace: Optional[str], fn: Callable, to_str: Callable[[Any], str] = repr
+) -> Callable[[Any], str]:
     """
     As for :func:`fkg_allowing_type_hints`, but allowing keyword arguments.
 
@@ -276,9 +287,12 @@ def kw_fkg_allowing_type_hints(
 
     sig = inspect.signature(fn)
     parameters = list(sig.parameters.values())  # convert from odict_values
-    argnames = [p.name for p in parameters
-                if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD]
-    has_self = bool(argnames and argnames[0] in ('self', 'cls'))
+    argnames = [
+        p.name
+        for p in parameters
+        if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+    ]
+    has_self = bool(argnames and argnames[0] in ("self", "cls"))
 
     if DEBUG_INTERNALS:
         log.debug(
@@ -309,7 +323,7 @@ def kw_fkg_allowing_type_hints(
                 as_kwargs[argnames[idx]] = argvalue
         # 1b. args with no name
         if loose_args:
-            as_kwargs['*args'] = loose_args
+            as_kwargs["*args"] = loose_args
             # '*args' is guaranteed not to be a parameter name in its own right
         # 2. kwargs
         as_kwargs.update(kwargs)
@@ -325,9 +339,11 @@ def kw_fkg_allowing_type_hints(
         #       fn(p="another", q="thing")
         #    from
         #       fn(r="another", s="thing")
-        argument_values = ["{k}={v}".format(k=key, v=to_str(as_kwargs[key]))
-                           for key in sorted(as_kwargs.keys())]
-        key = namespace + '|' + " ".join(argument_values)
+        argument_values = [
+            "{k}={v}".format(k=key, v=to_str(as_kwargs[key]))
+            for key in sorted(as_kwargs.keys())
+        ]
+        key = namespace + "|" + " ".join(argument_values)
         if DEBUG_INTERNALS:
             log.debug("kw_fkg_allowing_type_hints.generate_key() -> {!r}", key)
         return key
@@ -352,9 +368,10 @@ fkg = kw_fkg_allowing_type_hints
 # Unit tests
 # =============================================================================
 
+
 def unit_test_cache() -> None:
     mycache = make_region()
-    mycache.configure(backend='dogpile.cache.memory')
+    mycache.configure(backend="dogpile.cache.memory")
 
     plain_fkg = fkg_allowing_type_hints
     kw_fkg = kw_fkg_allowing_type_hints
@@ -367,8 +384,9 @@ def unit_test_cache() -> None:
     def test(result: str, should_call_fn: bool, reset: bool = True) -> None:
         nonlocal fn_was_called
         log.info("{}", result)
-        assert fn_was_called == should_call_fn, (
-            f"fn_was_called={fn_was_called}, should_call_fn={should_call_fn}")
+        assert (
+            fn_was_called == should_call_fn
+        ), f"fn_was_called={fn_was_called}, should_call_fn={should_call_fn}"
         if reset:
             fn_was_called = False
 
@@ -395,21 +413,28 @@ def unit_test_cache() -> None:
     @mycache.cache_on_arguments(function_key_generator=plain_fkg)
     def twoparam_with_default_wrong_dec(a: str, b: str = "Zelda") -> str:
         fn_called("CACHED FUNCTION twoparam_with_default_wrong_dec() CALLED")
-        return ("twoparam_with_default_wrong_dec: hello, " + a +
-                "; this is " + b)
+        return (
+            "twoparam_with_default_wrong_dec: hello, " + a + "; this is " + b
+        )
 
     @mycache.cache_on_arguments(function_key_generator=kw_fkg)
     def twoparam_with_default_right_dec(a: str, b: str = "Zelda") -> str:
         fn_called("CACHED FUNCTION twoparam_with_default_right_dec() CALLED")
-        return ("twoparam_with_default_right_dec: hello, " + a +
-                "; this is " + b)
+        return (
+            "twoparam_with_default_right_dec: hello, " + a + "; this is " + b
+        )
 
     @mycache.cache_on_arguments(function_key_generator=kw_fkg)
     def twoparam_all_defaults_no_typehints(a="David", b="Zelda"):
-        fn_called("CACHED FUNCTION twoparam_all_defaults_no_typehints() "
-                  "CALLED")
-        return ("twoparam_all_defaults_no_typehints: hello, " + a +
-                "; this is " + b)
+        fn_called(
+            "CACHED FUNCTION twoparam_all_defaults_no_typehints() " "CALLED"
+        )
+        return (
+            "twoparam_all_defaults_no_typehints: hello, "
+            + a
+            + "; this is "
+            + b
+        )
 
     @mycache.cache_on_arguments(function_key_generator=kw_fkg)
     def fn_args_kwargs(*args, **kwargs):
@@ -432,14 +457,17 @@ def unit_test_cache() -> None:
 
         @mycache.cache_on_arguments(function_key_generator=None)
         def no_params_dogpile_default_fkg(self):  # no type hints!
-            fn_called("CACHED FUNCTION TestClass."
-                      "no_params_dogpile_default_fkg() CALLED")
+            fn_called(
+                "CACHED FUNCTION TestClass."
+                "no_params_dogpile_default_fkg() CALLED"
+            )
             return "TestClass.no_params_dogpile_default_fkg: hello"
 
         @mycache.cache_on_arguments(function_key_generator=None)
         def dogpile_default_test_2(self):  # no type hints!
-            fn_called("CACHED FUNCTION TestClass."
-                      "dogpile_default_test_2() CALLED")
+            fn_called(
+                "CACHED FUNCTION TestClass." "dogpile_default_test_2() CALLED"
+            )
             return "TestClass.dogpile_default_test_2: hello"
 
         @mycache.cache_on_arguments(function_key_generator=plain_fkg)
@@ -449,8 +477,10 @@ def unit_test_cache() -> None:
 
         @mycache.cache_on_arguments(function_key_generator=kw_fkg)
         def no_params_instance_cache(self) -> str:
-            fn_called("PER-INSTANCE-CACHED FUNCTION "
-                      "TestClass.no_params_instance_cache() CALLED")
+            fn_called(
+                "PER-INSTANCE-CACHED FUNCTION "
+                "TestClass.no_params_instance_cache() CALLED"
+            )
             return f"TestClass.no_params_instance_cache: a={self.a}"
 
         # Decorator order is critical here:
@@ -477,7 +507,8 @@ def unit_test_cache() -> None:
             fn_called("CACHED FUNCTION TestClass.fn_all_possible() CALLED")
             return (
                 f"TestClass.fn_all_possible: a={a!r}, b={b!r}, args={args!r}, "
-                f"d={d!r}, kwargs={kwargs!r}")
+                f"d={d!r}, kwargs={kwargs!r}"
+            )
 
         @property
         @mycache.cache_on_arguments(function_key_generator=kw_fkg)
@@ -491,8 +522,10 @@ def unit_test_cache() -> None:
 
         @mycache.cache_on_arguments(function_key_generator=None)
         def dogpile_default_test_2(self):  # no type hints!
-            fn_called("CACHED FUNCTION SecondTestClass."
-                      "dogpile_default_test_2() CALLED")
+            fn_called(
+                "CACHED FUNCTION SecondTestClass."
+                "dogpile_default_test_2() CALLED"
+            )
             return "SecondTestClass.dogpile_default_test_2: hello"
 
     class Inherited(TestClass):
@@ -506,8 +539,10 @@ def unit_test_cache() -> None:
 
         @mycache.cache_on_arguments(function_key_generator=kw_fkg)
         def no_params_instance_cache(self) -> str:
-            fn_called("PER-INSTANCE-CACHED FUNCTION "
-                      "Inherited.no_params_instance_cache() CALLED")
+            fn_called(
+                "PER-INSTANCE-CACHED FUNCTION "
+                "Inherited.no_params_instance_cache() CALLED"
+            )
             return f"Inherited.no_params_instance_cache: a={self.a}"
 
         # Decorator order is critical here:
@@ -539,7 +574,9 @@ def unit_test_cache() -> None:
 
     log.warning("Fetching cached information #1 (should call noparams())...")
     test(noparams(), True)
-    log.warning("Fetching cached information #2 (should not call noparams())...")  # noqa
+    log.warning(
+        "Fetching cached information #2 (should not call noparams())..."
+    )  # noqa
     test(noparams(), False)
 
     log.warning("Testing functions with other signatures...")
@@ -584,7 +621,9 @@ def unit_test_cache() -> None:
 
     test(fn_args_kwargs(p="another", q="thing"), True)
     test(fn_args_kwargs(p="another", q="thing"), False)
-    log.warning("The next call MUST NOT go via the cache, i.e. func should be CALLED")  # noqa
+    log.warning(
+        "The next call MUST NOT go via the cache, i.e. func should be CALLED"
+    )  # noqa
     test(fn_args_kwargs(p="another q=thing"), True)
     test(fn_args_kwargs(p="another q=thing"), False)
 
@@ -642,10 +681,22 @@ def unit_test_cache() -> None:
     test(t_other.fn_all_possible(10, 11, 12, d="Horace"), False)
     test(t_other.fn_all_possible(98, 99, d="Horace"), True)
     test(t_other.fn_all_possible(98, 99, d="Horace"), False)
-    test(t_other.fn_all_possible(98, 99, d="Horace", p="another", q="thing"), True)  # noqa
-    test(t_other.fn_all_possible(98, 99, d="Horace", p="another", q="thing"), False)  # noqa
-    test(t_other.fn_all_possible(98, 99, d="Horace", r="another", s="thing"), True)  # noqa
-    test(t_other.fn_all_possible(98, 99, d="Horace", r="another", s="thing"), False)  # noqa
+    test(
+        t_other.fn_all_possible(98, 99, d="Horace", p="another", q="thing"),
+        True,
+    )  # noqa
+    test(
+        t_other.fn_all_possible(98, 99, d="Horace", p="another", q="thing"),
+        False,
+    )  # noqa
+    test(
+        t_other.fn_all_possible(98, 99, d="Horace", r="another", s="thing"),
+        True,
+    )  # noqa
+    test(
+        t_other.fn_all_possible(98, 99, d="Horace", r="another", s="thing"),
+        False,
+    )  # noqa
     test(t_other.prop, True)
     test(t_other.prop, False)
 
@@ -672,10 +723,20 @@ def unit_test_cache() -> None:
     test(t_inh.fn_all_possible(10, 11, 12, d="Horace"), False)
     test(t_inh.fn_all_possible(98, 99, d="Horace"), True)
     test(t_inh.fn_all_possible(98, 99, d="Horace"), False)
-    test(t_inh.fn_all_possible(98, 99, d="Horace", p="another", q="thing"), True)  # noqa
-    test(t_inh.fn_all_possible(98, 99, d="Horace", p="another", q="thing"), False)  # noqa
-    test(t_inh.fn_all_possible(98, 99, d="Horace", r="another", s="thing"), True)  # noqa
-    test(t_inh.fn_all_possible(98, 99, d="Horace", r="another", s="thing"), False)  # noqa
+    test(
+        t_inh.fn_all_possible(98, 99, d="Horace", p="another", q="thing"), True
+    )  # noqa
+    test(
+        t_inh.fn_all_possible(98, 99, d="Horace", p="another", q="thing"),
+        False,
+    )  # noqa
+    test(
+        t_inh.fn_all_possible(98, 99, d="Horace", r="another", s="thing"), True
+    )  # noqa
+    test(
+        t_inh.fn_all_possible(98, 99, d="Horace", r="another", s="thing"),
+        False,
+    )  # noqa
     test(t_inh.prop, True)
     test(t_inh.prop, False)
 
@@ -683,12 +744,16 @@ def unit_test_cache() -> None:
     test(no_params_dogpile_default_fkg(), False)
     try:
         test(t.no_params_dogpile_default_fkg(), True)
-        log.info("dogpile.cache default FKG correctly distinguishing between "
-                 "plain and class-member function in same module")
+        log.info(
+            "dogpile.cache default FKG correctly distinguishing between "
+            "plain and class-member function in same module"
+        )
     except AssertionError:
-        log.warning("Known dogpile.cache default FKG problem - conflates "
-                    "plain/class member function of same name (unless "
-                    "namespace is manually given)")
+        log.warning(
+            "Known dogpile.cache default FKG problem - conflates "
+            "plain/class member function of same name (unless "
+            "namespace is manually given)"
+        )
     test(t.no_params_dogpile_default_fkg(), False)
 
     t2 = SecondTestClass()
@@ -696,13 +761,17 @@ def unit_test_cache() -> None:
     test(t.dogpile_default_test_2(), False)
     try:
         test(t2.dogpile_default_test_2(), True)
-        log.info("dogpile.cache default FKG correctly distinguishing between "
-                 "member functions of two different classes with same name")
+        log.info(
+            "dogpile.cache default FKG correctly distinguishing between "
+            "member functions of two different classes with same name"
+        )
     except AssertionError:
-        log.warning("Known dogpile.cache default FKG problem - conflates "
-                    "member functions of two different classes where "
-                    "functions have same name (unless namespace is manually "
-                    "given)")
+        log.warning(
+            "Known dogpile.cache default FKG problem - conflates "
+            "member functions of two different classes where "
+            "functions have same name (unless namespace is manually "
+            "given)"
+        )
     test(t2.dogpile_default_test_2(), False)
 
     log.info("Success!")
@@ -710,7 +779,7 @@ def unit_test_cache() -> None:
 
 # TEST THIS WITH:
 # python -m cardinal_pythonlib.dogpile_cache
-if __name__ == '__main__':
+if __name__ == "__main__":
     level = logging.DEBUG if TESTING_VERBOSE else logging.INFO
     if TESTING_USE_PRETTY_LOGS:
         main_only_quicksetup_rootlogger(level=level)

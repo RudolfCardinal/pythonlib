@@ -24,17 +24,13 @@
 """
 
 import atexit
+
 # from concurrent.futures import as_completed, Future, ThreadPoolExecutor
 import logging
 from multiprocessing.dummy import Pool  # thread pool
 import os
 from queue import Queue
-from subprocess import (
-    check_call,
-    PIPE,
-    Popen,
-    TimeoutExpired,
-)
+from subprocess import check_call, PIPE, Popen, TimeoutExpired
 import sys
 from threading import Thread
 from time import sleep
@@ -49,6 +45,7 @@ log = logging.getLogger(__name__)
 # Subprocess handling: single child process
 # =============================================================================
 
+
 def check_call_process(args: List[str]) -> None:
     """
     Logs the command arguments, then executes the command via
@@ -58,9 +55,9 @@ def check_call_process(args: List[str]) -> None:
     check_call(args)
 
 
-def check_call_verbose(args: List[str],
-                       log_level: Optional[int] = logging.INFO,
-                       **kwargs) -> None:
+def check_call_verbose(
+    args: List[str], log_level: Optional[int] = logging.INFO, **kwargs
+) -> None:
     """
     Prints a copy/paste-compatible version of a command, then runs it.
 
@@ -95,6 +92,7 @@ _g_proc_args_list = []  # type: List[List[str]]
 # Method 1: Exiting
 # -----------------------------------------------------------------------------
 
+
 @atexit.register
 def kill_child_processes() -> None:
     """
@@ -126,10 +124,10 @@ def fail() -> NoReturn:
 # Method 1: Helper functions
 # -----------------------------------------------------------------------------
 
-def _start_process(args: List[str],
-                   stdin: Any = None,
-                   stdout: Any = None,
-                   stderr: Any = None) -> Popen:
+
+def _start_process(
+    args: List[str], stdin: Any = None, stdout: Any = None, stderr: Any = None
+) -> Popen:
     """
     Launch a child process and record it in our :data:`processes` variable.
 
@@ -158,8 +156,9 @@ def _start_process(args: List[str],
     return proc
 
 
-def _wait_for_processes(die_on_failure: bool = True,
-                        timeout_sec: float = 1) -> None:
+def _wait_for_processes(
+    die_on_failure: bool = True, timeout_sec: float = 1
+) -> None:
     """
     Wait for child processes (catalogued in :data:`processes`) to finish.
 
@@ -192,10 +191,13 @@ def _wait_for_processes(die_on_failure: bool = True,
                     log.critical(
                         f"Process #{i} (of {n}) exited with return code "
                         f"{retcode} (indicating failure); its args were: "
-                        f"{_g_proc_args_list[i]!r}")
+                        f"{_g_proc_args_list[i]!r}"
+                    )
                     if die_on_failure:
-                        log.critical("Exiting top-level process (will kill "
-                                     "all other children)")
+                        log.critical(
+                            "Exiting top-level process (will kill "
+                            "all other children)"
+                        )
                         fail()  # exit this process, therefore kill its children  # noqa
             except TimeoutExpired:
                 something_running = True
@@ -221,10 +223,10 @@ def _print_lines(process: Popen) -> None:
 # Method 1: Helper functions
 # -----------------------------------------------------------------------------
 
-def _process_worker(args: List[str],
-                    stdin: Any = None,
-                    stdout: Any = None,
-                    stderr: Any = None) -> int:
+
+def _process_worker(
+    args: List[str], stdin: Any = None, stdout: Any = None, stderr: Any = None
+) -> int:
     p = Popen(args, stdin=stdin, stdout=stdout, stderr=stderr)
     # At this point, the subprocess has started.
     # We can check it with poll(), wait(), communicate(), etc.
@@ -243,9 +245,12 @@ def _process_worker(args: List[str],
 # Main user function
 # -----------------------------------------------------------------------------
 
-def run_multiple_processes(args_list: List[List[str]],
-                           die_on_failure: bool = True,
-                           max_workers: int = None) -> None:
+
+def run_multiple_processes(
+    args_list: List[List[str]],
+    die_on_failure: bool = True,
+    max_workers: int = None,
+) -> None:
     """
     Fire up multiple processes, and wait for them to finish.
 
@@ -318,6 +323,7 @@ def run_multiple_processes(args_list: List[List[str]],
 # Constants and constant-like singletons
 # -----------------------------------------------------------------------------
 
+
 class SubprocSource(object):
     pass
 
@@ -337,6 +343,7 @@ TERMINATE_SUBPROCESS = SubprocCommand()
 # Helper class
 # -----------------------------------------------------------------------------
 
+
 class AsynchronousFileReader(Thread):
     """
     Helper class to implement asynchronous reading of a file
@@ -347,13 +354,15 @@ class AsynchronousFileReader(Thread):
     https://stefaanlippens.net/python-asynchronous-subprocess-pipe-reading/.
     """
 
-    def __init__(self,
-                 fd: BinaryIO,
-                 queue: Queue,
-                 encoding: str,
-                 line_terminators: List[str] = None,
-                 cmdargs: List[str] = None,
-                 suppress_decoding_errors: bool = True) -> None:
+    def __init__(
+        self,
+        fd: BinaryIO,
+        queue: Queue,
+        encoding: str,
+        line_terminators: List[str] = None,
+        cmdargs: List[str] = None,
+        suppress_decoding_errors: bool = True,
+    ) -> None:
         """
         Args:
             fd: file-like object to read from
@@ -419,19 +428,21 @@ class AsynchronousFileReader(Thread):
 # Command to mimic user input to a subprocess, reacting to its output.
 # -----------------------------------------------------------------------------
 
+
 def mimic_user_input(
-        args: List[str],
-        source_challenge_response: List[Tuple[SubprocSource,
-                                              str,
-                                              Union[str, SubprocCommand]]],
-        line_terminators: List[str] = None,
-        print_stdout: bool = False,
-        print_stderr: bool = False,
-        print_stdin: bool = False,
-        stdin_encoding: str = None,
-        stdout_encoding: str = None,
-        suppress_decoding_errors: bool = True,
-        sleep_time_s: float = 0.1) -> None:
+    args: List[str],
+    source_challenge_response: List[
+        Tuple[SubprocSource, str, Union[str, SubprocCommand]]
+    ],
+    line_terminators: List[str] = None,
+    print_stdout: bool = False,
+    print_stderr: bool = False,
+    print_stdin: bool = False,
+    stdin_encoding: str = None,
+    stdout_encoding: str = None,
+    suppress_decoding_errors: bool = True,
+    sleep_time_s: float = 0.1,
+) -> None:
     r"""
     Run an external command. Pretend to be a human by sending text to the
     subcommand (responses) when the external command sends us triggers
@@ -520,7 +531,7 @@ def mimic_user_input(
         encoding=stdout_encoding,
         line_terminators=line_terminators,
         cmdargs=args,
-        suppress_decoding_errors=suppress_decoding_errors
+        suppress_decoding_errors=suppress_decoding_errors,
     )
     stdout_reader.start()
     stderr_queue = Queue()
@@ -531,7 +542,7 @@ def mimic_user_input(
         encoding=stdout_encoding,  # same as stdout
         line_terminators=line_terminators,
         cmdargs=args,
-        suppress_decoding_errors=suppress_decoding_errors
+        suppress_decoding_errors=suppress_decoding_errors,
     )
     stderr_reader.start()
 
@@ -556,8 +567,12 @@ def mimic_user_input(
                     continue
                 if challenge in line:
                     if response is TERMINATE_SUBPROCESS:
-                        log.warning("Terminating subprocess {!r} because input "
-                                    "{!r} received", args, challenge)
+                        log.warning(
+                            "Terminating subprocess {!r} because input "
+                            "{!r} received",
+                            args,
+                            challenge,
+                        )
                         p.kill()
                         return
                     else:

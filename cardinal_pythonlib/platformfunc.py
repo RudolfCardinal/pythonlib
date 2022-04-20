@@ -43,6 +43,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # =============================================================================
 # https://stackoverflow.com/questions/5419
 
+
 def fix_windows_utf8_output() -> None:
     # Python 3 only now, so nothing to do
     return
@@ -85,11 +86,13 @@ def test_windows_utf8_output() -> None:
     """
     Print a short string with unusual Unicode characters.
     """
-    print(u"This is an Е乂αmp١ȅ testing Unicode support using Arabic, Latin, "
-          u"Cyrillic, Greek, Hebrew and CJK code points.\n")
+    print(
+        "This is an Е乂αmp١ȅ testing Unicode support using Arabic, Latin, "
+        "Cyrillic, Greek, Hebrew and CJK code points.\n"
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     fix_windows_utf8_output()
     test_windows_utf8_output()
 
@@ -120,10 +123,9 @@ def are_debian_packages_installed(packages: List[str]) -> Dict[str, bool]:
         # "-f='${Package} ${Status} ${Version}\n'",
         "-f=${Package} ${Status}\n",  # --showformat
     ] + packages
-    completed_process = subprocess.run(args,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE,
-                                       check=False)
+    completed_process = subprocess.run(
+        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False
+    )
     encoding = sys.getdefaultencoding()
     stdout = completed_process.stdout.decode(encoding)
     stderr = completed_process.stderr.decode(encoding)
@@ -171,6 +173,7 @@ def require_debian_packages(packages: List[str]) -> None:
 # Get the environment from a subprocess in Windows
 # =============================================================================
 
+
 def validate_pair(ob: Any) -> bool:
     """
     Does the object have length 2?
@@ -199,8 +202,8 @@ def consume(iterator: Iterator[Any]) -> None:
 
 
 def windows_get_environment_from_batch_command(
-        env_cmd: Union[str, List[str]],
-        initial_env: Dict[str, str] = None) -> Dict[str, str]:
+    env_cmd: Union[str, List[str]], initial_env: Dict[str, str] = None
+) -> Dict[str, str]:
     """
     Take a command (either a single command or list of arguments) and return
     the environment created after running that command. Note that the command
@@ -234,7 +237,7 @@ def windows_get_environment_from_batch_command(
     # construct the command that will alter the environment
     env_cmd = subprocess.list2cmdline(env_cmd)
     # create a tag so we can tell in the output when the proc is done
-    tag = '+/!+/!+/! Finished command to set/print env +/!+/!+/!'  # RNC
+    tag = "+/!+/!+/! Finished command to set/print env +/!+/!+/!"  # RNC
     # construct a cmd.exe command to do accomplish this
     cmd = f'cmd.exe /s /c "{env_cmd} && echo "{tag}" && set"'
     # launch the process
@@ -251,7 +254,7 @@ def windows_get_environment_from_batch_command(
     # define a way to handle each KEY=VALUE line
     def handle_line(line: str) -> Tuple[str, str]:  # RNC: as function
         # noinspection PyTypeChecker
-        parts = line.rstrip().split('=', 1)
+        parts = line.rstrip().split("=", 1)
         # split("=", 1) means "split at '=' and do at most 1 split"
         if len(parts) < 2:
             return parts[0], ""
@@ -289,8 +292,10 @@ def windows_get_environment_from_batch_command(
 # Check for a special environment danger (vulnerability) in Windows
 # =============================================================================
 
-def contains_unquoted_target(x: str,
-                             quote: str = '"', target: str = '&') -> bool:
+
+def contains_unquoted_target(
+    x: str, quote: str = '"', target: str = "&"
+) -> bool:
     """
     Checks if ``target`` exists in ``x`` outside quotes (as defined by
     ``quote``). Principal use: from
@@ -340,4 +345,4 @@ def contains_unquoted_ampersand_dangerous_to_windows(x: str) -> bool:
 
     Anyway, this is a sanity check for that sort of thing.
     """
-    return contains_unquoted_target(x, quote='"', target='&')
+    return contains_unquoted_target(x, quote='"', target="&")

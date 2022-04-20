@@ -74,6 +74,7 @@ from typing import Any, Dict
 # Simple information for R
 # =============================================================================
 
+
 def get_python_repr(x: Any) -> str:
     r"""
     A few notes:
@@ -163,9 +164,9 @@ def test_get_dict() -> Dict[str, Any]:
 
     """
     return {
-        'integers': [1, 2, 3, 4, 5],
-        'floats': [1.1, 2.1, 3.1, 4.1, 5.1],
-        'strings': ["one", "two", "three", "four", "five"],
+        "integers": [1, 2, 3, 4, 5],
+        "floats": [1.1, 2.1, 3.1, 4.1, 5.1],
+        "strings": ["one", "two", "three", "four", "five"],
     }
 
 

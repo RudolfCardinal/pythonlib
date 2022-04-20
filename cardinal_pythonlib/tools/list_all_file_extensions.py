@@ -75,10 +75,15 @@ def main() -> None:
     parser.add_argument("--reportevery", default=10000)
     args = parser.parse_args()
     log.info("Extensions in directory {!r}:", args.directory)
-    print("\n".join(repr(x) for x in
-                    list_file_extensions(args.directory,
-                                         reportevery=args.reportevery)))
+    print(
+        "\n".join(
+            repr(x)
+            for x in list_file_extensions(
+                args.directory, reportevery=args.reportevery
+            )
+        )
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -47,10 +47,12 @@ log = BraceStyleAdapter(logging.getLogger(__name__))
 # Constants
 # -----------------------------------------------------------------------------
 
+
 class AthenaVocabularyId(object):
     """
     Constant-holding class for Athena vocabulary IDs that we care about.
     """
+
     ICD10CM = "ICD10CM"
     ICD9CM = "ICD9CM"
     OPCS4 = "OPCS4"
@@ -77,28 +79,39 @@ class AthenaRelationshipId(object):
 # TSV row info classes
 # -----------------------------------------------------------------------------
 
+
 class AthenaConceptRow(object):
     """
     Simple information-holding class for ``CONCEPT.csv`` file from
     https://athena.ohdsi.org/ vocabulary download.
     """
+
     HEADER = [
-        "concept_id", "concept_name", "domain_id", "vocabulary_id",
-        "concept_class_id", "standard_concept", "concept_code",
-        "valid_start_date", "valid_end_date", "invalid_reason"
+        "concept_id",
+        "concept_name",
+        "domain_id",
+        "vocabulary_id",
+        "concept_class_id",
+        "standard_concept",
+        "concept_code",
+        "valid_start_date",
+        "valid_end_date",
+        "invalid_reason",
     ]
 
-    def __init__(self,
-                 concept_id: str,
-                 concept_name: str,
-                 domain_id: str,
-                 vocabulary_id: str,
-                 concept_class_id: str,
-                 standard_concept: str,
-                 concept_code: str,
-                 valid_start_date: str,
-                 valid_end_date: str,
-                 invalid_reason: str) -> None:
+    def __init__(
+        self,
+        concept_id: str,
+        concept_name: str,
+        domain_id: str,
+        vocabulary_id: str,
+        concept_class_id: str,
+        standard_concept: str,
+        concept_code: str,
+        valid_start_date: str,
+        valid_end_date: str,
+        invalid_reason: str,
+    ) -> None:
         """
         Argument order is important.
 
@@ -226,18 +239,25 @@ class AthenaConceptRelationshipRow(object):
     Simple information-holding class for ``CONCEPT_RELATIONSHIP.csv`` file from
     https://athena.ohdsi.org/ vocabulary download.
     """
+
     HEADER = [
-        "concept_id_1", "concept_id_2", "relationship_id",
-        "valid_start_date", "valid_end_date", "invalid_reason",
+        "concept_id_1",
+        "concept_id_2",
+        "relationship_id",
+        "valid_start_date",
+        "valid_end_date",
+        "invalid_reason",
     ]
 
-    def __init__(self,
-                 concept_id_1: str,
-                 concept_id_2: str,
-                 relationship_id: str,
-                 valid_start_date: str,
-                 valid_end_date: str,
-                 invalid_reason: str) -> None:
+    def __init__(
+        self,
+        concept_id_1: str,
+        concept_id_2: str,
+        relationship_id: str,
+        valid_start_date: str,
+        valid_end_date: str,
+        invalid_reason: str,
+    ) -> None:
         """
         Argument order is important.
 
@@ -272,15 +292,16 @@ class AthenaConceptRelationshipRow(object):
 
 # noinspection DuplicatedCode
 def get_athena_concepts(
-        tsv_filename: str = "",
-        cached_concepts: Iterable[AthenaConceptRow] = None,
-        vocabulary_ids: Collection[str] = None,
-        concept_codes: Collection[str] = None,
-        concept_ids: Collection[int] = None,
-        not_vocabulary_ids: Collection[str] = None,
-        not_concept_codes: Collection[str] = None,
-        not_concept_ids: Collection[int] = None,
-        encoding: str = "utf-8") -> List[AthenaConceptRow]:
+    tsv_filename: str = "",
+    cached_concepts: Iterable[AthenaConceptRow] = None,
+    vocabulary_ids: Collection[str] = None,
+    concept_codes: Collection[str] = None,
+    concept_ids: Collection[int] = None,
+    not_vocabulary_ids: Collection[str] = None,
+    not_concept_codes: Collection[str] = None,
+    not_concept_ids: Collection[int] = None,
+    encoding: str = "utf-8",
+) -> List[AthenaConceptRow]:
     """
     From the Athena ``CONCEPT.csv`` tab-separated value file, return a list
     of concepts matching the restriction criteria.
@@ -346,57 +367,64 @@ def get_athena_concepts(
         # After speedup: 3.9 s for 1.1m rows.
 
     """  # noqa
-    assert bool(tsv_filename) != bool(cached_concepts), (
-        "Specify either tsv_filename or cached_concepts"
-    )
+    assert bool(tsv_filename) != bool(
+        cached_concepts
+    ), "Specify either tsv_filename or cached_concepts"
     n_rows_read = 0
 
     def gen_rows() -> Generator[AthenaConceptRow, None, None]:
         nonlocal n_rows_read
-        with open(tsv_filename, 'r', encoding=encoding) as tsvin:
+        with open(tsv_filename, "r", encoding=encoding) as tsvin:
             reader = csv.reader(tsvin, delimiter="\t")
             header = next(reader, None)
             if header != AthenaConceptRow.HEADER:
                 raise ValueError(
                     f"Athena concept file has unexpected header: {header!r}; "
-                    f"expected {AthenaConceptRow.HEADER!r}")
+                    f"expected {AthenaConceptRow.HEADER!r}"
+                )
             for row in reader:
                 n_rows_read += 1
                 concept = AthenaConceptRow(*row)
                 yield concept
 
-    def filter_vocab(concepts_: Iterable[AthenaConceptRow]) \
-            -> Generator[AthenaConceptRow, None, None]:
+    def filter_vocab(
+        concepts_: Iterable[AthenaConceptRow]
+    ) -> Generator[AthenaConceptRow, None, None]:
         for concept in concepts_:
             if concept.vocabulary_id in vocabulary_ids:
                 yield concept
 
-    def filter_code(concepts_: Iterable[AthenaConceptRow]) \
-            -> Generator[AthenaConceptRow, None, None]:
+    def filter_code(
+        concepts_: Iterable[AthenaConceptRow]
+    ) -> Generator[AthenaConceptRow, None, None]:
         for concept in concepts_:
             if concept.concept_code in concept_codes:
                 yield concept
 
-    def filter_id(concepts_: Iterable[AthenaConceptRow]) \
-            -> Generator[AthenaConceptRow, None, None]:
+    def filter_id(
+        concepts_: Iterable[AthenaConceptRow]
+    ) -> Generator[AthenaConceptRow, None, None]:
         for concept in concepts_:
             if concept.concept_id in concept_ids:
                 yield concept
 
-    def filter_not_vocab(concepts_: Iterable[AthenaConceptRow]) \
-            -> Generator[AthenaConceptRow, None, None]:
+    def filter_not_vocab(
+        concepts_: Iterable[AthenaConceptRow]
+    ) -> Generator[AthenaConceptRow, None, None]:
         for concept in concepts_:
             if concept.vocabulary_id not in not_vocabulary_ids:
                 yield concept
 
-    def filter_not_code(concepts_: Iterable[AthenaConceptRow]) \
-            -> Generator[AthenaConceptRow, None, None]:
+    def filter_not_code(
+        concepts_: Iterable[AthenaConceptRow]
+    ) -> Generator[AthenaConceptRow, None, None]:
         for concept in concepts_:
             if concept.concept_code not in not_concept_codes:
                 yield concept
 
-    def filter_not_id(concepts_: Iterable[AthenaConceptRow]) \
-            -> Generator[AthenaConceptRow, None, None]:
+    def filter_not_id(
+        concepts_: Iterable[AthenaConceptRow]
+    ) -> Generator[AthenaConceptRow, None, None]:
         for concept in concepts_:
             if concept.concept_id not in not_concept_ids:
                 yield concept
@@ -430,16 +458,18 @@ def get_athena_concepts(
 
 # noinspection DuplicatedCode
 def get_athena_concept_relationships(
-        tsv_filename: str = "",
-        cached_concept_relationships: Iterable[AthenaConceptRelationshipRow] = None,  # noqa
-        concept_id_1_values: Collection[int] = None,
-        concept_id_2_values: Collection[int] = None,
-        relationship_id_values: Collection[str] = None,
-        not_concept_id_1_values: Collection[int] = None,
-        not_concept_id_2_values: Collection[int] = None,
-        not_relationship_id_values: Collection[str] = None,
-        encoding: str = "utf-8") \
-        -> List[AthenaConceptRelationshipRow]:
+    tsv_filename: str = "",
+    cached_concept_relationships: Iterable[
+        AthenaConceptRelationshipRow
+    ] = None,  # noqa
+    concept_id_1_values: Collection[int] = None,
+    concept_id_2_values: Collection[int] = None,
+    relationship_id_values: Collection[str] = None,
+    not_concept_id_1_values: Collection[int] = None,
+    not_concept_id_2_values: Collection[int] = None,
+    not_relationship_id_values: Collection[str] = None,
+    encoding: str = "utf-8",
+) -> List[AthenaConceptRelationshipRow]:
     """
     From the Athena ``CONCEPT_RELATIONSHIP.csv`` tab-separated value file,
     return a list of relationships matching the restriction criteria.
@@ -474,66 +504,75 @@ def get_athena_concept_relationships(
         list: of :class:`AthenaConceptRelationshipRow` objects
 
     """
-    assert bool(tsv_filename) != bool(cached_concept_relationships), (
-        "Specify either tsv_filename or cached_concept_relationships"
-    )
+    assert bool(tsv_filename) != bool(
+        cached_concept_relationships
+    ), "Specify either tsv_filename or cached_concept_relationships"
     n_rows_read = 0
 
     def gen_rows() -> Generator[AthenaConceptRelationshipRow, None, None]:
         nonlocal n_rows_read
-        with open(tsv_filename, 'r', encoding=encoding) as tsvin:
+        with open(tsv_filename, "r", encoding=encoding) as tsvin:
             reader = csv.reader(tsvin, delimiter="\t")
             header = next(reader, None)
             if header != AthenaConceptRelationshipRow.HEADER:
                 raise ValueError(
                     f"Athena concept relationship file has unexpected header: "
                     f"{header!r}; expected "
-                    f"{AthenaConceptRelationshipRow.HEADER!r}")
+                    f"{AthenaConceptRelationshipRow.HEADER!r}"
+                )
             for row in reader:
                 n_rows_read += 1
                 rel = AthenaConceptRelationshipRow(*row)
                 yield rel
 
-    def filter_rel(rels: Iterable[AthenaConceptRelationshipRow]) \
-            -> Generator[AthenaConceptRelationshipRow, None, None]:
+    def filter_rel(
+        rels: Iterable[AthenaConceptRelationshipRow]
+    ) -> Generator[AthenaConceptRelationshipRow, None, None]:
         for rel in rels:
             if rel.relationship_id in relationship_id_values:
                 yield rel
 
-    def filter_c1(rels: Iterable[AthenaConceptRelationshipRow]) \
-            -> Generator[AthenaConceptRelationshipRow, None, None]:
+    def filter_c1(
+        rels: Iterable[AthenaConceptRelationshipRow]
+    ) -> Generator[AthenaConceptRelationshipRow, None, None]:
         for rel in rels:
             if rel.concept_id_1 in concept_id_1_values:
                 yield rel
 
-    def filter_c2(rels: Iterable[AthenaConceptRelationshipRow]) \
-            -> Generator[AthenaConceptRelationshipRow, None, None]:
+    def filter_c2(
+        rels: Iterable[AthenaConceptRelationshipRow]
+    ) -> Generator[AthenaConceptRelationshipRow, None, None]:
         for rel in rels:
             if rel.concept_id_2 in concept_id_2_values:
                 yield rel
 
-    def filter_not_rel(rels: Iterable[AthenaConceptRelationshipRow]) \
-            -> Generator[AthenaConceptRelationshipRow, None, None]:
+    def filter_not_rel(
+        rels: Iterable[AthenaConceptRelationshipRow]
+    ) -> Generator[AthenaConceptRelationshipRow, None, None]:
         for rel in rels:
             if rel.relationship_id not in not_relationship_id_values:
                 yield rel
 
-    def filter_not_c1(rels: Iterable[AthenaConceptRelationshipRow]) \
-            -> Generator[AthenaConceptRelationshipRow, None, None]:
+    def filter_not_c1(
+        rels: Iterable[AthenaConceptRelationshipRow]
+    ) -> Generator[AthenaConceptRelationshipRow, None, None]:
         for rel in rels:
             if rel.concept_id_1 not in not_concept_id_1_values:
                 yield rel
 
-    def filter_not_c2(rels: Iterable[AthenaConceptRelationshipRow]) \
-            -> Generator[AthenaConceptRelationshipRow, None, None]:
+    def filter_not_c2(
+        rels: Iterable[AthenaConceptRelationshipRow]
+    ) -> Generator[AthenaConceptRelationshipRow, None, None]:
         for rel in rels:
             if rel.concept_id_2 not in not_concept_id_2_values:
                 yield rel
 
     # Build up the fastest pipeline we can.
     if tsv_filename:
-        log.info(f"Loading Athena concept relationships from file: "
-                 f"{tsv_filename}")
+        log.info(
+            f"Loading Athena concept relationships from file: "
+            f"{tsv_filename}"
+        )
         gen = gen_rows()
     else:
         log.info("Using cached Athena concept relationships")
@@ -554,6 +593,8 @@ def get_athena_concept_relationships(
         gen = filter_not_c2(gen)
 
     relationships = list(rel for rel in gen)
-    log.debug(f"Retrieved {len(relationships)} relationships from "
-              f"{n_rows_read} rows")
+    log.debug(
+        f"Retrieved {len(relationships)} relationships from "
+        f"{n_rows_read} rows"
+    )
     return relationships

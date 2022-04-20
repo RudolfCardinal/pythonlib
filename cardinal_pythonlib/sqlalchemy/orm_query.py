@@ -47,9 +47,10 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Get query result with fieldnames
 # =============================================================================
 
+
 def get_rows_fieldnames_from_query(
-        session: Union[Session, Engine, Connection],
-        query: Query) -> Tuple[Sequence[Sequence[Any]], Sequence[str]]:
+    session: Union[Session, Engine, Connection], query: Query
+) -> Tuple[Sequence[Sequence[Any]], Sequence[str]]:
     """
     Returns results and column names from a query.
 
@@ -78,8 +79,8 @@ def get_rows_fieldnames_from_query(
 # EXISTS (SQLAlchemy ORM)
 # =============================================================================
 
-def bool_from_exists_clause(session: Session,
-                            exists_clause: Exists) -> bool:
+
+def bool_from_exists_clause(session: Session, exists_clause: Exists) -> bool:
     """
     Database dialects are not consistent in how ``EXISTS`` clauses can be
     converted to a boolean answer. This function manages the inconsistencies.
@@ -117,9 +118,9 @@ def bool_from_exists_clause(session: Session,
     return bool(result)
 
 
-def exists_orm(session: Session,
-               ormclass: DeclarativeMeta,
-               *criteria: Any) -> bool:
+def exists_orm(
+    session: Session, ormclass: DeclarativeMeta, *criteria: Any
+) -> bool:
     """
     Detects whether a database record exists for the specified ``ormclass``
     and ``criteria``.
@@ -135,18 +136,22 @@ def exists_orm(session: Session,
     for criterion in criteria:
         q = q.filter(criterion)
     exists_clause = q.exists()
-    return bool_from_exists_clause(session=session,
-                                   exists_clause=exists_clause)
+    return bool_from_exists_clause(
+        session=session, exists_clause=exists_clause
+    )
 
 
 # =============================================================================
 # Get or create (SQLAlchemy ORM)
 # =============================================================================
 
-def get_or_create(session: Session,
-                  model: DeclarativeMeta,
-                  defaults: Dict[str, Any] = None,
-                  **kwargs: Any) -> Tuple[Any, bool]:
+
+def get_or_create(
+    session: Session,
+    model: DeclarativeMeta,
+    defaults: Dict[str, Any] = None,
+    **kwargs: Any
+) -> Tuple[Any, bool]:
     """
     Fetches an ORM object from the database, or creates one if none existed.
 
@@ -167,8 +172,11 @@ def get_or_create(session: Session,
     if instance:
         return instance, False
     else:
-        params = dict((k, v) for k, v in kwargs.items()
-                      if not isinstance(v, ClauseElement))
+        params = dict(
+            (k, v)
+            for k, v in kwargs.items()
+            if not isinstance(v, ClauseElement)
+        )
         params.update(defaults or {})
         instance = model(**params)
         session.add(instance)
@@ -203,6 +211,7 @@ class CountStarSpecializedQuery(Query):
         """
         Implements the ``COUNT(*)`` specialization.
         """
-        count_query = (self.statement.with_only_columns([func.count()])
-                       .order_by(None))
+        count_query = self.statement.with_only_columns(
+            [func.count()]
+        ).order_by(None)
         return self.session.execute(count_query).scalar()

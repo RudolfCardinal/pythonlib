@@ -44,11 +44,14 @@ from cardinal_pythonlib.datetimefunc import (
 )
 from cardinal_pythonlib.progress import ActivityCounter
 from cardinal_pythonlib.reprfunc import simple_repr
+
 try:
     # noinspection PyPackageRequirements
     import xlrd
+
     # noinspection PyPackageRequirements
     from xlrd import Book
+
     # noinspection PyPackageRequirements
     from xlrd.sheet import Cell, Sheet
 except ImportError:
@@ -60,6 +63,7 @@ log = logging.getLogger(__name__)
 # =============================================================================
 # Consistency checks
 # =============================================================================
+
 
 def all_same(items: Iterable[Any]) -> bool:
     """
@@ -99,11 +103,13 @@ def attr_all_same(items: Sequence[Any], attr: str) -> bool:
     return all_same(values_by_attr(items, attr))
 
 
-def check_attr_all_same(items: Sequence[Any],
-                        attr: str,
-                        id_attr: str = None,
-                        fail_if_different: bool = True,
-                        ignore_none: bool = False) -> None:
+def check_attr_all_same(
+    items: Sequence[Any],
+    attr: str,
+    id_attr: str = None,
+    fail_if_different: bool = True,
+    ignore_none: bool = False,
+) -> None:
     """
     Checks if the value of an attribute is the same across a collection of
     items, and takes some action if not.
@@ -141,33 +147,34 @@ def check_attr_all_same(items: Sequence[Any],
         log.warning(msg)
 
 
-def require_attr_all_same(items: Sequence[Any],
-                          attr: str,
-                          id_attr: str,
-                          ignore_none: bool = False) -> None:
+def require_attr_all_same(
+    items: Sequence[Any], attr: str, id_attr: str, ignore_none: bool = False
+) -> None:
     """
     Raise if the ``attr`` attribute of each item in ``items`` is not the same.
     See :func:`check_attr_all_same`.
     """
-    check_attr_all_same(items, attr, id_attr,
-                        fail_if_different=True, ignore_none=ignore_none)
+    check_attr_all_same(
+        items, attr, id_attr, fail_if_different=True, ignore_none=ignore_none
+    )
 
 
-def prefer_attr_all_same(items: Sequence[Any],
-                         attr: str,
-                         id_attr: str,
-                         ignore_none: bool = False) -> None:
+def prefer_attr_all_same(
+    items: Sequence[Any], attr: str, id_attr: str, ignore_none: bool = False
+) -> None:
     """
     Warn if the ``attr`` attribute of each item in ``items`` is not the same.
     See :func:`check_attr_all_same`.
     """
-    check_attr_all_same(items, attr, id_attr,
-                        fail_if_different=False, ignore_none=ignore_none)
+    check_attr_all_same(
+        items, attr, id_attr, fail_if_different=False, ignore_none=ignore_none
+    )
 
 
 # =============================================================================
 # Spreadsheet operations: xlrd
 # =============================================================================
+
 
 def load_workbook(spreadsheet_filename: str) -> Book:
     """
@@ -177,7 +184,7 @@ def load_workbook(spreadsheet_filename: str) -> Book:
     log.info(f"Loading: {spreadsheet_filename!r}...")
     book = xlrd.open_workbook(
         filename=spreadsheet_filename,
-        on_demand=True  # may affect rather little, but we can try
+        on_demand=True,  # may affect rather little, but we can try
     )
     log.info("... done")
     return book
@@ -209,6 +216,7 @@ def read_int_row(row: Sequence[Cell], colnum: int) -> Optional[int]:
 # =============================================================================
 # Helper functions
 # =============================================================================
+
 
 def none_or_blank_string(x: Any) -> bool:
     """
@@ -264,10 +272,12 @@ def colnum_zb_from_alphacol(alphacol: str) -> int:
 # SheetHolder
 # =============================================================================
 
+
 class SheetHolder(object):
     """
     Class to read from an Excel spreadsheet.
     """
+
     SHEET_NAME = ""  # may be overridden
     HEADER_ROW_ZERO_BASED = 0  # 0 is the first row (usually a header row)
     FIRST_DATA_ROW_ZERO_BASED = 1
@@ -277,18 +287,20 @@ class SheetHolder(object):
     BOOL_FALSE_VALUES_LOWERCASE = [0, "f", "false", "n", "no"]
     BOOL_UNKNOWN_VALUES_LOWERCASE = [None, "", "?", "not known", "unknown"]
 
-    def __init__(self,
-                 book: Book = None,
-                 sheet_name: str = None,
-                 sheet_index: int = None,
-                 sheet: Sheet = None,
-                 header_row_zero_based: int = None,
-                 first_data_row_zero_based: int = None,
-                 null_values: List[Any] = None,
-                 bool_true_values_lowercase: List[Any] = None,
-                 bool_false_values_lowercase: List[Any] = None,
-                 bool_unknown_values_lowercase: List[Any] = None,
-                 debug_max_rows_per_sheet: int = None) -> None:
+    def __init__(
+        self,
+        book: Book = None,
+        sheet_name: str = None,
+        sheet_index: int = None,
+        sheet: Sheet = None,
+        header_row_zero_based: int = None,
+        first_data_row_zero_based: int = None,
+        null_values: List[Any] = None,
+        bool_true_values_lowercase: List[Any] = None,
+        bool_false_values_lowercase: List[Any] = None,
+        bool_unknown_values_lowercase: List[Any] = None,
+        debug_max_rows_per_sheet: int = None,
+    ) -> None:
         """
         There are two ways to specify the sheet:
 
@@ -367,16 +379,17 @@ class SheetHolder(object):
 
         # Other parameters
         self.header_row_zero_based = (
-            header_row_zero_based if header_row_zero_based is not None
+            header_row_zero_based
+            if header_row_zero_based is not None
             else self.HEADER_ROW_ZERO_BASED
         )
         self.first_data_row_zero_based = (
-            first_data_row_zero_based if first_data_row_zero_based is not None
+            first_data_row_zero_based
+            if first_data_row_zero_based is not None
             else self.FIRST_DATA_ROW_ZERO_BASED
         )
         self.null_values = (
-            null_values if null_values is not None
-            else self.NULL_VALUES
+            null_values if null_values is not None else self.NULL_VALUES
         )
         self.bool_true_values_lowercase = (
             bool_true_values_lowercase
@@ -464,12 +477,15 @@ class SheetHolder(object):
             row: zero-based row index
             col: zero-based column index
         """
-        return (f" [sheet_name={self.sheet_name!r}, "
-                f"row(1-based)={row+1}, "
-                f"column(1-based)={col+1} ({column_lettering(col)})]")
+        return (
+            f" [sheet_name={self.sheet_name!r}, "
+            f"row(1-based)={row+1}, "
+            f"column(1-based)={col+1} ({column_lettering(col)})]"
+        )
 
-    def ensure_header(self, col: int,
-                      header: Union[str, Sequence[str]]) -> None:
+    def ensure_header(
+        self, col: int, header: Union[str, Sequence[str]]
+    ) -> None:
         """
         Ensures that the header is correct for a specified column, or raise
         :exc:`ValueError`.
@@ -497,12 +513,13 @@ class SheetHolder(object):
             if v in header:
                 return  # good
         raise ValueError(
-            f"Bad header: should be {header!r}, but was {v!r}" +
-            self._locinfo(self.header_row_zero_based, col)
+            f"Bad header: should be {header!r}, but was {v!r}"
+            + self._locinfo(self.header_row_zero_based, col)
         )
 
-    def ensure_heading(self, col: int,
-                       heading: Union[str, Sequence[str]]) -> None:
+    def ensure_heading(
+        self, col: int, heading: Union[str, Sequence[str]]
+    ) -> None:
         """
         Synonym for :meth:`ensure_header`.
         """
@@ -512,8 +529,12 @@ class SheetHolder(object):
     # Reading
     # -------------------------------------------------------------------------
 
-    def read_value(self, row: int, col: int,
-                   check_header: Union[str, Sequence[str]] = None) -> Any:
+    def read_value(
+        self,
+        row: int,
+        col: int,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Any:
         """
         Retrieves a value from a cell of a spreadsheet.
 
@@ -525,16 +546,20 @@ class SheetHolder(object):
                 self.ensure_header(col, check_header)
             except ValueError as e:
                 raise ValueError(
-                    f"When reading row with zero-based index {row}: {e}")
+                    f"When reading row with zero-based index {row}: {e}"
+                )
         v = self.sheet.cell_value(row, col)
         if v in self.null_values:
             return None
         return v
 
-    def read_datetime(self, row: int, col: int,
-                      default: datetime.datetime = None,
-                      check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[datetime.datetime]:
+    def read_datetime(
+        self,
+        row: int,
+        col: int,
+        default: datetime.datetime = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[datetime.datetime]:
         """
         Reads a datetime from an Excel spreadsheet via xlrd.
 
@@ -560,10 +585,13 @@ class SheetHolder(object):
         except (TypeError, ValueError):
             raise ValueError(f"Bad date/time: {v!r}" + self._locinfo(row, col))
 
-    def read_date(self, row: int, col: int,
-                  default: datetime.date = None,
-                  check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[datetime.date]:
+    def read_date(
+        self,
+        row: int,
+        col: int,
+        default: datetime.date = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[datetime.date]:
         """
         Reads a date from an Excel spreadsheet
 
@@ -575,11 +603,12 @@ class SheetHolder(object):
         return default
 
     def read_int(
-            self,
-            row: int,
-            col: int,
-            default: int = None,
-            check_header: Union[str, Sequence[str]] = None) -> Optional[int]:
+        self,
+        row: int,
+        col: int,
+        default: int = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[int]:
         """
         Reads an integer from a spreadsheet.
         """
@@ -603,10 +632,13 @@ class SheetHolder(object):
         except (TypeError, ValueError):
             raise ValueError(f"Bad int: {v!r}" + self._locinfo(row, col))
 
-    def read_float(self, row: int, col: int,
-                   default: float = None,
-                   check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[float]:
+    def read_float(
+        self,
+        row: int,
+        col: int,
+        default: float = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[float]:
         """
         Reads a float from the spreadsheet.
         """
@@ -619,13 +651,14 @@ class SheetHolder(object):
             raise ValueError(f"Bad float: {v!r}" + self._locinfo(row, col))
 
     def read_decimal(
-            self,
-            row: int,
-            col: int,
-            default: Decimal = None,
-            check_header: Union[str, Sequence[str]] = None,
-            dp: int = None,
-            rounding: str = decimal.ROUND_HALF_UP) -> Optional[Decimal]:
+        self,
+        row: int,
+        col: int,
+        default: Decimal = None,
+        check_header: Union[str, Sequence[str]] = None,
+        dp: int = None,
+        rounding: str = decimal.ROUND_HALF_UP,
+    ) -> Optional[Decimal]:
         """
         Reads a Decimal from the spreadsheet.
 
@@ -647,11 +680,12 @@ class SheetHolder(object):
         return x
 
     def read_str(
-            self,
-            row: int,
-            col: int,
-            default: str = None,
-            check_header: Union[str, Sequence[str]] = None) -> Optional[str]:
+        self,
+        row: int,
+        col: int,
+        default: str = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[str]:
         """
         Reads a string from a spreadsheet.
         """
@@ -660,10 +694,13 @@ class SheetHolder(object):
             return default
         return str(v).strip()
 
-    def read_str_int(self, row: int, col: int,
-                     default: str = None,
-                     check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[str]:
+    def read_str_int(
+        self,
+        row: int,
+        col: int,
+        default: str = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[str]:
         """
         Reads a string version of an integer. (This prevents e.g. "2" being
         read as a floating-point value of "2.0" then converted to a string.)
@@ -673,10 +710,13 @@ class SheetHolder(object):
             return default
         return str(v_int)
 
-    def read_str_nonfloat(self, row: int, col: int,
-                          default: str = None,
-                          check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[str]:
+    def read_str_nonfloat(
+        self,
+        row: int,
+        col: int,
+        default: str = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[str]:
         """
         Reads something that may be a string or numeric, but if it's numeric,
         it's integer (not float). (This prevents e.g. "2" being read as a
@@ -701,15 +741,16 @@ class SheetHolder(object):
             raise ValueError
         return str(iv)  # string version of int
 
-    def read_bool(self,
-                  row: int,
-                  col: int,
-                  default: bool = None,
-                  true_values_lowercase: List[Any] = None,
-                  false_values_lowercase: List[Any] = None,
-                  unknown_values_lowercase: List[Any] = None,
-                  check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[bool]:
+    def read_bool(
+        self,
+        row: int,
+        col: int,
+        default: bool = None,
+        true_values_lowercase: List[Any] = None,
+        false_values_lowercase: List[Any] = None,
+        unknown_values_lowercase: List[Any] = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[bool]:
         """
         Reads a boolean value.
         """
@@ -736,16 +777,20 @@ class SheetHolder(object):
         else:
             raise ValueError(f"Bad bool: {raw_v!r}" + self._locinfo(row, col))
 
-    def read_none(self, row: int, col: int,
-                  check_header: Union[str, Sequence[str]] = None) -> None:
+    def read_none(
+        self,
+        row: int,
+        col: int,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> None:
         """
         Reads a value, and checks that it is a none/null value
         """
         v = self.read_value(row, col, check_header=check_header)
         if v is not None:
             raise ValueError(
-                f"Value should be none/null but is {v!r}" +
-                self._locinfo(row, col)
+                f"Value should be none/null but is {v!r}"
+                + self._locinfo(row, col)
             )
         return None
 
@@ -753,25 +798,29 @@ class SheetHolder(object):
     # Row generators
     # -------------------------------------------------------------------------
 
-    def _setup_for_gen(self, with_counter: bool = True) \
-            -> Tuple[int, Optional["ActivityCounter"]]:
+    def _setup_for_gen(
+        self, with_counter: bool = True
+    ) -> Tuple[int, Optional["ActivityCounter"]]:
         n_rows = self.sheet.nrows
         if with_counter:
             counter = ActivityCounter(
-                activity="Reading row", n_total=self.n_data_rows)
+                activity="Reading row", n_total=self.n_data_rows
+            )
         else:
             counter = None
         if self.debug_max_rows_per_sheet is not None:
             log.debug(
                 f"Debug option: limiting to {self.debug_max_rows_per_sheet} "
-                f"rows from spreadsheet {self}")
+                f"rows from spreadsheet {self}"
+            )
             end = min(n_rows, self.debug_max_rows_per_sheet + 1)
         else:
             end = n_rows
         return end, counter
 
     def gen_row_numbers_excluding_header_row(
-            self, with_counter: bool = True) -> Iterable[int]:
+        self, with_counter: bool = True
+    ) -> Iterable[int]:
         """
         Generates row numbers.
 
@@ -784,7 +833,8 @@ class SheetHolder(object):
             yield rownum
 
     def gen_rows_excluding_header_row(
-            self, with_counter: bool = True) -> Iterable[Sequence[Cell]]:
+        self, with_counter: bool = True
+    ) -> Iterable[Sequence[Cell]]:
         """
         Generates rows. AVOID; index-based access is faster.
 
@@ -800,6 +850,7 @@ class SheetHolder(object):
 # =============================================================================
 # RowHolder
 # =============================================================================
+
 
 class RowHolder(object):
     """
@@ -840,7 +891,9 @@ class RowHolder(object):
     def __init__(self, sheetholder: SheetHolder, row: int) -> None:
         self.sheetholder = sheetholder
         self.row = row  # zero-based index of our row
-        self._next_col = 0  # zero-based column index of the next column to read  # noqa
+        self._next_col = (
+            0
+        )  # zero-based column index of the next column to read  # noqa
 
     # -------------------------------------------------------------------------
     # Information
@@ -855,11 +908,7 @@ class RowHolder(object):
         Attributes added by the user, and row number.
         :return:
         """
-        avoid = [
-            "sheetholder",
-            "row",
-            "_next_col",
-        ]
+        avoid = ["sheetholder", "row", "_next_col"]
         user_attrs = [k for k in self.__dict__.keys() if k not in avoid]
         attrs = ["sheet_name", "row"] + user_attrs
         return attrs
@@ -889,16 +938,18 @@ class RowHolder(object):
     # -------------------------------------------------------------------------
     # More commonly, this is done via the "read...()" functions.
 
-    def ensure_header(self, col: int,
-                      header: Union[str, Sequence[str]]) -> None:
+    def ensure_header(
+        self, col: int, header: Union[str, Sequence[str]]
+    ) -> None:
         """
         Ensures the column has an appropriate heading value, or raises
         :exc:`ValueError`.
         """
         self.sheetholder.ensure_header(col, header)
 
-    def ensure_heading(self, col: int,
-                       header: Union[str, Sequence[str]]) -> None:
+    def ensure_heading(
+        self, col: int, header: Union[str, Sequence[str]]
+    ) -> None:
         """
         Synonym for :meth:`ensure_header`.
         """
@@ -909,85 +960,109 @@ class RowHolder(object):
     # -------------------------------------------------------------------------
     # Compare equivalents in SheetHolder.
 
-    def read_value(self, col: int,
-                   check_header: Union[str, Sequence[str]] = None) -> Any:
+    def read_value(
+        self, col: int, check_header: Union[str, Sequence[str]] = None
+    ) -> Any:
         return self.sheetholder.read_value(
-            self.row, col, check_header=check_header)
+            self.row, col, check_header=check_header
+        )
 
-    def read_datetime(self, col: int,
-                      default: Any = None,
-                      check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[datetime.date]:
+    def read_datetime(
+        self,
+        col: int,
+        default: Any = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[datetime.date]:
         return self.sheetholder.read_datetime(
-            self.row, col, default, check_header=check_header)
+            self.row, col, default, check_header=check_header
+        )
 
-    def read_date(self, col: int,
-                  default: Any = None,
-                  check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[datetime.date]:
+    def read_date(
+        self,
+        col: int,
+        default: Any = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[datetime.date]:
         return self.sheetholder.read_date(
-            self.row, col, default, check_header=check_header)
+            self.row, col, default, check_header=check_header
+        )
 
-    def read_int(self, col: int,
-                 default: int = None,
-                 check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[int]:
+    def read_int(
+        self,
+        col: int,
+        default: int = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[int]:
         return self.sheetholder.read_int(
-            self.row, col, default, check_header=check_header)
+            self.row, col, default, check_header=check_header
+        )
 
-    def read_float(self, col: int,
-                   default: float = None,
-                   check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[float]:
+    def read_float(
+        self,
+        col: int,
+        default: float = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[float]:
         return self.sheetholder.read_float(
-            self.row, col, default, check_header=check_header)
+            self.row, col, default, check_header=check_header
+        )
 
     def read_decimal(
-            self,
-            col: int,
-            default: Decimal = None,
-            check_header: Union[str, Sequence[str]] = None,
-            dp: int = None,
-            rounding: str = decimal.ROUND_HALF_UP) -> Optional[Decimal]:
+        self,
+        col: int,
+        default: Decimal = None,
+        check_header: Union[str, Sequence[str]] = None,
+        dp: int = None,
+        rounding: str = decimal.ROUND_HALF_UP,
+    ) -> Optional[Decimal]:
         return self.sheetholder.read_decimal(
             self.row,
             col,
             default,
             check_header=check_header,
             dp=dp,
-            rounding=rounding
+            rounding=rounding,
         )
 
     def read_str(
-            self,
-            col: int,
-            default: str = None,
-            check_header: Union[str, Sequence[str]] = None) -> Optional[str]:
+        self,
+        col: int,
+        default: str = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[str]:
         return self.sheetholder.read_str(
-            self.row, col, default, check_header=check_header)
+            self.row, col, default, check_header=check_header
+        )
 
-    def read_str_int(self, col: int,
-                     default: str = None,
-                     check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[str]:
+    def read_str_int(
+        self,
+        col: int,
+        default: str = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[str]:
         return self.sheetholder.read_str_int(
-            self.row, col, default, check_header=check_header)
+            self.row, col, default, check_header=check_header
+        )
 
-    def read_str_nonfloat(self, col: int,
-                          default: str = None,
-                          check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[str]:
+    def read_str_nonfloat(
+        self,
+        col: int,
+        default: str = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[str]:
         return self.sheetholder.read_str_nonfloat(
-            self.row, col, default, check_header=check_header)
+            self.row, col, default, check_header=check_header
+        )
 
-    def read_bool(self,
-                  col: int,
-                  default: bool = None,
-                  true_values_lowercase: List[Any] = None,
-                  false_values_lowercase: List[Any] = None,
-                  unknown_values_lowercase: List[Any] = None,
-                  check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[bool]:
+    def read_bool(
+        self,
+        col: int,
+        default: bool = None,
+        true_values_lowercase: List[Any] = None,
+        false_values_lowercase: List[Any] = None,
+        unknown_values_lowercase: List[Any] = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[bool]:
         return self.sheetholder.read_bool(
             row=self.row,
             col=col,
@@ -995,32 +1070,32 @@ class RowHolder(object):
             true_values_lowercase=true_values_lowercase,
             false_values_lowercase=false_values_lowercase,
             unknown_values_lowercase=unknown_values_lowercase,
-            check_header=check_header
+            check_header=check_header,
         )
 
-    def read_none(self,
-                  col: int,
-                  check_header: Union[str, Sequence[str]] = None) -> None:
+    def read_none(
+        self, col: int, check_header: Union[str, Sequence[str]] = None
+    ) -> None:
         return self.sheetholder.read_none(
-            row=self.row,
-            col=col,
-            check_header=check_header
+            row=self.row, col=col, check_header=check_header
         )
 
     # -------------------------------------------------------------------------
     # Check the next column
     # -------------------------------------------------------------------------
 
-    def ensure_next_col_header(self,
-                               header: Union[str, Sequence[str]]) -> None:
+    def ensure_next_col_header(
+        self, header: Union[str, Sequence[str]]
+    ) -> None:
         """
         Ensures the next column has an appropriate heading value, or raises
         :exc:`ValueError`.
         """
         self.ensure_header(self._next_col, header)
 
-    def ensure_next_col_heading(self,
-                                header: Union[str, Sequence[str]]) -> None:
+    def ensure_next_col_heading(
+        self, header: Union[str, Sequence[str]]
+    ) -> None:
         """
         Synonym for :meth:`ensure_next_col_header`.
         """
@@ -1062,70 +1137,81 @@ class RowHolder(object):
             self.inc_next_col()
         return v
 
-    def datetime_pp(self,
-                    default: datetime.datetime = None,
-                    check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[datetime.datetime]:
+    def datetime_pp(
+        self,
+        default: datetime.datetime = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[datetime.datetime]:
         """
         Reads a datetime, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
         try:
             v = self.read_datetime(
-                self._next_col, default, check_header=check_header)
+                self._next_col, default, check_header=check_header
+            )
         finally:
             self.inc_next_col()
         return v
 
-    def date_pp(self,
-                default: datetime.date = None,
-                check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[datetime.date]:
+    def date_pp(
+        self,
+        default: datetime.date = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[datetime.date]:
         """
         Reads a date, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
         try:
-            v = self.read_date(self._next_col, default,
-                               check_header=check_header)
+            v = self.read_date(
+                self._next_col, default, check_header=check_header
+            )
         finally:
             self.inc_next_col()
         return v
 
-    def int_pp(self,
-               default: int = None,
-               check_header: Union[str, Sequence[str]] = None) -> Optional[int]:
+    def int_pp(
+        self,
+        default: int = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[int]:
         """
         Reads an int, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
         try:
-            v = self.read_int(self._next_col, default,
-                              check_header=check_header)
+            v = self.read_int(
+                self._next_col, default, check_header=check_header
+            )
         finally:
             self.inc_next_col()
         return v
 
-    def float_pp(self,
-                 default: float = None,
-                 check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[float]:
+    def float_pp(
+        self,
+        default: float = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[float]:
         """
         Reads a float, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
         try:
-            v = self.read_float(self._next_col, default,
-                                check_header=check_header)
+            v = self.read_float(
+                self._next_col, default, check_header=check_header
+            )
         finally:
             self.inc_next_col()
         return v
 
-    def decimal_pp(self,
-                   default: float = None,
-                   check_header: Union[str, Sequence[str]] = None,
-                   dp: int = None,
-                   rounding: str = decimal.ROUND_HALF_UP) -> Optional[Decimal]:
+    def decimal_pp(
+        self,
+        default: float = None,
+        check_header: Union[str, Sequence[str]] = None,
+        dp: int = None,
+        rounding: str = decimal.ROUND_HALF_UP,
+    ) -> Optional[Decimal]:
         """
         Reads a Decimal, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
@@ -1136,45 +1222,51 @@ class RowHolder(object):
                 default=default,
                 check_header=check_header,
                 dp=dp,
-                rounding=rounding
+                rounding=rounding,
             )
         finally:
             self.inc_next_col()
         return v
 
-    def str_pp(self,
-               default: str = None,
-               check_header: Union[str, Sequence[str]] = None) -> Optional[str]:
+    def str_pp(
+        self,
+        default: str = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[str]:
         """
         Reads a string, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
         try:
-            v = self.read_str(self._next_col, default,
-                              check_header=check_header)
+            v = self.read_str(
+                self._next_col, default, check_header=check_header
+            )
         finally:
             self.inc_next_col()
         return v
 
-    def str_int_pp(self,
-                   default: str = None,
-                   check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[str]:
+    def str_int_pp(
+        self,
+        default: str = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[str]:
         """
         Reads an integer as a string, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
         """
         try:
             v = self.read_str_int(
-                self._next_col, default, check_header=check_header)
+                self._next_col, default, check_header=check_header
+            )
         finally:
             self.inc_next_col()
         return v
 
-    def str_nonfloat_pp(self,
-                        default: str = None,
-                        check_header: Union[str, Sequence[str]] = None) \
-            -> Optional[str]:
+    def str_nonfloat_pp(
+        self,
+        default: str = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[str]:
         """
         Reads something that may be a string or numeric, but if it's numeric,
         it's integer (not float). Then increments the "current" column.
@@ -1182,18 +1274,20 @@ class RowHolder(object):
         """
         try:
             v = self.read_str_nonfloat(
-                self._next_col, default, check_header=check_header)
+                self._next_col, default, check_header=check_header
+            )
         finally:
             self.inc_next_col()
         return v
 
     def bool_pp(
-            self,
-            default: bool = None,
-            true_values_lowercase: List[Any] = None,
-            false_values_lowercase: List[Any] = None,
-            unknown_values_lowercase: List[Any] = None,
-            check_header: Union[str, Sequence[str]] = None) -> Optional[bool]:
+        self,
+        default: bool = None,
+        true_values_lowercase: List[Any] = None,
+        false_values_lowercase: List[Any] = None,
+        unknown_values_lowercase: List[Any] = None,
+        check_header: Union[str, Sequence[str]] = None,
+    ) -> Optional[bool]:
         """
         Reads a boolean value, then increments the "current" column.
         Optionally, checks that the header for this column is as expected.
@@ -1205,7 +1299,7 @@ class RowHolder(object):
                 true_values_lowercase=true_values_lowercase,
                 false_values_lowercase=false_values_lowercase,
                 unknown_values_lowercase=unknown_values_lowercase,
-                check_header=check_header
+                check_header=check_header,
             )
         finally:
             self.inc_next_col()

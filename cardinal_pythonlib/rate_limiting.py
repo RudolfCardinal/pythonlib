@@ -37,8 +37,9 @@ log = logging.getLogger(__name__)
 FuncType = Callable[..., Any]
 
 
-def rate_limited(max_per_second: Optional[Union[int, float]]) \
-        -> Callable[[FuncType], FuncType]:
+def rate_limited(
+    max_per_second: Optional[Union[int, float]]
+) -> Callable[[FuncType], FuncType]:
     """
     Returns a function that rate-limits another function to the specified
     frequency. Can be used as a decorator, e.g.

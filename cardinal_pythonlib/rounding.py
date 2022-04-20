@@ -42,6 +42,7 @@ from typing import Tuple, Union
 # Rounding/truncation
 # =============================================================================
 
+
 def round_half_up(x: Union[float, Decimal], dp: int = 0) -> Decimal:
     """
     Rounds, with halves going up (positive).
@@ -58,9 +59,9 @@ def round_half_up(x: Union[float, Decimal], dp: int = 0) -> Decimal:
     x = Decimal(x)
     context = decimal.getcontext()
     factor = context.power(10, dp)
-    y = (
-        x * factor + Decimal("0.5")
-    ).quantize(Decimal("1"), rounding=decimal.ROUND_FLOOR) / factor
+    y = (x * factor + Decimal("0.5")).quantize(
+        Decimal("1"), rounding=decimal.ROUND_FLOOR
+    ) / factor
     # print(f"round_half_up({x}, {dp}) = {y}")
     return y
 
@@ -85,6 +86,7 @@ def truncate(x: Union[float, Decimal], dp: int = 0) -> Decimal:
 # =============================================================================
 # Reverse rounding/truncation
 # =============================================================================
+
 
 def remove_exponent_from_decimal(d: Decimal) -> Decimal:
     """
@@ -117,10 +119,9 @@ def num_dp_from_decimal(x: Decimal, with_negative_dp: bool = False) -> int:
     return len(components[1])
 
 
-def range_roundable_up_to(y: Union[int, float, Decimal],
-                          dp: int = 0,
-                          with_description: bool = False) \
-        -> Union[Tuple[Decimal, Decimal], Tuple[Decimal, Decimal, str]]:
+def range_roundable_up_to(
+    y: Union[int, float, Decimal], dp: int = 0, with_description: bool = False
+) -> Union[Tuple[Decimal, Decimal], Tuple[Decimal, Decimal, str]]:
     """
     Suppose some value ``x`` was rounded to ``y`` with ``dp`` decimal places,
     using the "round half up" rounding method (see implementation in
@@ -158,10 +159,9 @@ def range_roundable_up_to(y: Union[int, float, Decimal],
         return a, b
 
 
-def range_truncatable_to(y: Union[int, float, Decimal],
-                         dp: int = 0,
-                         with_description: bool = False) \
-        -> Union[Tuple[Decimal, Decimal], Tuple[Decimal, Decimal, str]]:
+def range_truncatable_to(
+    y: Union[int, float, Decimal], dp: int = 0, with_description: bool = False
+) -> Union[Tuple[Decimal, Decimal], Tuple[Decimal, Decimal, str]]:
     """
     Some value ``x`` was truncated to ``y`` with ``dp`` decimal places, as per
     the implementation in :func:`truncate`. Return the range within which ``x``

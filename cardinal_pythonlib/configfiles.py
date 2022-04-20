@@ -39,10 +39,10 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Style 1
 # =============================================================================
 
-def get_config_string_option(parser: ConfigParser,
-                             section: str,
-                             option: str,
-                             default: str = None) -> str:
+
+def get_config_string_option(
+    parser: ConfigParser, section: str, option: str, default: str = None
+) -> str:
     """
     Retrieves a string value from a parser.
 
@@ -64,11 +64,13 @@ def get_config_string_option(parser: ConfigParser,
     return parser.get(section, option, fallback=default)
 
 
-def read_config_string_options(obj: Any,
-                               parser: ConfigParser,
-                               section: str,
-                               options: Iterable[str],
-                               default: str = None) -> None:
+def read_config_string_options(
+    obj: Any,
+    parser: ConfigParser,
+    section: str,
+    options: Iterable[str],
+    default: str = None,
+) -> None:
     """
     Reads config options and writes them as attributes of ``obj``, with
     attribute names as per ``options``.
@@ -86,14 +88,16 @@ def read_config_string_options(obj: Any,
     # enforce_str removed; ConfigParser always returns strings unless asked
     # specifically
     for o in options:
-        setattr(obj, o, get_config_string_option(parser, section, o,
-                                                 default=default))
+        setattr(
+            obj,
+            o,
+            get_config_string_option(parser, section, o, default=default),
+        )
 
 
-def get_config_multiline_option(parser: ConfigParser,
-                                section: str,
-                                option: str,
-                                default: List[str] = None) -> List[str]:
+def get_config_multiline_option(
+    parser: ConfigParser, section: str, option: str, default: List[str] = None
+) -> List[str]:
     """
     Retrieves a multi-line string value from a parser as a list of strings
     (one per line, ignoring blank lines).
@@ -123,10 +127,9 @@ def get_config_multiline_option(parser: ConfigParser,
         return default
 
 
-def read_config_multiline_options(obj: Any,
-                                  parser: ConfigParser,
-                                  section: str,
-                                  options: Iterable[str]) -> None:
+def read_config_multiline_options(
+    obj: Any, parser: ConfigParser, section: str, options: Iterable[str]
+) -> None:
     """
     This is to :func:`read_config_string_options` as
     :func:`get_config_multiline_option` is to :func:`get_config_string_option`.
@@ -135,10 +138,9 @@ def read_config_multiline_options(obj: Any,
         setattr(obj, o, get_config_multiline_option(parser, section, o))
 
 
-def get_config_bool_option(parser: ConfigParser,
-                           section: str,
-                           option: str,
-                           default: bool = None) -> bool:
+def get_config_bool_option(
+    parser: ConfigParser, section: str, option: str, default: bool = None
+) -> bool:
     """
     Retrieves a boolean value from a parser.
 
@@ -168,12 +170,15 @@ def get_config_bool_option(parser: ConfigParser,
 # Reading config files: style 2
 # =============================================================================
 
-def get_config_parameter(config: ConfigParser,
-                         section: str,
-                         param: str,
-                         fn: Callable[[Any], Any],
-                         default: Any = None,
-                         loglevel: int = logging.DEBUG) -> Any:
+
+def get_config_parameter(
+    config: ConfigParser,
+    section: str,
+    param: str,
+    fn: Callable[[Any], Any],
+    default: Any = None,
+    loglevel: int = logging.DEBUG,
+) -> Any:
     """
     Fetch parameter from ``configparser`` ``.INI`` file.
 
@@ -194,7 +199,8 @@ def get_config_parameter(config: ConfigParser,
         log.log(
             level=loglevel,
             msg=f"Configuration variable {param} not found or improper in "
-                f"section [{section}]; using default of {default!r}")
+            f"section [{section}]; using default of {default!r}",
+        )
         if default is None:
             value = default
         else:
@@ -202,11 +208,13 @@ def get_config_parameter(config: ConfigParser,
     return value
 
 
-def get_config_parameter_boolean(config: ConfigParser,
-                                 section: str,
-                                 param: str,
-                                 default: bool,
-                                 loglevel: int = logging.DEBUG) -> bool:
+def get_config_parameter_boolean(
+    config: ConfigParser,
+    section: str,
+    param: str,
+    default: bool,
+    loglevel: int = logging.DEBUG,
+) -> bool:
     """
     Get Boolean parameter from ``configparser`` ``.INI`` file.
 
@@ -225,16 +233,19 @@ def get_config_parameter_boolean(config: ConfigParser,
         log.log(
             level=loglevel,
             msg=f"Configuration variable {param} not found or improper in "
-                f"section [{section}]; using default of {default!r}")
+            f"section [{section}]; using default of {default!r}",
+        )
         value = default
     return value
 
 
-def get_config_parameter_loglevel(config: ConfigParser,
-                                  section: str,
-                                  param: str,
-                                  default: int,
-                                  loglevel: int = logging.DEBUG) -> int:
+def get_config_parameter_loglevel(
+    config: ConfigParser,
+    section: str,
+    param: str,
+    default: int,
+    loglevel: int = logging.DEBUG,
+) -> int:
     """
     Get ``loglevel`` parameter from ``configparser`` ``.INI`` file, e.g.
     mapping ``'debug'`` to ``logging.DEBUG``.
@@ -266,15 +277,18 @@ def get_config_parameter_loglevel(config: ConfigParser,
         log.log(
             level=loglevel,
             msg=f"Configuration variable {param} not found or improper in "
-                f"section [{section}]; using default of {default!r}")
+            f"section [{section}]; using default of {default!r}",
+        )
         return default
 
 
-def get_config_parameter_multiline(config: ConfigParser,
-                                   section: str,
-                                   param: str,
-                                   default: List[str],
-                                   loglevel: int = logging.DEBUG) -> List[str]:
+def get_config_parameter_multiline(
+    config: ConfigParser,
+    section: str,
+    param: str,
+    default: List[str],
+    loglevel: int = logging.DEBUG,
+) -> List[str]:
     """
     Get multi-line string parameter from ``configparser`` ``.INI`` file,
     as a list of strings (one per line, ignoring blank lines).
@@ -296,5 +310,6 @@ def get_config_parameter_multiline(config: ConfigParser,
         log.log(
             level=loglevel,
             msg=f"Configuration variable {param} not found or improper in "
-                f"section [{section}]; using default of {default!r}")
+            f"section [{section}]; using default of {default!r}",
+        )
         return default

@@ -51,8 +51,9 @@ def ctrl_break_trapper(signum: int, stackframe) -> None:
     """
     Logs that ``CTRL-BREAK`` has been pressed but does nothing else.
     """
-    log.critical("Ignoring CTRL+BREAK (signal {}); use the GUI to quit",
-                 signum)
+    log.critical(
+        "Ignoring CTRL+BREAK (signal {}); use the GUI to quit", signum
+    )
 
 
 # noinspection PyUnusedLocal
@@ -107,7 +108,7 @@ def trap_ctrl_c_ctrl_break() -> None:
 
     signal.signal(signal.SIGINT, ctrl_c_trapper)
     signal.signal(signal.SIGTERM, sigterm_trapper)
-    if platform.system() == 'Windows':
+    if platform.system() == "Windows":
         # SIGBREAK isn't in the Linux signal module
         # noinspection PyUnresolvedReferences
         signal.signal(signal.SIGBREAK, ctrl_break_trapper)

@@ -134,7 +134,7 @@ def tee(infile: IO, *files: IO) -> Thread:
     """  # noqa
 
     def fanout(_infile: IO, *_files: IO):
-        for line in iter(_infile.readline, ''):
+        for line in iter(_infile.readline, ""):
             for f in _files:
                 f.write(line)
         infile.close()
@@ -145,11 +145,13 @@ def tee(infile: IO, *files: IO) -> Thread:
     return t
 
 
-def teed_call(cmd_args,
-              stdout_targets: List[TextIO] = None,
-              stderr_targets: List[TextIO] = None,
-              encoding: str = sys.getdefaultencoding(),
-              **kwargs):
+def teed_call(
+    cmd_args,
+    stdout_targets: List[TextIO] = None,
+    stderr_targets: List[TextIO] = None,
+    encoding: str = sys.getdefaultencoding(),
+    **kwargs
+):
     """
     Runs a command and captures its output via :func:`tee` to one or more
     destinations. The output is always captured (otherwise we would lose
@@ -170,8 +172,12 @@ def teed_call(cmd_args,
 
     """  # noqa
     # Make a copy so we can append without damaging the original:
-    stdout_targets = stdout_targets.copy() if stdout_targets else []  # type: List[TextIO]  # noqa
-    stderr_targets = stderr_targets.copy() if stderr_targets else []  # type: List[TextIO]  # noqa
+    stdout_targets = (
+        stdout_targets.copy() if stdout_targets else []
+    )  # type: List[TextIO]  # noqa
+    stderr_targets = (
+        stderr_targets.copy() if stderr_targets else []
+    )  # type: List[TextIO]  # noqa
     p = Popen(cmd_args, stdout=PIPE, stderr=PIPE, **kwargs)
     threads = []  # type: List[Thread]
     with open(os.devnull, "w") as null:  # type: TextIO
@@ -181,8 +187,12 @@ def teed_call(cmd_args,
             stderr_targets.append(null)
         # Now, by default, because we're not using "universal_newlines", both
         # p.stdout and p.stderr are binary.
-        stdout_txt = TextIOWrapper(p.stdout, encoding=encoding)  # type: TextIO  # noqa
-        stderr_txt = TextIOWrapper(p.stderr, encoding=encoding)  # type: TextIO  # noqa
+        stdout_txt = TextIOWrapper(
+            p.stdout, encoding=encoding
+        )  # type: TextIO  # noqa
+        stderr_txt = TextIOWrapper(
+            p.stderr, encoding=encoding
+        )  # type: TextIO  # noqa
         threads.append(tee(stdout_txt, *stdout_targets))
         threads.append(tee(stderr_txt, *stderr_targets))
         for t in threads:
@@ -205,10 +215,12 @@ class TeeContextManager(object):
     of one way to manage this.
     """
 
-    def __init__(self,
-                 file: TextIO,
-                 capture_stdout: bool = False,
-                 capture_stderr: bool = False) -> None:
+    def __init__(
+        self,
+        file: TextIO,
+        capture_stdout: bool = False,
+        capture_stderr: bool = False,
+    ) -> None:
         """
         Args:
             file: file-like object to write to. We take a file object, not a
@@ -231,8 +243,9 @@ class TeeContextManager(object):
         self.filename = file.name
         # Announce
         self.output_description = "stdout" if capture_stdout else "stderr"
-        log.debug("Copying {} to file {}",
-                  self.output_description, self.filename)
+        log.debug(
+            "Copying {} to file {}", self.output_description, self.filename
+        )
 
         # Redirect
         if self.using_stdout:
@@ -282,8 +295,11 @@ class TeeContextManager(object):
         if self.file:
             # Do NOT close the file; we don't own it.
             self.file = None
-            log.debug("Finished copying {} to {}",
-                      self.output_description, self.filename)
+            log.debug(
+                "Finished copying {} to {}",
+                self.output_description,
+                self.filename,
+            )
 
 
 @contextmanager
@@ -309,7 +325,8 @@ def tee_log(tee_file: TextIO, loglevel: int) -> None:
                 # We catch this so that the exception also goes to
                 # the log.
                 exc_type, exc_value, exc_traceback = sys.exc_info()
-                lines = traceback.format_exception(exc_type, exc_value,
-                                                   exc_traceback)
+                lines = traceback.format_exception(
+                    exc_type, exc_value, exc_traceback
+                )
                 log.critical("\n" + "".join(lines))
                 raise

@@ -27,11 +27,7 @@
 """
 
 import math
-from math import (
-    exp as math_exp,
-    log as math_ln,
-    log10 as math_log10,
-)
+from math import exp as math_exp, log as math_ln, log10 as math_log10
 
 # For speed:
 INFINITY = math.inf
@@ -41,6 +37,7 @@ MINUS_INFINITY = -math.inf
 # =============================================================================
 # Basic maths
 # =============================================================================
+
 
 def ln(x: float) -> float:
     """
@@ -100,6 +97,7 @@ def log10(x: float) -> float:
 # =============================================================================
 # Basic probability
 # =============================================================================
+
 
 def odds_from_probability(p: float) -> float:
     r"""
@@ -223,8 +221,10 @@ def log_odds_from_1_in_n(n: float) -> float:
 # Bayesian update rules
 # =============================================================================
 
-def bayes_posterior(prior: float, likelihood: float,
-                    marginal_likelihood: float) -> float:
+
+def bayes_posterior(
+    prior: float, likelihood: float, marginal_likelihood: float
+) -> float:
     r"""
     Returns P(H | D), the posterior probability of hypothesis H, given data D.
 
@@ -257,8 +257,9 @@ def bayes_posterior(prior: float, likelihood: float,
     return likelihood * prior / marginal_likelihood
 
 
-def log_bayes_posterior(log_prior: float, log_likelihood: float,
-                        log_marginal_likelihood: float) -> float:
+def log_bayes_posterior(
+    log_prior: float, log_likelihood: float, log_marginal_likelihood: float
+) -> float:
     r"""
     Exactly equivalent to :func:`bayes_posterior`, but using log probability.
 
@@ -273,8 +274,7 @@ def log_bayes_posterior(log_prior: float, log_likelihood: float,
     return log_likelihood + log_prior - log_marginal_likelihood
 
 
-def posterior_odds(prior_odds: float,
-                   likelihood_ratio: float) -> float:
+def posterior_odds(prior_odds: float, likelihood_ratio: float) -> float:
     r"""
     Returns the posterior odds for a hypothesis, given the prior odds and the
     likelihood ratio.
@@ -307,16 +307,18 @@ def posterior_odds(prior_odds: float,
     return likelihood_ratio * prior_odds
 
 
-def log_posterior_odds(log_prior_odds: float,
-                       log_likelihood_ratio: float) -> float:
+def log_posterior_odds(
+    log_prior_odds: float, log_likelihood_ratio: float
+) -> float:
     r"""
     Exactly as for :func:`posterior_odds`, but with log odds.
     """
     return log_likelihood_ratio + log_prior_odds
 
 
-def log_likelihood_ratio_from_p(p_d_given_h: float,
-                                p_d_given_not_h: float) -> float:
+def log_likelihood_ratio_from_p(
+    p_d_given_h: float, p_d_given_not_h: float
+) -> float:
     r"""
     Returns
 
@@ -336,9 +338,9 @@ def log_likelihood_ratio_from_p(p_d_given_h: float,
     return ln(p_d_given_h) - ln(p_d_given_not_h)
 
 
-def log_posterior_odds_from_pdh_pdnh(log_prior_odds: float,
-                                     p_d_given_h: float,
-                                     p_d_given_not_h: float) -> float:
+def log_posterior_odds_from_pdh_pdnh(
+    log_prior_odds: float, p_d_given_h: float, p_d_given_not_h: float
+) -> float:
     r"""
     Calculates posterior odds.
 
@@ -358,16 +360,14 @@ def log_posterior_odds_from_pdh_pdnh(log_prior_odds: float,
     return log_posterior_odds(
         log_prior_odds=log_prior_odds,
         log_likelihood_ratio=log_likelihood_ratio_from_p(
-            p_d_given_h=p_d_given_h,
-            p_d_given_not_h=p_d_given_not_h
-        )
+            p_d_given_h=p_d_given_h, p_d_given_not_h=p_d_given_not_h
+        ),
     )
 
 
-def log_posterior_odds_from_bool_d_pdh_pdnh(log_prior_odds: float,
-                                            d: bool,
-                                            p_d_given_h: float,
-                                            p_d_given_not_h: float) -> float:
+def log_posterior_odds_from_bool_d_pdh_pdnh(
+    log_prior_odds: float, d: bool, p_d_given_h: float, p_d_given_not_h: float
+) -> float:
     r"""
     Calculates posterior odds.
 
@@ -389,18 +389,15 @@ def log_posterior_odds_from_bool_d_pdh_pdnh(log_prior_odds: float,
     if d:
         # D is true
         log_lr = log_likelihood_ratio_from_p(
-            p_d_given_h=p_d_given_h,
-            p_d_given_not_h=p_d_given_not_h
+            p_d_given_h=p_d_given_h, p_d_given_not_h=p_d_given_not_h
         )
     else:
         # not-D is true
         p_not_d_given_h = 1 - p_d_given_h
         p_not_d_given_not_h = 1 - p_d_given_not_h
         log_lr = log_likelihood_ratio_from_p(
-            p_d_given_h=p_not_d_given_h,
-            p_d_given_not_h=p_not_d_given_not_h
+            p_d_given_h=p_not_d_given_h, p_d_given_not_h=p_not_d_given_not_h
         )
     return log_posterior_odds(
-        log_prior_odds=log_prior_odds,
-        log_likelihood_ratio=log_lr
+        log_prior_odds=log_prior_odds, log_likelihood_ratio=log_lr
     )

@@ -172,8 +172,20 @@ import datetime
 import re  # noqa
 import logging
 import time
-from typing import (Any, Container, Dict, Iterable, Iterator, List, Optional,  # noqa
-                    Sequence, Tuple, Type, TypeVar, Union)  # noqa
+from typing import (
+    Any,
+    Container,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,  # noqa
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)  # noqa
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sql.validation import *
@@ -192,6 +204,7 @@ except ImportError:
 try:
     # noinspection PyPackageRequirements
     import jaydebeapi  # pip install jaydebeapi
+
     # noinspection PyPackageRequirements
     import jpype
 except ImportError:
@@ -202,6 +215,7 @@ except ImportError:
 try:
     # noinspection PyPackageRequirements
     import pymysql  # pip install PyMySQL
+
     # pymysql.converters is automatically available now
     mysql = pymysql
 except ImportError:
@@ -213,6 +227,7 @@ if not pymysql:
         import MySQLdb  # pip install [mysql-python | mysqlclient]
         import MySQLdb.converters  # needs manual import
         import _mysql
+
         # noinspection PyTypeChecker
         mysql = MySQLdb
     except ImportError:
@@ -223,8 +238,10 @@ if not pymysql:
 log = get_brace_style_log_with_null_handler(__name__)
 log.setLevel(logging.INFO)
 
-log.warning("The cardinal_pythonlib.rnc_db module is DEPRECATED; "
-            "use SQLAlchemy instead")
+log.warning(
+    "The cardinal_pythonlib.rnc_db module is DEPRECATED; "
+    "use SQLAlchemy instead"
+)
 
 # =============================================================================
 # Constants
@@ -236,7 +253,8 @@ _CONNECTION_ERROR_MSG = "Failed to connect. {ex}: {msg}"
 _LINE_EQUALS = "=" * 79
 _MSG_JDBC_UNAVAILABLE = "Python jaydebeapi module not available"
 _MSG_MYSQL_DRIVERS_UNAVAILABLE = (
-    "Python PyMySQL and MySQLdb/mysqlclient modules unavailable")
+    "Python PyMySQL and MySQLdb/mysqlclient modules unavailable"
+)
 _MSG_NO_FLAVOUR = "No database flavour specified"
 _MSG_PYODBC_UNAVAILABLE = "Python pyodbc module not available"
 
@@ -259,7 +277,7 @@ PYTHONLIB_PYODBC = "pyodbc"
 
 DATABASE_SUPPORTER_FWD_REF = "DatabaseSupporter"
 
-T = TypeVar('T')
+T = TypeVar("T")
 FIELDSPEC_TYPE = Dict[str, str]
 FIELDSPECLIST_TYPE = List[FIELDSPEC_TYPE]
 
@@ -268,10 +286,12 @@ FIELDSPECLIST_TYPE = List[FIELDSPEC_TYPE]
 # Database specializations
 # =============================================================================
 
+
 class Flavour(object):
     """
     Describes a database "flavour" (dialect).
     """
+
     @classmethod
     def flavour(cls) -> str:
         return ""
@@ -298,8 +318,9 @@ class Flavour(object):
         raise RuntimeError(_MSG_NO_FLAVOUR)
 
     @classmethod
-    def get_all_table_details(cls, db: DATABASE_SUPPORTER_FWD_REF) \
-            -> List[List[Any]]:
+    def get_all_table_details(
+        cls, db: DATABASE_SUPPORTER_FWD_REF
+    ) -> List[List[Any]]:
         """Returns all information the database has on a table."""
         raise RuntimeError(_MSG_NO_FLAVOUR)
         # works in MySQL and SQL Server
@@ -307,88 +328,91 @@ class Flavour(object):
         # ... those fields (and more) available in MySQL
 
     @classmethod
-    def describe_table(cls,
-                       db: DATABASE_SUPPORTER_FWD_REF,
-                       table: str) -> List[List[Any]]:
+    def describe_table(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str
+    ) -> List[List[Any]]:
         """Returns details on a specific table."""
         raise RuntimeError(_MSG_NO_FLAVOUR)
 
     @classmethod
-    def fetch_column_names(cls,
-                           db: DATABASE_SUPPORTER_FWD_REF,
-                           table: str) -> List[str]:
+    def fetch_column_names(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str
+    ) -> List[str]:
         """Returns all column names for a table."""
         raise RuntimeError(_MSG_NO_FLAVOUR)
 
     @classmethod
-    def get_datatype(cls,
-                     db: DATABASE_SUPPORTER_FWD_REF,
-                     table: str,
-                     column: str) -> str:
+    def get_datatype(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str, column: str
+    ) -> str:
         """Returns database SQL datatype for a column: e.g. VARCHAR."""
         raise RuntimeError(_MSG_NO_FLAVOUR)
 
     @classmethod
-    def get_column_type(cls,
-                        db: DATABASE_SUPPORTER_FWD_REF,
-                        table: str,
-                        column: str) -> str:
+    def get_column_type(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str, column: str
+    ) -> str:
         """Returns database SQL datatype for a column, e.g. VARCHAR(50)."""
         raise RuntimeError(_MSG_NO_FLAVOUR)
 
     @classmethod
-    def get_comment(cls,
-                    db: DATABASE_SUPPORTER_FWD_REF,
-                    table: str,
-                    column: str) -> str:
+    def get_comment(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str, column: str
+    ) -> str:
         """Returns database SQL comment for a column."""
-        return ''
+        return ""
 
     @classmethod
-    def get_system_variable(cls,
-                            db: DATABASE_SUPPORTER_FWD_REF,
-                            varname: str) -> Any:
+    def get_system_variable(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, varname: str
+    ) -> Any:
         """Returns a database system variable."""
         return None
 
     @classmethod
-    def mysql_using_file_per_table(cls,
-                                   db: DATABASE_SUPPORTER_FWD_REF) -> bool:
+    def mysql_using_file_per_table(
+        cls, db: DATABASE_SUPPORTER_FWD_REF
+    ) -> bool:
         return False
 
     @classmethod
-    def mysql_using_innodb_barracuda(cls,
-                                     db: DATABASE_SUPPORTER_FWD_REF) -> bool:
+    def mysql_using_innodb_barracuda(
+        cls, db: DATABASE_SUPPORTER_FWD_REF
+    ) -> bool:
         return False
 
     @classmethod
-    def mysql_table_using_barracuda(cls,
-                                    db: DATABASE_SUPPORTER_FWD_REF,
-                                    tablename: str) -> bool:
+    def mysql_table_using_barracuda(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, tablename: str
+    ) -> bool:
         return False
 
     @classmethod
-    def mysql_convert_table_to_barracuda(cls,
-                                         db: DATABASE_SUPPORTER_FWD_REF,
-                                         tablename: str,
-                                         logger: logging.Logger = None,
-                                         compressed: bool = False) -> None:
+    def mysql_convert_table_to_barracuda(
+        cls,
+        db: DATABASE_SUPPORTER_FWD_REF,
+        tablename: str,
+        logger: logging.Logger = None,
+        compressed: bool = False,
+    ) -> None:
         pass
 
     @classmethod
-    def mysql_using_innodb_strict_mode(cls,
-                                       db: DATABASE_SUPPORTER_FWD_REF) -> bool:
+    def mysql_using_innodb_strict_mode(
+        cls, db: DATABASE_SUPPORTER_FWD_REF
+    ) -> bool:
         return False
 
     @classmethod
-    def mysql_get_max_allowed_packet(cls, db: DATABASE_SUPPORTER_FWD_REF) \
-            -> Optional[int]:
+    def mysql_get_max_allowed_packet(
+        cls, db: DATABASE_SUPPORTER_FWD_REF
+    ) -> Optional[int]:
         return None
 
     @classmethod
-    def is_read_only(cls,
-                     db: DATABASE_SUPPORTER_FWD_REF,
-                     logger: logging.Logger = None) -> bool:
+    def is_read_only(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, logger: logging.Logger = None
+    ) -> bool:
         return False
 
 
@@ -406,40 +430,45 @@ class Access(Flavour):
 
     @classmethod
     def get_all_table_names(cls, db: DATABASE_SUPPORTER_FWD_REF) -> List[str]:
-        return db.fetchallfirstvalues("""
+        return db.fetchallfirstvalues(
+            """
             SELECT MSysObjects.Name AS table_name
             FROM MSysObjects
             WHERE (((Left([Name],1))<>"~")
                     AND ((Left([Name],4))<>"MSys")
                     AND ((MSysObjects.Type) In (1,4,6)))
             ORDER BY MSysObjects.Name
-        """)
+        """
+        )
         # https://stackoverflow.com/questions/201282
 
     @classmethod
-    def get_all_table_details(cls, db: DATABASE_SUPPORTER_FWD_REF) \
-            -> List[List[Any]]:
+    def get_all_table_details(
+        cls, db: DATABASE_SUPPORTER_FWD_REF
+    ) -> List[List[Any]]:
         # returns some not-very-helpful stuff too!
         # noinspection PyTypeChecker
-        return db.fetchall("""
+        return db.fetchall(
+            """
             SELECT *
             FROM MSysObjects
             WHERE (((Left([Name],1))<>"~")
                     AND ((Left([Name],4))<>"MSys")
                     AND ((MSysObjects.Type) In (1,4,6)))
             ORDER BY MSysObjects.Name
-        """)
+        """
+        )
 
     @classmethod
-    def describe_table(cls,
-                       db: DATABASE_SUPPORTER_FWD_REF,
-                       table: str) -> List[List[Any]]:
+    def describe_table(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str
+    ) -> List[List[Any]]:
         raise RuntimeError("Don't know how to describe table in Access")
 
     @classmethod
-    def fetch_column_names(cls,
-                           db: DATABASE_SUPPORTER_FWD_REF,
-                           table: str) -> List[str]:
+    def fetch_column_names(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str
+    ) -> List[str]:
         # not possible in SQL:
         #   https://stackoverflow.com/questions/2221250
         # can do this:
@@ -454,17 +483,15 @@ class Access(Flavour):
         # https://code.google.com/p/pyodbc/wiki/Cursor
 
     @classmethod
-    def get_datatype(cls,
-                     db: DATABASE_SUPPORTER_FWD_REF,
-                     table: str,
-                     column: str) -> str:
+    def get_datatype(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str, column: str
+    ) -> str:
         raise AssertionError("Don't know how to get datatype in Access")
 
     @classmethod
-    def get_column_type(cls,
-                        db: DATABASE_SUPPORTER_FWD_REF,
-                        table: str,
-                        column: str) -> str:
+    def get_column_type(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str, column: str
+    ) -> str:
         raise AssertionError("Don't know how to get datatype in Access")
 
 
@@ -510,101 +537,122 @@ class MySQL(Flavour):
     def get_all_table_names(cls, db: DATABASE_SUPPORTER_FWD_REF) -> List[str]:
         return db.fetchallfirstvalues(
             "SELECT table_name FROM information_schema.tables "
-            "WHERE table_schema=?", db.schema)
+            "WHERE table_schema=?",
+            db.schema,
+        )
         # or: "SHOW TABLES"
 
     @classmethod
-    def get_all_table_details(cls, db: DATABASE_SUPPORTER_FWD_REF) \
-            -> List[List[Any]]:
+    def get_all_table_details(
+        cls, db: DATABASE_SUPPORTER_FWD_REF
+    ) -> List[List[Any]]:
         # noinspection PyTypeChecker
-        return db.fetchall("SELECT * FROM information_schema.tables "
-                           "WHERE table_schema=?", db.schema)
+        return db.fetchall(
+            "SELECT * FROM information_schema.tables " "WHERE table_schema=?",
+            db.schema,
+        )
         # not restricted to current database, unless we do that manually
 
     @classmethod
-    def describe_table(cls,
-                       db: DATABASE_SUPPORTER_FWD_REF,
-                       table: str) -> List[List[Any]]:
+    def describe_table(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str
+    ) -> List[List[Any]]:
         # noinspection PyTypeChecker
         return db.fetchall(
             "SELECT * FROM information_schema.columns "
-            "WHERE table_schema=? AND table_name=?", db.schema, table)
+            "WHERE table_schema=? AND table_name=?",
+            db.schema,
+            table,
+        )
         # or: "SHOW TABLES"
 
     @classmethod
-    def fetch_column_names(cls,
-                           db: DATABASE_SUPPORTER_FWD_REF,
-                           table: str) -> List[str]:
+    def fetch_column_names(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str
+    ) -> List[str]:
         return db.fetchallfirstvalues(
             "SELECT column_name FROM information_schema.columns "
-            "WHERE table_schema=? AND table_name=?", db.schema, table)
+            "WHERE table_schema=? AND table_name=?",
+            db.schema,
+            table,
+        )
         # or: "SHOW TABLES"
 
     @classmethod
-    def get_datatype(cls,
-                     db: DATABASE_SUPPORTER_FWD_REF,
-                     table: str,
-                     column: str) -> str:
+    def get_datatype(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str, column: str
+    ) -> str:
         # ISO standard for INFORMATION_SCHEMA, I think.
         return db.fetchvalue(
             "SELECT data_type FROM information_schema.columns "
             "WHERE table_schema=? AND table_name=? AND column_name=?",
-            db.schema, table, column)
+            db.schema,
+            table,
+            column,
+        )
 
     @classmethod
-    def get_column_type(cls,
-                        db: DATABASE_SUPPORTER_FWD_REF,
-                        table: str,
-                        column: str) -> str:
+    def get_column_type(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str, column: str
+    ) -> str:
         # ISO standard for INFORMATION_SCHEMA, I think.
         sql = """
             SELECT {}
             FROM information_schema.columns
             WHERE table_schema=? AND table_name=? AND column_name=?
-        """.format(cls.column_type_expr())
+        """.format(
+            cls.column_type_expr()
+        )
         return db.fetchvalue(sql, db.schema, table, column)
 
     @classmethod
-    def get_comment(cls,
-                    db: DATABASE_SUPPORTER_FWD_REF,
-                    table: str,
-                    column: str) -> str:
+    def get_comment(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str, column: str
+    ) -> str:
         return db.fetchvalue(
             "SELECT column_comment FROM information_schema.columns "
             "WHERE table_schema=? AND table_name=? AND column_name=?",
-            db.schema, table, column)
+            db.schema,
+            table,
+            column,
+        )
 
     @classmethod
-    def get_system_variable(cls,
-                            db: DATABASE_SUPPORTER_FWD_REF,
-                            varname: str) -> Any:
+    def get_system_variable(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, varname: str
+    ) -> Any:
         sql = "SELECT @@{varname}".format(varname=varname)
         # http://dev.mysql.com/doc/refman/5.5/en/using-system-variables.html
         return db.fetchvalue(sql)
 
     @classmethod
-    def mysql_using_file_per_table(cls,
-                                   db: DATABASE_SUPPORTER_FWD_REF) -> bool:
+    def mysql_using_file_per_table(
+        cls, db: DATABASE_SUPPORTER_FWD_REF
+    ) -> bool:
         return cls.get_system_variable(db, "innodb_file_per_table") == 1
 
     @classmethod
-    def mysql_using_innodb_barracuda(cls,
-                                     db: DATABASE_SUPPORTER_FWD_REF) -> bool:
+    def mysql_using_innodb_barracuda(
+        cls, db: DATABASE_SUPPORTER_FWD_REF
+    ) -> bool:
         return cls.get_system_variable(db, "innodb_file_format") == "Barracuda"
 
     @classmethod
-    def mysql_table_using_barracuda(cls,
-                                    db: DATABASE_SUPPORTER_FWD_REF,
-                                    tablename: str) -> bool:
-        if (not cls.mysql_using_file_per_table(db) or
-                not cls.mysql_using_innodb_barracuda(db)):
+    def mysql_table_using_barracuda(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, tablename: str
+    ) -> bool:
+        if not cls.mysql_using_file_per_table(
+            db
+        ) or not cls.mysql_using_innodb_barracuda(db):
             return False
         sql = """
             SELECT engine, row_format
             FROM information_schema.tables
             WHERE table_name = ?
             AND table_schema={}
-        """.format(cls.current_schema_expr())
+        """.format(
+            cls.current_schema_expr()
+        )
         args = [tablename]
         row = db.fetchone(sql, *args)
         if not row:
@@ -615,25 +663,25 @@ class MySQL(Flavour):
         # http://dev.mysql.com/doc/refman/5.6/en/innodb-file-format-identifying.html  # noqa
 
     @classmethod
-    def mysql_convert_table_to_barracuda(cls,
-                                         db: DATABASE_SUPPORTER_FWD_REF,
-                                         tablename: str,
-                                         logger: logging.Logger = None,
-                                         compressed: bool = False) -> None:
+    def mysql_convert_table_to_barracuda(
+        cls,
+        db: DATABASE_SUPPORTER_FWD_REF,
+        tablename: str,
+        logger: logging.Logger = None,
+        compressed: bool = False,
+    ) -> None:
         row_format = "COMPRESSED" if compressed else "DYNAMIC"
         sql = """
             ALTER TABLE {tablename}
             ENGINE=InnoDB
             ROW_FORMAT={row_format}
         """.format(
-            tablename=tablename,
-            row_format=row_format,
+            tablename=tablename, row_format=row_format
         )
         if logger:
             logger.info(
                 "Converting table {} to Barracuda (row_format={})".format(
-                    tablename,
-                    row_format
+                    tablename, row_format
                 )
             )
         db.db_exec(sql)
@@ -641,26 +689,30 @@ class MySQL(Flavour):
         # http://www.percona.com/blog/2011/04/07/innodb-row-size-limitation/
 
     @classmethod
-    def mysql_using_innodb_strict_mode(cls,
-                                       db: DATABASE_SUPPORTER_FWD_REF) -> bool:
+    def mysql_using_innodb_strict_mode(
+        cls, db: DATABASE_SUPPORTER_FWD_REF
+    ) -> bool:
         return cls.get_system_variable(db, "innodb_strict_mode") == 1
 
     @classmethod
-    def mysql_get_max_allowed_packet(cls, db: DATABASE_SUPPORTER_FWD_REF) \
-            -> Optional[int]:
+    def mysql_get_max_allowed_packet(
+        cls, db: DATABASE_SUPPORTER_FWD_REF
+    ) -> Optional[int]:
         return cls.get_system_variable(db, "max_allowed_packet")
 
     @classmethod
-    def is_read_only(cls,
-                     db: DATABASE_SUPPORTER_FWD_REF,
-                     logger: logging.Logger = None) -> bool:
+    def is_read_only(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, logger: logging.Logger = None
+    ) -> bool:
         """Do we have read-only access?"""
 
         def convert_enums(row_):
             # All these columns are of type enum('N', 'Y');
             # https://dev.mysql.com/doc/refman/5.0/en/enum.html
-            return [True if x == 'Y' else (False if x == 'N' else None)
-                    for x in row_]
+            return [
+                True if x == "Y" else (False if x == "N" else None)
+                for x in row_
+            ]
 
         # 1. Check per-database privileges.
         # We don't check SELECT privileges. We're just trying to ensure
@@ -726,7 +778,8 @@ class MySQL(Flavour):
                 if logger:
                     logger.debug(
                         "MySQL.is_read_only(): FAIL: GLOBAL privileges "
-                        "wrong: prohibited={}".format(prohibited))
+                        "wrong: prohibited={}".format(prohibited)
+                    )
                 return False
         except mysql.OperationalError:
             # Probably: error 1142, "SELECT command denied to user 'xxx'@'yyy'
@@ -784,11 +837,13 @@ class SQLServer(Flavour):
     @classmethod
     def get_all_table_names(cls, db: DATABASE_SUPPORTER_FWD_REF) -> List[str]:
         return db.fetchallfirstvalues(
-            "SELECT table_name FROM information_schema.tables")
+            "SELECT table_name FROM information_schema.tables"
+        )
 
     @classmethod
-    def get_all_table_details(cls, db: DATABASE_SUPPORTER_FWD_REF) \
-            -> List[List[Any]]:
+    def get_all_table_details(
+        cls, db: DATABASE_SUPPORTER_FWD_REF
+    ) -> List[List[Any]]:
         # noinspection PyTypeChecker
         return db.fetchall("SELECT * FROM information_schema.tables")
         # restricted to current database (in full:
@@ -796,27 +851,29 @@ class SQLServer(Flavour):
         # https://stackoverflow.com/questions/6568098
 
     @classmethod
-    def describe_table(cls,
-                       db: DATABASE_SUPPORTER_FWD_REF,
-                       table: str) -> List[List[Any]]:
+    def describe_table(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str
+    ) -> List[List[Any]]:
         # noinspection PyTypeChecker
         return db.fetchall(
-            "SELECT * FROM information_schema.columns "
-            "WHERE table_name=?", table)
+            "SELECT * FROM information_schema.columns " "WHERE table_name=?",
+            table,
+        )
 
     @classmethod
-    def fetch_column_names(cls,
-                           db: DATABASE_SUPPORTER_FWD_REF,
-                           table: str) -> List[str]:
+    def fetch_column_names(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str
+    ) -> List[str]:
         return db.fetchallfirstvalues(
             "SELECT column_name FROM information_schema.columns "
-            "WHERE table_name=?", table)
+            "WHERE table_name=?",
+            table,
+        )
 
     @classmethod
-    def get_datatype(cls,
-                     db: DATABASE_SUPPORTER_FWD_REF,
-                     table: str,
-                     column: str) -> str:
+    def get_datatype(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str, column: str
+    ) -> str:
         # ISO standard for INFORMATION_SCHEMA, I think.
         # SQL Server carries a warning but the warning may be incorrect:
         # https://msdn.microsoft.com/en-us/library/ms188348.aspx
@@ -825,13 +882,15 @@ class SQLServer(Flavour):
         return db.fetchvalue(
             "SELECT data_type FROM information_schema.columns "
             "WHERE table_schema=? AND table_name=? AND column_name=?",
-            db.schema, table, column)
+            db.schema,
+            table,
+            column,
+        )
 
     @classmethod
-    def get_column_type(cls,
-                        db: DATABASE_SUPPORTER_FWD_REF,
-                        table: str,
-                        column: str) -> str:
+    def get_column_type(
+        cls, db: DATABASE_SUPPORTER_FWD_REF, table: str, column: str
+    ) -> str:
         # ISO standard for INFORMATION_SCHEMA, I think.
         # SQL Server carries a warning but the warning may be incorrect:
         # https://msdn.microsoft.com/en-us/library/ms188348.aspx
@@ -841,7 +900,9 @@ class SQLServer(Flavour):
             SELECT {}
             FROM information_schema.columns
             WHERE table_schema=? AND table_name=? AND column_name=?
-        """.format(cls.column_type_expr())
+        """.format(
+            cls.column_type_expr()
+        )
         return db.fetchvalue(sql, db.schema, table, column)
 
 
@@ -849,8 +910,10 @@ class SQLServer(Flavour):
 # Exceptions
 # =============================================================================
 
+
 class NoDatabaseError(Exception):
     """Exception class for when a database is unavailable."""
+
     def __init__(self, value: str = "") -> None:
         self.value = value
 
@@ -861,6 +924,7 @@ class NoDatabaseError(Exception):
 # =============================================================================
 # Generic database routines.
 # =============================================================================
+
 
 def set_verbose_logging(verbose: bool) -> None:
     """Chooses basic or verbose logging."""
@@ -892,53 +956,60 @@ def get_pk_of_last_insert(cursor) -> int:
 
 
 def get_sql_select_all_non_pk_fields_by_pk(
-        table: str,
-        fieldlist: Sequence[str],
-        delims: Tuple[str, str] = ("", "")) -> str:
+    table: str, fieldlist: Sequence[str], delims: Tuple[str, str] = ("", "")
+) -> str:
     """Returns SQL:
         SELECT [all but the first field] WHERE [the first field] = ?
     """
     return (
-        "SELECT " +
-        ",".join([delimit(x, delims) for x in fieldlist[1:]]) +
-        " FROM " + table +
-        " WHERE " + delimit(fieldlist[0], delims) + "=?"
+        "SELECT "
+        + ",".join([delimit(x, delims) for x in fieldlist[1:]])
+        + " FROM "
+        + table
+        + " WHERE "
+        + delimit(fieldlist[0], delims)
+        + "=?"
     )
 
 
 def get_sql_select_all_fields_by_key(
-        table: str,
-        fieldlist: Sequence[str],
-        keyname: str,
-        delims: Tuple[str, str] = ("", "")) -> str:
+    table: str,
+    fieldlist: Sequence[str],
+    keyname: str,
+    delims: Tuple[str, str] = ("", ""),
+) -> str:
     """Returns SQL:
         SELECT [all fields in the fieldlist] WHERE [keyname] = ?
     """
     return (
-        "SELECT " +
-        ",".join([delimit(x, delims) for x in fieldlist]) +
-        " FROM " + delimit(table, delims) +
-        " WHERE " + delimit(keyname, delims) + "=?"
+        "SELECT "
+        + ",".join([delimit(x, delims) for x in fieldlist])
+        + " FROM "
+        + delimit(table, delims)
+        + " WHERE "
+        + delimit(keyname, delims)
+        + "=?"
     )
 
 
-def get_sql_insert(table: str,
-                   fieldlist: Sequence[str],
-                   delims: Tuple[str, str] = ("", "")) -> str:
+def get_sql_insert(
+    table: str, fieldlist: Sequence[str], delims: Tuple[str, str] = ("", "")
+) -> str:
     """Returns ?-marked SQL for an INSERT statement."""
     return (
-        "INSERT INTO " + delimit(table, delims) +
-        " (" +
-        ",".join([delimit(x, delims) for x in fieldlist]) +
-        ") VALUES (" +
-        ",".join(["?"] * len(fieldlist)) +
-        ")"
+        "INSERT INTO "
+        + delimit(table, delims)
+        + " ("
+        + ",".join([delimit(x, delims) for x in fieldlist])
+        + ") VALUES ("
+        + ",".join(["?"] * len(fieldlist))
+        + ")"
     )
 
 
-def get_sql_insert_or_update(table: str,
-                             fieldlist: Sequence[str],
-                             delims: Tuple[str, str] = ("", "")) -> str:
+def get_sql_insert_or_update(
+    table: str, fieldlist: Sequence[str], delims: Tuple[str, str] = ("", "")
+) -> str:
     """Returns ?-marked SQL for an INSERT-or-if-duplicate-key-UPDATE statement.
     """
     # https://stackoverflow.com/questions/4205181
@@ -951,31 +1022,35 @@ def get_sql_insert_or_update(table: str,
         fields=",".join([delimit(x, delims) for x in fieldlist]),
         placeholders=",".join(["?"] * len(fieldlist)),
         updatelist=",".join(
-            ["{field}=VALUES({field})".format(field=delimit(x, delims))
-             for x in fieldlist]
+            [
+                "{field}=VALUES({field})".format(field=delimit(x, delims))
+                for x in fieldlist
+            ]
         ),
     )
 
 
 def get_sql_insert_without_first_field(
-        table: str,
-        fieldlist: Sequence[str],
-        delims: Tuple[str, str] = ("", "")) -> str:
+    table: str, fieldlist: Sequence[str], delims: Tuple[str, str] = ("", "")
+) -> str:
     """Returns ?-marked SQL for an INSERT statement, ignoring the first field
     (typically, the PK)."""
     return get_sql_insert(table, fieldlist[1:], delims)
 
 
-def get_sql_update_by_first_field(table: str,
-                                  fieldlist: Sequence[str],
-                                  delims: Tuple[str, str] = ("", "")) -> str:
+def get_sql_update_by_first_field(
+    table: str, fieldlist: Sequence[str], delims: Tuple[str, str] = ("", "")
+) -> str:
     """Returns SQL for an UPDATE statement, to update all fields except the
     first field (PK) using the PK as the key."""
     return (
-        "UPDATE " + delimit(table, delims) +
-        " SET " +
-        ",".join([delimit(x, delims) + "=?" for x in fieldlist[1:]]) +
-        " WHERE " + delimit(fieldlist[0], delims) + "=?"
+        "UPDATE "
+        + delimit(table, delims)
+        + " SET "
+        + ",".join([delimit(x, delims) + "=?" for x in fieldlist[1:]])
+        + " WHERE "
+        + delimit(fieldlist[0], delims)
+        + "=?"
     )
 
 
@@ -1024,6 +1099,7 @@ def full_datatype_to_mysql(d: str) -> str:
 # Generic routines for objects with database fields
 # =============================================================================
 
+
 def debug_object(obj: T) -> str:
     """Prints key/value pairs for an object's dictionary."""
     pairs = []
@@ -1041,22 +1117,26 @@ def dump_database_object(obj: T, fieldlist: Iterable[str]) -> None:
     log.info(_LINE_EQUALS)
 
 
-def assign_from_list(obj: T,
-                     fieldlist: Sequence[str],
-                     valuelist: Sequence[any]) -> None:
+def assign_from_list(
+    obj: T, fieldlist: Sequence[str], valuelist: Sequence[any]
+) -> None:
     """Within "obj", assigns the values from the value list to the fields in
     the fieldlist."""
     if len(fieldlist) != len(valuelist):
-        raise AssertionError("assign_from_list: fieldlist and valuelist of "
-                             "different length")
+        raise AssertionError(
+            "assign_from_list: fieldlist and valuelist of " "different length"
+        )
     for i in range(len(valuelist)):
         setattr(obj, fieldlist[i], valuelist[i])
 
 
-def create_object_from_list(cls: Type,
-                            fieldlist: Sequence[str],
-                            valuelist: Sequence[Any],
-                            *args, **kwargs) -> T:
+def create_object_from_list(
+    cls: Type,
+    fieldlist: Sequence[str],
+    valuelist: Sequence[Any],
+    *args,
+    **kwargs
+) -> T:
     """
     Create an object by instantiating ``cls(*args, **kwargs)`` and assigning the
     values in ``valuelist`` to the fields in ``fieldlist``.
@@ -1073,7 +1153,7 @@ def create_object_from_list(cls: Type,
 
     but not in Python 2, and this is meant to be back-compatible.
     """
-    construct_with_pk = kwargs.pop('construct_with_pk', False)
+    construct_with_pk = kwargs.pop("construct_with_pk", False)
     # print("construct_with_pk: {}".format(construct_with_pk))
     # print("args: {}".format(args))
     # print("kwargs: {}".format(kwargs))
@@ -1104,6 +1184,7 @@ def debug_query_result(rows: Sequence[Any]) -> None:
 # =============================================================================
 # rs: resultset
 # col: column
+
 
 def _convert_java_binary(rs, col: int) -> Optional[bytes]:
     # https://github.com/originell/jpype/issues/71
@@ -1173,7 +1254,7 @@ def _convert_java_bigint(rs, col: int) -> Optional[int]:
     java_val = rs.getObject(col)
     if java_val is None:
         return None
-    v = getattr(java_val, 'toString')()  # Java call: java_val.toString()
+    v = getattr(java_val, "toString")()  # Java call: java_val.toString()
     return int(v)
 
 
@@ -1214,32 +1295,35 @@ def reconfigure_jaydebeapi() -> None:
             converters = jaydebeapi.dbapi2._DEFAULT_CONVERTERS
     except:  # nopep8
         raise AssertionError(
-            "Don't know how to hook into this version of JayDeBeApi")
+            "Don't know how to hook into this version of JayDeBeApi"
+        )
 
-    converters.update({
-        'BIGINT': _convert_java_bigint,
-        'BINARY': _convert_java_binary,  # overrides an existing one
-        'BLOB': _convert_java_binary,
-        'LONGNVARCHAR': _convert_java_bigstring,
-        'LONGVARBINARY': _convert_java_binary,
-        'LONGVARCHAR': _convert_java_bigstring,
-        'TIMESTAMP': _convert_java_datetime,
-        'VARBINARY': _convert_java_binary,
-        # Handled sensibly by jaydebeapi:
-        # 'TIME': _to_time,
-        # 'DATE': _to_date,
-        # 'BINARY': _to_binary,
-        # 'DECIMAL': _to_double,
-        # 'NUMERIC': _to_double,
-        # 'DOUBLE': _to_double,
-        # 'FLOAT': _to_double,
-        # 'INTEGER': _to_int,
-        # 'SMALLINT': _to_int,
-        # 'BOOLEAN': _java_to_py('booleanValue'),
-        #
-        # Not handled sensibly:
-        # 'TIMESTAMP': _to_datetime,
-    })
+    converters.update(
+        {
+            "BIGINT": _convert_java_bigint,
+            "BINARY": _convert_java_binary,  # overrides an existing one
+            "BLOB": _convert_java_binary,
+            "LONGNVARCHAR": _convert_java_bigstring,
+            "LONGVARBINARY": _convert_java_binary,
+            "LONGVARCHAR": _convert_java_bigstring,
+            "TIMESTAMP": _convert_java_datetime,
+            "VARBINARY": _convert_java_binary,
+            # Handled sensibly by jaydebeapi:
+            # 'TIME': _to_time,
+            # 'DATE': _to_date,
+            # 'BINARY': _to_binary,
+            # 'DECIMAL': _to_double,
+            # 'NUMERIC': _to_double,
+            # 'DOUBLE': _to_double,
+            # 'FLOAT': _to_double,
+            # 'INTEGER': _to_int,
+            # 'SMALLINT': _to_int,
+            # 'BOOLEAN': _java_to_py('booleanValue'),
+            #
+            # Not handled sensibly:
+            # 'TIMESTAMP': _to_datetime,
+        }
+    )
 
 
 reconfigure_jaydebeapi()
@@ -1249,14 +1333,17 @@ reconfigure_jaydebeapi()
 # Database creation
 # =============================================================================
 
-def create_database_mysql(database: str,
-                          user: str,
-                          password: str,
-                          server: str = "localhost",
-                          port: int = 3306,
-                          charset: str = "utf8",
-                          collate: str = "utf8_general_ci",
-                          use_unicode: bool = True) -> bool:
+
+def create_database_mysql(
+    database: str,
+    user: str,
+    password: str,
+    server: str = "localhost",
+    port: int = 3306,
+    charset: str = "utf8",
+    collate: str = "utf8_general_ci",
+    use_unicode: bool = True,
+) -> bool:
     """Connects via PyMySQL/MySQLdb and creates a database."""
     con = mysql.connect(
         host=server,
@@ -1264,14 +1351,12 @@ def create_database_mysql(database: str,
         user=user,
         passwd=password,
         charset=charset,
-        use_unicode=use_unicode
+        use_unicode=use_unicode,
     )
-    sql = ("CREATE DATABASE IF NOT EXISTS {} DEFAULT CHARACTER SET {} "
-           "DEFAULT COLLATE {}").format(
-        database,
-        charset,
-        collate
-    )
+    sql = (
+        "CREATE DATABASE IF NOT EXISTS {} DEFAULT CHARACTER SET {} "
+        "DEFAULT COLLATE {}"
+    ).format(database, charset, collate)
     cursor = con.cursor()
     debug_sql(sql)
     cursor.execute(sql)
@@ -1279,16 +1364,18 @@ def create_database_mysql(database: str,
     return True
 
 
-def add_master_user_mysql(database: str,
-                          root_user: str,
-                          root_password: str,
-                          new_user: str,
-                          new_password: str,
-                          server: str = "localhost",
-                          port: int = 3306,
-                          charset: str = "utf8",
-                          use_unicode: bool = True,
-                          localhost_only: bool = True) -> None:
+def add_master_user_mysql(
+    database: str,
+    root_user: str,
+    root_password: str,
+    new_user: str,
+    new_password: str,
+    server: str = "localhost",
+    port: int = 3306,
+    charset: str = "utf8",
+    use_unicode: bool = True,
+    localhost_only: bool = True,
+) -> None:
     """Connects via PyMySQL/MySQLdb and creates a database superuser."""
     con = mysql.connect(
         host=server,
@@ -1296,16 +1383,12 @@ def add_master_user_mysql(database: str,
         user=root_user,
         passwd=root_password,
         charset=charset,
-        use_unicode=use_unicode
+        use_unicode=use_unicode,
     )
     wherefrom = "localhost" if localhost_only else "%"
-    sql = ("GRANT ALL PRIVILEGES ON {}.* TO '{}'@'{}' "
-           "IDENTIFIED BY '{}'").format(
-        database,
-        new_user,
-        wherefrom,
-        new_password
-    )
+    sql = (
+        "GRANT ALL PRIVILEGES ON {}.* TO '{}'@'{}' " "IDENTIFIED BY '{}'"
+    ).format(database, new_user, wherefrom, new_password)
     cursor = con.cursor()
     debug_sql(sql)
     cursor.execute(sql)
@@ -1316,10 +1399,11 @@ def add_master_user_mysql(database: str,
 # Database config class
 # =============================================================================
 
+
 class DatabaseConfig(object):
-    def __init__(self,
-                 parser: configparser.ConfigParser,
-                 section: str) -> None:
+    def __init__(
+        self, parser: configparser.ConfigParser, section: str
+    ) -> None:
         self.section = section
         self.engine = None
         self.interface = None
@@ -1337,16 +1421,12 @@ class DatabaseConfig(object):
             # Connection
             "engine",
             "interface",
-
             # Various ways:
             "host",
             "port",
             "db",
-
             "dsn",
-
             "odbc_connection_string",
-
             # Then regardless:
             "user",
             "password",
@@ -1361,7 +1441,8 @@ class DatabaseConfig(object):
     def check_valid(self) -> None:
         if not self.engine:
             raise ValueError(
-                "Database {} doesn't specify engine".format(self.section))
+                "Database {} doesn't specify engine".format(self.section)
+            )
         self.engine = self.engine.lower()
         if self.engine not in [ENGINE_MYSQL, ENGINE_SQLSERVER]:
             raise ValueError("Unknown database engine: {}".format(self.engine))
@@ -1370,13 +1451,20 @@ class DatabaseConfig(object):
                 self.interface = INTERFACE_MYSQL
             else:
                 self.interface = INTERFACE_ODBC
-        if self.interface not in [INTERFACE_JDBC,
-                                  INTERFACE_MYSQL,
-                                  INTERFACE_ODBC]:
+        if self.interface not in [
+            INTERFACE_JDBC,
+            INTERFACE_MYSQL,
+            INTERFACE_ODBC,
+        ]:
             raise ValueError("Unknown interface: {}".format(self.interface))
         if self.engine == ENGINE_MYSQL:
-            if (not self.host or not self.port or not self.user or not
-                    self.password or not self.db):
+            if (
+                not self.host
+                or not self.port
+                or not self.user
+                or not self.password
+                or not self.db
+            ):
                 raise ValueError("Missing MySQL details")
         elif self.engine == ENGINE_SQLSERVER:
             if self.odbc_connection_string:
@@ -1384,16 +1472,17 @@ class DatabaseConfig(object):
             elif self.dsn:
                 if not self.user or not self.password:
                     raise ValueError(
-                        "Missing SQL Server details: user or password")
+                        "Missing SQL Server details: user or password"
+                    )
             else:
-                if (not self.host or not self.user or not
-                        self.password):
+                if not self.host or not self.user or not self.password:
                     raise ValueError(
-                        "Missing SQL Server details: host, user, or password")
+                        "Missing SQL Server details: host, user, or password"
+                    )
 
-    def get_database(self,
-                     autocommit: bool = False,
-                     securely: bool = True) -> DATABASE_SUPPORTER_FWD_REF:
+    def get_database(
+        self, autocommit: bool = False, securely: bool = True
+    ) -> DATABASE_SUPPORTER_FWD_REF:
         # noinspection PyBroadException
         try:
             db = DatabaseSupporter()
@@ -1407,22 +1496,22 @@ class DatabaseConfig(object):
                 odbc_connection_string=self.odbc_connection_string,
                 user=self.user,
                 password=self.password,
-                autocommit=autocommit  # if False, need to commit
+                autocommit=autocommit,  # if False, need to commit
             )
             return db
         except:  # nopep8
             if securely:
                 raise NoDatabaseError(
                     "Problem opening or reading from database {}; details "
-                    "concealed for security reasons".format(self.section))
+                    "concealed for security reasons".format(self.section)
+                )
             else:
                 raise
 
 
-def get_database_from_configparser(parser: configparser.ConfigParser,
-                                   section: str,
-                                   securely: bool = True) \
-        -> DATABASE_SUPPORTER_FWD_REF:
+def get_database_from_configparser(
+    parser: configparser.ConfigParser, section: str, securely: bool = True
+) -> DATABASE_SUPPORTER_FWD_REF:
     # noinspection PyBroadException
     try:  # guard this bit to prevent any password leakage
         dbc = DatabaseConfig(parser, section)
@@ -1432,7 +1521,8 @@ def get_database_from_configparser(parser: configparser.ConfigParser,
         if securely:
             raise NoDatabaseError(
                 "Problem opening or reading from database {}; details "
-                "concealed for security reasons".format(section))
+                "concealed for security reasons".format(section)
+            )
         else:
             raise
 
@@ -1440,6 +1530,7 @@ def get_database_from_configparser(parser: configparser.ConfigParser,
 # =============================================================================
 # Database support class. ODBC via pyodbc or MySQLdb.
 # =============================================================================
+
 
 class DatabaseSupporter:
     """Support class for databases using pyodbc or MySQLdb."""
@@ -1460,26 +1551,27 @@ class DatabaseSupporter:
     @staticmethod
     def reraise_connection_exception(e: Exception) -> None:
         err = "Failed to connect. {ex}: {msg}".format(
-            ex=type(e).__name__,
-            msg=str(e),
+            ex=type(e).__name__, msg=str(e)
         )
         log.exception(err)
         raise NoDatabaseError(err)
 
-    def connect(self,
-                engine: str = None,
-                interface: str = None,
-                host: str = None,
-                port: int = None,
-                database: str = None,
-                driver: str = None,
-                dsn: str = None,
-                odbc_connection_string: str = None,
-                user: str = None,
-                password: str = None,
-                autocommit: bool = True,
-                charset: str = "utf8",
-                use_unicode: bool = True) -> bool:
+    def connect(
+        self,
+        engine: str = None,
+        interface: str = None,
+        host: str = None,
+        port: int = None,
+        database: str = None,
+        driver: str = None,
+        dsn: str = None,
+        odbc_connection_string: str = None,
+        user: str = None,
+        password: str = None,
+        autocommit: bool = True,
+        charset: str = "utf8",
+        use_unicode: bool = True,
+    ) -> bool:
         """
             engine: access, mysql, sqlserver
             interface: mysql, odbc, jdbc
@@ -1490,30 +1582,39 @@ class DatabaseSupporter:
         # logger as well.
         try:
             return self._connect(
-                engine=engine, interface=interface,
-                host=host, port=port, database=database,
-                driver=driver, dsn=dsn,
+                engine=engine,
+                interface=interface,
+                host=host,
+                port=port,
+                database=database,
+                driver=driver,
+                dsn=dsn,
                 odbc_connection_string=odbc_connection_string,
-                user=user, password=password,
-                autocommit=autocommit, charset=charset,
-                use_unicode=use_unicode)
+                user=user,
+                password=password,
+                autocommit=autocommit,
+                charset=charset,
+                use_unicode=use_unicode,
+            )
         except Exception as e:
             self.reraise_connection_exception(e)
 
-    def _connect(self,
-                 engine: str = None,
-                 interface: str = None,
-                 host: str = None,
-                 port: int = None,
-                 database: str = None,
-                 driver: str = None,
-                 dsn: str = None,
-                 odbc_connection_string: str = None,
-                 user: str = None,
-                 password: str = None,
-                 autocommit: bool = True,
-                 charset: str = "utf8",
-                 use_unicode: bool = True) -> bool:
+    def _connect(
+        self,
+        engine: str = None,
+        interface: str = None,
+        host: str = None,
+        port: int = None,
+        database: str = None,
+        driver: str = None,
+        dsn: str = None,
+        odbc_connection_string: str = None,
+        user: str = None,
+        password: str = None,
+        autocommit: bool = True,
+        charset: str = "utf8",
+        use_unicode: bool = True,
+    ) -> bool:
         # Check engine
         if engine == ENGINE_MYSQL:
             self.flavour = MySQL()
@@ -1564,7 +1665,9 @@ class DatabaseSupporter:
         log.info(
             "Opening database: engine={e}, interface={i}, "
             "use_unicode={u}, autocommit={a}".format(
-                e=engine, i=interface, u=use_unicode, a=autocommit))
+                e=engine, i=interface, u=use_unicode, a=autocommit
+            )
+        )
 
         # Interface
         if interface == INTERFACE_MYSQL:
@@ -1615,7 +1718,9 @@ class DatabaseSupporter:
             log.info(
                 "{i} connect: host={h}, port={p}, user={u}, "
                 "database={d}".format(
-                    i=interface, h=host, p=port, u=user, d=database))
+                    i=interface, h=host, p=port, u=user, d=database
+                )
+            )
             self.db = mysql.connect(
                 host=host,
                 port=port,
@@ -1624,7 +1729,7 @@ class DatabaseSupporter:
                 db=database,
                 charset=charset,
                 use_unicode=use_unicode,
-                conv=converters
+                conv=converters,
             )
             # noinspection PyCallingNonCallable
             self.db.autocommit(autocommit)
@@ -1652,12 +1757,14 @@ class DatabaseSupporter:
             log.info(
                 "ODBC connect: DRIVER={dr};SERVER={s};PORT={p};"
                 "DATABASE={db};USER={u};PASSWORD=[censored]".format(
-                    dr=driver, s=host, p=port,
-                    db=database, u=user))
+                    dr=driver, s=host, p=port, db=database, u=user
+                )
+            )
             dsn = (
                 "DRIVER={0};SERVER={1};PORT={2};DATABASE={3};"
-                "USER={4};PASSWORD={5}".format(driver, host, port, database,
-                                               user, password)
+                "USER={4};PASSWORD={5}".format(
+                    driver, host, port, database, user, password
+                )
             )
             # noinspection PyUnresolvedReferences
             self.db = pyodbc.connect(dsn)
@@ -1669,16 +1776,15 @@ class DatabaseSupporter:
             # https://github.com/baztian/jaydebeapi/issues/1
             jclassname = "com.mysql.jdbc.Driver"
             url = "jdbc:mysql://{host}:{port}/{database}".format(
-                host=host, port=port, database=database)
+                host=host, port=port, database=database
+            )
             driver_args = [url, user, password]
             jars = None
             libs = None
             log.info(
                 "JDBC connect: jclassname={jclassname}, "
                 "url={url}, user={user}, password=[censored]".format(
-                    jclassname=jclassname,
-                    url=url,
-                    user=user,
+                    jclassname=jclassname, url=url, user=user
                 )
             )
             self._jdbc_connect(jclassname, driver_args, jars, libs, autocommit)
@@ -1692,17 +1798,21 @@ class DatabaseSupporter:
             elif dsn:
                 log.info(
                     "ODBC connect: DSN={dsn};UID={u};PWD=[censored]".format(
-                        dsn=dsn, u=user))
-                connectstring = "DSN={};UID={};PWD={}".format(dsn, user,
-                                                              password)
+                        dsn=dsn, u=user
+                    )
+                )
+                connectstring = "DSN={};UID={};PWD={}".format(
+                    dsn, user, password
+                )
             else:
                 log.info(
                     "ODBC connect: DRIVER={dr};SERVER={s};DATABASE={db};"
                     "UID={u};PWD=[censored]".format(
-                        dr=driver, s=host, db=database, u=user))
-                connectstring = (
-                    "DRIVER={};SERVER={};DATABASE={};UID={};PWD={}".format(
-                        driver, host, database, user, password)
+                        dr=driver, s=host, db=database, u=user
+                    )
+                )
+                connectstring = "DRIVER={};SERVER={};DATABASE={};UID={};PWD={}".format(
+                    driver, host, database, user, password
                 )
             # noinspection PyUnresolvedReferences
             self.db = pyodbc.connect(connectstring, unicode_results=True)
@@ -1714,31 +1824,31 @@ class DatabaseSupporter:
             # https://msdn.microsoft.com/en-us/sqlserver/aa937724.aspx
             # https://msdn.microsoft.com/en-us/library/ms378428(v=sql.110).aspx
             # https://msdn.microsoft.com/en-us/library/ms378988(v=sql.110).aspx
-            jclassname = 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
-            urlstem = 'jdbc:sqlserver://{host}:{port};'.format(
-                host=host,
-                port=port
+            jclassname = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+            urlstem = "jdbc:sqlserver://{host}:{port};".format(
+                host=host, port=port
             )
             nvp = {}
             if database:
-                nvp['databaseName'] = database
-            nvp['user'] = user
-            nvp['password'] = password
-            nvp['responseBuffering'] = 'adaptive'  # default is 'full'
+                nvp["databaseName"] = database
+            nvp["user"] = user
+            nvp["password"] = password
+            nvp["responseBuffering"] = "adaptive"  # default is 'full'
             # ... THIS CHANGE (responseBuffering = adaptive) stops the JDBC
             # driver crashing on cursor close [in a socket recv() call] when
             # it's fetched a VARBINARY(MAX) field.
-            nvp['selectMethod'] = 'cursor'  # trying this; default is 'direct'
-            url = urlstem + ';'.join(
-                '{}={}'.format(x, y) for x, y in nvp.items())
+            nvp["selectMethod"] = "cursor"  # trying this; default is 'direct'
+            url = urlstem + ";".join(
+                "{}={}".format(x, y) for x, y in nvp.items()
+            )
 
-            nvp['password'] = '[censored]'
-            url_censored = urlstem + ';'.join(
-                '{}={}'.format(x, y) for x, y in nvp.items())
+            nvp["password"] = "[censored]"
+            url_censored = urlstem + ";".join(
+                "{}={}".format(x, y) for x, y in nvp.items()
+            )
             log.info(
-                'jdbc connect: jclassname={jclassname}, url = {url}'.format(
-                    jclassname=jclassname,
-                    url=url_censored
+                "jdbc connect: jclassname={jclassname}, url = {url}".format(
+                    jclassname=jclassname, url=url_censored
                 )
             )
 
@@ -1764,16 +1874,19 @@ class DatabaseSupporter:
 
         return True
 
-    def _jdbc_connect(self,
-                      jclassname: str,
-                      driver_args: Union[str, List[str], None],
-                      jars: Union[str, List[str], None],
-                      libs: Union[str, List[str], None],
-                      autocommit: bool) -> None:
+    def _jdbc_connect(
+        self,
+        jclassname: str,
+        driver_args: Union[str, List[str], None],
+        jars: Union[str, List[str], None],
+        libs: Union[str, List[str], None],
+        autocommit: bool,
+    ) -> None:
         try:
             # noinspection PyUnresolvedReferences
-            self.db = jaydebeapi.connect(jclassname, driver_args, jars=jars,
-                                         libs=libs)
+            self.db = jaydebeapi.connect(
+                jclassname, driver_args, jars=jars, libs=libs
+            )
             # ... which should have had its connectors altered by
             #     reconfigure_jaydebeapi()
         except Exception as e:
@@ -1788,8 +1901,10 @@ class DatabaseSupporter:
 
     def ping(self) -> None:
         """Pings a database connection, reconnecting if necessary."""
-        if self.db is None or self.db_pythonlib not in [PYTHONLIB_MYSQLDB,
-                                                        PYTHONLIB_PYMYSQL]:
+        if self.db is None or self.db_pythonlib not in [
+            PYTHONLIB_MYSQLDB,
+            PYTHONLIB_PYMYSQL,
+        ]:
             return
         try:
             self.db.ping(True)  # test connection; reconnect upon failure
@@ -1803,65 +1918,102 @@ class DatabaseSupporter:
         except mysql.OperationalError:  # loss of connection
             self.db = None
             self.connect_to_database_mysql(
-                self._database, self._user, self._password, self._server,
-                self._port, self._charset, self._use_unicode)  # reconnect
+                self._database,
+                self._user,
+                self._password,
+                self._server,
+                self._port,
+                self._charset,
+                self._use_unicode,
+            )  # reconnect
 
     # -------------------------------------------------------------------------
     # Specific connection methods
     # -------------------------------------------------------------------------
 
-    def connect_to_database_mysql(self,
-                                  database: str,
-                                  user: str,
-                                  password: str,
-                                  server: str = "localhost",
-                                  port: int = 3306,
-                                  charset: str = "utf8",
-                                  use_unicode: bool = True,
-                                  autocommit: bool = True) -> None:
-        self.connect(engine=ENGINE_MYSQL, interface=INTERFACE_MYSQL,
-                     database=database, user=user, password=password,
-                     host=server, port=port, charset=charset,
-                     use_unicode=use_unicode, autocommit=autocommit)
+    def connect_to_database_mysql(
+        self,
+        database: str,
+        user: str,
+        password: str,
+        server: str = "localhost",
+        port: int = 3306,
+        charset: str = "utf8",
+        use_unicode: bool = True,
+        autocommit: bool = True,
+    ) -> None:
+        self.connect(
+            engine=ENGINE_MYSQL,
+            interface=INTERFACE_MYSQL,
+            database=database,
+            user=user,
+            password=password,
+            host=server,
+            port=port,
+            charset=charset,
+            use_unicode=use_unicode,
+            autocommit=autocommit,
+        )
 
-    def connect_to_database_odbc_mysql(self,
-                                       database: str,
-                                       user: str,
-                                       password: str,
-                                       server: str = "localhost",
-                                       port: int = 3306,
-                                       driver: str = "{MySQL ODBC 5.1 Driver}",
-                                       autocommit: bool = True) -> None:
+    def connect_to_database_odbc_mysql(
+        self,
+        database: str,
+        user: str,
+        password: str,
+        server: str = "localhost",
+        port: int = 3306,
+        driver: str = "{MySQL ODBC 5.1 Driver}",
+        autocommit: bool = True,
+    ) -> None:
         """Connects to a MySQL database via ODBC."""
-        self.connect(engine=ENGINE_MYSQL, interface=INTERFACE_ODBC,
-                     database=database, user=user, password=password,
-                     host=server, port=port, driver=driver,
-                     autocommit=autocommit)
+        self.connect(
+            engine=ENGINE_MYSQL,
+            interface=INTERFACE_ODBC,
+            database=database,
+            user=user,
+            password=password,
+            host=server,
+            port=port,
+            driver=driver,
+            autocommit=autocommit,
+        )
 
-    def connect_to_database_odbc_sqlserver(self,
-                                           odbc_connection_string: str = None,
-                                           dsn: str = None,
-                                           database: str = None,
-                                           user: str = None,
-                                           password: str = None,
-                                           server: str = "localhost",
-                                           driver: str = "{SQL Server}",
-                                           autocommit: bool = True) -> None:
+    def connect_to_database_odbc_sqlserver(
+        self,
+        odbc_connection_string: str = None,
+        dsn: str = None,
+        database: str = None,
+        user: str = None,
+        password: str = None,
+        server: str = "localhost",
+        driver: str = "{SQL Server}",
+        autocommit: bool = True,
+    ) -> None:
         """Connects to an SQL Server database via ODBC."""
-        self.connect(engine=ENGINE_SQLSERVER, interface=INTERFACE_ODBC,
-                     odbc_connection_string=odbc_connection_string,
-                     dsn=dsn,
-                     database=database, user=user, password=password,
-                     host=server, driver=driver,
-                     autocommit=autocommit)
+        self.connect(
+            engine=ENGINE_SQLSERVER,
+            interface=INTERFACE_ODBC,
+            odbc_connection_string=odbc_connection_string,
+            dsn=dsn,
+            database=database,
+            user=user,
+            password=password,
+            host=server,
+            driver=driver,
+            autocommit=autocommit,
+        )
 
-    def connect_to_database_odbc_access(self,
-                                        dsn: str,
-                                        autocommit: bool = True) -> None:
+    def connect_to_database_odbc_access(
+        self, dsn: str, autocommit: bool = True
+    ) -> None:
         """Connects to an Access database via ODBC, with the DSN
         prespecified."""
-        self.connect(engine=ENGINE_ACCESS, interface=INTERFACE_ODBC,
-                     dsn=dsn, autocommit=autocommit)
+        self.connect(
+            engine=ENGINE_ACCESS,
+            interface=INTERFACE_ODBC,
+            dsn=dsn,
+            autocommit=autocommit,
+        )
 
     # -------------------------------------------------------------------------
     # Engine configurations
@@ -1939,11 +2091,13 @@ class DatabaseSupporter:
         self.db.rollback()
         log.debug("rollback")
 
-    def insert_record(self,
-                      table: str,
-                      fields: Sequence[str],
-                      values: Sequence[Any],
-                      update_on_duplicate_key: bool = False) -> int:
+    def insert_record(
+        self,
+        table: str,
+        fields: Sequence[str],
+        values: Sequence[Any],
+        update_on_duplicate_key: bool = False,
+    ) -> int:
         """Inserts a record into database, table "table", using the list of
         fieldnames and the list of values. Returns the new PK (or None)."""
         self.ensure_db_open()
@@ -1968,9 +2122,8 @@ class DatabaseSupporter:
             raise
 
     def insert_record_by_fieldspecs_with_values(
-            self,
-            table: str,
-            fieldspeclist: FIELDSPECLIST_TYPE) -> int:
+        self, table: str, fieldspeclist: FIELDSPECLIST_TYPE
+    ) -> int:
         """Inserts a record into the database using a list of fieldspecs having
         their value stored under the 'value' key.
         """
@@ -1981,9 +2134,9 @@ class DatabaseSupporter:
             values.append(fs["value"])
         return self.insert_record(table, fields, values)
 
-    def insert_record_by_dict(self,
-                              table: str,
-                              valuedict: Dict[str, Any]) -> Optional[int]:
+    def insert_record_by_dict(
+        self, table: str, valuedict: Dict[str, Any]
+    ) -> Optional[int]:
         """Inserts a record into database, table "table", using a dictionary
         containing field/value mappings. Returns the new PK (or None)."""
         if not valuedict:
@@ -2001,7 +2154,7 @@ class DatabaseSupporter:
         """.format(
             table=table,
             fields=",".join(fields),
-            placeholders=",".join(["?"]*n)
+            placeholders=",".join(["?"] * n),
         )
         query = self.localize_sql(query)
         log.debug("About to insert_record_by_dict with SQL template: " + query)
@@ -2016,16 +2169,19 @@ class DatabaseSupporter:
             log.exception("insert_record_by_dict: Failed to insert record.")
             raise
 
-    def insert_multiple_records(self,
-                                table: str,
-                                fields: Sequence[str],
-                                records: Sequence[Sequence[Any]]) -> int:
+    def insert_multiple_records(
+        self,
+        table: str,
+        fields: Sequence[str],
+        records: Sequence[Sequence[Any]],
+    ) -> int:
         """Inserts a record into database, table "table", using the list of
         fieldnames and the list of records (each a list of values).
         Returns number of rows affected."""
         self.ensure_db_open()
-        sql = self.localize_sql(get_sql_insert(table, fields,
-                                               self.get_delims()))
+        sql = self.localize_sql(
+            get_sql_insert(table, fields, self.get_delims())
+        )
         log.debug("About to insert multiple records with SQL template: " + sql)
         try:
             cursor = self.db.cursor()
@@ -2153,8 +2309,9 @@ class DatabaseSupporter:
             log.exception("gen_fetchfirst: SQL was: " + sql)
             raise
 
-    def fetchall_with_fieldnames(self, sql: str, *args) \
-            -> Tuple[Sequence[Sequence[Any]], Sequence[str]]:
+    def fetchall_with_fieldnames(
+        self, sql: str, *args
+    ) -> Tuple[Sequence[Sequence[Any]], Sequence[str]]:
         """Executes SQL; returns (rows, fieldnames)."""
         self.ensure_db_open()
         cursor = self.db.cursor()
@@ -2205,10 +2362,9 @@ class DatabaseSupporter:
         returning a count."""
         sql = "SELECT COUNT(*) FROM " + self.delimit(table)
         if wheredict is not None:
-            sql += " WHERE " + " AND ".join([
-                self.delimit(k) + "=?"
-                for k in wheredict.keys()
-            ])
+            sql += " WHERE " + " AND ".join(
+                [self.delimit(k) + "=?" for k in wheredict.keys()]
+            )
             whereargs = wheredict.values()
             count = self.fetchone(sql, *whereargs)[0]
         else:
@@ -2218,35 +2374,44 @@ class DatabaseSupporter:
     def does_row_exist(self, table: str, field: str, value: Any) -> bool:
         """Checks for the existence of a record by a single field (typically a
         PK)."""
-        sql = ("SELECT COUNT(*) FROM " + self.delimit(table) +
-               " WHERE " + self.delimit(field) + "=?")
+        sql = (
+            "SELECT COUNT(*) FROM "
+            + self.delimit(table)
+            + " WHERE "
+            + self.delimit(field)
+            + "=?"
+        )
         row = self.fetchone(sql, value)
         return True if row[0] >= 1 else False
 
     def delete_by_field(self, table: str, field: str, value: Any) -> int:
         """Deletes all records where "field" is "value"."""
-        sql = ("DELETE FROM " + self.delimit(table) +
-               " WHERE " + self.delimit(field) + "=?")
+        sql = (
+            "DELETE FROM "
+            + self.delimit(table)
+            + " WHERE "
+            + self.delimit(field)
+            + "=?"
+        )
         return self.db_exec(sql, value)
 
     # -------------------------------------------------------------------------
     # Object-based operations
     # -------------------------------------------------------------------------
 
-    def fetch_object_from_db_by_pk(self,
-                                   obj: Any,
-                                   table: str,
-                                   fieldlist: Sequence[str],
-                                   pkvalue: Any) -> bool:
+    def fetch_object_from_db_by_pk(
+        self, obj: Any, table: str, fieldlist: Sequence[str], pkvalue: Any
+    ) -> bool:
         """Fetches object from database table by PK value. Writes back to
         object. Returns True/False for success/failure."""
         if pkvalue is None:
             blank_object(obj, fieldlist)
             return False
         row = self.fetchone(
-            get_sql_select_all_non_pk_fields_by_pk(table, fieldlist,
-                                                   self.get_delims()),
-            pkvalue
+            get_sql_select_all_non_pk_fields_by_pk(
+                table, fieldlist, self.get_delims()
+            ),
+            pkvalue,
         )
         if row is None:
             blank_object(obj, fieldlist)
@@ -2255,19 +2420,22 @@ class DatabaseSupporter:
         assign_from_list(obj, fieldlist[1:], row)  # set non-PK values of obj
         return True
 
-    def fetch_object_from_db_by_other_field(self,
-                                            obj: Any,
-                                            table: str,
-                                            fieldlist: Sequence[str],
-                                            keyname: str,
-                                            keyvalue: Any) -> bool:
+    def fetch_object_from_db_by_other_field(
+        self,
+        obj: Any,
+        table: str,
+        fieldlist: Sequence[str],
+        keyname: str,
+        keyvalue: Any,
+    ) -> bool:
         """Fetches object from database table by a field specified by
         keyname/keyvalue. Writes back to object. Returns True/False for
         success/failure."""
         row = self.fetchone(
-            get_sql_select_all_fields_by_key(table, fieldlist, keyname,
-                                             self.get_delims()),
-            keyvalue
+            get_sql_select_all_fields_by_key(
+                table, fieldlist, keyname, self.get_delims()
+            ),
+            keyvalue,
         )
         if row is None:
             blank_object(obj, fieldlist)
@@ -2275,24 +2443,29 @@ class DatabaseSupporter:
         assign_from_list(obj, fieldlist, row)
         return True
 
-    def fetch_all_objects_from_db(self,
-                                  cls: Type[T],
-                                  table: str,
-                                  fieldlist: Sequence[str],
-                                  construct_with_pk: bool,
-                                  *args) -> List[T]:
+    def fetch_all_objects_from_db(
+        self,
+        cls: Type[T],
+        table: str,
+        fieldlist: Sequence[str],
+        construct_with_pk: bool,
+        *args
+    ) -> List[T]:
         """Fetches all objects from a table, returning an array of objects of
         class cls."""
         return self.fetch_all_objects_from_db_where(
-            cls, table, fieldlist, construct_with_pk, None, *args)
+            cls, table, fieldlist, construct_with_pk, None, *args
+        )
 
-    def fetch_all_objects_from_db_by_pklist(self,
-                                            cls: Type,
-                                            table: str,
-                                            fieldlist: Sequence[str],
-                                            pklist: Sequence[Any],
-                                            construct_with_pk: bool,
-                                            *args) -> List[T]:
+    def fetch_all_objects_from_db_by_pklist(
+        self,
+        cls: Type,
+        table: str,
+        fieldlist: Sequence[str],
+        pklist: Sequence[Any],
+        construct_with_pk: bool,
+        *args
+    ) -> List[T]:
         """Fetches all objects from a table, given a list of PKs."""
         objarray = []
         for pk in pklist:
@@ -2326,59 +2499,66 @@ class DatabaseSupporter:
             cls, table, fieldlist, pklist, construct_with_pk, *args)
     '''
 
-    def fetch_all_objects_from_db_where(self,
-                                        cls: Type[T],
-                                        table: str,
-                                        fieldlist: Sequence[str],
-                                        construct_with_pk: bool,
-                                        wheredict: Optional[Dict[str, Any]],
-                                        *args) -> List[T]:
+    def fetch_all_objects_from_db_where(
+        self,
+        cls: Type[T],
+        table: str,
+        fieldlist: Sequence[str],
+        construct_with_pk: bool,
+        wheredict: Optional[Dict[str, Any]],
+        *args
+    ) -> List[T]:
         """
         Fetches all objects from a table, given a set of WHERE criteria
         (ANDed), returning an array of objects of class cls.
         As usual here, the first field in the fieldlist must be the PK.
         """
         sql = (
-            "SELECT " + ",".join([self.delimit(x) for x in fieldlist]) +
-            " FROM " + self.delimit(table)
+            "SELECT "
+            + ",".join([self.delimit(x) for x in fieldlist])
+            + " FROM "
+            + self.delimit(table)
         )
         whereargs = []
         if wheredict is not None:
-            sql += " WHERE " + " AND ".join([
-                self.delimit(k) + "=?"
-                for k in wheredict.keys()
-            ])
+            sql += " WHERE " + " AND ".join(
+                [self.delimit(k) + "=?" for k in wheredict.keys()]
+            )
             whereargs = wheredict.values()
         rows = self.fetchall(sql, *whereargs)
         objects = []
         for row in rows:
             objects.append(
-                create_object_from_list(cls, fieldlist, row, *args,
-                                        construct_with_pk=construct_with_pk))
+                create_object_from_list(
+                    cls,
+                    fieldlist,
+                    row,
+                    *args,
+                    construct_with_pk=construct_with_pk
+                )
+            )
         return objects
 
-    def insert_object_into_db_pk_known(self,
-                                       obj: Any,
-                                       table: str,
-                                       fieldlist: Sequence[str]) -> None:
+    def insert_object_into_db_pk_known(
+        self, obj: Any, table: str, fieldlist: Sequence[str]
+    ) -> None:
         """Inserts object into database table, with PK (first field) already
         known."""
         pkvalue = getattr(obj, fieldlist[0])
         if pkvalue is None:
-            raise AssertionError("insert_object_intoto_db_pk_known called "
-                                 "without PK")
+            raise AssertionError(
+                "insert_object_intoto_db_pk_known called " "without PK"
+            )
         valuelist = []
         for f in fieldlist:
             valuelist.append(getattr(obj, f))
         self.db_exec(
-            get_sql_insert(table, fieldlist, self.get_delims()),
-            *valuelist
+            get_sql_insert(table, fieldlist, self.get_delims()), *valuelist
         )
 
-    def insert_object_into_db_pk_unknown(self,
-                                         obj: Any,
-                                         table: str,
-                                         fieldlist: Sequence[str]) -> None:
+    def insert_object_into_db_pk_unknown(
+        self, obj: Any, table: str, fieldlist: Sequence[str]
+    ) -> None:
         """Inserts object into database table, with PK (first field) initially
         unknown (and subsequently set in the object from the database)."""
         self.ensure_db_open()
@@ -2388,17 +2568,17 @@ class DatabaseSupporter:
         cursor = self.db.cursor()
         self.db_exec_with_cursor(
             cursor,
-            get_sql_insert_without_first_field(table, fieldlist,
-                                               self.get_delims()),
+            get_sql_insert_without_first_field(
+                table, fieldlist, self.get_delims()
+            ),
             *valuelist
         )
         pkvalue = get_pk_of_last_insert(cursor)
         setattr(obj, fieldlist[0], pkvalue)
 
-    def update_object_in_db(self,
-                            obj: Any,
-                            table: str,
-                            fieldlist: Sequence[str]) -> None:
+    def update_object_in_db(
+        self, obj: Any, table: str, fieldlist: Sequence[str]
+    ) -> None:
         """Updates an object in the database (saves it to the database, where
         it exists there already)."""
         self.ensure_db_open()
@@ -2416,11 +2596,13 @@ class DatabaseSupporter:
             *valuelist
         )
 
-    def save_object_to_db(self,
-                          obj: Any,
-                          table: str,
-                          fieldlist: Sequence[str],
-                          is_new_record: bool) -> None:
+    def save_object_to_db(
+        self,
+        obj: Any,
+        table: str,
+        fieldlist: Sequence[str],
+        is_new_record: bool,
+    ) -> None:
         """Saves a object to the database, inserting or updating as
         necessary."""
         if is_new_record:
@@ -2439,17 +2621,21 @@ class DatabaseSupporter:
     def index_exists(self, table: str, indexname: str) -> bool:
         """Does an index exist? (Specific to MySQL.)"""
         # MySQL:
-        sql = ("SELECT COUNT(*) FROM information_schema.statistics"
-               " WHERE table_name=? AND index_name=?")
+        sql = (
+            "SELECT COUNT(*) FROM information_schema.statistics"
+            " WHERE table_name=? AND index_name=?"
+        )
         row = self.fetchone(sql, table, indexname)
         return True if row[0] >= 1 else False
 
-    def create_index(self,
-                     table: str,
-                     field: str,
-                     nchars: int = None,
-                     indexname: str = None,
-                     unique: bool = False) -> Optional[int]:
+    def create_index(
+        self,
+        table: str,
+        field: str,
+        nchars: int = None,
+        indexname: str = None,
+        unique: bool = False,
+    ) -> Optional[int]:
         """Creates an index (default name _idx_FIELDNAME), unless it exists
         already."""
         limit = ""
@@ -2472,10 +2658,9 @@ class DatabaseSupporter:
         )
         return self.db_exec(sql)
 
-    def create_index_from_fieldspec(self,
-                                    table: str,
-                                    fieldspec: FIELDSPEC_TYPE,
-                                    indexname: str = None) -> None:
+    def create_index_from_fieldspec(
+        self, table: str, fieldspec: FIELDSPEC_TYPE, indexname: str = None
+    ) -> None:
         """Calls create_index based on a fieldspec, if the fieldspec has
         indexed = True."""
         if "indexed" in fieldspec and fieldspec["indexed"]:
@@ -2483,13 +2668,13 @@ class DatabaseSupporter:
                 nchar = fieldspec["index_nchar"]
             else:
                 nchar = None
-            self.create_index(table, fieldspec["name"], nchar,
-                              indexname=indexname)
+            self.create_index(
+                table, fieldspec["name"], nchar, indexname=indexname
+            )
 
-    def create_fulltext_index(self,
-                              table: str,
-                              field: str,
-                              indexname: str = None) -> Optional[int]:
+    def create_fulltext_index(
+        self, table: str, field: str, indexname: str = None
+    ) -> Optional[int]:
         """Creates a FULLTEXT index (default name _idxft_FIELDNAME), unless it
         exists already. See:
 
@@ -2500,8 +2685,9 @@ class DatabaseSupporter:
             indexname = "_idxft_{}".format(field)
         if self.index_exists(table, indexname):
             return None
-        sql = "CREATE FULLTEXT INDEX {} ON {} ({})".format(indexname, table,
-                                                           field)
+        sql = "CREATE FULLTEXT INDEX {} ON {} ({})".format(
+            indexname, table, field
+        )
         return self.db_exec(sql)
 
     # -------------------------------------------------------------------------
@@ -2509,8 +2695,9 @@ class DatabaseSupporter:
     # -------------------------------------------------------------------------
 
     @staticmethod
-    def fieldnames_from_fieldspeclist(fieldspeclist: FIELDSPECLIST_TYPE) \
-            -> List[str]:
+    def fieldnames_from_fieldspeclist(
+        fieldspeclist: FIELDSPECLIST_TYPE
+    ) -> List[str]:
         """Returns fieldnames from a field specification list."""
         return [x["name"] for x in fieldspeclist]
 
@@ -2537,17 +2724,17 @@ class DatabaseSupporter:
         return sql
 
     def fielddefsql_from_fieldspeclist(
-            self, fieldspeclist: FIELDSPECLIST_TYPE) -> str:
+        self, fieldspeclist: FIELDSPECLIST_TYPE
+    ) -> str:
         """Returns list of field-defining SQL fragments."""
-        return ",".join([
-            self.fielddefsql_from_fieldspec(x)
-            for x in fieldspeclist
-        ])
+        return ",".join(
+            [self.fielddefsql_from_fieldspec(x) for x in fieldspeclist]
+        )
 
     @staticmethod
     def fieldspec_subset_by_name(
-            fieldspeclist: FIELDSPECLIST_TYPE,
-            fieldnames: Container[str]) -> FIELDSPECLIST_TYPE:
+        fieldspeclist: FIELDSPECLIST_TYPE, fieldnames: Container[str]
+    ) -> FIELDSPECLIST_TYPE:
         """Returns a subset of the fieldspecs matching the fieldnames list."""
         result = []
         for x in fieldspeclist:
@@ -2567,7 +2754,9 @@ class DatabaseSupporter:
             FROM information_schema.tables
             WHERE table_name=?
             AND table_schema={}
-        """.format(self.get_current_schema_expr())
+        """.format(
+            self.get_current_schema_expr()
+        )
         row = self.fetchone(sql, tablename)
         return True if row[0] >= 1 else False
 
@@ -2579,7 +2768,9 @@ class DatabaseSupporter:
             WHERE table_name=?
             AND column_name=?
             AND table_schema={}
-        """.format(self.get_current_schema_expr())
+        """.format(
+            self.get_current_schema_expr()
+        )
         row = self.fetchone(sql, tablename, column)
         return True if row[0] >= 1 else False
 
@@ -2595,15 +2786,18 @@ class DatabaseSupporter:
         log.info("Dropping view " + viewname + " (ignore any warning here)")
         return self.db_exec_literal(sql)
 
-    def make_table(self,
-                   tablename: str,
-                   fieldspeclist: FIELDSPECLIST_TYPE,
-                   dynamic: bool = False,
-                   compressed: bool = False) -> Optional[int]:
+    def make_table(
+        self,
+        tablename: str,
+        fieldspeclist: FIELDSPECLIST_TYPE,
+        dynamic: bool = False,
+        compressed: bool = False,
+    ) -> Optional[int]:
         """Makes a table, if it doesn't already exist."""
         if self.table_exists(tablename):
-            log.info("Skipping creation of table " + tablename +
-                     " (already exists)")
+            log.info(
+                "Skipping creation of table " + tablename + " (already exists)"
+            )
             return None
         if not self.is_mysql():
             dynamic = False
@@ -2626,12 +2820,15 @@ class DatabaseSupporter:
     def rename_table(self, from_table: str, to_table: str) -> Optional[int]:
         """Renames a table. MySQL-specific."""
         if not self.table_exists(from_table):
-            log.info("Skipping renaming of table " + from_table +
-                     " (doesn't exist)")
+            log.info(
+                "Skipping renaming of table " + from_table + " (doesn't exist)"
+            )
             return None
         if self.table_exists(to_table):
-            raise RuntimeError("Can't rename table {} to {}: destination "
-                               "already exists!".format(from_table, to_table))
+            raise RuntimeError(
+                "Can't rename table {} to {}: destination "
+                "already exists!".format(from_table, to_table)
+            )
         log.info("Renaming table {} to {}", from_table, to_table)
         sql = "RENAME TABLE {} TO {}".format(from_table, to_table)
         return self.db_exec_literal(sql)
@@ -2639,7 +2836,8 @@ class DatabaseSupporter:
     def add_column(self, tablename: str, fieldspec: FIELDSPEC_TYPE) -> int:
         """Adds a column to an existing table."""
         sql = "ALTER TABLE {} ADD COLUMN {}".format(
-            tablename, self.fielddefsql_from_fieldspec(fieldspec))
+            tablename, self.fielddefsql_from_fieldspec(fieldspec)
+        )
         log.info(sql)
         return self.db_exec_literal(sql)
 
@@ -2649,46 +2847,40 @@ class DatabaseSupporter:
         log.info(sql)
         return self.db_exec_literal(sql)
 
-    def modify_column_if_table_exists(self,
-                                      tablename: str,
-                                      fieldname: str,
-                                      newdef: str) -> Optional[int]:
+    def modify_column_if_table_exists(
+        self, tablename: str, fieldname: str, newdef: str
+    ) -> Optional[int]:
         """Alters a column's definition without renaming it."""
         if not self.table_exists(tablename):
             return None
         sql = "ALTER TABLE {t} MODIFY COLUMN {field} {newdef}".format(
-            t=tablename,
-            field=fieldname,
-            newdef=newdef
+            t=tablename, field=fieldname, newdef=newdef
         )
         log.info(sql)
         return self.db_exec_literal(sql)
 
-    def change_column_if_table_exists(self,
-                                      tablename: str,
-                                      oldfieldname: str,
-                                      newfieldname: str,
-                                      newdef: str) -> Optional[int]:
+    def change_column_if_table_exists(
+        self, tablename: str, oldfieldname: str, newfieldname: str, newdef: str
+    ) -> Optional[int]:
         """Renames a column and alters its definition."""
         if not self.table_exists(tablename):
             return None
         if not self.column_exists(tablename, oldfieldname):
             return None
         sql = "ALTER TABLE {t} CHANGE COLUMN {old} {new} {newdef}".format(
-            t=tablename,
-            old=oldfieldname,
-            new=newfieldname,
-            newdef=newdef,
+            t=tablename, old=oldfieldname, new=newfieldname, newdef=newdef
         )
         log.info(sql)
         return self.db_exec_literal(sql)
 
-    def create_or_update_table(self,
-                               tablename: str,
-                               fieldspeclist: FIELDSPECLIST_TYPE,
-                               drop_superfluous_columns: bool = False,
-                               dynamic: bool = False,
-                               compressed: bool = False) -> None:
+    def create_or_update_table(
+        self,
+        tablename: str,
+        fieldspeclist: FIELDSPECLIST_TYPE,
+        drop_superfluous_columns: bool = False,
+        dynamic: bool = False,
+        compressed: bool = False,
+    ) -> None:
         """
         - Make table, if it doesn't exist.
         - Add fields that aren't there.
@@ -2698,18 +2890,21 @@ class DatabaseSupporter:
         """
 
         # 1. Make table, if it doesn't exist
-        self.make_table(tablename, fieldspeclist, dynamic=dynamic,
-                        compressed=compressed)
+        self.make_table(
+            tablename, fieldspeclist, dynamic=dynamic, compressed=compressed
+        )
 
         # 2. Are all the fields there?
         # ... copes fine with fieldnames coming back in Unicode and being
         #     compared to str
         fields_in_db = set(self.fetch_column_names(tablename))
         desired_fieldnames = set(
-            self.fieldnames_from_fieldspeclist(fieldspeclist))
+            self.fieldnames_from_fieldspeclist(fieldspeclist)
+        )
         missing_fieldnames = desired_fieldnames - fields_in_db
-        missing_fieldspecs = self.fieldspec_subset_by_name(fieldspeclist,
-                                                           missing_fieldnames)
+        missing_fieldspecs = self.fieldspec_subset_by_name(
+            fieldspeclist, missing_fieldnames
+        )
         for f in missing_fieldspecs:
             self.add_column(tablename, f)
 
@@ -2768,9 +2963,9 @@ class DatabaseSupporter:
         sql = "DELETE FROM " + self.delimit(table)
         return self.db_exec(sql)
 
-    def create_or_replace_primary_key(self,
-                                      table: str,
-                                      fieldnames: Sequence[str]) -> int:
+    def create_or_replace_primary_key(
+        self, table: str, fieldnames: Sequence[str]
+    ) -> int:
         """Make a primary key, or replace it if it exists."""
         # *** create_or_replace_primary_key: Uses code specific to MySQL
         sql = """
@@ -2779,15 +2974,22 @@ class DatabaseSupporter:
             WHERE table_name=?
             AND table_schema={}
             AND constraint_name='PRIMARY'
-        """.format(self.get_current_schema_expr())
+        """.format(
+            self.get_current_schema_expr()
+        )
         # http://forums.mysql.com/read.php?10,114742,114748#msg-114748
         row = self.fetchone(sql, table)
         has_pk_already = True if row[0] >= 1 else False
         drop_pk_if_exists = " DROP PRIMARY KEY," if has_pk_already else ""
         fieldlist = ",".join([self.delimit(f) for f in fieldnames])
-        sql = ("ALTER TABLE " + self.delimit(table) +
-               drop_pk_if_exists +
-               " ADD PRIMARY KEY(" + fieldlist + ")")
+        sql = (
+            "ALTER TABLE "
+            + self.delimit(table)
+            + drop_pk_if_exists
+            + " ADD PRIMARY KEY("
+            + fieldlist
+            + ")"
+        )
         # https://stackoverflow.com/questions/8859353
         return self.db_exec(sql)
 
@@ -2815,11 +3017,12 @@ class DatabaseSupporter:
     def mysql_table_using_barracuda(self, tablename: str) -> bool:
         return self.flavour.mysql_table_using_barracuda(self, tablename)
 
-    def mysql_convert_table_to_barracuda(self,
-                                         tablename: str,
-                                         compressed: bool = False) -> None:
+    def mysql_convert_table_to_barracuda(
+        self, tablename: str, compressed: bool = False
+    ) -> None:
         self.flavour.mysql_convert_table_to_barracuda(
-            self, tablename, logger=log, compressed=compressed)
+            self, tablename, logger=log, compressed=compressed
+        )
 
     def mysql_using_innodb_strict_mode(self) -> bool:
         return self.flavour.mysql_using_innodb_strict_mode(self)
@@ -2828,8 +3031,9 @@ class DatabaseSupporter:
         return self.flavour.mysql_get_max_allowed_packet(self)
 
     def get_schema(self) -> str:
-        return self.fetchvalue("SELECT {}".format(
-            self.get_current_schema_expr()))
+        return self.fetchvalue(
+            "SELECT {}".format(self.get_current_schema_expr())
+        )
 
     def is_read_only(self) -> bool:
         """Does the user have read-only access to the database?

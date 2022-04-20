@@ -42,7 +42,7 @@ def get_request_cache():
     Returns the Django request cache for the current thread.
     Requires that ``RequestCacheMiddleware`` is loaded.
     """
-    assert _installed_middleware, 'RequestCacheMiddleware not loaded'
+    assert _installed_middleware, "RequestCacheMiddleware not loaded"
     return _request_cache[currentThread()]
 
 
@@ -51,8 +51,9 @@ class RequestCache(LocMemCache):
     """
     Local memory request cache for Django.
     """
+
     def __init__(self):
-        name = f'locmemcache@{hash(currentThread()):d}'
+        name = f"locmemcache@{hash(currentThread()):d}"
         params = dict()
         super(RequestCache, self).__init__(name, params)
 
@@ -61,6 +62,7 @@ class RequestCacheMiddleware(object):
     """
     Django middleware to implement a request cache.
     """
+
     def __init__(self):
         global _installed_middleware
         _installed_middleware = True

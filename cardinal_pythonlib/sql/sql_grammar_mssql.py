@@ -143,11 +143,13 @@ VARP = sql_keyword("VARP")
 # Microsoft SQL Server grammar in pyparsing
 # =============================================================================
 
+
 class SqlGrammarMSSQLServer(SqlGrammar):
     """
     SQL grammar (subclass of :class:`.SqlGrammar`) implementing
     Microsoft SQL Server syntax.
     """
+
     # -------------------------------------------------------------------------
     # Forward declarations
     # -------------------------------------------------------------------------
@@ -235,14 +237,19 @@ ZONE
 ROLLUP
 SOUNDEX
     """
-    sql_server_keywords = sorted(list(set(
-        sql_server_reserved_words.split() +
-        odbc_reserved_words.split() +
-        ANSI92_RESERVED_WORD_LIST.split()
-    )))
+    sql_server_keywords = sorted(
+        list(
+            set(
+                sql_server_reserved_words.split()
+                + odbc_reserved_words.split()
+                + ANSI92_RESERVED_WORD_LIST.split()
+            )
+        )
+    )
     # log.critical(sql_server_keywords)
-    keyword = make_words_regex(sql_server_keywords, caseless=True,
-                               name="keyword")
+    keyword = make_words_regex(
+        sql_server_keywords, caseless=True, name="keyword"
+    )
 
     # -------------------------------------------------------------------------
     # Comments
@@ -258,11 +265,11 @@ SOUNDEX
         r"\b[a-zA-Z0-9$_]*\b",
         ANSI92_RESERVED_WORD_LIST,
         caseless=True,
-        name="bare_identifier_word"
+        name="bare_identifier_word",
     )
     identifier = (
-        bare_identifier_word |
-        QuotedString(quoteChar="[", endQuoteChar="]", unquoteResults=False)
+        bare_identifier_word
+        | QuotedString(quoteChar="[", endQuoteChar="]", unquoteResults=False)
     ).setName("identifier")
     collation_name = identifier.copy()
     column_name = identifier.copy()
@@ -275,29 +282,37 @@ SOUNDEX
     parameter_name = identifier.copy()
     database_name = identifier.copy()
 
-    no_dot = NotAny('.')
+    no_dot = NotAny(".")
     table_spec = (
-        Combine(database_name + '.' + schema_name + '.' + table_name + no_dot) |
-        Combine(schema_name + '.' + table_name + no_dot) |
-        table_name + no_dot
+        Combine(database_name + "." + schema_name + "." + table_name + no_dot)
+        | Combine(schema_name + "." + table_name + no_dot)
+        | table_name + no_dot
     ).setName("table_spec")
     column_spec = (
-        Combine(database_name + '.' + schema_name + '.' + table_name + '.' +
-                column_name + no_dot) |
-        Combine(schema_name + '.' + table_name + '.' + column_name + no_dot) |
-        Combine(table_name + '.' + column_name + no_dot) |
-        column_name + no_dot
+        Combine(
+            database_name
+            + "."
+            + schema_name
+            + "."
+            + table_name
+            + "."
+            + column_name
+            + no_dot
+        )
+        | Combine(schema_name + "." + table_name + "." + column_name + no_dot)
+        | Combine(table_name + "." + column_name + no_dot)
+        | column_name + no_dot
     ).setName("column_spec")
     # I'm unsure if SQL Server allows keywords in the parts after dots, like
     # MySQL does.
     # - https://stackoverflow.com/questions/285775/how-to-deal-with-sql-column-names-that-look-like-sql-keywords  # noqa
 
-    bind_parameter = Literal('?')
+    bind_parameter = Literal("?")
 
     variable = Regex(r"@[a-zA-Z0-9\.$_]+").setName("variable")
 
     argument_list = (
-        delimitedList(expr).setName("arglist").setParseAction(', '.join)
+        delimitedList(expr).setName("arglist").setParseAction(", ".join)
     )
     function_call = Combine(function_name + LPAR) + argument_list + RPAR
 
@@ -309,15 +324,17 @@ SOUNDEX
     # -----------------------------------------------------------------------------
     case_expr = (
         (
-            CASE + expr +
-            OneOrMore(WHEN + expr + THEN + expr) +
-            Optional(ELSE + expr) +
-            END
-        ) | (
-            CASE +
-            OneOrMore(WHEN + expr + THEN + expr) +
-            Optional(ELSE + expr) +
-            END
+            CASE
+            + expr
+            + OneOrMore(WHEN + expr + THEN + expr)
+            + Optional(ELSE + expr)
+            + END
+        )
+        | (
+            CASE
+            + OneOrMore(WHEN + expr + THEN + expr)
+            + Optional(ELSE + expr)
+            + END
         )
     ).setName("case_expr")
 
@@ -326,54 +343,63 @@ SOUNDEX
     # -----------------------------------------------------------------------------
     aggregate_function = (
         # https://msdn.microsoft.com/en-us/library/ms173454.aspx
-        AVG |
-        CHECKSUM_AGG |
-        COUNT |
-        COUNT_BIG |
-        GROUPING |
-        GROUPING_ID |
-        MAX |
-        MIN |
-        STDEV |
-        STDEV_P |
-        SUM |
-        VAR |
-        VARP
+        AVG
+        | CHECKSUM_AGG
+        | COUNT
+        | COUNT_BIG
+        | GROUPING
+        | GROUPING_ID
+        | MAX
+        | MIN
+        | STDEV
+        | STDEV_P
+        | SUM
+        | VAR
+        | VARP
     )
     expr_term = (
-        INTERVAL + expr + time_unit |
-        Optional(EXISTS) + LPAR + select_statement + RPAR |
+        INTERVAL + expr + time_unit
+        | Optional(EXISTS) + LPAR + select_statement + RPAR
+        |
         # ... e.g. mycol = EXISTS(SELECT ...)
         # ... e.g. mycol IN (SELECT ...)
-        LPAR + delim_list(expr) + RPAR |
+        LPAR + delim_list(expr) + RPAR
+        |
         # ... e.g. mycol IN (1, 2, 3)
-        case_expr |
-        bind_parameter |
-        variable |
-        function_call |
-        literal_value |
-        column_spec  # not just identifier
+        case_expr
+        | bind_parameter
+        | variable
+        | function_call
+        | literal_value
+        | column_spec  # not just identifier
     )
     UNARY_OP, BINARY_OP, TERNARY_OP = 1, 2, 3
-    expr << infixNotation(expr_term, [
-        # Having lots of operations in the list here SLOWS IT DOWN A LOT.
-        # Just combine them into an ordered list.
-        (COLLATE | oneOf('! - + ~'), UNARY_OP, opAssoc.RIGHT),
-        (
+    expr << infixNotation(
+        expr_term,
+        [
+            # Having lots of operations in the list here SLOWS IT DOWN A LOT.
+            # Just combine them into an ordered list.
+            (COLLATE | oneOf("! - + ~"), UNARY_OP, opAssoc.RIGHT),
             (
-                oneOf('^ * / %') |
-                oneOf('+ - << >> & | = <=> >= > <= < <> !=') |
-                (IS + Optional(NOT)) | LIKE | (Optional(NOT) + IN) |
-                SOUNDEX  # RNC; presumably at same level as LIKE
+                (
+                    oneOf("^ * / %")
+                    | oneOf("+ - << >> & | = <=> >= > <= < <> !=")
+                    | (IS + Optional(NOT))
+                    | LIKE
+                    | (Optional(NOT) + IN)
+                    | SOUNDEX  # RNC; presumably at same level as LIKE
+                ),
+                BINARY_OP,
+                opAssoc.LEFT,
             ),
-            BINARY_OP,
-            opAssoc.LEFT
-        ),
-        ((BETWEEN, AND), TERNARY_OP, opAssoc.LEFT),
-        # CASE handled above (hoping precedence is not too much of a problem)
-        (NOT, UNARY_OP, opAssoc.RIGHT),
-        (AND | '&&' | OR | '||' | ':=', BINARY_OP, opAssoc.LEFT),
-    ], lpar=LPAR, rpar=RPAR)
+            ((BETWEEN, AND), TERNARY_OP, opAssoc.LEFT),
+            # CASE handled above (hoping precedence is not too much of a problem)
+            (NOT, UNARY_OP, opAssoc.RIGHT),
+            (AND | "&&" | OR | "||" | ":=", BINARY_OP, opAssoc.LEFT),
+        ],
+        lpar=LPAR,
+        rpar=RPAR,
+    )
     # ignores LIKE [ESCAPE]
 
     # -------------------------------------------------------------------------
@@ -386,28 +412,24 @@ SOUNDEX
         expr + Optional(COLLATE + collation_name) + Optional(ASC | DESC)
     )
 
-    join_constraint = Optional(Group(
-        (ON + expr) |
-        (USING + LPAR + delim_list(column_name) + RPAR)
-    ))
+    join_constraint = Optional(
+        Group((ON + expr) | (USING + LPAR + delim_list(column_name) + RPAR))
+    )
 
     join_op = Group(
-        COMMA |
-        NATURAL + (Optional(LEFT | RIGHT) + Optional(OUTER)) + JOIN |
-        (INNER | CROSS) + JOIN |
-        Optional(LEFT | RIGHT) + Optional(OUTER) + JOIN
+        COMMA
+        | NATURAL + (Optional(LEFT | RIGHT) + Optional(OUTER)) + JOIN
+        | (INNER | CROSS) + JOIN
+        | Optional(LEFT | RIGHT) + Optional(OUTER) + JOIN
     )
 
     join_source = Forward()
     single_source = (
-        (
-            table_spec.copy().setResultsName("from_tables",
-                                             listAllMatches=True) +
-            Optional(Optional(AS) + table_alias)
-            # Optional(index_hint_list)  # not supported yet
-        ) |
-        (select_statement + Optional(AS) + table_alias) +
-        (LPAR + join_source + RPAR)
+        table_spec.copy().setResultsName("from_tables", listAllMatches=True)
+        + Optional(Optional(AS) + table_alias)
+        # Optional(index_hint_list)  # not supported yet
+    ) | (select_statement + Optional(AS) + table_alias) + (
+        LPAR + join_source + RPAR
     )
     join_source << Group(
         single_source + ZeroOrMore(join_op + single_source + join_constraint)
@@ -418,14 +440,21 @@ SOUNDEX
 
     result_base = (
         # Aggregate functions: e.g. "MAX(" allowed, "MAX (" not allowed
-        Combine(COUNT + LPAR) + '*' + RPAR |  # special aggregate function
-        Combine(COUNT + LPAR) + DISTINCT + expr + RPAR |  # special aggregate function  # noqa
-        Combine(aggregate_function + LPAR) + expr + RPAR |
-        expr |
-        '*' |
-        Combine(table_name + '.' + '*') |
-        column_spec |
-        literal_value
+        Combine(COUNT + LPAR) + "*" + RPAR
+        | Combine(COUNT + LPAR)  # special aggregate function
+        + DISTINCT
+        + expr
+        + RPAR
+        | Combine(  # special aggregate function  # noqa
+            aggregate_function + LPAR
+        )
+        + expr
+        + RPAR
+        | expr
+        | "*"
+        | Combine(table_name + "." + "*")
+        | column_spec
+        | literal_value
     )
     result_column = (
         result_base + Optional(Optional(AS) + column_alias)
@@ -435,37 +464,43 @@ SOUNDEX
     # SELECT
     # -------------------------------------------------------------------------
     where_expr = Group(expr).setResultsName("where_expr")
-    where_clause = Group(
-        Optional(WHERE + where_expr)
-    ).setResultsName("where_clause")
+    where_clause = Group(Optional(WHERE + where_expr)).setResultsName(
+        "where_clause"
+    )
     select_core = (
-        SELECT +
-        Optional(TOP + integer) +
-        Group(Optional(ALL | DISTINCT))("select_specifier") +
-        Group(delim_list(result_column))("select_expression") +
-        Optional(
-            FROM + join_source +
-            where_clause +
-            Optional(
-                GROUP + BY +
-                delim_list(ordering_term +
-                           Optional(ASC | DESC))("group_by_term") +
-                Optional(WITH + ROLLUP)
-            ) +
-            Optional(HAVING + expr("having_expr"))
+        SELECT
+        + Optional(TOP + integer)
+        + Group(Optional(ALL | DISTINCT))("select_specifier")
+        + Group(delim_list(result_column))("select_expression")
+        + Optional(
+            FROM
+            + join_source
+            + where_clause
+            + Optional(
+                GROUP
+                + BY
+                + delim_list(ordering_term + Optional(ASC | DESC))(
+                    "group_by_term"
+                )
+                + Optional(WITH + ROLLUP)
+            )
+            + Optional(HAVING + expr("having_expr"))
         )
     )
     select_statement << (
-        select_core +
-        ZeroOrMore(compound_operator + select_core) +
-        Optional(
-            ORDER + BY +
-            delim_list(ordering_term +
-                       Optional(ASC | DESC))("order_by_terms")
-        ) +
+        select_core
+        + ZeroOrMore(compound_operator + select_core)
+        + Optional(
+            ORDER
+            + BY
+            + delim_list(ordering_term + Optional(ASC | DESC))(
+                "order_by_terms"
+            )
+        )
+        +
         # PROCEDURE ignored
         # rest ignored
-        Optional(';')
+        Optional(";")
     )
     select_statement.ignore(comment)
 
@@ -579,13 +614,16 @@ SOUNDEX
         # ---------------------------------------------------------------------
 
         log.info("Testing case_expr")
-        _test_succeed(cls.case_expr, """
+        _test_succeed(
+            cls.case_expr,
+            """
             CASE v
               WHEN 2 THEN x
               WHEN 3 THEN y
               ELSE -99
             END
-        """)
+        """,
+        )
 
 
 # =============================================================================
@@ -600,7 +638,15 @@ def pyparsing_bugtest_delimited_list_combine(fix_problem: bool = True) -> None:
     word = Word(alphanums)
     word_list_no_combine = delimitedList(word, combine=False)
     word_list_combine = delimitedList(word, combine=True)
-    print(word_list_no_combine.parseString('one, two', parseAll=True))  # ['one', 'two']  # noqa
-    print(word_list_no_combine.parseString('one,two', parseAll=True))  # ['one', 'two']  # noqa
-    print(word_list_combine.parseString('one, two', parseAll=True))  # ['one']: ODD ONE OUT  # noqa
-    print(word_list_combine.parseString('one,two', parseAll=True))  # ['one,two']  # noqa
+    print(
+        word_list_no_combine.parseString("one, two", parseAll=True)
+    )  # ['one', 'two']  # noqa
+    print(
+        word_list_no_combine.parseString("one,two", parseAll=True)
+    )  # ['one', 'two']  # noqa
+    print(
+        word_list_combine.parseString("one, two", parseAll=True)
+    )  # ['one']: ODD ONE OUT  # noqa
+    print(
+        word_list_combine.parseString("one,two", parseAll=True)
+    )  # ['one,two']  # noqa

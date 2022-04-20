@@ -30,8 +30,10 @@ import logging
 
 # noinspection PyUnresolvedReferences
 from pyramid.request import Request
+
 # noinspection PyUnresolvedReferences
 from pyramid.response import Response
+
 # noinspection PyUnresolvedReferences
 from pyramid.registry import Registry
 
@@ -48,6 +50,7 @@ log = logging.getLogger(__name__)
 # Pyramid gzip compression tween
 # =============================================================================
 
+
 class CompressionTweenFactory(object):
     """
     Makes a Pyramid tween that (a) detects incoming compression and
@@ -61,8 +64,9 @@ class CompressionTweenFactory(object):
     - https://docs.pylonsproject.org/projects/pyramid/en/latest/api/response.html
     """  # noqa
 
-    def __init__(self, handler: PyramidHandlerType,
-                 registry: Registry) -> None:
+    def __init__(
+        self, handler: PyramidHandlerType, registry: Registry
+    ) -> None:
         self.handler = handler
         self.registry = registry
 

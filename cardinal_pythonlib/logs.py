@@ -88,25 +88,28 @@ from colorlog import ColoredFormatter
 # Quick configuration of a specific log format
 # =============================================================================
 
-LOG_FORMAT = '%(asctime)s.%(msecs)03d:%(levelname)s:%(name)s:%(message)s'
+LOG_FORMAT = "%(asctime)s.%(msecs)03d:%(levelname)s:%(name)s:%(message)s"
 LOG_FORMAT_WITH_PID = (
-    f'%(asctime)s.%(msecs)03d:%(levelname)s:{os.getpid()}:%(name)s:%(message)s'
+    f"%(asctime)s.%(msecs)03d:%(levelname)s:{os.getpid()}:%(name)s:%(message)s"
 )
 
-LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
+LOG_DATEFMT = "%Y-%m-%d %H:%M:%S"
 
-LOG_COLORS = {'DEBUG': 'cyan',
-              'INFO': 'green',
-              'WARNING': 'bold_yellow',
-              'ERROR': 'bold_red',
-              'CRITICAL': 'bold_white,bg_red'}
+LOG_COLORS = {
+    "DEBUG": "cyan",
+    "INFO": "green",
+    "WARNING": "bold_yellow",
+    "ERROR": "bold_red",
+    "CRITICAL": "bold_white,bg_red",
+}
 
 
 def get_monochrome_handler(
-        extranames: List[str] = None,
-        with_process_id: bool = False,
-        with_thread_id: bool = False,
-        stream: TextIO = None) -> logging.StreamHandler:
+    extranames: List[str] = None,
+    with_process_id: bool = False,
+    with_thread_id: bool = False,
+    stream: TextIO = None,
+) -> logging.StreamHandler:
     """
     Gets a monochrome log handler using a standard format.
 
@@ -131,16 +134,18 @@ def get_monochrome_handler(
     extras = ":" + ":".join(extranames) if extranames else ""
     fmt += f" %(name)s{extras}:%(levelname)s: "
     fmt += "%(message)s"
-    f = logging.Formatter(fmt, datefmt=LOG_DATEFMT, style='%')
+    f = logging.Formatter(fmt, datefmt=LOG_DATEFMT, style="%")
     h = logging.StreamHandler(stream)
     h.setFormatter(f)
     return h
 
 
-def get_colour_handler(extranames: List[str] = None,
-                       with_process_id: bool = False,
-                       with_thread_id: bool = False,
-                       stream: TextIO = None) -> logging.StreamHandler:
+def get_colour_handler(
+    extranames: List[str] = None,
+    with_process_id: bool = False,
+    with_thread_id: bool = False,
+    stream: TextIO = None,
+) -> logging.StreamHandler:
     """
     Gets a colour log handler using a standard format.
 
@@ -165,23 +170,27 @@ def get_colour_handler(extranames: List[str] = None,
     extras = ":" + ":".join(extranames) if extranames else ""
     fmt += f" %(name)s{extras}:%(levelname)s: "
     fmt += "%(reset)s%(log_color)s%(message)s"
-    cf = ColoredFormatter(fmt,
-                          datefmt=LOG_DATEFMT,
-                          reset=True,
-                          log_colors=LOG_COLORS,
-                          secondary_log_colors={},
-                          style='%')
+    cf = ColoredFormatter(
+        fmt,
+        datefmt=LOG_DATEFMT,
+        reset=True,
+        log_colors=LOG_COLORS,
+        secondary_log_colors={},
+        style="%",
+    )
     ch = logging.StreamHandler(stream)
     ch.setFormatter(cf)
     return ch
 
 
-def configure_logger_for_colour(logger: logging.Logger,
-                                level: int = logging.INFO,
-                                remove_existing: bool = False,
-                                extranames: List[str] = None,
-                                with_process_id: bool = False,
-                                with_thread_id: bool = False) -> None:
+def configure_logger_for_colour(
+    logger: logging.Logger,
+    level: int = logging.INFO,
+    remove_existing: bool = False,
+    extranames: List[str] = None,
+    with_process_id: bool = False,
+    with_thread_id: bool = False,
+) -> None:
     """
     Applies a preconfigured datetime/colour scheme to a logger.
 
@@ -198,17 +207,21 @@ def configure_logger_for_colour(logger: logging.Logger,
     """
     if remove_existing:
         logger.handlers = []  # https://stackoverflow.com/questions/7484454
-    handler = get_colour_handler(extranames,
-                                 with_process_id=with_process_id,
-                                 with_thread_id=with_thread_id)
+    handler = get_colour_handler(
+        extranames,
+        with_process_id=with_process_id,
+        with_thread_id=with_thread_id,
+    )
     handler.setLevel(level)
     logger.addHandler(handler)
     logger.setLevel(level)
 
 
-def main_only_quicksetup_rootlogger(level: int = logging.DEBUG,
-                                    with_process_id: bool = False,
-                                    with_thread_id: bool = False) -> None:
+def main_only_quicksetup_rootlogger(
+    level: int = logging.DEBUG,
+    with_process_id: bool = False,
+    with_thread_id: bool = False,
+) -> None:
     """
     Quick function to set up the root logger for colour.
 
@@ -222,15 +235,20 @@ def main_only_quicksetup_rootlogger(level: int = logging.DEBUG,
     """
     # Nasty. Only call from "if __name__ == '__main__'" clauses!
     rootlogger = logging.getLogger()
-    configure_logger_for_colour(rootlogger, level, remove_existing=True,
-                                with_process_id=with_process_id,
-                                with_thread_id=with_thread_id)
+    configure_logger_for_colour(
+        rootlogger,
+        level,
+        remove_existing=True,
+        with_process_id=with_process_id,
+        with_thread_id=with_thread_id,
+    )
     # logging.basicConfig(level=level)
 
 
 # =============================================================================
 # Generic log functions
 # =============================================================================
+
 
 def remove_all_logger_handlers(logger: logging.Logger) -> None:
     """
@@ -244,9 +262,9 @@ def remove_all_logger_handlers(logger: logging.Logger) -> None:
         logger.removeHandler(h)
 
 
-def reset_logformat(logger: logging.Logger,
-                    fmt: str,
-                    datefmt: str = '%Y-%m-%d %H:%M:%S') -> None:
+def reset_logformat(
+    logger: logging.Logger, fmt: str, datefmt: str = "%Y-%m-%d %H:%M:%S"
+) -> None:
     """
     Create a new formatter and apply it to the logger.
 
@@ -267,9 +285,9 @@ def reset_logformat(logger: logging.Logger,
     logger.propagate = False
 
 
-def reset_logformat_timestamped(logger: logging.Logger,
-                                extraname: str = "",
-                                level: int = logging.INFO) -> None:
+def reset_logformat_timestamped(
+    logger: logging.Logger, extraname: str = "", level: int = logging.INFO
+) -> None:
     """
     Apply a simple time-stamped log format to an existing logger, and set
     its loglevel to either ``logging.DEBUG`` or ``logging.INFO``.
@@ -280,8 +298,11 @@ def reset_logformat_timestamped(logger: logging.Logger,
         level: log level to set
     """
     namebit = extraname + ":" if extraname else ""
-    fmt = ("%(asctime)s.%(msecs)03d:%(levelname)s:%(name)s:" + namebit +
-           "%(message)s")
+    fmt = (
+        "%(asctime)s.%(msecs)03d:%(levelname)s:%(name)s:"
+        + namebit
+        + "%(message)s"
+    )
     # logger.info(fmt)
     reset_logformat(logger, fmt=fmt)
     # logger.info(fmt)
@@ -291,6 +312,7 @@ def reset_logformat_timestamped(logger: logging.Logger,
 # =============================================================================
 # Helper functions
 # =============================================================================
+
 
 def configure_all_loggers_for_colour(remove_existing: bool = True) -> None:
     """
@@ -309,8 +331,9 @@ def configure_all_loggers_for_colour(remove_existing: bool = True) -> None:
     apply_handler_to_all_logs(handler, remove_existing=remove_existing)
 
 
-def apply_handler_to_root_log(handler: logging.Handler,
-                              remove_existing: bool = False) -> None:
+def apply_handler_to_root_log(
+    handler: logging.Handler, remove_existing: bool = False
+) -> None:
     """
     Applies a handler to all logs, optionally removing existing handlers.
 
@@ -329,8 +352,9 @@ def apply_handler_to_root_log(handler: logging.Handler,
     rootlog.addHandler(handler)
 
 
-def apply_handler_to_all_logs(handler: logging.Handler,
-                              remove_existing: bool = False) -> None:
+def apply_handler_to_all_logs(
+    handler: logging.Handler, remove_existing: bool = False
+) -> None:
     """
     Applies a handler to all logs, optionally removing existing handlers.
 
@@ -350,9 +374,9 @@ def apply_handler_to_all_logs(handler: logging.Handler,
         obj.addHandler(handler)
 
 
-def copy_root_log_to_file(filename: str,
-                          fmt: str = LOG_FORMAT,
-                          datefmt: str = LOG_DATEFMT) -> None:
+def copy_root_log_to_file(
+    filename: str, fmt: str = LOG_FORMAT, datefmt: str = LOG_DATEFMT
+) -> None:
     """
     Copy all currently configured logs to the specified file.
 
@@ -366,9 +390,9 @@ def copy_root_log_to_file(filename: str,
     apply_handler_to_root_log(fh)
 
 
-def copy_all_logs_to_file(filename: str,
-                          fmt: str = LOG_FORMAT,
-                          datefmt: str = LOG_DATEFMT) -> None:
+def copy_all_logs_to_file(
+    filename: str, fmt: str = LOG_FORMAT, datefmt: str = LOG_DATEFMT
+) -> None:
     """
     Copy all currently configured logs to the specified file.
 
@@ -396,11 +420,7 @@ def get_formatter_report(f: logging.Formatter) -> Optional[Dict[str, str]]:
     """
     if f is None:
         return None
-    return {
-        '_fmt': f._fmt,
-        'datefmt': f.datefmt,
-        '_style': str(f._style),
-    }
+    return {"_fmt": f._fmt, "datefmt": f.datefmt, "_style": str(f._style)}
 
 
 def get_handler_report(h: logging.Handler) -> Dict[str, Any]:
@@ -410,15 +430,16 @@ def get_handler_report(h: logging.Handler) -> Dict[str, Any]:
     """
     # noinspection PyUnresolvedReferences
     return {
-        'get_name()': h.get_name(),
-        'level': h.level,
-        'formatter': get_formatter_report(h.formatter),
-        'filters': h.filters,
+        "get_name()": h.get_name(),
+        "level": h.level,
+        "formatter": get_formatter_report(h.formatter),
+        "filters": h.filters,
     }
 
 
-def get_log_report(log: Union[logging.Logger,
-                              logging.PlaceHolder]) -> Dict[str, Any]:
+def get_log_report(
+    log: Union[logging.Logger, logging.PlaceHolder]
+) -> Dict[str, Any]:
     """
     Returns information on a log, as a dictionary. For debugging.
     """
@@ -426,18 +447,16 @@ def get_log_report(log: Union[logging.Logger,
         # suppress invalid error for Logger.manager:
         # noinspection PyUnresolvedReferences
         return {
-            '(object)': str(log),
-            'level': log.level,
-            'disabled': log.disabled,
-            'propagate': log.propagate,
-            'parent': str(log.parent),
-            'manager': str(log.manager),
-            'handlers': [get_handler_report(h) for h in log.handlers],
+            "(object)": str(log),
+            "level": log.level,
+            "disabled": log.disabled,
+            "propagate": log.propagate,
+            "parent": str(log.parent),
+            "manager": str(log.manager),
+            "handlers": [get_handler_report(h) for h in log.handlers],
         }
     elif isinstance(log, logging.PlaceHolder):
-        return {
-            "(object)": str(log),
-        }
+        return {"(object)": str(log)}
     else:
         raise ValueError(f"Unknown object type: {log!r}")
 
@@ -451,12 +470,13 @@ def print_report_on_all_logs() -> None:
     for name, obj in logging.Logger.manager.loggerDict.items():
         d[name] = get_log_report(obj)
     rootlogger = logging.getLogger()
-    d['(root logger)'] = get_log_report(rootlogger)
-    print(json.dumps(d, sort_keys=True, indent=4, separators=(',', ': ')))
+    d["(root logger)"] = get_log_report(rootlogger)
+    print(json.dumps(d, sort_keys=True, indent=4, separators=(",", ": ")))
 
 
-def set_level_for_logger_and_its_handlers(log: logging.Logger,
-                                          level: int) -> None:
+def set_level_for_logger_and_its_handlers(
+    log: logging.Logger, level: int
+) -> None:
     """
     Set a log level for a log and all its handlers.
 
@@ -473,27 +493,30 @@ def set_level_for_logger_and_its_handlers(log: logging.Logger,
 # HTML formatter
 # =============================================================================
 
+
 class HtmlColorFormatter(logging.Formatter):
     """
     Class to format Python logs in coloured HTML.
     """
+
     log_colors = {
-        logging.DEBUG: '#008B8B',  # dark cyan
-        logging.INFO: '#00FF00',  # green
-        logging.WARNING: '#FFFF00',  # yellow
-        logging.ERROR: '#FF0000',  # red
-        logging.CRITICAL: '#FF0000',  # red
+        logging.DEBUG: "#008B8B",  # dark cyan
+        logging.INFO: "#00FF00",  # green
+        logging.WARNING: "#FFFF00",  # yellow
+        logging.ERROR: "#FF0000",  # red
+        logging.CRITICAL: "#FF0000",  # red
     }
     log_background_colors = {
         logging.DEBUG: None,
         logging.INFO: None,
         logging.WARNING: None,
         logging.ERROR: None,
-        logging.CRITICAL: '#FFFFFF',  # white
+        logging.CRITICAL: "#FFFFFF",  # white
     }
 
-    def __init__(self, append_br: bool = False,
-                 replace_nl_with_br: bool = True) -> None:
+    def __init__(
+        self, append_br: bool = False, replace_nl_with_br: bool = True
+    ) -> None:
         r"""
         Args:
             append_br: append ``<br>`` to each line?
@@ -502,9 +525,7 @@ class HtmlColorFormatter(logging.Formatter):
         See https://hg.python.org/cpython/file/3.5/Lib/logging/__init__.py
         """
         super().__init__(
-            fmt='%(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S',
-            style='%'
+            fmt="%(message)s", datefmt="%Y-%m-%d %H:%M:%S", style="%"
         )
         self.append_br = append_br
         self.replace_nl_with_br = replace_nl_with_br
@@ -549,13 +570,16 @@ class HtmlColorFormatter(logging.Formatter):
 # HtmlColorHandler
 # =============================================================================
 
+
 class HtmlColorHandler(logging.StreamHandler):
     """
     HTML handler (using :class:`HtmlColorFormatter`) that sends output to a
     function, e.g. for display in a Qt window
     """
-    def __init__(self, logfunction: Callable[[str], None],
-                 level: int = logging.INFO) -> None:
+
+    def __init__(
+        self, logfunction: Callable[[str], None], level: int = logging.INFO
+    ) -> None:
         super().__init__()
         self.logfunction = logfunction
         self.setFormatter(HtmlColorFormatter())
@@ -585,16 +609,17 @@ class HtmlColorHandler(logging.StreamHandler):
 # See also:
 # - https://www.simonmweber.com/2014/11/24/python-logging-traps.html
 
+
 class BraceMessage(object):
     """
     Class to represent a message that includes a message including braces
     (``{}``) and a set of ``args``/``kwargs``. When converted to a ``str``,
     the message is realized via ``msg.format(*args, **kwargs)``.
     """
-    def __init__(self,
-                 fmt: str,
-                 args: Tuple[Any, ...],
-                 kwargs: Dict[str, Any]) -> None:
+
+    def __init__(
+        self, fmt: str, args: Tuple[Any, ...], kwargs: Dict[str, Any]
+    ) -> None:
         # This version uses args and kwargs, not *args and **kwargs, for
         # performance reasons:
         # https://stackoverflow.com/questions/31992424/performance-implications-of-unpacking-dictionaries-in-python  # noqa
@@ -610,10 +635,12 @@ class BraceMessage(object):
 
 
 class BraceStyleAdapter(logging.LoggerAdapter):
-    def __init__(self,
-                 logger: logging.Logger,
-                 pass_special_logger_args: bool = True,
-                 strip_special_logger_args_from_fmt: bool = False) -> None:
+    def __init__(
+        self,
+        logger: logging.Logger,
+        pass_special_logger_args: bool = True,
+        strip_special_logger_args_from_fmt: bool = False,
+    ) -> None:
         """
         Wraps a logger so we can use ``{}``-style string formatting.
 
@@ -648,7 +675,9 @@ class BraceStyleAdapter(logging.LoggerAdapter):
         # noinspection PyTypeChecker
         super().__init__(logger=logger, extra=None)
         self.pass_special_logger_args = pass_special_logger_args
-        self.strip_special_logger_args_from_fmt = strip_special_logger_args_from_fmt  # noqa
+        self.strip_special_logger_args_from_fmt = (
+            strip_special_logger_args_from_fmt
+        )  # noqa
         # getargspec() returns:
         #   named tuple: ArgSpec(args, varargs, keywords, defaults)
         #   ... args = list of parameter names
@@ -665,8 +694,11 @@ class BraceStyleAdapter(logging.LoggerAdapter):
         # and new:
         # noinspection PyProtectedMember
         sig = signature(self.logger._log)
-        self.logargnames = [p.name for p in sig.parameters.values()
-                            if p.kind == Parameter.POSITIONAL_OR_KEYWORD]
+        self.logargnames = [
+            p.name
+            for p in sig.parameters.values()
+            if p.kind == Parameter.POSITIONAL_OR_KEYWORD
+        ]
         # e.g.: ['level', 'msg', 'args', 'exc_info', 'extra', 'stack_info']
         # print("self.logargnames: " + repr(self.logargnames))
 
@@ -681,13 +713,16 @@ class BraceStyleAdapter(logging.LoggerAdapter):
             else:
                 log_kwargs = {}
             # noinspection PyProtectedMember
-            self.logger._log(level, BraceMessage(msg, args, kwargs), (),
-                             **log_kwargs)
+            self.logger._log(
+                level, BraceMessage(msg, args, kwargs), (), **log_kwargs
+            )
 
-    def process(self, msg: str,
-                kwargs: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
-        special_param_names = [k for k in kwargs.keys()
-                               if k in self.logargnames]
+    def process(
+        self, msg: str, kwargs: Dict[str, Any]
+    ) -> Tuple[str, Dict[str, Any]]:
+        special_param_names = [
+            k for k in kwargs.keys() if k in self.logargnames
+        ]
         log_kwargs = {k: kwargs[k] for k in special_param_names}
         # ... also: remove them from the starting kwargs?
         if self.strip_special_logger_args_from_fmt:
@@ -720,7 +755,7 @@ def get_brace_style_log_with_null_handler(name: str) -> BraceStyleAdapter:
 # Testing
 # =============================================================================
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     """
     Command-line validation checks.
     """
@@ -729,7 +764,13 @@ if __name__ == '__main__':
     _log.info("1. Hello!")
     _log.info("1. Hello, {}!", "world")
     _log.info("1. Hello, foo={foo}, bar={bar}!", foo="foo", bar="bar")
-    _log.info("1. Hello, {}; foo={foo}, bar={bar}!", "world", foo="foo",
-              bar="bar")
-    _log.info("1. Hello, {}; foo={foo}, bar={bar}!", "world", foo="foo",
-              bar="bar", extra={'somekey': 'somevalue'})
+    _log.info(
+        "1. Hello, {}; foo={foo}, bar={bar}!", "world", foo="foo", bar="bar"
+    )
+    _log.info(
+        "1. Hello, {}; foo={foo}, bar={bar}!",
+        "world",
+        foo="foo",
+        bar="bar",
+        extra={"somekey": "somevalue"},
+    )

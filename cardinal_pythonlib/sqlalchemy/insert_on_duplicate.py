@@ -64,13 +64,13 @@ class InsertOnDuplicate(Insert):
     Class that derives from :class:`Insert`, so we can hook in to operations
     involving it.
     """
+
     pass
 
 
-def insert_on_duplicate(tablename: str,
-                        values: Any = None,
-                        inline: bool = False,
-                        **kwargs):
+def insert_on_duplicate(
+    tablename: str, values: Any = None, inline: bool = False, **kwargs
+):
     """
     Command to produce an :class:`InsertOnDuplicate` object.
 
@@ -95,8 +95,10 @@ def monkeypatch_TableClause() -> None:
     a ``insert_on_duplicate`` member that is our :func:`insert_on_duplicate`
     function as above.
     """
-    log.debug("Adding 'INSERT ON DUPLICATE KEY UPDATE' support for MySQL "
-              "to SQLAlchemy")
+    log.debug(
+        "Adding 'INSERT ON DUPLICATE KEY UPDATE' support for MySQL "
+        "to SQLAlchemy"
+    )
     TableClause.insert_on_duplicate = insert_on_duplicate
 
 
@@ -108,21 +110,22 @@ def unmonkeypatch_TableClause() -> None:
     del TableClause.insert_on_duplicate
 
 
-STARTSEPS = '`'
-ENDSEPS = '`'
+STARTSEPS = "`"
+ENDSEPS = "`"
 INSERT_FIELDNAMES_REGEX = (
-    r'^INSERT\sINTO\s[{startseps}]?(?P<table>\w+)[{endseps}]?\s+'
-    r'\((?P<columns>[, {startseps}{endseps}\w]+)\)\s+VALUES'.format(
-        startseps=STARTSEPS, endseps=ENDSEPS)
+    r"^INSERT\sINTO\s[{startseps}]?(?P<table>\w+)[{endseps}]?\s+"
+    r"\((?P<columns>[, {startseps}{endseps}\w]+)\)\s+VALUES".format(
+        startseps=STARTSEPS, endseps=ENDSEPS
+    )
 )
 # http://pythex.org/ !
 RE_INSERT_FIELDNAMES = re.compile(INSERT_FIELDNAMES_REGEX)
 
 
 @compiles(InsertOnDuplicate, SqlaDialectName.MYSQL)
-def compile_insert_on_duplicate_key_update(insert: Insert,
-                                           compiler: SQLCompiler,
-                                           **kw) -> str:
+def compile_insert_on_duplicate_key_update(
+    insert: Insert, compiler: SQLCompiler, **kw
+) -> str:
     """
     Hooks into the use of the :class:`InsertOnDuplicate` class
     for the MySQL dialect. Compiles the relevant SQL for an ``INSERT...
@@ -148,16 +151,15 @@ def compile_insert_on_duplicate_key_update(insert: Insert,
     m = RE_INSERT_FIELDNAMES.match(s)
     if m is None:
         raise ValueError("compile_insert_on_duplicate_key_update: no match")
-    columns = [c.strip() for c in m.group('columns').split(",")]
+    columns = [c.strip() for c in m.group("columns").split(",")]
     # log.critical(columns)
-    updates = ", ".join(
-        [f"{c} = VALUES({c})" for c in columns])
-    s += f' ON DUPLICATE KEY UPDATE {updates}'
+    updates = ", ".join([f"{c} = VALUES({c})" for c in columns])
+    s += f" ON DUPLICATE KEY UPDATE {updates}"
     # log.critical(s)
     return s
 
 
-_TEST_CODE = '''
+_TEST_CODE = """
 
 from sqlalchemy import Column, String, Integer, create_engine
 from sqlalchemy.orm import Session
@@ -191,4 +193,4 @@ session.execute(insert_1)  # raises sqlalchemy.exc.IntegrityError
 # accordingly; see
 # https://groups.google.com/forum/#!topic/sqlalchemy/aQLqeHmLPQY
 
-'''
+"""

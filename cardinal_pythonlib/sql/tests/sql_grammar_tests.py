@@ -61,8 +61,8 @@ log = logging.getLogger(__name__)
 # Tests
 # =============================================================================
 
-class SqlGrammarTests(unittest.TestCase):
 
+class SqlGrammarTests(unittest.TestCase):
     @staticmethod
     def test_base_elements() -> None:
         """
@@ -126,10 +126,12 @@ class SqlGrammarTests(unittest.TestCase):
         _test_succeed(time_string, single_quote("15:23:00.1"))
         _test_succeed(time_string, single_quote("15:23:00.123456"))
         log.info("Testing datetime_string")
-        _test_succeed(datetime_string,
-                      single_quote("2015-04-14 15:23:00.123456"))
-        _test_succeed(datetime_string,
-                      single_quote("2015-04-14T15:23:00.123456"))
+        _test_succeed(
+            datetime_string, single_quote("2015-04-14 15:23:00.123456")
+        )
+        _test_succeed(
+            datetime_string, single_quote("2015-04-14T15:23:00.123456")
+        )
 
         log.info("Testing literal")
         _test_succeed(literal_value, "NULL")
