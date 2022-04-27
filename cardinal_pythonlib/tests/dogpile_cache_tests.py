@@ -31,6 +31,7 @@
 # Imports; logging
 # =============================================================================
 
+import logging
 import unittest
 
 # noinspection PyPackageRequirements
@@ -40,9 +41,8 @@ from cardinal_pythonlib.dogpile_cache import (
     fkg_allowing_type_hints,
     kw_fkg_allowing_type_hints,
 )
-from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
-log = get_brace_style_log_with_null_handler(__name__)
+log = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -53,6 +53,14 @@ log = get_brace_style_log_with_null_handler(__name__)
 class DogpileCacheTests(unittest.TestCase):
     @staticmethod
     def test_dogpile_cache() -> None:
+        """
+        Test our extensions to dogpile.cache.
+        """
+
+        # ---------------------------------------------------------------------
+        # Testing framework
+        # ---------------------------------------------------------------------
+
         mycache = make_region()
         mycache.configure(backend="dogpile.cache.memory")
 
@@ -62,13 +70,38 @@ class DogpileCacheTests(unittest.TestCase):
         # used for, so haven't fully tested multikey_fkg_allowing_type_hints,
         # but it works internally in the same way as fkg_allowing_type_hints.
 
+        # This variable gets serially altered in an inelegant way:
         fn_was_called = False
 
         def test(
             result: str, should_call_fn: bool, reset: bool = True
         ) -> None:
+            """
+            Typical use:
+
+            .. code-block:: python
+
+                @mycache.cache_on_arguments()
+                def f(x):
+                    return x
+
+                test(f("x"), should_call_fn=True)  # called the first time
+                test(f("x"), should_call_fn=False)  # not called the second
+
+            Here, we:
+
+            - receive the result of the function, either because it's
+              just been called, or because the cache provided the value;
+            - report that result;
+            - assume that the function itself would have called fn_called(),
+              which would have set fn_was_called = True;
+            - see if fn_was_called matches our expectation, and raise
+              AssertionError otherwise;
+            - reset fn_was_called to False, for subsequent testing, unless the
+              caller asked us not to.
+            """
             nonlocal fn_was_called
-            log.info("{}", result)
+            log.info(result)
             assert (
                 fn_was_called == should_call_fn
             ), f"fn_was_called={fn_was_called}, should_call_fn={should_call_fn}"
@@ -76,9 +109,17 @@ class DogpileCacheTests(unittest.TestCase):
                 fn_was_called = False
 
         def fn_called(text: str) -> None:
-            log.info("{}", text)
+            """
+            Reports and marks that the function we are (inelegantly) monitoring
+            has been called. (Called by a variety of test functions.)
+            """
+            log.info(text)
             nonlocal fn_was_called
             fn_was_called = True
+
+        # ---------------------------------------------------------------------
+        # Some plain functions with cache decorators
+        # ---------------------------------------------------------------------
 
         @mycache.cache_on_arguments(function_key_generator=None)
         def no_params_dogpile_default_fkg():  # no type hints!
@@ -97,6 +138,7 @@ class DogpileCacheTests(unittest.TestCase):
 
         @mycache.cache_on_arguments(function_key_generator=plain_fkg)
         def twoparam_with_default_wrong_dec(a: str, b: str = "Zelda") -> str:
+            # The decorator shouldn't work with keyword arguments.
             fn_called(
                 "CACHED FUNCTION twoparam_with_default_wrong_dec() CALLED"
             )
@@ -144,6 +186,10 @@ class DogpileCacheTests(unittest.TestCase):
                 f"fn_all_possible: a={a!r}, b={b!r}, args={args!r}, d={d!r}, "
                 f"kwargs={kwargs!r}"
             )
+
+        # ---------------------------------------------------------------------
+        # Some classes with cache-decorated member functions
+        # ---------------------------------------------------------------------
 
         class TestClass(object):
             c = 999
@@ -203,8 +249,8 @@ class DogpileCacheTests(unittest.TestCase):
             def fn_all_possible(self, a, b, *args, d="David", **kwargs):
                 fn_called("CACHED FUNCTION TestClass.fn_all_possible() CALLED")
                 return (
-                    f"TestClass.fn_all_possible: a={a!r}, b={b!r}, args={args!r}, "
-                    f"d={d!r}, kwargs={kwargs!r}"
+                    f"TestClass.fn_all_possible: a={a!r}, b={b!r}, "
+                    f"args={args!r}, d={d!r}, kwargs={kwargs!r}"
                 )
 
             @property
@@ -269,16 +315,18 @@ class DogpileCacheTests(unittest.TestCase):
                 fn_called("CACHED PROPERTY Inherited.prop() CALLED")
                 return f"Inherited.prop: a={self.a!r}"
 
-        log.warning(
-            "Fetching cached information #1 (should call noparams())..."
-        )
+        # ---------------------------------------------------------------------
+        # Perform the tests
+        # ---------------------------------------------------------------------
+
+        log.info("Fetching cached information #1 (should call noparams())...")
         test(noparams(), True)
-        log.warning(
+        log.info(
             "Fetching cached information #2 (should not call noparams())..."
         )
         test(noparams(), False)
 
-        log.warning("Testing functions with other signatures...")
+        log.info("Testing functions with other signatures...")
         test(oneparam("Arthur"), True)
         test(oneparam("Arthur"), False)
         test(oneparam("Bob"), True)
@@ -288,18 +336,35 @@ class DogpileCacheTests(unittest.TestCase):
         test(twoparam_with_default_wrong_dec("Celia", "Yorick"), True)
         test(twoparam_with_default_wrong_dec("Celia", "Yorick"), False)
 
-        log.warning("Trying with keyword arguments and wrong key generator")
+        log.info("Trying with keyword arguments and wrong key generator")
         try:
             log.info(
-                "{}", twoparam_with_default_wrong_dec(a="Celia", b="Yorick")
+                twoparam_with_default_wrong_dec(a="Celia[a]", b="Yorick[b]")
             )
             raise AssertionError(
                 "Inappropriate success with keyword arguments!"
             )
+            _ = """
+            2022-04-27: This test is failing. The call above, with named
+            parameters a="Celia[a]", b="Yorick[b]", is reaching
+            fkg_allowing_type_hints.generate_key() with
+            args=('Celia[a]', 'Yorick[b]'), kw={}); argnames = ['a', 'b'].
+            That's with Python 3.8.
+
+            A test function works fnie in Python 3.8:
+
+                def f(*args, **kwargs):
+                    print(f"args={args!r}, kwargs={kwargs!r}")
+
+                f(a="a", b="b")  # args=(), kwargs={'a': 'a', 'b': 'b'}
+                f("a", "b")  #  args=('a', 'b'), kwargs={}
+                f("a", b="b")  #  args=('a',), kwargs={'b': 'b'}
+
+            """
         except ValueError:
             log.info("Correct rejection of keyword arguments")
 
-        log.warning("Trying with keyword arguments and right key generator")
+        log.info("Trying with keyword arguments and right key generator")
         test(twoparam_with_default_right_dec(a="Celia"), True)
         test(twoparam_with_default_right_dec(a="Celia", b="Yorick"), True)
         test(twoparam_with_default_right_dec(b="Yorick", a="Celia"), False)
@@ -332,8 +397,9 @@ class DogpileCacheTests(unittest.TestCase):
 
         test(fn_args_kwargs(p="another", q="thing"), True)
         test(fn_args_kwargs(p="another", q="thing"), False)
-        log.warning(
-            "The next call MUST NOT go via the cache, i.e. func should be CALLED"
+        log.info(
+            "The next call MUST NOT go via the cache, "
+            "i.e. func should be CALLED"
         )
         test(fn_args_kwargs(p="another q=thing"), True)
         test(fn_args_kwargs(p="another q=thing"), False)
@@ -353,7 +419,7 @@ class DogpileCacheTests(unittest.TestCase):
             fn_all_possible(98, 99, d="Horace", r="another", s="thing"), False
         )
 
-        log.warning("Testing class member functions")
+        log.info("Testing class member functions")
         t = TestClass()
         test(t.noparams(), True)
         test(t.noparams(), False)
@@ -388,7 +454,7 @@ class DogpileCacheTests(unittest.TestCase):
         test(t.prop, True)
         test(t.prop, False)
 
-        log.warning("Testing functions for another INSTANCE of the same class")
+        log.info("Testing functions for another INSTANCE of the same class")
         t_other = TestClass(a=999)
         test(t_other.noparams(), True)
         test(t_other.noparams(), False)
@@ -442,7 +508,7 @@ class DogpileCacheTests(unittest.TestCase):
         test(t_other.no_params_instance_cache(), True)
         test(t_other.no_params_instance_cache(), False)
 
-        log.warning("Testing functions for instance of a derived class")
+        log.info("Testing functions for instance of a derived class")
         t_inh = Inherited(a=777)
         test(t_inh.noparams(), True)
         test(t_inh.noparams(), False)

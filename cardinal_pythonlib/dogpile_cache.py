@@ -82,18 +82,17 @@
 # =============================================================================
 
 import inspect
+import logging
 from typing import Any, Callable, Dict, List, Optional
 
-from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
-
-log = get_brace_style_log_with_null_handler(__name__)
+log = logging.getLogger(__name__)
 
 
 # =============================================================================
 # Constants
 # =============================================================================
 
-DEBUG_INTERNALS = False
+DEBUG_INTERNALS = True
 
 
 # =============================================================================
@@ -202,7 +201,11 @@ def fkg_allowing_type_hints(
             args = [hex(id(args[0]))] + list(args[1:])
         key = namespace + "|" + " ".join(map(to_str, args))
         if DEBUG_INTERNALS:
-            log.debug("fkg_allowing_type_hints.generate_key() -> {!r}", key)
+            log.debug(
+                f"fkg_allowing_type_hints.generate_key("
+                f"args={args!r}, kw={kw!r}); argnames = {argnames!r} "
+                f"-> {key!r}"
+            )
         return key
 
     return generate_key
@@ -243,8 +246,7 @@ def multikey_fkg_allowing_type_hints(
         keys = [namespace + "|" + key for key in map(to_str, args)]
         if DEBUG_INTERNALS:
             log.debug(
-                "multikey_fkg_allowing_type_hints.generate_keys() -> {!r}",
-                keys,
+                f"multikey_fkg_allowing_type_hints.generate_keys() -> {keys!r}"
             )
         return keys
 
@@ -288,15 +290,11 @@ def kw_fkg_allowing_type_hints(
     has_self = bool(argnames and argnames[0] in ("self", "cls"))
 
     if DEBUG_INTERNALS:
+        param_str = ", ".join(repr_parameter(p) for p in parameters)
         log.debug(
-            "At start of kw_fkg_allowing_type_hints: namespace={namespace},"
-            "parameters=[{parameters}], argnames={argnames}, "
-            "has_self={has_self}, fn={fn}",
-            namespace=namespace,
-            parameters=", ".join(repr_parameter(p) for p in parameters),
-            argnames=repr(argnames),
-            has_self=has_self,
-            fn=repr(fn),
+            f"At start of kw_fkg_allowing_type_hints: namespace={namespace},"
+            f"parameters=[{param_str}], argnames={argnames!r}, "
+            f"has_self={has_self}, fn={fn!r}"
         )
 
     def generate_key(*args: Any, **kwargs: Any) -> str:
@@ -338,7 +336,7 @@ def kw_fkg_allowing_type_hints(
         ]
         key = namespace + "|" + " ".join(argument_values)
         if DEBUG_INTERNALS:
-            log.debug("kw_fkg_allowing_type_hints.generate_key() -> {!r}", key)
+            log.debug(f"kw_fkg_allowing_type_hints.generate_key() -> {key!r}")
         return key
 
     return generate_key

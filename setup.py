@@ -228,8 +228,8 @@ setup(
                 "cardinal_pythonlib.tools.remove_duplicate_files:main"
             ),
             (
-                "cardinalpythonlib_test_clang_format_config="
-                "cardinal_pythonlib.tools.test_clang_format_config:main"
+                "cardinalpythonlib_explore_clang_format_config="
+                "cardinal_pythonlib.tools.explore_clang_format_config:main"
             ),
             # other
             "cardinalpythonlib_chebi=cardinal_pythonlib.chebi:main",

@@ -686,11 +686,11 @@ def merge_db(
 
     log.info("merge_db(): starting")
     if dummy_run:
-        log.warning("Dummy run only; destination will not be changed")
+        log.info("Dummy run only; destination will not be changed")
 
     # Check parameters before we modify them
     if only_tables is not None and not only_tables:
-        log.warning("... only_tables == []; nothing to do")
+        log.info("... only_tables == []; nothing to do")
         return
 
     # Finalize parameters

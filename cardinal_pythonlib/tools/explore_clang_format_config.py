@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# cardinal_pythonlib/tools/test_clang_format_config.py
+# cardinal_pythonlib/tools/explore_clang_format_config.py
 
 """
 ===============================================================================
@@ -93,7 +93,7 @@ def clang_format(
 # =============================================================================
 
 
-def test_clang_format(
+def explore_clang_format(
     config_filename: str,
     source_filenames: List[str],
     clang_format_exe: str,
@@ -212,7 +212,7 @@ def main() -> None:
     assert args.clangformat, "clang-format executable not specified or found"
     log.debug(f"meld executable: {args.meld}")
     assert args.meld, "meld executable not specified or found"
-    test_clang_format(
+    explore_clang_format(
         config_filename=args.config,
         source_filenames=args.source,
         clang_format_exe=args.clangformat,
