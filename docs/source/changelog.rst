@@ -709,3 +709,12 @@ Quick links:
 
 - :func:`cardinal_pythonlib.datetimefunc.coerce_to_date`, and some more unit
   tests.
+
+**1.1.19 (in progress 2022-04-27)**
+
+- Tool `cardinalpythonlib_explore_clang_format_config`.
+- :func:`cardinal_pythonlib.fileops.concatenate`
+- :class:`cardinal_pythonlib.fileops.FileWatcher`
+- Rearranged unit tests -- one (non-critical) test of the dogpile.cache
+  extensions is not now working; unclear why; change in how args/kwargs are
+  being labelled?
