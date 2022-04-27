@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -73,5 +73,5 @@ def module_semantic_version(module_name: str) -> Version:
     """
     version_string = module_version_string(
         module_name
-    )  # may raise PackageNotFoundError  # noqa
+    )  # may raise PackageNotFoundError
     return Version(version_string)  # may raise ValueError

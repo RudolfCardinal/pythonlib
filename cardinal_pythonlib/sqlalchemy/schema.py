@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -47,7 +47,6 @@ from sqlalchemy.schema import (
     Column,
     CreateColumn,
     DDL,
-    MetaData,
     Index,
     Sequence,
     Table,
@@ -140,7 +139,7 @@ class SqlaColumnInspectionInfo(object):
         self.nullable = sqla_info_dict["nullable"]  # type: bool
         self.default = sqla_info_dict[
             "default"
-        ]  # type: str  # SQL string expression  # noqa
+        ]  # type: str  # SQL string expression
         self.attrs = sqla_info_dict.get("attrs", {})  # type: Dict[str, Any]
         self.comment = sqla_info_dict.get("comment", "")
         # ... NB not appearing in
@@ -336,7 +335,7 @@ WHERE
     ).bindparams(tablename=tablename, schemaname=schemaname)
     with contextlib.closing(
         engine.execute(query)
-    ) as result:  # type: ResultProxy  # noqa
+    ) as result:  # type: ResultProxy
         row = result.fetchone()
         return row[0] if row else ""
 
@@ -364,7 +363,7 @@ WHERE
     ).bindparams(tablename=tablename, schemaname=schemaname)
     with contextlib.closing(
         engine.execute(query)
-    ) as result:  # type: ResultProxy  # noqa
+    ) as result:  # type: ResultProxy
         row = result.fetchone()
         return row[0] > 0
 
@@ -379,7 +378,7 @@ def mssql_transaction_count(engine_or_conn: Union[Connection, Engine]) -> int:
     sql = "SELECT @@TRANCOUNT"
     with contextlib.closing(
         engine_or_conn.execute(sql)
-    ) as result:  # type: ResultProxy  # noqa
+    ) as result:  # type: ResultProxy
         row = result.fetchone()
         return row[0] if row else None
 
@@ -500,7 +499,7 @@ def add_index(
             # statement executed on it beforehand.
             schemaname = (
                 engine.schema_for_object(sqla_table) or MSSQL_DEFAULT_SCHEMA
-            )  # noqa
+            )
             if mssql_table_has_ft_index(
                 engine=engine, tablename=tablename, schemaname=schemaname
             ):

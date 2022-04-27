@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -134,13 +134,12 @@ class Ports(object):
     # Some non-standard ports:
     # -------------------------------------------------------------------------
 
-    FLOWER_NONSTANDARD = (
-        5555
-    )  # default internal port for Flower, https://flower.readthedocs.io/  # noqa
+    FLOWER_NONSTANDARD = 5555
+    # ... default internal port for Flower, https://flower.readthedocs.io/
     ALTERNATIVE_HTTP_NONSTANDARD = 8000
-    RABBITMQ_ADMIN_NONSTANDARD = (
-        15672
-    )  # default internal port for RabbitMQ admin interface; https://www.rabbitmq.com/  # noqa
+    RABBITMQ_ADMIN_NONSTANDARD = 15672
+    # ... default internal port for RabbitMQ admin interface;
+    # https://www.rabbitmq.com/
 
 
 class UriSchemes:

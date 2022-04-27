@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -151,7 +151,6 @@ def range_roundable_up_to(
     half = Decimal("0.5") * decimal.getcontext().power(10, -dp)
     a = y - half
     b = y + half
-    # print(f"range_roundable_up_to(y={y}, dp={dp}): half={half}, a={a}, b={b}")  # noqa
     if with_description:
         description = f"[{a}, {b})"
         return a, b, description

@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -620,7 +620,7 @@ DOCX_DOC_FILE = "word/document.xml"
 DOCX_FOOTER_FILE_REGEX = re.compile("word/footer[0-9]*.xml")
 DOCX_SCHEMA_URL = (
     "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-)  # noqa
+)
 
 
 def docx_qn(tagroot):

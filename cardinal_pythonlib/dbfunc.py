@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -33,7 +33,7 @@ from typing import Any, Dict, Generator, List, Optional
 
 from cardinal_pythonlib.typing_helpers import (
     Pep249DatabaseCursorType as Cursor,
-)  # noqa
+)
 
 
 def get_fieldnames_from_cursor(cursor: Cursor) -> List[str]:

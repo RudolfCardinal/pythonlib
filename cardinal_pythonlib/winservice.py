@@ -5,7 +5,7 @@
 r"""
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -390,7 +390,7 @@ class ProcessManager(object):
         """
         fullname = (
             f"Process {self.procnum}/{self.nprocs} ({self.details.name})"
-        )  # noqa
+        )
         if self.running:
             fullname += f" (PID={self.process.pid})"
         return fullname

@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -864,7 +864,7 @@ _UNICODE_CATEGORY_SRC = {
         "2B740-2B81D",
         "2B820-2CEA1",
         "2F800-2FA1D",
-    ],  # noqa
+    ],
     "Any": ["0000-10FFFF"],
     # 'Assigned': [], # Defined as the inverse of category Cn
     "Default_Ignorable_Code_Point": [
@@ -887,7 +887,7 @@ _UNICODE_CATEGORY_SRC = {
         "1BCA0-1BCA3",
         "1D173-1D17A",
         "E0000-E0FFF",
-    ],  # noqa
+    ],
     "Lowercase": [
         "0061-007A",
         0x00AA,
@@ -1550,7 +1550,7 @@ _UNICODE_CATEGORY_SRC = {
         "1D7C4-1D7C9",
         0x1D7CB,
         "1E922-1E943",
-    ],  # noqa
+    ],
     "Noncharacter_Code_Point": [
         "FDD0-FDEF",
         0xFFFE,
@@ -1587,7 +1587,7 @@ _UNICODE_CATEGORY_SRC = {
         0xFFFFF,
         0x10FFFE,
         0x10FFFF,
-    ],  # noqa
+    ],
     "Uppercase": [
         "0041-005A",
         "00C0-00D6",

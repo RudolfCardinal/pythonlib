@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -429,13 +429,13 @@ def cumulative_time_on_drug(
     if include_timedelta_in_output:
         dest_colnum_before_dt = cumulative_times.columns.get_loc(
             RCN_BEFORE_TIMEDELTA
-        )  # noqa
+        )
         dest_colnum_during_dt = cumulative_times.columns.get_loc(
             RCN_DURING_TIMEDELTA
-        )  # noqa
+        )
         dest_colnum_after_dt = cumulative_times.columns.get_loc(
             RCN_AFTER_TIMEDELTA
-        )  # noqa
+        )
     else:
         # for type checker
         dest_colnum_before_dt = 0

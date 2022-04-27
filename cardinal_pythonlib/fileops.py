@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -549,3 +549,53 @@ def get_directory_contents_size(directory: str = ".") -> int:
                 total_size += os.path.getsize(fp)
 
     return total_size
+
+
+# =============================================================================
+# Concatenation
+# =============================================================================
+
+
+def concatenate(src: List[str], dest: str, filesep: str = os.linesep):
+    """
+    Concatenate multiple text files into one.
+    """
+    with open(dest, "wt") as outfile:
+        for i, sf in enumerate(src):
+            if i > 0:
+                outfile.write(filesep)
+            with open(sf) as infile:
+                shutil.copyfileobj(infile, outfile)
+
+
+# =============================================================================
+# Watching for changes
+# =============================================================================
+
+
+class FileWatcher:
+    """
+    Watch several files for changes.
+    """
+
+    def __init__(self, filenames: List[str]) -> None:
+        """
+        Initialize with a list of filenames to watch.
+        """
+        self._filenames = filenames
+        self._when_modified = {f: os.path.getmtime(f) for f in self._filenames}
+
+    def changed(self) -> List[str]:
+        """
+        Returns a list of filenames that have changed (since class instance
+        creation or last call to this function).
+        """
+        changed_filenames = []  # type: List[str]
+        for f in self._filenames:
+            old_time = self._when_modified[f]
+            new_time = os.path.getmtime(f)
+            if new_time > old_time:
+                log.info(f"Change detected in {f}")
+                changed_filenames.append(f)
+                self._when_modified[f] = new_time
+        return changed_filenames

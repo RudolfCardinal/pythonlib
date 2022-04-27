@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -677,7 +677,7 @@ class BraceStyleAdapter(logging.LoggerAdapter):
         self.pass_special_logger_args = pass_special_logger_args
         self.strip_special_logger_args_from_fmt = (
             strip_special_logger_args_from_fmt
-        )  # noqa
+        )
         # getargspec() returns:
         #   named tuple: ArgSpec(args, varargs, keywords, defaults)
         #   ... args = list of parameter names

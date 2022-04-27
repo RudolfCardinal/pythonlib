@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -181,11 +181,11 @@ from typing import (
     List,
     Optional,  # noqa
     Sequence,
-    Tuple,
+    Tuple,  # noqa
     Type,
     TypeVar,
     Union,
-)  # noqa
+)
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sql.validation import *

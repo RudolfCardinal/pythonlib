@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -559,7 +559,7 @@ def duration_from_iso(iso_duration: str) -> Duration:
     """
     duration = parse_duration(
         iso_duration
-    )  # type: Union[datetime.timedelta, IsodateDuration]  # noqa
+    )  # type: Union[datetime.timedelta, IsodateDuration]
     # print(f"CONVERTING: {iso_duration!r} -> {duration!r}")
     if isinstance(duration, datetime.timedelta):
         # It'll be a timedelta if it doesn't contain years or months.

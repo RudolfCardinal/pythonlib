@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -125,7 +125,7 @@ try:
 except ImportError:
     raise ImportError(
         "Cannot import libchebipy; try the command: pip install libChEBIpy"
-    )  # noqa
+    )
 
 from cardinal_pythonlib.file_io import (
     gen_lines_without_comments,
@@ -782,7 +782,7 @@ def categorize_from_file(
     if manual_categories_filename:
         log.info(
             f"Reading manual categories from {manual_categories_filename}"
-        )  # noqa
+        )
         manual_categories = read_dict(manual_categories_filename)
     else:
         manual_categories = CaseInsensitiveDict()

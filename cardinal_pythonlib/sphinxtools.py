@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -641,11 +641,11 @@ class AutodocIndex(object):
         self.index_heading_underline_char = index_heading_underline_char
         self.source_rst_heading_underline_char = (
             source_rst_heading_underline_char
-        )  # noqa
+        )
         self.recursive = recursive
         self.skip_globs = (
             skip_globs if skip_globs is not None else DEFAULT_SKIP_GLOBS
-        )  # noqa
+        )
         self.toctree_maxdepth = toctree_maxdepth
         self.method = method
         self.rst_prefix = rst_prefix

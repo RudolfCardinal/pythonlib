@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -96,7 +96,9 @@ def lowpass_filter(
         numtaps=numtaps,
         cutoff=normalized_frequency(cutoff_freq_hz, sampling_freq_hz),
         pass_zero=True,
-    )  # coefficients of a finite impulse response (FIR) filter using window method  # noqa
+    )
+    # ... coefficients of a finite impulse response (FIR) filter using window
+    # method
     filtered_data = lfilter(b=coeffs, a=1.0, x=data)
     return filtered_data
 

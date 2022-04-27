@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -252,7 +252,7 @@ def make_hasher(hash_method: str, key: str) -> GenericHasher:
         HashMethods.MD5,
         HashMethods.SHA256,
         HashMethods.SHA512,
-    ):  # noqa
+    ):
         raise ValueError(
             f"Non-HMAC hashers are deprecated for security reasons. You are "
             f"trying to use: {hash_method}"

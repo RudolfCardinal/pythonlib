@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -39,7 +39,7 @@ TYPE_WSGI_STATUS = str
 TYPE_WSGI_RESPONSE_HEADERS = List[Tuple[str, str]]
 TYPE_WSGI_START_RESP_RESULT = Callable[
     [str], None
-]  # call with e.g. write(body_data)  # noqa
+]  # call with e.g. write(body_data)
 TYPE_WSGI_EXC_INFO = Tuple[
     # https://docs.python.org/3/library/sys.html#sys.exc_info
     Optional[Type[BaseException]],  # type

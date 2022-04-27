@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -478,7 +478,7 @@ class Drug(object):
         self.tricyclic = tricyclic_antidepressant
         self.tetracyclic_and_related_antidepressant = (
             tetracyclic_and_related_antidepressant
-        )  # noqa
+        )
         self.monoamine_oxidase_inhibitor = monoamine_oxidase_inhibitor
 
         self.antipsychotic = antipsychotic
@@ -1360,7 +1360,7 @@ def get_drug(
             drug is not None
             and drug.category_not_drug
             and not include_categories
-        ):  # noqa
+        ):
             return None
         return drug
     else:

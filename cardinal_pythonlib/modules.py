@@ -4,7 +4,7 @@
 """
 ===============================================================================
 
-    Original code copyright (C) 2009-2021 Rudolf Cardinal (rudolf@pobox.com).
+    Original code copyright (C) 2009-2022 Rudolf Cardinal (rudolf@pobox.com).
 
     This file is part of cardinal_pythonlib.
 
@@ -294,7 +294,7 @@ def contains_c_extension(
         try:
             for loader, module_name, is_pkg in pkgutil.walk_packages(
                 [top_path]
-            ):  # noqa
+            ):
                 if not is_pkg:
                     log.debug("Skipping, not a package: {!r}", module_name)
                     continue
@@ -303,7 +303,7 @@ def contains_c_extension(
                 try:
                     candidate = loader.find_module(module_name).load_module(
                         module_name
-                    )  # noqa
+                    )
                 except Exception:
                     # e.g. Alembic "autogenerate" gives: "ValueError: attempted
                     # relative import beyond top-level package"; or Django
