@@ -718,3 +718,4 @@ Quick links:
 - Rearranged unit tests -- one (non-critical) test of the dogpile.cache
   extensions is not now working; unclear why; change in how args/kwargs are
   being labelled?
+- :func:`cardinal_pythonlib.psychiatry.simhelpers.gen_params_around_centre`
