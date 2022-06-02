@@ -710,7 +710,7 @@ Quick links:
 - :func:`cardinal_pythonlib.datetimefunc.coerce_to_date`, and some more unit
   tests.
 
-**1.1.19 (in progress 2022-04-27)**
+**1.1.19 (2022-04-27 to 2022-06-02)**
 
 - Tool `cardinalpythonlib_explore_clang_format_config`.
 - :func:`cardinal_pythonlib.fileops.concatenate`
@@ -719,3 +719,6 @@ Quick links:
   extensions is not now working; unclear why; change in how args/kwargs are
   being labelled?
 - :func:`cardinal_pythonlib.psychiatry.simhelpers.gen_params_around_centre`
+- Speedup and edge case handling improved for
+  :func:`cardinal_pythonlib.probability.ln` and
+  :func:`cardinal_pythonlib.probability.log10`.

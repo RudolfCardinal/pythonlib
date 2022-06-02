@@ -73,8 +73,34 @@ def ln(x: float) -> float:
         timeit.timeit('(MINUS_INFINITY for _ in range(1, 100))', number=10000)
         # 0.004293474368751049
 
-    """
-    return math_ln(x) if x != 0 else MINUS_INFINITY
+    Note also that although floats can't be "too close to zero" to cause an
+    error, other things (like Decimal objects) can. See
+    https://stackoverflow.com/questions/19095774/python-math-domain-errors-in-math-log-function
+
+    Exception catching is likely faster:
+
+    .. code-block: python
+
+        from cardinal_pythonlib.probability import ln
+        import timeit
+
+        # return math_ln(x) if x != 0 else MINUS_INFINITY
+        timeit.timeit('(ln(x) for x in range(1, 100))', number=10000)
+        # 0.012411762960255146
+        
+        # try... except ValueError...
+        timeit.timeit('(ln(x) for x in range(1, 100))', number=10000)
+        # 0.007783170789480209
+
+    """  # noqa
+    # return math_ln(x) if x != 0 else MINUS_INFINITY  # slower, less helpful
+    try:
+        return math_ln(x)
+    except ValueError:
+        if x < 0:
+            raise ValueError(f"Can't take log of a negative number: {x}")
+        # Either x > 0 but causing problems anyway, or x == 0.
+        return MINUS_INFINITY
 
 
 def log10(x: float) -> float:
@@ -91,7 +117,14 @@ def log10(x: float) -> float:
     See
     https://stackoverflow.com/questions/42980201/logarithm-of-zero-in-python.
     """
-    return math_log10(x) if x != 0 else MINUS_INFINITY
+    # return math_log10(x) if x != 0 else MINUS_INFINITY
+    try:
+        return math_log10(x)
+    except ValueError:
+        if x < 0:
+            raise ValueError(f"Can't take log of a negative number: {x}")
+        # Either x > 0 but causing problems anyway, or x == 0.
+        return MINUS_INFINITY
 
 
 # =============================================================================
