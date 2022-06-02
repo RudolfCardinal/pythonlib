@@ -722,3 +722,17 @@ Quick links:
 - Speedup and edge case handling improved for
   :func:`cardinal_pythonlib.probability.ln` and
   :func:`cardinal_pythonlib.probability.log10`.
+
+**1.1.20 (2022-06-02)**
+
+- No code change, but after uploading successfully with ``twine upload
+  dist/FILE.tar.gz", automatic or manual downloads failed with
+  "SignatureDoesNotMatch" / "The request signature we calculated does not match
+  the signature you provided. Check your Google secret key and signing method."
+  Upgraded from twine==3.2.0 to twine==4.0.1 (with requests==2.27.1). No joy.
+  But I think the problem is the site refusing downloads, not uploads.
+  Try to download all from https://pypi.org/simple/cardinal-pythonlib/; works
+  to v1.1.18, then stops working. However, it's also the same error message
+  for garbage filename in the URL.
+  Could it be this error?
+  https://github.com/stevearc/pypicloud/issues/120
