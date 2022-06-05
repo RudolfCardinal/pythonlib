@@ -63,6 +63,8 @@ def nhs_check_digit(ninedigits: Union[str, List[Union[str, int]]]) -> int:
        If it's 10, the number is invalid
        If it doesn't match the actual check digit, the number is invalid
 
+    This function will return 10 for some values, but that is invalid; it's up
+    to the caller to check.
     """
     if len(ninedigits) != 9 or not all(str(x).isdigit() for x in ninedigits):
         raise ValueError("bad string to nhs_check_digit")
@@ -88,7 +90,8 @@ def is_valid_nhs_number(n: int) -> bool:
         valid?
 
     Checksum details are at
-    https://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp
+    https://web.archive.org/web/20180311083424/https://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp;
+    https://web.archive.org/web/20220503215904/https://www.datadictionary.nhs.uk/attributes/nhs_number.html
     """  # noqa
     if not isinstance(n, int):
         log.debug("is_valid_nhs_number: parameter was not of integer type")
@@ -97,6 +100,7 @@ def is_valid_nhs_number(n: int) -> bool:
     s = str(n)
     # Not 10 digits long?
     if len(s) != 10:
+        # Note that this excludes anything with a leading 0.
         log.debug("is_valid_nhs_number: not 10 digits")
         return False
 
@@ -139,6 +143,14 @@ def generate_random_nhs_number(official_test_range: bool = True) -> int:
     # noinspection PyUnboundLocalVariable
     digits.append(check_digit)
     return int("".join([str(d) for d in digits]))
+
+
+def is_test_nhs_number(n: int) -> bool:
+    """
+    Is this number both valid and in the official test range (starting 999)?
+    See reference above.
+    """
+    return is_valid_nhs_number(n) and str(n)[:3] == "999"
 
 
 def test_nhs_rng(n: int = 100) -> None:

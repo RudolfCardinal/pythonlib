@@ -736,3 +736,8 @@ Quick links:
   for garbage filename in the URL.
   Could it be this error?
   https://github.com/stevearc/pypicloud/issues/120
+
+**1.1.21 (2022-06-05)**
+
+- Still having PyPi problems.
+- :func:`cardinal_pythonlib.nhs.is_test_nhs_number`
