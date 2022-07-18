@@ -387,7 +387,8 @@ def log_posterior_odds_from_pdh_pdnh(
 
     Returns:
         float:
-            posterior odds of H, :math:`ln(\frac{ P(H | D) }{ P(\neg H | D) })`
+            log posterior odds of H,
+            :math:`ln(\frac{ P(H | D) }{ P(\neg H | D) })`
 
     """
     return log_posterior_odds(
@@ -416,7 +417,8 @@ def log_posterior_odds_from_bool_d_pdh_pdnh(
 
     Returns:
         float:
-            posterior odds of H, :math:`ln(\frac{ P(H | D) }{ P(\neg H | D) })`
+            log posterior odds of H,
+            :math:`ln(\frac{ P(H | D) }{ P(\neg H | D) })`
 
     """
     if d:
