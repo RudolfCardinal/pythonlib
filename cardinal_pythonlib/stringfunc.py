@@ -34,7 +34,7 @@ import unicodedata
 
 
 def find_nth(s: str, x: str, n: int = 0, overlap: bool = False) -> int:
-    """
+    r"""
     Finds the position of *n*\ th occurrence of ``x`` in ``s``, or ``-1`` if
     there isn't one.
 
