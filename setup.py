@@ -52,6 +52,7 @@ REQUIREMENTS = [
     "beautifulsoup4",  # "import bs4" or "from bs4 import ..."
     "colorlog",
     "isodate>=0.5.4",
+    "numba",  # just-in-time compilation
     "numpy>=1.20.0",  # 1.20.0 required for numpy.typing
     "openpyxl",
     "pandas",

@@ -40,12 +40,24 @@ An R version is in ``rpm.R`` within https://github.com/rudolfcardinal/rlib.
 
 import logging
 
-import numpy as np
-import numpy.typing as npt
+from math import exp, fabs, isinf, inf, lgamma, log, log1p, pi, sqrt
+from numba.core.decorators import cfunc, jit
+from numba.core.types import CPointer, float64, intc
+from numba.np.numpy_support import carray
+from scipy import LowLevelCallable
 from scipy.integrate import quad
 from scipy.stats import beta
+import numpy as np
+import numpy.typing as npt
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Constants
+# =============================================================================
+
+NaN = float("nan")
 
 
 # =============================================================================
@@ -117,3 +129,438 @@ def rpm_probabilities_successes_totals(
     """
     n_failures = np.array(n_total) - np.array(n_successes)
     return rpm_probabilities_successes_failures(n_successes, n_failures)
+
+
+# =============================================================================
+# Helper functions: Fast maths functions for RPM
+# =============================================================================
+
+
+@jit
+def incbeta(x: float, a: float, b: float) -> float:
+    """
+    - This is an implementation of the regularized incomplete beta function, or
+      beta distribution cumulative distribution function (CDF).
+    - Adapted and altered from
+      https://github.com/codeplea/incbeta/blob/master/incbeta.c.
+    - Found via
+      https://stats.stackexchange.com/questions/399279/efficiently-computing-the-beta-cdf.
+    - See self-tests to check that it does the right thing.
+    - See also https://en.wikipedia.org/wiki/Beta_distribution.
+    - In R: plot(function(x) pbeta(x, shape1 = a, shape2 = b))
+    - See https://github.com/SurajGupta/r-source/blob/master/src/nmath/pbeta.c
+
+    Original license:
+
+    .. code-block:: none
+
+        /*
+         * zlib License
+         *
+         * Regularized Incomplete Beta Function
+         *
+         * Copyright (c) 2016, 2017 Lewis Van Winkle
+         * https://CodePlea.com
+         *
+         * This software is provided 'as-is', without any express or implied
+         * warranty. In no event will the authors be held liable for any damages
+         * arising from the use of this software.
+         *
+         * Permission is granted to anyone to use this software for any purpose,
+         * including commercial applications, and to alter it and redistribute it
+         * freely, subject to the following restrictions:
+         *
+         * 1. The origin of this software must not be misrepresented; you must not
+         *    claim that you wrote the original software. If you use this software
+         *    in a product, an acknowledgement in the product documentation would be
+         *    appreciated but is not required.
+         * 2. Altered source versions must be plainly marked as such, and must not be
+         *    misrepresented as being the original software.
+         * 3. This notice may not be removed or altered from any source distribution.
+         */
+    """  # noqa
+    # logger.critical(f"incbeta(x={x}, a={a}, b={b})")
+
+    if a <= 0.0 or b <= 0.0:
+        # We require a > 0, b > 0
+        return NaN
+    if x < 0.0 or x > 1.0:
+        # logger.critical("out of range -> nan")
+        return NaN  # CDF is only defined for x in [0, 1]
+    if x <= 0.0:
+        # logger.critical("fast -> 0.0")
+        return 0.0  # CDF is zero at x = 0; avoid calculating log(0)
+    if x >= 1.0:
+        # logger.critical("fast -> 1.0")
+        return 1.0  # CDF is one at x = 1; avoid calculating log(0)
+
+    # The continued fraction converges nicely for x < (a+1)/(a+b+2)
+    if x > (a + 1.0) / (a + b + 2.0):
+        # Use the fact that beta is symmetrical.
+        # Swap a and b. Swap x for 1 - x.
+        result = 1.0 - incbeta(1.0 - x, b, a)
+        # logger.critical(f"symmetrical -> {result}")
+        return result
+
+    # Find the first part before the continued fraction.
+    lbeta_ab = lgamma(a) + lgamma(b) - lgamma(a + b)
+    front = exp(log(x) * a + log(1.0 - x) * b - lbeta_ab) / a
+
+    # Use Lentz's algorithm to evaluate the continued fraction.
+    f = 1.0
+    c = 1.0
+    d = 0.0
+
+    n_loops = 200
+    stop = 1.0e-8
+    tiny = 1.0e-30
+    for i in range(n_loops + 1):
+        m = int(i / 2)
+
+        if i == 0:
+            numerator = 1.0  # First numerator is 1.0.
+        elif i % 2 == 0:
+            numerator = (m * (b - m) * x) / (
+                (a + 2.0 * m - 1.0) * (a + 2.0 * m)
+            )  # Even term.
+        else:
+            numerator = -((a + m) * (a + b + m) * x) / (
+                (a + 2.0 * m) * (a + 2.0 * m + 1)
+            )  # Odd term.
+
+        # Do an iteration of Lentz's algorithm.
+        d = 1.0 + numerator * d
+        if fabs(d) < tiny:
+            d = tiny
+        d = 1.0 / d
+
+        c = 1.0 + numerator / c
+        if fabs(c) < tiny:
+            c = tiny
+
+        cd = c * d
+        f *= cd
+
+        # Check for stop.
+        if fabs(1.0 - cd) < stop:
+            result = front * (f - 1.0)
+            # logger.critical(f"converged -> {result}")
+            return result
+
+    return NaN  # Needed more loops, did not converge.
+
+
+beta_cdf_fast = incbeta
+
+
+@jit(nopython=True)
+def stirlerr(n: float) -> float:
+    """
+    Stirling expansion error.
+    https://github.com/atks/Rmath/blob/master/stirlerr.c
+    """
+    s0 = 0.083333333333333333333  # 1/12
+    s1 = 0.00277777777777777777778  # 1/360
+    s2 = 0.00079365079365079365079365  # 1/1260
+    s3 = 0.000595238095238095238095238  # 1/1680
+    s4 = 0.0008417508417508417508417508  # 1/1188
+
+    # error for 0, 0.5, 1.0, 1.5, ..., 14.5, 15.0.
+    sferr_halves = [
+        0.0,  # n=0 - wrong, place holder only
+        0.1534264097200273452913848,  # 0.5
+        0.0810614667953272582196702,  # 1.0
+        0.0548141210519176538961390,  # 1.5
+        0.0413406959554092940938221,  # 2.0
+        0.03316287351993628748511048,  # 2.5
+        0.02767792568499833914878929,  # 3.0
+        0.02374616365629749597132920,  # 3.5
+        0.02079067210376509311152277,  # 4.0
+        0.01848845053267318523077934,  # 4.5
+        0.01664469118982119216319487,  # 5.0
+        0.01513497322191737887351255,  # 5.5
+        0.01387612882307074799874573,  # 6.0
+        0.01281046524292022692424986,  # 6.5
+        0.01189670994589177009505572,  # 7.0
+        0.01110455975820691732662991,  # 7.5
+        0.010411265261972096497478567,  # 8.0
+        0.009799416126158803298389475,  # 8.5
+        0.009255462182712732917728637,  # 9.0
+        0.008768700134139385462952823,  # 9.5
+        0.008330563433362871256469318,  # 10.0
+        0.007934114564314020547248100,  # 10.5
+        0.007573675487951840794972024,  # 11.0
+        0.007244554301320383179543912,  # 11.5
+        0.006942840107209529865664152,  # 12.0
+        0.006665247032707682442354394,  # 12.5
+        0.006408994188004207068439631,  # 13.0
+        0.006171712263039457647532867,  # 13.5
+        0.005951370112758847735624416,  # 14.0
+        0.005746216513010115682023589,  # 14.5
+        0.005554733551962801371038690,  # 15.0
+    ]
+    if n <= 15.0:
+        nn = n + n
+        if nn == int(nn):
+            return sferr_halves[int(nn)]
+        return lgamma(n + 1.0) - (n + 0.5) * log(n) + n - log(sqrt(2 * pi))
+
+    nn = n * n
+    if n > 500:
+        return (s0 - s1 / nn) / n
+    if n > 80:
+        return (s0 - (s1 - s2 / nn) / nn) / n
+    if n > 35:
+        return (s0 - (s1 - (s2 - s3 / nn) / nn) / nn) / n
+    # 15 < n <= 35 :
+    return (s0 - (s1 - (s2 - (s3 - s4 / nn) / nn) / nn) / nn) / n
+
+
+@jit(nopython=True)
+def bd0(x: float, np_: float) -> float:
+    """
+    Per https://github.com/atks/Rmath/blob/master/bd0.c.
+    """
+    if isinf(x) or isinf(np_) or np_ == 0.0:
+        return NaN
+
+    if fabs(x - np_) < 0.1 * (x + np_):
+        v = (x - np_) / (x + np_)
+        s = (x - np_) * v  # s using v -- change by MM
+        ej = 2 * x * v
+        v = v * v
+        j = 1
+        while True:  # Taylor series
+            ej *= v
+            s1 = s + ej / ((j << 1) + 1)
+            if s1 == s:  # last term was effectively 0
+                return s1
+            s = s1
+            j += 1
+    return x * log(x / np_) + np_ - x
+
+
+@jit(nopython=True)
+def dbinom_raw_log(x: float, n: float, p: float, q: float) -> float:
+    """
+    From https://github.com/atks/Rmath/blob/master/dbinom.c -- the version
+    where give_log is TRUE, for which:
+
+    - R_D_exp(x) translates to x
+    - R_D__0 translates to -inf
+    - R_D__1 translates to 0
+    """
+    log_0 = -inf
+    log_1 = 0
+
+    if p == 0:
+        return log_1 if x == 0 else log_0
+    if q == 0:
+        return log_1 if x == n else log_0
+
+    if x == 0:
+        if n == 0:
+            return log_1
+        if p < 0.1:
+            lc = -bd0(n, n * q) - n * p
+        else:
+            lc = n * log(q)
+        return lc
+
+    if x == n:
+        if q < 0.1:
+            lc = -bd0(n, n * p) - n * q
+        else:
+            lc = n * log(p)
+        return lc
+
+    if x < 0 or x > n:
+        return log_0
+
+    # n*p or n*q can underflow to zero if n and p or q are small.  This
+    # used to occur in dbeta, and gives NaN as from R 2.3.0.
+    lc = (
+        stirlerr(n)
+        - stirlerr(x)
+        - stirlerr(n - x)
+        - bd0(x, n * p)
+        - bd0(n - x, n * q)
+    )
+
+    lf = log(2 * pi) + log(x) + log1p(-x / n)
+    return lc - 0.5 * lf
+
+
+@jit(nopython=True)
+def beta_pdf_fast(x: float, a: float, b: float) -> float:
+    """
+    Beta probability distribution.
+    From https://en.wikipedia.org/wiki/Beta_distribution, but calculated in the
+    log domain.
+
+    In R: plot(function(x) dbeta(x, shape1 = a, shape2 = b))
+
+    See https://github.com/SurajGupta/r-source/blob/master/src/nmath/dbeta.c.
+    - For lower.tail = TRUE and log.p = FALSE (the defaults), R_DT_0 means 0.
+    - For log.p = FALSE (the default), R_D_val(x) means x.
+    """
+    # logger.critical(f"beta_pdf_fast(x={x}, a={a}, b={b})")
+    if a < 0 or b < 0:
+        return NaN
+    if x < 0 or x > 1:
+        # PDF is zero elsewhere
+        return 0.0
+
+    # limit cases for (a,b), leading to point masses
+    if a == 0 or b == 0 or isinf(a) or isinf(b):
+        if a == 0 and b == 0:
+            # point mass 1/2 at each of {0,1}
+            return inf if x == 0 or x == 1 else 0
+        if a == 0 or (a / b == 0):
+            # point mass 1 at 0
+            return inf if x == 0 else 0
+        if b == 0 or b / a == 0:
+            # point mass 1 at 1
+            return inf if x == 1 else 0
+        # remaining case:  a = b = Inf : point mass 1 at 1/2
+        return inf if x == 0.5 else 0
+
+    if x == 0:
+        if a > 1:
+            return 0
+        if a < 1:
+            return inf
+        # a == 1
+        return b
+
+    if x == 1:
+        if b > 1:
+            return 0
+        if b < 1:
+            return inf
+        # b == 1
+        return a
+
+    if a <= 2 or b <= 2:
+        lbeta_ab = lgamma(a) + lgamma(b) - lgamma(a + b)
+        # ... lbeta(a, b) in the R version
+        lval = (a - 1) * log(x) + (b - 1) * log1p(-x) - lbeta_ab
+    else:
+        lval = log(a + b - 1) + dbinom_raw_log(a - 1, a + b - 2, x, 1 - x)
+    return exp(lval)
+
+
+# =============================================================================
+# Helper functions: RPM
+# =============================================================================
+
+
+def jit_integrand_function_with_args(integrand_function):
+    """
+    Decorator to wrap a function that will be integrated by Scipy. See
+    https://stackoverflow.com/questions/51109429/.
+
+    carray:
+
+    - Returns a Numpy array view over the data pointed to by ptr with the given
+      shape, in C order.
+    - https://numba.pydata.org/numba-doc/dev/reference/utils.html
+    - Syntax: carray(ptr, shape, dtype=None).
+
+    cfunc:
+
+    - Decorator to compile a Python function into a C callback.
+    - https://numba.pydata.org/numba-doc/dev/user/cfunc.html
+    - Notation 1: @cfunc(return_type(arg1, arg2, ...))
+    - Notation 2: @cfunc("return_type(arg1, arg2, ...)")
+
+    CPointer:
+
+    - Type class for pointers to other types.
+    - Syntax: CPointer(dtype, addrspace=None).
+
+    Scipy's quad() accepts either a Python function or a C callback wrapped in
+    a ctypes callback object. This decorator converts the former to the latter.
+
+    Specifically
+    (https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.quad.html),
+    quad accepts a scipy.LowLevelCallable with one of these signatures:
+
+    .. code-block:: cpp
+
+        double func(double x);
+        double func(double x, void *user_data);
+        double func(int n, double *xx);
+        double func(int n, double *xx, void *user_data);  // THIS ONE.
+
+    "In the call forms with xx, n is the length of the xx array which contains
+    xx[0] == x and the rest of the items are numbers contained in the args
+    argument of quad."
+
+    """
+    jitted_function = jit(integrand_function, nopython=True)
+
+    @cfunc(float64(intc, CPointer(float64)))
+    def wrapped(n: int, xx: CPointer(float64)) -> float64:
+        args = carray(xx, n)
+        # x = all_args[0]
+        # other_args = all_args[1:]
+        return jitted_function(args)
+
+    return LowLevelCallable(wrapped.ctypes)
+
+
+@jit_integrand_function_with_args
+def rpm_integrand(args: np.ndarray) -> float:
+    """
+    Scipy allows a generic user parameter array, which we can unpack.
+    """
+    (
+        x,
+        n_success_this,
+        n_failure_this,
+        n_success_other,
+        n_failure_other,
+    ) = args
+    return beta_pdf_fast(
+        x, n_success_this + 1, n_failure_this + 1
+    ) * beta_cdf_fast(x, n_success_other + 1, n_failure_other + 1)
+
+
+def rpm_probabilities_successes_failures_twochoice_fast(
+    n_success_this: int,
+    n_failure_this: int,
+    n_success_other: int,
+    n_failure_other: int,
+) -> float:
+    """
+    Calculate the optimal choice probability for the first of two options in
+    two-choice RPM.
+
+    Curiously, copying
+    cardinal_pythonlib.rpm.rpm_probabilities_successes_failures to here,
+    essentially unmodified, stopped a memory explosion (it looks like scipy is
+    playing with docstrings, maybe?).
+
+    It was still very slow and that relates to quad().
+
+    Caching makes little difference, but we'll do it anyway (see below).
+
+    Then only calculate one action (50% faster just from that!) and optimize.
+
+    - https://stackoverflow.com/questions/68491563/numba-for-scipy-integration-and-interpolation
+    - https://stackoverflow.com/questions/51109429/how-to-use-numba-to-perform-multiple-integration-in-scipy-with-an-arbitrary-numb
+
+    Massively tedious optimization (translation from R's C code to Python) but
+    it works very well.
+    """  # noqa
+    args = (n_success_this, n_failure_this, n_success_other, n_failure_other)
+    # ... tuple, not numpy array, or we get "TypeError: only size-1 arrays can
+    # be converted to Python scalars"
+
+    # Integrate our function from 0 to 1:
+    p_this = quad(rpm_integrand, 0, 1, args=args)[0]
+    # quad() returns a tuple. The first value is y, the integral. The second
+    # is an estimate of the absolute error. There may be others.
+
+    return p_this

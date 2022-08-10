@@ -26,15 +26,22 @@
 
 """
 
+import logging
 import unittest
 
 import numpy as np
 import numpy.typing as npt
+from scipy.stats import beta
 
 from cardinal_pythonlib.rpm import (
+    beta_cdf_fast,
+    beta_pdf_fast,
     rpm_probabilities_successes_failures,
     rpm_probabilities_successes_totals,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -43,15 +50,16 @@ from cardinal_pythonlib.rpm import (
 
 
 class TestRpm(unittest.TestCase):
+    TOLERANCE = 1e-8
+
     def _assert_eq(
         self,
         name: str,
         a1: npt.ArrayLike,
         a2: npt.ArrayLike,
-        abs_tolerance: float = 1e-8,
     ) -> None:
         self.assertTrue(
-            np.allclose(a1, a2, atol=abs_tolerance),
+            np.allclose(a1, a2, atol=self.TOLERANCE),
             f"Error: {name}: {a1} != {a2}",
         )
 
@@ -77,3 +85,38 @@ class TestRpm(unittest.TestCase):
             n_successes=[3, 7],
             n_total=[2, 10],
         )
+
+    def test_fast_beta_distribution_functions(self) -> None:
+        """
+        Beware not to confuse scipy.stats.beta (as here) with
+        scipy.special.beta.
+        """
+        a_b_max = 20
+        for a in range(1, a_b_max + 1):
+            for b in range(1, a_b_max + 1):
+                for x in np.linspace(0, 1, 20):
+                    # logger.critical(f"Testing beta: x={x}, a={a}, b={b}")
+
+                    # PDF
+                    self.assertAlmostEqual(
+                        beta(a, b).pdf(x),
+                        beta.pdf(x, a, b),
+                        delta=self.TOLERANCE,
+                    )
+                    self.assertAlmostEqual(
+                        beta_pdf_fast(x, a, b),
+                        beta.pdf(x, a, b),
+                        delta=self.TOLERANCE,
+                    )
+
+                    # CDF
+                    self.assertAlmostEqual(
+                        beta(a, b).cdf(x),
+                        beta.cdf(x, a, b),
+                        delta=self.TOLERANCE,
+                    )
+                    self.assertAlmostEqual(
+                        beta_cdf_fast(x, a, b),
+                        beta.cdf(x, a, b),
+                        delta=self.TOLERANCE,
+                    )

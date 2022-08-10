@@ -741,3 +741,7 @@ Quick links:
 
 - Still having PyPi problems.
 - :func:`cardinal_pythonlib.nhs.is_test_nhs_number`
+
+**1.1.22 (2022-08-10)**
+
+- Fast RPM functions, using numba, specialized for the two-choice situation.
