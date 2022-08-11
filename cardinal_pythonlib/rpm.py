@@ -39,6 +39,7 @@ An R version is in ``rpm.R`` within https://github.com/rudolfcardinal/rlib.
 # =============================================================================
 
 import logging
+from typing import Callable
 
 from math import exp, fabs, isinf, inf, lgamma, log, log1p, pi, sqrt
 from numba.core.decorators import cfunc, jit
@@ -75,6 +76,7 @@ def rpm_probabilities_successes_failures(
     has arguments ``y`` (number of successes) and ``n`` (number of trials, NOT
     the number of failures).
     """
+    # noinspection DuplicatedCode
     k = len(n_successes)  # k is the number of actions
     assert len(n_failures) == k
     assert np.all(np.greater_equal(n_successes, 0))
@@ -141,7 +143,7 @@ def incbeta(x: float, a: float, b: float) -> float:
     """
     - This is an implementation of the regularized incomplete beta function, or
       beta distribution cumulative distribution function (CDF).
-    - Adapted and altered from
+    - Translated and adapted from
       https://github.com/codeplea/incbeta/blob/master/incbeta.c.
     - Found via
       https://stats.stackexchange.com/questions/399279/efficiently-computing-the-beta-cdf.
@@ -178,6 +180,7 @@ def incbeta(x: float, a: float, b: float) -> float:
          *    misrepresented as being the original software.
          * 3. This notice may not be removed or altered from any source distribution.
          */
+
     """  # noqa
     # logger.critical(f"incbeta(x={x}, a={a}, b={b})")
 
@@ -256,9 +259,50 @@ beta_cdf_fast = incbeta
 @jit(nopython=True)
 def stirlerr(n: float) -> float:
     """
-    Stirling expansion error.
+    Stirling expansion error. Translated and adapted from
     https://github.com/atks/Rmath/blob/master/stirlerr.c
-    """
+
+    Original license:
+
+    .. code-block:: none
+
+        /*
+         *  AUTHOR
+         *    Catherine Loader, catherine@research.bell-labs.com.
+         *    October 23, 2000.
+         *
+         *  Merge in to R:
+         *	Copyright (C) 2000, The R Core Team
+         *
+         *  This program is free software; you can redistribute it and/or modify
+         *  it under the terms of the GNU General Public License as published by
+         *  the Free Software Foundation; either version 2 of the License, or
+         *  (at your option) any later version.
+         *
+         *  This program is distributed in the hope that it will be useful,
+         *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+         *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+         *  GNU General Public License for more details.
+         *
+         *  You should have received a copy of the GNU General Public License
+         *  along with this program; if not, a copy is available at
+         *  https://www.r-project.org/Licenses/
+         *
+         *
+         *  DESCRIPTION
+         *
+         *    Computes the log of the error term in Stirling's formula.
+         *      For n > 15, uses the series 1/12n - 1/360n^3 + ...
+         *      For n <=15, integers or half-integers, uses stored values.
+         *      For other n < 15, uses lgamma directly (don't use this to
+         *        write lgamma!)
+         *
+         * Merge in to R:
+         * Copyright (C) 2000, The R Core Team
+         * R has lgammafn, and lgamma is not part of ISO C
+         */
+
+    """  # noqa
     s0 = 0.083333333333333333333  # 1/12
     s1 = 0.00277777777777777777778  # 1/360
     s2 = 0.00079365079365079365079365  # 1/1260
@@ -343,13 +387,59 @@ def bd0(x: float, np_: float) -> float:
 @jit(nopython=True)
 def dbinom_raw_log(x: float, n: float, p: float, q: float) -> float:
     """
-    From https://github.com/atks/Rmath/blob/master/dbinom.c -- the version
-    where give_log is TRUE, for which:
+    Translated and adapted from
+    https://github.com/atks/Rmath/blob/master/dbinom.c -- the version where
+    give_log is TRUE, for which:
 
     - R_D_exp(x) translates to x
     - R_D__0 translates to -inf
     - R_D__1 translates to 0
-    """
+
+    Original license:
+
+    .. code-block:: none
+
+        /*
+         * AUTHOR
+         *   Catherine Loader, catherine@research.bell-labs.com.
+         *   October 23, 2000.
+         *
+         *  Merge in to R and further tweaks :
+         *	Copyright (C) 2000, The R Core Team
+         *	Copyright (C) 2008, The R Foundation
+         *
+         *  This program is free software; you can redistribute it and/or modify
+         *  it under the terms of the GNU General Public License as published by
+         *  the Free Software Foundation; either version 2 of the License, or
+         *  (at your option) any later version.
+         *
+         *  This program is distributed in the hope that it will be useful,
+         *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+         *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+         *  GNU General Public License for more details.
+         *
+         *  You should have received a copy of the GNU General Public License
+         *  along with this program; if not, a copy is available at
+         *  https://www.r-project.org/Licenses/
+         *
+         *
+         * DESCRIPTION
+         *
+         *   To compute the binomial probability, call dbinom(x,n,p).
+         *   This checks for argument validity, and calls dbinom_raw().
+         *
+         *   dbinom_raw() does the actual computation; note this is called by
+         *   other functions in addition to dbinom().
+         *     (1) dbinom_raw() has both p and q arguments, when one may be represented
+         *         more accurately than the other (in particular, in df()).
+         *     (2) dbinom_raw() does NOT check that inputs x and n are integers. This
+         *         should be done in the calling function, where necessary.
+         *         -- but is not the case at all when called e.g., from df() or dbeta() !
+         *     (3) Also does not check for 0 <= p <= 1 and 0 <= q <= 1 or NaN's.
+         *         Do this in the calling function.
+         */
+
+    """  # noqa
     log_0 = -inf
     log_1 = 0
 
@@ -394,16 +484,60 @@ def dbinom_raw_log(x: float, n: float, p: float, q: float) -> float:
 @jit(nopython=True)
 def beta_pdf_fast(x: float, a: float, b: float) -> float:
     """
-    Beta probability distribution.
-    From https://en.wikipedia.org/wiki/Beta_distribution, but calculated in the
-    log domain.
+    Beta probability distribution. Translated and adapted from
+    https://en.wikipedia.org/wiki/Beta_distribution, but calculated in the log
+    domain.
 
     In R: plot(function(x) dbeta(x, shape1 = a, shape2 = b))
 
     See https://github.com/SurajGupta/r-source/blob/master/src/nmath/dbeta.c.
     - For lower.tail = TRUE and log.p = FALSE (the defaults), R_DT_0 means 0.
     - For log.p = FALSE (the default), R_D_val(x) means x.
-    """
+
+    Original license:
+
+    .. code-block:: none
+
+        /*
+         *  AUTHOR
+         *    Catherine Loader, catherine@research.bell-labs.com.
+         *    October 23, 2000.
+         *
+         *  Merge in to R:
+         *	Copyright (C) 2000, The R Core Team
+         *  Changes to case a, b < 2, use logs to avoid underflow
+         *	Copyright (C) 2006-2014 The R Core Team
+         *
+         *  This program is free software; you can redistribute it and/or modify
+         *  it under the terms of the GNU General Public License as published by
+         *  the Free Software Foundation; either version 2 of the License, or
+         *  (at your option) any later version.
+         *
+         *  This program is distributed in the hope that it will be useful,
+         *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+         *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+         *  GNU General Public License for more details.
+         *
+         *  You should have received a copy of the GNU General Public License
+         *  along with this program; if not, a copy is available at
+         *  https://www.R-project.org/Licenses/
+         *
+         *
+         *  DESCRIPTION
+         *    Beta density,
+         *                   (a+b-1)!     a-1       b-1
+         *      p(x;a,b) = ------------ x     (1-x)
+         *                 (a-1)!(b-1)!
+         *
+         *               = (a+b-1) dbinom(a-1; a+b-2,x)
+         *
+         *    The basic formula for the log density is thus
+         *    (a-1) log x + (b-1) log (1-x) - lbeta(a, b)
+         *    If either a or b <= 2 then 0 < lbeta(a, b) < 710 and so no
+         *    term is large.  We use Loader's code only if both a and b > 2.
+         */
+
+    """  # noqa
     # logger.critical(f"beta_pdf_fast(x={x}, a={a}, b={b})")
     if a < 0 or b < 0:
         return NaN
@@ -451,11 +585,13 @@ def beta_pdf_fast(x: float, a: float, b: float) -> float:
 
 
 # =============================================================================
-# Helper functions: RPM
+# Helper functions: jit
 # =============================================================================
 
 
-def jit_integrand_function_with_args(integrand_function):
+def jit_integrand_function_with_args(
+    integrand_function: Callable[[np.ndarray], float]
+) -> LowLevelCallable:
     """
     Decorator to wrap a function that will be integrated by Scipy. See
     https://stackoverflow.com/questions/51109429/.
@@ -490,12 +626,14 @@ def jit_integrand_function_with_args(integrand_function):
 
         double func(double x);
         double func(double x, void *user_data);
-        double func(int n, double *xx);
-        double func(int n, double *xx, void *user_data);  // THIS ONE.
+        double func(int n, double *xx);  // THIS ONE.
+        double func(int n, double *xx, void *user_data);
 
-    "In the call forms with xx, n is the length of the xx array which contains
-    xx[0] == x and the rest of the items are numbers contained in the args
-    argument of quad."
+    NOTE: "In the call forms with xx, n is the length of the xx array which
+    contains xx[0] == x and the rest of the items are numbers contained in the
+    args argument of quad."
+
+    See specimen use below.
 
     """
     jitted_function = jit(integrand_function, nopython=True)
@@ -503,17 +641,48 @@ def jit_integrand_function_with_args(integrand_function):
     @cfunc(float64(intc, CPointer(float64)))
     def wrapped(n: int, xx: CPointer(float64)) -> float64:
         args = carray(xx, n)
-        # x = all_args[0]
-        # other_args = all_args[1:]
         return jitted_function(args)
 
     return LowLevelCallable(wrapped.ctypes)
 
 
-@jit_integrand_function_with_args
-def rpm_integrand(args: np.ndarray) -> float:
+def dummy_jit_integrand_function_with_args(
+    integrand_function: Callable[[np.ndarray], float]
+) -> Callable[..., float]:
     """
-    Scipy allows a generic user parameter array, which we can unpack.
+    Dummy version of jit_integrand_function_with_args, for debugging. Use this
+    instead if, for example, you want to be able to use the Python logger.
+    """
+
+    def wrapped(*args: float) -> float:
+        """
+        When we use a plain Python function, Scipy's quad() will pass us
+        arguments in *args format (x followed by the other arguments).
+
+        When we use a LowLevelCallabel, quad() will pass us n and xx, which we
+        convert to a Numpy array (see jit_integrand_function_with_args above).
+
+        So here, we convert *args to a numpy array, so we can use the same
+        underlying function.
+        """
+        return integrand_function(np.array(args, dtype=float))
+
+    return wrapped
+
+
+# =============================================================================
+# Fast RPM: two choice
+# =============================================================================
+
+
+@jit_integrand_function_with_args
+def rpm_integrand_twochoice(args: np.ndarray) -> float:
+    """
+    RPM integrand for a two-choice situation, for which we will calculate only
+    one probability.
+
+    Scipy's quad() function allows a generic user parameter array, which we can
+    unpack. The first argument is x; the others are as we defined them.
     """
     (
         x,
@@ -537,30 +706,86 @@ def rpm_probabilities_successes_failures_twochoice_fast(
     Calculate the optimal choice probability for the first of two options in
     two-choice RPM.
 
-    Curiously, copying
-    cardinal_pythonlib.rpm.rpm_probabilities_successes_failures to here,
-    essentially unmodified, stopped a memory explosion (it looks like scipy is
-    playing with docstrings, maybe?).
+    Curiously, copying rpm_probabilities_successes_failures from this library
+    to user code, essentially unmodified, stopped a memory explosion (it looks
+    like scipy is playing with docstrings, maybe?).
 
     It was still very slow and that relates to quad().
 
-    Caching makes little difference, but we'll do it anyway (see below).
-
-    Then only calculate one action (50% faster just from that!) and optimize.
+    Here we (a) only calculate one action (50% faster just from that!) and (b)
+    use functions optimized using numba.jit.
 
     - https://stackoverflow.com/questions/68491563/numba-for-scipy-integration-and-interpolation
     - https://stackoverflow.com/questions/51109429/how-to-use-numba-to-perform-multiple-integration-in-scipy-with-an-arbitrary-numb
 
     Massively tedious optimization (translation from R's C code to Python) but
     it works very well.
+
     """  # noqa
     args = (n_success_this, n_failure_this, n_success_other, n_failure_other)
     # ... tuple, not numpy array, or we get "TypeError: only size-1 arrays can
     # be converted to Python scalars"
 
     # Integrate our function from 0 to 1:
-    p_this = quad(rpm_integrand, 0, 1, args=args)[0]
+    p_this = quad(rpm_integrand_twochoice, 0, 1, args=args)[0]
     # quad() returns a tuple. The first value is y, the integral. The second
     # is an estimate of the absolute error. There may be others.
 
     return p_this
+
+
+# =============================================================================
+# Fast RPM: generic
+# =============================================================================
+
+
+@jit_integrand_function_with_args
+# @dummy_jit_integrand_function_with_args
+def rpm_integrand_n_choice(args: np.ndarray) -> float:
+    """
+    RPM integrand for an arbitrary number of actions.
+    """
+    x = args[0]
+    k = int(args[1])  # k is the number of actions
+    current_action = int(args[2])  # zero-based index
+    n_successes_plus_one = args[3 : k + 3]  # noqa: E203
+    n_failures_plus_one = args[k + 3 :]  # noqa: E203
+
+    r = beta_pdf_fast(
+        x,
+        n_successes_plus_one[current_action],
+        n_failures_plus_one[current_action],
+    )
+    for j in range(k):
+        if j == current_action:
+            continue
+        # So, for only the other actions:
+        r *= beta_cdf_fast(x, n_successes_plus_one[j], n_failures_plus_one[j])
+    return r
+
+
+def rpm_probabilities_successes_failures_fast(
+    n_successes: npt.ArrayLike, n_failures: npt.ArrayLike
+) -> np.ndarray:
+    """
+    Fast version of rpm_probabilities_successes_failures().
+    """
+    # noinspection DuplicatedCode
+    k = len(n_successes)  # k is the number of actions
+    assert len(n_failures) == k
+    assert np.all(np.greater_equal(n_successes, 0))
+    assert np.all(np.greater_equal(n_failures, 0))
+    p_choice = np.zeros(shape=[k])  # answer to be populated
+
+    n_successes_plus_one = np.array(n_successes) + 1
+    n_failures_plus_one = np.array(n_failures) + 1
+    for i in range(k):  # for each action:
+        args = tuple(
+            np.concatenate(
+                ([k, i], n_successes_plus_one, n_failures_plus_one),
+            )
+        )
+        q = quad(rpm_integrand_n_choice, 0, 1, args=args)[0]
+        p_choice[i] = q
+
+    return p_choice
