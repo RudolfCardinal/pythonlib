@@ -175,6 +175,7 @@ Automatic documentation of source code
     tests/rate_limiting_tests.py.rst
     tests/rounding_tests.py.rst
     tests/rpm_tests.py.rst
+    tests/sphinxtools_tests.py.rst
     tests/spreadsheets_tests.py.rst
     tests/subprocess_tests.py.rst
     text.py.rst
