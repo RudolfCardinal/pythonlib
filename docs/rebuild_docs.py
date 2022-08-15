@@ -58,7 +58,7 @@ if __name__ == '__main__':
     if args.warnings_as_errors:
         cmdargs.append('SPHINXOPTS="-W"')
 
-    subprocess.call(cmdargs)
+    subprocess.check_call(cmdargs)
 
     # Copy
     for destdir in DEST_DIRS:
