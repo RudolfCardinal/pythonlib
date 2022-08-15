@@ -6,3 +6,6 @@ private_testing/*
 *~
 *.pyc
 .dir-locals.el
+
+# Silver searcher
+.ignore
