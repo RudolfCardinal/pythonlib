@@ -8,4 +8,5 @@ libChEBIpy
 # CamCOPS and CRATE both on this version
 sphinx==4.2.0
 sphinx_rtd_theme
+SQLAlchemy<1.4
 weasyprint
