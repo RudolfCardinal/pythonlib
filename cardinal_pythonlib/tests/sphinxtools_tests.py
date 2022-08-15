@@ -26,6 +26,7 @@
 
 """
 
+import os
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import TestCase
 
@@ -49,11 +50,27 @@ class FileToAutodocumentTests(TestCase):
 
     def test_pygments_language_override_by_extension(self) -> None:
         overrides = {
-            ".pro": "none",
+            "*.pro": "none",
         }
 
         with TemporaryDirectory() as test_dir:
             with NamedTemporaryFile(suffix=".pro", dir=test_dir) as f:
+                doc = FileToAutodocument(
+                    source_filename=f.name,
+                    project_root_dir=test_dir,
+                    target_rst_filename="",
+                    pygments_language_override=overrides,
+                )
+
+        self.assertEqual(doc.pygments_language, "none")
+
+    def test_pygments_language_override_by_filename(self) -> None:
+        with TemporaryDirectory() as test_dir:
+            with NamedTemporaryFile(suffix=".cpp", dir=test_dir) as f:
+                overrides = {
+                    os.path.basename(f.name): "none",
+                }
+
                 doc = FileToAutodocument(
                     source_filename=f.name,
                     project_root_dir=test_dir,

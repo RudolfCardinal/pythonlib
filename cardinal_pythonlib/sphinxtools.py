@@ -141,6 +141,37 @@ def write_if_allowed(
             outfile.write(content)
 
 
+def filename_matches_glob(filename: str, globtext: str) -> bool:
+    """
+    The ``glob.glob`` function doesn't do exclusion very well. We don't
+    want to have to specify root directories for exclusion patterns. We
+    don't want to have to trawl a massive set of files to find exclusion
+    files. So let's implement a glob match.
+
+    Args:
+        filename: filename
+        globtext: glob
+
+    Returns:
+        does the filename match the glob?
+
+    See also:
+
+    - https://stackoverflow.com/questions/20638040/glob-exclude-pattern
+
+    """
+    # Quick check on basename-only matching
+    if fnmatch(filename, globtext):
+        log.debug("{!r} matches {!r}", filename, globtext)
+        return True
+    bname = basename(filename)
+    if fnmatch(bname, globtext):
+        log.debug("{!r} matches {!r}", bname, globtext)
+        return True
+    # Directory matching: is actually accomplished by the code above!
+    # Otherwise:
+    return False
+
 # =============================================================================
 # FileToAutodocument
 # =============================================================================
@@ -209,9 +240,9 @@ class FileToAutodocument(object):
                 used will be in the style of a Python module, ``x.y.z``.
                 Otherwise, it will be a path (``x/y/z``).
             pygments_language_override: if specified, a dictionary mapping
-                file extensions to Pygments languages (for example: a ``.pro``
-                file will be autodetected as Prolog, but you might want to
-                map that to ``none`` for Qt project files).
+                file specifications to Pygments languages (for example: a
+                ``.pro`` file will be autodetected as Prolog, but you might
+                want to map that to ``none`` for Qt project files).
         """
         self.source_filename = abspath(expanduser(source_filename))
         self.project_root_dir = abspath(expanduser(project_root_dir))
@@ -332,9 +363,10 @@ class FileToAutodocument(object):
         Returns the code type annotation for Pygments; e.g. ``python`` for
         Python, ``cpp`` for C++, etc.
         """
-        extension = splitext(self.source_filename)[1]
-        if extension in self.pygments_language_override:
-            return self.pygments_language_override[extension]
+        for globtext, language in self.pygments_language_override.items():
+            if filename_matches_glob(self.source_filename, globtext):
+                return language
+
         try:
             lexer = get_lexer_for_filename(self.source_filename)  # type: Lexer
             return lexer.name
@@ -615,11 +647,10 @@ class AutodocIndex(object):
                 style will be used for non-Python files in any case.
 
             pygments_language_override:
-                if specified, a dictionary mapping file extensions to Pygments
-                languages (for example: a ``.pro`` file will be autodetected as
-                Prolog, but you might want to map that to ``none`` for Qt
-                project files).
-
+                if specified, a dictionary mapping file specifications to
+                Pygments languages (for example: a ``.pro`` file will be
+                autodetected as Prolog, but you might want to map that to
+                ``none`` for Qt project files).
         """
         assert index_filename
         assert project_root_dir
@@ -776,44 +807,12 @@ class AutodocIndex(object):
         final_filenames.sort()
         return final_filenames
 
-    @staticmethod
-    def filename_matches_glob(filename: str, globtext: str) -> bool:
-        """
-        The ``glob.glob`` function doesn't do exclusion very well. We don't
-        want to have to specify root directories for exclusion patterns. We
-        don't want to have to trawl a massive set of files to find exclusion
-        files. So let's implement a glob match.
-
-        Args:
-            filename: filename
-            globtext: glob
-
-        Returns:
-            does the filename match the glob?
-
-        See also:
-
-        - https://stackoverflow.com/questions/20638040/glob-exclude-pattern
-
-        """
-        # Quick check on basename-only matching
-        if fnmatch(filename, globtext):
-            log.debug("{!r} matches {!r}", filename, globtext)
-            return True
-        bname = basename(filename)
-        if fnmatch(bname, globtext):
-            log.debug("{!r} matches {!r}", bname, globtext)
-            return True
-        # Directory matching: is actually accomplished by the code above!
-        # Otherwise:
-        return False
-
     def should_exclude(self, filename) -> bool:
         """
         Should we exclude this file from consideration?
         """
         for skip_glob in self.skip_globs:
-            if self.filename_matches_glob(filename, skip_glob):
+            if filename_matches_glob(filename, skip_glob):
                 return True
         return False
 
