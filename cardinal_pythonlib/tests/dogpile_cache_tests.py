@@ -36,6 +36,7 @@ import unittest
 
 # noinspection PyPackageRequirements
 from dogpile.cache import make_region
+import pytest
 
 from cardinal_pythonlib.dogpile_cache import (
     fkg_allowing_type_hints,
@@ -51,8 +52,7 @@ log = logging.getLogger(__name__)
 
 
 class DogpileCacheTests(unittest.TestCase):
-    @staticmethod
-    def test_dogpile_cache() -> None:
+    def test_dogpile_cache(self) -> None:
         """
         Test our extensions to dogpile.cache.
         """
