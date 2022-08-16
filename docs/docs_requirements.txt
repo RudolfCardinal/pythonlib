@@ -13,3 +13,4 @@ sphinx-paramlinks
 sphinx_rtd_theme
 SQLAlchemy<1.4
 weasyprint
+xlrd
