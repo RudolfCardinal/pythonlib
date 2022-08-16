@@ -1,0 +1,18 @@
+arrow
+bcrypt
+colander
+cryptography
+deform
+dogpile.cache==0.9.2
+# CRATE is on 3.2
+Django<4.0
+libChEBIpy
+pyramid==1.10.8
+pytest
+# CamCOPS and CRATE both on this version
+sphinx==4.2.0
+sphinx-paramlinks
+sphinx_rtd_theme
+SQLAlchemy<1.4
+weasyprint
+xlrd
