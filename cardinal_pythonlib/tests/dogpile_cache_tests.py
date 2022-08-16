@@ -53,7 +53,8 @@ log = logging.getLogger(__name__)
 
 class DogpileCacheTests(unittest.TestCase):
     @pytest.mark.xfail(reason="Needs investigating")
-    def test_dogpile_cache(self) -> None:
+    @staticmethod
+    def test_dogpile_cache() -> None:
         """
         Test our extensions to dogpile.cache.
         """
