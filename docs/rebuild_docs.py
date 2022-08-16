@@ -23,6 +23,7 @@
 ===============================================================================
 """
 
+import argparse
 import os
 import shutil
 import subprocess
@@ -45,7 +46,19 @@ if __name__ == '__main__':
     # Build docs
     print("Making HTML version of documentation")
     os.chdir(THIS_DIR)
-    subprocess.call(["make", "html"])
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--warnings_as_errors",
+        action="store_true",
+        help="Treat warnings as errors",
+    )
+    args = parser.parse_args()
+
+    cmdargs = ["make", "html"]
+    if args.warnings_as_errors:
+        cmdargs.append('SPHINXOPTS="-W"')
+
+    subprocess.check_call(cmdargs)
 
     # Copy
     for destdir in DEST_DIRS:

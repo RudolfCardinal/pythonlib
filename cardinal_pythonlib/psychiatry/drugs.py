@@ -385,8 +385,6 @@ class Drug(object):
             all_generics (List[str]): list of all generic names in lower case
             generic_name: generic name (or combination name like ``a_with_b``
                 for mixtures of ``a`` and ``b``)
-            regex: compiled case-insensitive regular expression to match
-                possible names
         """
         self.add_preceding_word_boundary = add_preceding_word_boundary
         self.add_preceding_wildcards = add_preceding_wildcards
@@ -538,7 +536,8 @@ class Drug(object):
     @property
     def regex(self) -> Pattern:
         """
-        Returns a compiled regex for this drug.
+        Returns a compiled case-insensitive regular expression to match
+        possible names for this drug.
         """
         if self._regex is None:
             self._regex = re.compile(

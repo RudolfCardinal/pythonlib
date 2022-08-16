@@ -108,6 +108,7 @@ Automatic documentation of source code
     progress.py.rst
     psychiatry/drugs.py.rst
     psychiatry/rfunc.py.rst
+    psychiatry/simhelpers.py.rst
     psychiatry/tests/timeline_tests.py.rst
     psychiatry/timeline.py.rst
     psychiatry/treatment_resistant_depression.py.rst
@@ -170,11 +171,13 @@ Automatic documentation of source code
     tcpipconst.py.rst
     tee.py.rst
     tests/datetimefunc_tests.py.rst
+    tests/dogpile_cache_tests.py.rst
     tests/interval_tests.py.rst
     tests/lists_tests.py.rst
     tests/rate_limiting_tests.py.rst
     tests/rounding_tests.py.rst
     tests/rpm_tests.py.rst
+    tests/sphinxtools_tests.py.rst
     tests/spreadsheets_tests.py.rst
     tests/subprocess_tests.py.rst
     text.py.rst
@@ -183,6 +186,7 @@ Automatic documentation of source code
     tools/convert_athena_ohdsi_codes.py.rst
     tools/convert_mdb_to_mysql.py.rst
     tools/estimate_mysql_memory_usage.py.rst
+    tools/explore_clang_format_config.py.rst
     tools/list_all_file_extensions.py.rst
     tools/merge_csv.py.rst
     tools/pdf_to_booklet.py.rst
