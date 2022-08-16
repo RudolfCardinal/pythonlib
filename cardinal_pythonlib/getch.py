@@ -129,14 +129,19 @@ else:
     getch = _getch_unix
     kbhit = _kbhit_unix
 
-    # save the terminal settings
-    _fd = sys.stdin.fileno()
-    _new_term = termios.tcgetattr(_fd)
-    _old_term = termios.tcgetattr(_fd)
-    # new terminal setting unbuffered
-    _new_term[3] = _new_term[3] & ~termios.ICANON & ~termios.ECHO
-    _new_term[6][termios.VMIN] = 1
-    _new_term[6][termios.VTIME] = 0
+    try:
+        # save the terminal settings
+        _fd = sys.stdin.fileno()
+        _new_term = termios.tcgetattr(_fd)
+        _old_term = termios.tcgetattr(_fd)
+        # new terminal setting unbuffered
+        _new_term[3] = _new_term[3] & ~termios.ICANON & ~termios.ECHO
+        _new_term[6][termios.VMIN] = 1
+        _new_term[6][termios.VTIME] = 0
 
-    atexit.register(set_normal_term)
-    set_curses_term()
+        atexit.register(set_normal_term)
+        set_curses_term()
+    except termios.error:
+        # termios.error: (25, 'Inappropriate ioctl for device')
+        # when imported from GitHub CI as part of docs build
+        pass
