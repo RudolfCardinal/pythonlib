@@ -29,6 +29,7 @@ Quick links:
 - :ref:`2019 <changelog_2019>`
 - :ref:`2020 <changelog_2020>`
 - :ref:`2021 <changelog_2021>`
+- :ref:`2022 <changelog_2022>`
 
 
 .. _changelog_2017:
@@ -700,6 +701,12 @@ Quick links:
 - ``REAL`` recognized as an SQL floating-point data type, as well as ``DOUBLE``
   and ``FLOAT``.
 
+
+.. _changelog_2022:
+
+2022
+~~~~
+
 **1.1.17 (2022-02-26)**
 
 - :func:`cardinal_pythonlib.lists.delete_elements_by_index`
@@ -726,7 +733,7 @@ Quick links:
 **1.1.20 (2022-06-02)**
 
 - No code change, but after uploading successfully with ``twine upload
-  dist/FILE.tar.gz", automatic or manual downloads failed with
+  dist/FILE.tar.gz``, automatic or manual downloads failed with
   "SignatureDoesNotMatch" / "The request signature we calculated does not match
   the signature you provided. Check your Google secret key and signing method."
   Upgraded from twine==3.2.0 to twine==4.0.1 (with requests==2.27.1). No joy.
@@ -745,3 +752,12 @@ Quick links:
 **1.1.22 (2022-08-10)**
 
 - Fast RPM functions, using numba, specialized for the two-choice situation.
+
+**1.1.23 (IN PROGRESS)**
+
+- **BREAKING CHANGE**: The dictionary ``pygments_language_override`` passed to
+  :class:`cardinal_pythonlib.sphinxtools.FileToAutodocument` and
+  :class:`cardinal_pythonlib.sphinxtools.AutodocIndex` is now keyed on file
+  specification, not file extension. So language can be specified on a per-file
+  basis. Existing code should be changed so that for example ``".html"`` becomes
+  ``"*.html"`` to override all HTML files.
