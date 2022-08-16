@@ -586,7 +586,7 @@ Quick links:
 
 - :class:`cardinal_pythonlib.colander_utils.MandatoryEmailNode`
 - workaround for HTTP 403 errors in
-  :function:`cardinal_pythonlib.network.download`
+  :func:`cardinal_pythonlib.network.download`
 
 **1.0.99 (2020-11-14)**
 
