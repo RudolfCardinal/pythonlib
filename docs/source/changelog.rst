@@ -753,7 +753,7 @@ Quick links:
 
 - Fast RPM functions, using numba, specialized for the two-choice situation.
 
-**1.1.23 (IN PROGRESS)**
+**1.1.23 (2022-08-16)**
 
 - **BREAKING CHANGE**: The dictionary ``pygments_language_override`` passed to
   :class:`cardinal_pythonlib.sphinxtools.FileToAutodocument` and
