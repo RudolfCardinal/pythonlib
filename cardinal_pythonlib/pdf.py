@@ -318,7 +318,10 @@ def make_pdf_from_html(
         RuntimeError: if requested processor is unavailable
 
     """
-    wkhtmltopdf_options = wkhtmltopdf_options or {}  # type: Dict[str, Any]
+    if wkhtmltopdf_options:
+        wkhtmltopdf_options = wkhtmltopdf_options.copy()
+    else:
+        wkhtmltopdf_options = {}  # type: Dict[str, Any]
     assert_processor_available(processor)
 
     if debug_content:

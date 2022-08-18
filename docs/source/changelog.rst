@@ -761,3 +761,8 @@ Quick links:
   specification, not file extension. So language can be specified on a per-file
   basis. Existing code should be changed so that for example ``".html"`` becomes
   ``"*.html"`` to override all HTML files.
+
+- In :func:`cardinal_pythonlib.pdf.make_pdf_from_html`, take a copy of
+  ``wkhtmltopdf_options``; this prevents a bug where calls using e.g. a
+  temporary file as footer HTML then make the next call, with no footer, fail
+  (because the footer filename was written back to the dict).
