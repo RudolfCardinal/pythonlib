@@ -123,7 +123,7 @@ ZIP_PROMPTS_RESPONSES = [
     (SOURCE_STDOUT, " or ENTER  (try reading this split again): ", "q\n"),
     (
         SOURCE_STDERR,
-        "zip: malloc.c:2394: sysmalloc: Assertion `(old_top == initial_top (av) "
+        "zip: malloc.c:2394: sysmalloc: Assertion `(old_top == initial_top (av) "  # noqa: E501
         "&& old_size == 0) || ((unsigned long) (old_size) >= MINSIZE && "
         "prev_inuse (old_top) && ((unsigned long) old_end & (pagesize - 1)) "
         "== 0)' failed.",
@@ -546,7 +546,9 @@ garbage appended to them.
                 "filename": filename,
                 "filetypes": filetypes,
                 "move_to": args.move_to,
-                "delete_if_not_specified_file_type": args.delete_if_not_specified_file_type,
+                "delete_if_not_specified_file_type": (
+                    args.delete_if_not_specified_file_type
+                ),
                 "show_zip_output": args.show_zip_output,
             }
             # log.critical("start")

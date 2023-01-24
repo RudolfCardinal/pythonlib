@@ -393,7 +393,8 @@ SOUNDEX
                 opAssoc.LEFT,
             ),
             ((BETWEEN, AND), TERNARY_OP, opAssoc.LEFT),
-            # CASE handled above (hoping precedence is not too much of a problem)
+            # CASE handled above (hoping precedence is not too much of a
+            # problem)
             (NOT, UNARY_OP, opAssoc.RIGHT),
             (AND | "&&" | OR | "||" | ":=", BINARY_OP, opAssoc.LEFT),
         ],

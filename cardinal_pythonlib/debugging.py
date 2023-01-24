@@ -28,7 +28,6 @@
 
 import ctypes
 import inspect
-from inspect import FrameInfo
 import logging
 import pdb
 import sys
@@ -54,7 +53,7 @@ def pdb_run(func: Callable, *args: Any, **kwargs: Any) -> Any:
     # noinspection PyBroadException
     try:
         return func(*args, **kwargs)
-    except:  # nopep8
+    except Exception:
         type_, value, tb = sys.exc_info()
         traceback.print_exc()
         pdb.post_mortem(tb)

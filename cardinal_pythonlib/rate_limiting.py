@@ -30,8 +30,6 @@ import logging
 from time import perf_counter, sleep
 from typing import Any, Callable, Optional, Union
 
-from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
-
 
 log = logging.getLogger(__name__)
 FuncType = Callable[..., Any]

@@ -58,7 +58,8 @@ def _central_value(values: Union[List, Tuple], name: str = "?") -> Any:
     """
     if not isinstance(values, (list, tuple)):
         raise ValueError(
-            f"Parameter {name!r} should have been list/tuple but was {values!r}"
+            f"Parameter {name!r} should have been list/tuple but was "
+            f"{values!r}"
         )
     n = len(values)
     if n == 0:

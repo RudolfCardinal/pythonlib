@@ -96,7 +96,7 @@ def coltype_as_typeengine(
     """
     if isinstance(coltype, TypeEngine):
         return coltype
-    return coltype()  # type: TypeEngine
+    return coltype()
 
 
 # =============================================================================
@@ -627,7 +627,7 @@ def get_pk_attrnames(obj) -> List[str]:
 
 
 def gen_columns_for_uninstrumented_class(
-    cls: Type
+    cls: Type,
 ) -> Generator[Tuple[str, Column], None, None]:
     """
     Generate ``(attr_name, Column)`` tuples from an UNINSTRUMENTED class, i.e.
@@ -675,7 +675,7 @@ def colname_to_attrname_dict(cls) -> Dict[str, str]:
 
 
 def gen_relationships(
-    obj
+    obj,
 ) -> Generator[Tuple[str, RelationshipProperty, Type], None, None]:
     """
     Yields tuples of ``(attrname, RelationshipProperty, related_class)``

@@ -63,8 +63,6 @@ from pendulum import Date, DateTime, Duration, Time
 from pendulum.tz import local_timezone
 from pendulum.tz.timezone import Timezone
 
-from cardinal_pythonlib.logs import main_only_quicksetup_rootlogger
-
 if Arrow is not None:
     PotentialDatetimeType = Union[
         None, datetime.datetime, datetime.date, DateTime, str, Arrow
@@ -651,8 +649,8 @@ def duration_to_iso(
     if permit_years_months:
         # Watch out here. Before Pendulum 2.1.1, d.total_seconds() ignored
         # year/month components. But from Pendulum 2.1.1, it incorporates
-        # year/month information with the assumption that a year is 365 days and
-        # a month is 30 days, which is perhaps a bit iffy.
+        # year/month information with the assumption that a year is 365 days
+        # and a month is 30 days, which is perhaps a bit iffy.
         y = d.years
         m = d.months
         s = get_pendulum_duration_nonyear_nonmonth_seconds(d)

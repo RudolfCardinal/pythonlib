@@ -26,6 +26,7 @@
 
 """
 
+import os
 import shlex
 import subprocess
 import sys
@@ -81,7 +82,7 @@ def get_pipe_series_output(
     # than the maximum specified.
 
     # print commands
-    processes = []  # type: List[subprocess.Popen]
+    processes: List[subprocess.Popen] = []
     for i in range(len(commands)):
         if i == 0:  # first processes
             processes.append(

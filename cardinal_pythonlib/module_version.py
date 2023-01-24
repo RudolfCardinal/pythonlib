@@ -40,7 +40,7 @@ import sys
 from semantic_version import Version
 
 # noinspection PyUnresolvedReferences
-import cardinal_pythonlib.ensure_test_executed_correctly
+import cardinal_pythonlib.ensure_test_executed_correctly  # noqa: F401
 
 if sys.version_info > (3, 8):
     # Python 3.8 or higher

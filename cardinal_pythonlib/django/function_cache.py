@@ -87,8 +87,8 @@ def make_cache_key(call_signature: str, debug_cache: bool = False) -> str:
       is ``'a.b.c'`` a ``TableId``, or is it a ``ColumnId`` with no ``'db'``
       field?
     - We could use ``repr()``: sometimes that gives us helpful things that
-      could in principle be passed to ``eval()``, in which case ``repr()`` would
-      be fine, but sometimes it doesn't, and gives unhelpful things like
+      could in principle be passed to ``eval()``, in which case ``repr()``
+      would be fine, but sometimes it doesn't, and gives unhelpful things like
       ``'<__main__.Thing object at 0x7ff3093ebda0>'``.
     - However, if something encodes to JSON, that representation should
       be reversible and thus contain the right sort of information.

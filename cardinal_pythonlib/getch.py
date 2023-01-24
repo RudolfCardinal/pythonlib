@@ -41,7 +41,7 @@ try:
 except ImportError:
     msvcrt = None
     import termios  # Unix only
-    import tty  # requires termios, so Unix only
+    import tty  # requires termios, so Unix only  # noqa: F401
 
 
 # =============================================================================

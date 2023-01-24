@@ -153,7 +153,7 @@ class Config(Base):
         # https://dev.mysql.com/doc/refman/8.0/en/create-table-check-constraints.html  # noqa
         primary_key=True,
         autoincrement=True,
-        comment=f"Primary key.",
+        comment="Primary key.",
     )
     database_creation_datetime = Column(
         DateTime, comment="Date/time this database was created."

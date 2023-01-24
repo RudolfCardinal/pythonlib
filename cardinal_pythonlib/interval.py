@@ -59,9 +59,9 @@ BANK_HOLIDAYS = [
     datetime.datetime.strptime(x, "%Y-%m-%d").date()
     for x in [
         # https://www.gov.uk/bank-holidays
-        # All bank holiday dates vary, even the date-based ones; e.g. if Christmas
-        # Day is a Sunday, then the Christmas Day substitute bank holiday is Tue 27
-        # Dec, after the Boxing Day Monday bank holiday.
+        # All bank holiday dates vary, even the date-based ones; e.g. if
+        # Christmas Day is a Sunday, then the Christmas Day substitute bank
+        # holiday is Tue 27 Dec, after the Boxing Day Monday bank holiday.
         # 2014
         "2014-01-01",  # New Year's Day
         "2014-04-18",  # Good Friday

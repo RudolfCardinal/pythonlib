@@ -48,39 +48,6 @@ def fix_windows_utf8_output() -> None:
     # Python 3 only now, so nothing to do
     return
 
-    # if six.PY3:
-    #     return
-    # reload_module(sys)
-    # # noinspection PyUnresolvedReferences
-    # sys.setdefaultencoding('utf-8')
-    # # print sys.getdefaultencoding()
-    #
-    # if sys.platform == 'win32':
-    #     try:
-    #         import win32console
-    #     except ImportError:
-    #         win32console = None
-    #         print(
-    #             "Python Win32 Extensions module is required.\n "
-    #             "You can download it from "
-    #             "https://sourceforge.net/projects/pywin32/ "
-    #             "(x86 and x64 builds are available)\n")
-    #         exit(-1)
-    #     # win32console implementation  of SetConsoleCP does not return a value
-    #     # CP_UTF8 = 65001
-    #     win32console.SetConsoleCP(65001)
-    #     if win32console.GetConsoleCP() != 65001:
-    #         raise RuntimeError("Cannot set console codepage to 65001 (UTF-8)")
-    #     win32console.SetConsoleOutputCP(65001)
-    #     if win32console.GetConsoleOutputCP() != 65001:
-    #         raise RuntimeError("Cannot set console output codepage to 65001 "
-    #                            "(UTF-8)")
-    #
-    # sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-    # sys.stderr = codecs.getwriter('utf8')(sys.stderr)
-    # # CHECK: does that modify the "global" sys.stdout?
-    # # You can't use "global sys.stdout"; that raises an error
-
 
 def test_windows_utf8_output() -> None:
     """
@@ -262,7 +229,7 @@ def windows_get_environment_from_batch_command(
 
     lines = gen_lines()  # RNC
     # consume whatever output occurs until the tag is reached
-    consume(itertools.takewhile(lambda l: tag not in l, lines))
+    consume(itertools.takewhile(lambda line: tag not in line, lines))
     # ... RNC: note that itertools.takewhile() generates values not matching
     #     the condition, but then consumes the condition value itself. So the
     #     tag's already gone. Example:

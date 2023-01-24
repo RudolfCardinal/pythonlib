@@ -106,7 +106,7 @@ class DogpileCacheTests(unittest.TestCase):
             log.info(result)
             assert (
                 fn_was_called == should_call_fn
-            ), f"fn_was_called={fn_was_called}, should_call_fn={should_call_fn}"
+            ), f"fn_was_called={fn_was_called}, should_call_fn={should_call_fn}"  # noqa: E501
             if reset:
                 fn_was_called = False
 

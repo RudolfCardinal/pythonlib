@@ -44,9 +44,9 @@ def pre_disable_sqlalchemy_extra_echo_log() -> None:
         sqlalchemy.engine.base.Engine.__init__()
         sqlalchemy.log.instance_logger()
         sqlalchemy.log.InstanceLogger.__init__()
-            # ... which checks that the logger has no handlers and if not calls:
+        # ... which checks that the logger has no handlers and if not calls:
         sqlalchemy.log._add_default_handler()
-            # ... which adds a handler to sys.stdout
+        # ... which adds a handler to sys.stdout
     """
     log = logging.getLogger("sqlalchemy.engine.base.Engine")
     log.addHandler(logging.NullHandler())

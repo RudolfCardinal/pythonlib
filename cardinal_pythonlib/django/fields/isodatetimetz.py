@@ -246,8 +246,8 @@ class IsoDateTimeTzField(models.CharField):
         Convert Python value to database value for QUERYING.
         We query with UTC, so this function converts datetime values to UTC.
 
-        Calls to this function are followed by calls to ``get_db_prep_value()``,
-        which is for backend-specific conversions.
+        Calls to this function are followed by calls to
+        ``get_db_prep_value()``, which is for backend-specific conversions.
         """
         log.debug("get_prep_value: {}, {}", value, type(value))
         if not value:

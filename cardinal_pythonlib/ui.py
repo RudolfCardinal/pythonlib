@@ -30,7 +30,10 @@ import os
 
 # For back compatibility (these functions used to be in this file):
 # noinspection PyUnresolvedReferences
-from cardinal_pythonlib.ui_commandline import ask_user, ask_user_password
+from cardinal_pythonlib.ui_commandline import (  # noqa: F401
+    ask_user,
+    ask_user_password,
+)
 
 try:
     import tkinter

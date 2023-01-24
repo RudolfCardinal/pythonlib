@@ -81,7 +81,7 @@ def clang_format(
     subprocess.check_call(
         [
             clang_format_exe,
-            f"-style=file",  # read ./.clang-format; see above
+            "-style=file",  # read ./.clang-format; see above
             "-i",  # edit in place
             dest,
         ]
@@ -144,7 +144,7 @@ def explore_clang_format(
         log.info(f"Source = {source_filenames}")
         _ = monitor_diff([working_src, current_cpp, last_cpp], meld_exe)
         watcher = FileWatcher([config_filename] + source_filenames)
-        log.info(f"Watching config/source files; press Ctrl-C to abort")
+        log.info("Watching config/source files; press Ctrl-C to abort")
         while True:
             time.sleep(sleep_time_s)
             changed_filenames = watcher.changed()
@@ -186,24 +186,30 @@ def main() -> None:
     )
     parser.add_argument(
         "config",
-        help=f"YAML clang-format config file. Create one with e.g.: "
-        f"clang-format --style=WebKit --dump-config > myconfig.yaml",
+        help=(
+            "YAML clang-format config file. Create one with e.g.: "
+            "clang-format --style=WebKit --dump-config > myconfig.yaml"
+        ),
     )
     parser.add_argument(
         "source",
         nargs="+",
-        help=f"C++ source (.cpp, .h) file(s) to play with (if you specify "
-        f"several, they will be concatenated)",
+        help=(
+            "C++ source (.cpp, .h) file(s) to play with (if you specify "
+            "several, they will be concatenated)"
+        ),
     )
     parser.add_argument(
         "--clangformat",
-        help=f"clang-format executable (see https://apt.llvm.org/ and "
-        f"consider: 'sudo apt install clang-format-14')",
+        help=(
+            "clang-format executable (see https://apt.llvm.org/ and "
+            "consider: 'sudo apt install clang-format-14')"
+        ),
         default=shutil.which("clang-format"),
     )
     parser.add_argument(
         "--meld",
-        help=f"meld executable (consider: 'sudo apt install meld')",
+        help="meld executable (consider: 'sudo apt install meld')",
         default=shutil.which("meld"),
     )
     args = parser.parse_args()

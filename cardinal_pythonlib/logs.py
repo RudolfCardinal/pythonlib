@@ -593,7 +593,7 @@ class HtmlColorHandler(logging.StreamHandler):
         try:
             html = self.format(record)
             self.logfunction(html)
-        except:  # nopep8
+        except Exception:
             self.handleError(record)
 
 
