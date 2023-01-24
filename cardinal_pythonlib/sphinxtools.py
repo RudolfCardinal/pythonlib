@@ -172,6 +172,7 @@ def filename_matches_glob(filename: str, globtext: str) -> bool:
     # Otherwise:
     return False
 
+
 # =============================================================================
 # FileToAutodocument
 # =============================================================================

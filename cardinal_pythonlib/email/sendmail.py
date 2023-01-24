@@ -66,21 +66,24 @@ STANDARD_TLS_PORT = 587
 # Make e-mail message
 # =============================================================================
 
-def make_email(from_addr: str,
-               date: str = None,
-               sender: str = "",
-               reply_to: Union[str, List[str]] = "",
-               to: Union[str, List[str]] = "",
-               cc: Union[str, List[str]] = "",
-               bcc: Union[str, List[str]] = "",
-               subject: str = "",
-               body: str = "",
-               content_type: str = CONTENT_TYPE_TEXT,
-               charset: str = UTF8,
-               attachment_filenames: Sequence[str] = None,
-               attachment_binaries: Sequence[bytes] = None,
-               attachment_binary_filenames: Sequence[str] = None,
-               verbose: bool = False) -> email.mime.multipart.MIMEMultipart:
+
+def make_email(
+    from_addr: str,
+    date: str = None,
+    sender: str = "",
+    reply_to: Union[str, List[str]] = "",
+    to: Union[str, List[str]] = "",
+    cc: Union[str, List[str]] = "",
+    bcc: Union[str, List[str]] = "",
+    subject: str = "",
+    body: str = "",
+    content_type: str = CONTENT_TYPE_TEXT,
+    charset: str = UTF8,
+    attachment_filenames: Sequence[str] = None,
+    attachment_binaries: Sequence[bytes] = None,
+    attachment_binary_filenames: Sequence[str] = None,
+    verbose: bool = False,
+) -> email.mime.multipart.MIMEMultipart:
     """
     Makes an e-mail message.
 
@@ -129,6 +132,7 @@ def make_email(from_addr: str,
         :exc:`AssertionError`, :exc:`ValueError`
 
     """
+
     def _csv_list_to_list(x: str) -> List[str]:
         stripped = [item.strip() for item in x.split(COMMA)]
         return [item for item in stripped if item]
@@ -137,9 +141,9 @@ def make_email(from_addr: str,
         if isinstance(x, str):
             x = [x]
         for _addr in x:
-            assert COMMA not in _addr, (
-                f"Commas not allowed in e-mail addresses: {_addr!r}"
-            )
+            assert (
+                COMMA not in _addr
+            ), f"Commas not allowed in e-mail addresses: {_addr!r}"
 
     # -------------------------------------------------------------------------
     # Arguments
@@ -151,9 +155,9 @@ def make_email(from_addr: str,
         f"(for Python sendmail, not RFC 2822); was {from_addr!r}"
     )
     _assert_nocomma(from_addr)
-    assert isinstance(sender, str), (
-        f"'Sender:' can only be a single address; was {sender!r}"
-    )
+    assert isinstance(
+        sender, str
+    ), f"'Sender:' can only be a single address; was {sender!r}"
     _assert_nocomma(sender)
     if isinstance(reply_to, str):
         reply_to = [reply_to] if reply_to else []  # type: List[str]
@@ -169,11 +173,13 @@ def make_email(from_addr: str,
     _assert_nocomma(cc)
     _assert_nocomma(bcc)
     attachment_filenames = attachment_filenames or []  # type: List[str]
-    assert all(attachment_filenames), (
-        f"Missing attachment filenames: {attachment_filenames!r}"
-    )
+    assert all(
+        attachment_filenames
+    ), f"Missing attachment filenames: {attachment_filenames!r}"
     attachment_binaries = attachment_binaries or []  # type: List[bytes]
-    attachment_binary_filenames = attachment_binary_filenames or []  # type: List[str]  # noqa
+    attachment_binary_filenames = (
+        attachment_binary_filenames or []
+    )  # type: List[str]  # noqa
     assert len(attachment_binaries) == len(attachment_binary_filenames), (
         "If you specify attachment_binaries or attachment_binary_filenames, "
         "they must be iterables of the same length."
@@ -229,8 +235,8 @@ def make_email(from_addr: str,
                 part.set_payload(open(f, "rb").read())
                 email.encoders.encode_base64(part)
                 part.add_header(
-                    'Content-Disposition',
-                    'attachment; filename="%s"' % os.path.basename(f)
+                    "Content-Disposition",
+                    'attachment; filename="%s"' % os.path.basename(f),
                 )
                 msg.attach(part)
         if attachment_binaries:
@@ -238,8 +244,10 @@ def make_email(from_addr: str,
             # Binary attachments, which have a notional filename
             # -----------------------------------------------------------------
             if verbose:
-                log.debug("attachment_binary_filenames: {}",
-                          attachment_binary_filenames)
+                log.debug(
+                    "attachment_binary_filenames: {}",
+                    attachment_binary_filenames,
+                )
             for i in range(len(attachment_binaries)):
                 blob = attachment_binaries[i]
                 filename = attachment_binary_filenames[i]
@@ -247,8 +255,9 @@ def make_email(from_addr: str,
                 part.set_payload(blob)
                 email.encoders.encode_base64(part)
                 part.add_header(
-                    'Content-Disposition',
-                    'attachment; filename="%s"' % filename)
+                    "Content-Disposition",
+                    'attachment; filename="%s"' % filename,
+                )
                 msg.attach(part)
     except Exception as e:
         raise ValueError(f"send_email: Failed to attach files: {e}")
@@ -260,15 +269,18 @@ def make_email(from_addr: str,
 # Send message
 # =============================================================================
 
-def send_msg(from_addr: str,
-             to_addrs: Union[str, List[str]],
-             host: str,
-             user: str,
-             password: str,
-             port: int = None,
-             use_tls: bool = True,
-             msg: email.mime.multipart.MIMEMultipart = None,
-             msg_string: str = None) -> None:
+
+def send_msg(
+    from_addr: str,
+    to_addrs: Union[str, List[str]],
+    host: str,
+    user: str,
+    password: str,
+    port: int = None,
+    use_tls: bool = True,
+    msg: email.mime.multipart.MIMEMultipart = None,
+    msg_string: str = None,
+) -> None:
     """
     Sends a pre-built e-mail message.
 
@@ -303,7 +315,8 @@ def send_msg(from_addr: str,
         # e.g. ConnectionRefusedError when creating the socket
         # SMTPException is a subclass of OSError since 3.4
         raise RuntimeError(
-            f"send_msg: Failed to connect to host {host}, port {port}: {e}")
+            f"send_msg: Failed to connect to host {host}, port {port}: {e}"
+        )
     try:
         session.ehlo()
     except smtplib.SMTPException as e:
@@ -322,7 +335,8 @@ def send_msg(from_addr: str,
             session.login(user, password)
         except smtplib.SMTPException as e:
             raise RuntimeError(
-                f"send_msg: Failed to login as user {user}: {e}")
+                f"send_msg: Failed to login as user {user}: {e}"
+            )
     else:
         log.debug("Not using SMTP AUTH; no user specified")
         # For systems with... lax... security requirements
@@ -341,26 +355,29 @@ def send_msg(from_addr: str,
 # Send e-mail
 # =============================================================================
 
-def send_email(from_addr: str,
-               host: str,
-               user: str,
-               password: str,
-               port: int = None,
-               use_tls: bool = True,
-               date: str = None,
-               sender: str = "",
-               reply_to: Union[str, List[str]] = "",
-               to: Union[str, List[str]] = "",
-               cc: Union[str, List[str]] = "",
-               bcc: Union[str, List[str]] = "",
-               subject: str = "",
-               body: str = "",
-               content_type: str = CONTENT_TYPE_TEXT,
-               charset: str = UTF8,
-               attachment_filenames: Sequence[str] = None,
-               attachment_binaries: Sequence[bytes] = None,
-               attachment_binary_filenames: Sequence[str] = None,
-               verbose: bool = False) -> Tuple[bool, str]:
+
+def send_email(
+    from_addr: str,
+    host: str,
+    user: str,
+    password: str,
+    port: int = None,
+    use_tls: bool = True,
+    date: str = None,
+    sender: str = "",
+    reply_to: Union[str, List[str]] = "",
+    to: Union[str, List[str]] = "",
+    cc: Union[str, List[str]] = "",
+    bcc: Union[str, List[str]] = "",
+    subject: str = "",
+    body: str = "",
+    content_type: str = CONTENT_TYPE_TEXT,
+    charset: str = UTF8,
+    attachment_filenames: Sequence[str] = None,
+    attachment_binaries: Sequence[bytes] = None,
+    attachment_binary_filenames: Sequence[str] = None,
+    verbose: bool = False,
+) -> Tuple[bool, str]:
     """
     Sends an e-mail in text/html format using SMTP via TLS.
 
@@ -546,6 +563,7 @@ def get_email_domain(email_: str) -> str:
 # Parse command line
 # =============================================================================
 
+
 def main() -> NoReturn:
     """
     Command-line processor. See ``--help`` for details.
@@ -553,29 +571,25 @@ def main() -> NoReturn:
     logging.basicConfig()
     log.setLevel(logging.DEBUG)
     parser = argparse.ArgumentParser(
-        description="Send an e-mail from the command line.")
-    parser.add_argument("sender", action="store",
-                        help="Sender's e-mail address")
-    parser.add_argument("host", action="store",
-                        help="SMTP server hostname")
-    parser.add_argument("user", action="store",
-                        help="SMTP username")
-    parser.add_argument("password", action="store",
-                        help="SMTP password")
-    parser.add_argument("recipient", action="append",
-                        help="Recipient e-mail address(es)")
-    parser.add_argument("subject", action="store",
-                        help="Message subject")
-    parser.add_argument("body", action="store",
-                        help="Message body")
-    parser.add_argument("--attach", nargs="*",
-                        help="Filename(s) to attach")
-    parser.add_argument("--tls", action="store_false",
-                        help="Use TLS connection security")
-    parser.add_argument("--verbose", action="store_true",
-                        help="Be verbose")
-    parser.add_argument("-h --help", action="help",
-                        help="Prints this help")
+        description="Send an e-mail from the command line."
+    )
+    parser.add_argument(
+        "sender", action="store", help="Sender's e-mail address"
+    )
+    parser.add_argument("host", action="store", help="SMTP server hostname")
+    parser.add_argument("user", action="store", help="SMTP username")
+    parser.add_argument("password", action="store", help="SMTP password")
+    parser.add_argument(
+        "recipient", action="append", help="Recipient e-mail address(es)"
+    )
+    parser.add_argument("subject", action="store", help="Message subject")
+    parser.add_argument("body", action="store", help="Message body")
+    parser.add_argument("--attach", nargs="*", help="Filename(s) to attach")
+    parser.add_argument(
+        "--tls", action="store_false", help="Use TLS connection security"
+    )
+    parser.add_argument("--verbose", action="store_true", help="Be verbose")
+    parser.add_argument("-h --help", action="help", help="Prints this help")
     args = parser.parse_args()
     (result, msg) = send_email(
         from_addr=args.sender,
@@ -597,5 +611,5 @@ def main() -> NoReturn:
     sys.exit(0 if result else 1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

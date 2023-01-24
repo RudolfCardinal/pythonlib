@@ -56,7 +56,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 
 
 def iso_string_to_python_datetime(
-    isostring: str
+    isostring: str,
 ) -> Optional[datetime.datetime]:
     """
     Takes an ISO-8601 string and returns a ``datetime``.
@@ -67,7 +67,7 @@ def iso_string_to_python_datetime(
 
 
 def python_utc_datetime_to_sqlite_strftime_string(
-    value: datetime.datetime
+    value: datetime.datetime,
 ) -> str:
     """
     Converts a Python datetime to a string literal compatible with SQLite,

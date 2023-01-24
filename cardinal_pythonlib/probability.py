@@ -87,7 +87,7 @@ def ln(x: float) -> float:
         # return math_ln(x) if x != 0 else MINUS_INFINITY
         timeit.timeit('(ln(x) for x in range(1, 100))', number=10000)
         # 0.012411762960255146
-        
+
         # try... except ValueError...
         timeit.timeit('(ln(x) for x in range(1, 100))', number=10000)
         # 0.007783170789480209

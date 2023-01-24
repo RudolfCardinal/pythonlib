@@ -676,7 +676,7 @@ def duration_to_iso(
 
 
 def truncate_date_to_first_of_month(
-    dt: Optional[DateLikeType]
+    dt: Optional[DateLikeType],
 ) -> Optional[DateLikeType]:
     """
     Change the day to the first of the month.

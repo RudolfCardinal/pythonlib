@@ -73,7 +73,7 @@ except ImportError:
 
 
 # https://docs.python.org/3/library/platform.html#platform.architecture
-IS_64_BIT = sys.maxsize > 2 ** 32
+IS_64_BIT = sys.maxsize > 2**32
 TIMING_HASH = "hash"
 
 
@@ -485,7 +485,7 @@ def murmur3_64(data: Union[bytes, bytearray], seed: int = 19820125) -> int:
     m = 0xC6A4A7935BD1E995
     r = 47
 
-    mask = 2 ** 64 - 1
+    mask = 2**64 - 1
 
     length = len(data)
 

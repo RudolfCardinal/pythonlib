@@ -163,7 +163,7 @@ def test_nhs_rng(n: int = 100) -> None:
 
 
 def generate_nhs_number_from_first_9_digits(
-    first9digits: str
+    first9digits: str,
 ) -> Optional[int]:
     """
     Returns a valid NHS number, as an ``int``, given the first 9 digits.

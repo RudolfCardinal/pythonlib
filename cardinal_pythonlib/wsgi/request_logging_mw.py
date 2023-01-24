@@ -114,14 +114,16 @@ class RequestLoggingMiddleware(object):
             )
         except KeyError:
             forwarded_for = ""
-        request_details = '{remote}{fwd}: "{method} {path}{qmark}{query} {proto}"'.format(
-            remote=environ.get(WsgiEnvVar.REMOTE_ADDR, ""),
-            fwd=forwarded_for,
-            method=environ.get(WsgiEnvVar.REQUEST_METHOD, ""),
-            path=environ.get(WsgiEnvVar.PATH_INFO, ""),
-            qmark="?" if query_string else "",
-            query=query_string,
-            proto=environ.get(WsgiEnvVar.SERVER_PROTOCOL, ""),
+        request_details = (
+            '{remote}{fwd}: "{method} {path}{qmark}{query} {proto}"'.format(
+                remote=environ.get(WsgiEnvVar.REMOTE_ADDR, ""),
+                fwd=forwarded_for,
+                method=environ.get(WsgiEnvVar.REQUEST_METHOD, ""),
+                path=environ.get(WsgiEnvVar.PATH_INFO, ""),
+                qmark="?" if query_string else "",
+                query=query_string,
+                proto=environ.get(WsgiEnvVar.SERVER_PROTOCOL, ""),
+            )
         )
         msg_parts = []  # type: List[str]
         if self.show_request_immediately:

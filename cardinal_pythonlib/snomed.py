@@ -195,7 +195,7 @@ def double_quoted(s: str) -> str:
             ret.append(r"\\")
         elif ord(c) < 32:
             # two-digit hex format, e.g. \x1F for ASCII 31
-            ret.append(fr"\x{ord(c):02X}")
+            ret.append(rf"\x{ord(c):02X}")
         else:
             ret.append(c)
     ret.append(dquote)

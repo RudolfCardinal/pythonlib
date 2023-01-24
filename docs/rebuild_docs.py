@@ -28,6 +28,7 @@ import os
 import shutil
 import subprocess
 import sys
+
 if sys.version_info[0] < 3:
     raise AssertionError("Need Python 3")
 
@@ -37,7 +38,7 @@ BUILD_HTML_DIR = os.path.join(THIS_DIR, "build", "html")
 
 DEST_DIRS = []
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Remove anything old
     for destdir in [BUILD_HTML_DIR] + DEST_DIRS:
         print(f"Deleting directory {destdir!r}")

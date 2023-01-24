@@ -63,7 +63,7 @@ IDENTITY_ENCODING = "identity"
 
 
 def gen_accept_encoding_definitions(
-    accept_encoding: str
+    accept_encoding: str,
 ) -> Generator[str, None, None]:
     """
     For a given HTTP ``Accept-Encoding`` field value, generate encoding
@@ -150,7 +150,7 @@ def gen_content_encodings(request: Request) -> Generator[str, None, None]:
 
 
 def gen_content_encodings_reversed(
-    request: Request
+    request: Request,
 ) -> Generator[str, None, None]:
     """
     Generates content encodings in reverse order -- that is, in the order

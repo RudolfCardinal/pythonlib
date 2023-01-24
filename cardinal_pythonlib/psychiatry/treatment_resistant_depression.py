@@ -467,7 +467,7 @@ def two_antidepressant_episodes(
 
 
 def test_two_antidepressant_episodes(
-    n_sets: int = TEST_PATIENT_MULTIPLE
+    n_sets: int = TEST_PATIENT_MULTIPLE,
 ) -> None:
     fluox = "fluoxetine"
     cital = "citalopram"

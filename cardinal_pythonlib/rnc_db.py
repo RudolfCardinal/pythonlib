@@ -959,7 +959,7 @@ def get_sql_select_all_non_pk_fields_by_pk(
     table: str, fieldlist: Sequence[str], delims: Tuple[str, str] = ("", "")
 ) -> str:
     """Returns SQL:
-        SELECT [all but the first field] WHERE [the first field] = ?
+    SELECT [all but the first field] WHERE [the first field] = ?
     """
     return (
         "SELECT "
@@ -979,7 +979,7 @@ def get_sql_select_all_fields_by_key(
     delims: Tuple[str, str] = ("", ""),
 ) -> str:
     """Returns SQL:
-        SELECT [all fields in the fieldlist] WHERE [keyname] = ?
+    SELECT [all fields in the fieldlist] WHERE [keyname] = ?
     """
     return (
         "SELECT "
@@ -1010,8 +1010,7 @@ def get_sql_insert(
 def get_sql_insert_or_update(
     table: str, fieldlist: Sequence[str], delims: Tuple[str, str] = ("", "")
 ) -> str:
-    """Returns ?-marked SQL for an INSERT-or-if-duplicate-key-UPDATE statement.
-    """
+    """Returns ?-marked SQL for an INSERT-or-if-duplicate-key-UPDATE statement."""
     # https://stackoverflow.com/questions/4205181
     return """
         INSERT INTO {table} ({fields})
@@ -1104,8 +1103,8 @@ def debug_object(obj: T) -> str:
     """Prints key/value pairs for an object's dictionary."""
     pairs = []
     for k, v in vars(obj).items():
-        pairs.append(u"{}={}".format(k, v))
-    return u", ".join(pairs)
+        pairs.append("{}={}".format(k, v))
+    return ", ".join(pairs)
 
 
 def dump_database_object(obj: T, fieldlist: Iterable[str]) -> None:
@@ -1113,7 +1112,7 @@ def dump_database_object(obj: T, fieldlist: Iterable[str]) -> None:
     log.info(_LINE_EQUALS)
     log.info("DUMP OF: {}", obj)
     for f in fieldlist:
-        log.info(u"{f}: {v}", f=f, v=getattr(obj, f))
+        log.info("{f}: {v}", f=f, v=getattr(obj, f))
     log.info(_LINE_EQUALS)
 
 
@@ -1573,8 +1572,8 @@ class DatabaseSupporter:
         use_unicode: bool = True,
     ) -> bool:
         """
-            engine: access, mysql, sqlserver
-            interface: mysql, odbc, jdbc
+        engine: access, mysql, sqlserver
+        interface: mysql, odbc, jdbc
         """
 
         # Catch all exceptions, so the error-catcher never shows a password.
@@ -1811,8 +1810,10 @@ class DatabaseSupporter:
                         dr=driver, s=host, db=database, u=user
                     )
                 )
-                connectstring = "DRIVER={};SERVER={};DATABASE={};UID={};PWD={}".format(
-                    driver, host, database, user, password
+                connectstring = (
+                    "DRIVER={};SERVER={};DATABASE={};UID={};PWD={}".format(
+                        driver, host, database, user, password
+                    )
                 )
             # noinspection PyUnresolvedReferences
             self.db = pyodbc.connect(connectstring, unicode_results=True)
@@ -2696,7 +2697,7 @@ class DatabaseSupporter:
 
     @staticmethod
     def fieldnames_from_fieldspeclist(
-        fieldspeclist: FIELDSPECLIST_TYPE
+        fieldspeclist: FIELDSPECLIST_TYPE,
     ) -> List[str]:
         """Returns fieldnames from a field specification list."""
         return [x["name"] for x in fieldspeclist]
