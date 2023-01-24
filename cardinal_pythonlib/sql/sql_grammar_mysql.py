@@ -380,8 +380,9 @@ YEAR
     argument_list = (
         delimitedList(expr).setName("arglist").setParseAction(", ".join)
     )
-    # ... we don't care about sub-parsing the argument list, so use combine=True
-    # or setParseAction: https://stackoverflow.com/questions/37926516
+    # ... we don't care about sub-parsing the argument list, so use
+    # combine=True or setParseAction:
+    # https://stackoverflow.com/questions/37926516
     function_call = Combine(function_name + LPAR) + argument_list + RPAR
 
     # http://dev.mysql.com/doc/refman/5.7/en/partitioning-selection.html
@@ -516,7 +517,8 @@ YEAR
                 opAssoc.LEFT,
             ),
             ((BETWEEN, AND), TERNARY_OP, opAssoc.LEFT),
-            # CASE handled above (hoping precedence is not too much of a problem)
+            # CASE handled above (hoping precedence is not too much of a
+            # problem)
             (NOT, UNARY_OP, opAssoc.RIGHT),
             (AND | "&&" | XOR | OR | "||" | ":=", BINARY_OP, opAssoc.LEFT),
         ],
@@ -577,7 +579,7 @@ YEAR
         | BIT_OR
         | BIT_XOR
         | COUNT
-        | GROUP_CONCAT  # also: special handling for COUNT(DISTINCT ...), see below
+        | GROUP_CONCAT  # also: special handling for COUNT(DISTINCT ...), see below  # noqa: E501
         | MAX
         | MIN
         | STD
