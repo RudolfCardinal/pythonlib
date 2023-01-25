@@ -13,7 +13,9 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                python-version: ["3.7", "3.8", "3.9", "3.10"]
+                # dogpile tests broken in 3.10
+                # https://github.com/RudolfCardinal/pythonlib/issues/15
+                python-version: ["3.7", "3.8", "3.9"]
         steps:
             - uses: actions/checkout@v3
             - uses: actions/setup-python@v4
