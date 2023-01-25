@@ -468,8 +468,8 @@ class OptionalPendulumNodeLocalTZ(SchemaNode):
 
 
 OptionalPendulumNode = (
-    OptionalPendulumNodeLocalTZ
-)  # synonym for back-compatibility
+    OptionalPendulumNodeLocalTZ  # synonym for back-compatibility
+)
 
 
 class OptionalPendulumNodeUTC(SchemaNode):

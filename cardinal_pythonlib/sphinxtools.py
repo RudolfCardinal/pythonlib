@@ -47,14 +47,17 @@ from os.path import (
     sep,
     splitext,
 )
-from typing import Dict, Iterable, List, NoReturn, Union
+from typing import Dict, Iterable, List, NoReturn, TYPE_CHECKING, Union
 
 from cardinal_pythonlib.fileops import mkdir_p, relative_filename_within_dir
 from cardinal_pythonlib.logs import BraceStyleAdapter
 from cardinal_pythonlib.reprfunc import auto_repr
-from pygments.lexer import Lexer
 from pygments.lexers import get_lexer_for_filename
 from pygments.util import ClassNotFound
+
+if TYPE_CHECKING:
+    from pygments.lexer import Lexer
+
 
 log = BraceStyleAdapter(logging.getLogger(__name__))
 
@@ -171,6 +174,7 @@ def filename_matches_glob(filename: str, globtext: str) -> bool:
     # Directory matching: is actually accomplished by the code above!
     # Otherwise:
     return False
+
 
 # =============================================================================
 # FileToAutodocument
@@ -771,7 +775,7 @@ class AutodocIndex(object):
                         source_filename
                     ),
                     method=method,
-                    source_rst_title_style_python=source_rst_title_style_python,
+                    source_rst_title_style_python=source_rst_title_style_python,  # noqa: E501
                     pygments_language_override=pygments_language_override,
                 )
             )

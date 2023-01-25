@@ -120,8 +120,8 @@ class SqlaColumnInspectionInfo(object):
     """
     Class to represent information from inspecting a database column.
 
-    A clearer way of getting information than the plain ``dict`` that SQLAlchemy
-    uses.
+    A clearer way of getting information than the plain ``dict`` that
+    SQLAlchemy uses.
     """
 
     def __init__(self, sqla_info_dict: Dict[str, Any]) -> None:
@@ -333,9 +333,8 @@ WHERE
     AND s.name = :schemaname
     """
     ).bindparams(tablename=tablename, schemaname=schemaname)
-    with contextlib.closing(
-        engine.execute(query)
-    ) as result:  # type: ResultProxy
+    with contextlib.closing(engine.execute(query)) as result:
+        result: ResultProxy
         row = result.fetchone()
         return row[0] if row else ""
 
@@ -849,7 +848,7 @@ def get_sqla_coltype_from_dialect_str(
         except TypeError:
             return cls()
 
-    except:
+    except Exception:
         # noinspection PyUnresolvedReferences
         raise ValueError(
             f"Failed to convert SQL type {coltype!r} in dialect "

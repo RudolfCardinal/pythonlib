@@ -164,7 +164,7 @@ def add_job(
     # -------------------------------------------------------------------------
 
     log.info(f"Reading recipients from: {recipients_filename}")
-    recipient_addresses = set()  # type: Set[str]
+    recipient_addresses: Set[str] = set()
     recipients_failed = False
     for recipient_addr in gen_lines_without_comments(recipients_filename):
         if not is_email_valid(recipient_addr):
@@ -175,7 +175,7 @@ def add_job(
     if recipients_failed:
         raise ValueError("Errors in recipient addresses")
 
-    recipients = []  # type: List[Recipient]
+    recipients: List[Recipient] = []
     for recipient_addr in sorted(recipient_addresses):
         recipient = Recipient.fetch_or_add(recipient_addr, session)
         session.add(recipient)
@@ -434,7 +434,9 @@ def main() -> None:
         "--recipients_file",
         type=str,
         required=True,
-        help="Name of a file containing one recipient e-mail address per line.",
+        help=(
+            "Name of a file containing one recipient e-mail address per line."
+        ),
     )
     parser_add_job.add_argument(
         "--from_addr", type=str, required=True, help="From address."

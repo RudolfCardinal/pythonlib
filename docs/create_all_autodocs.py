@@ -75,8 +75,11 @@ def make_autodoc(make: bool, destroy_first: bool) -> None:
             log.info("Deleting directory {!r}", AUTODOC_DIR)
             rmtree(AUTODOC_DIR)
         else:
-            log.warning("Would delete directory {!r} (not doing so as in mock "
-                        "mode)", AUTODOC_DIR)
+            log.warning(
+                "Would delete directory {!r} (not doing so as in mock "
+                "mode)",
+                AUTODOC_DIR,
+            )
     top_idx = AutodocIndex(
         autodoc_rst_root_dir=AUTODOC_DIR,
         highest_code_dir=CODE_ROOT_DIR,
@@ -100,22 +103,24 @@ def make_autodoc(make: bool, destroy_first: bool) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--make", action="store_true",
-        help="Do things! Otherwise will just show its intent.")
+        "--make",
+        action="store_true",
+        help="Do things! Otherwise will just show its intent.",
+    )
     parser.add_argument(
-        "--destroy_first", action="store_true",
-        help="Destroy all existing autodocs first")
-    parser.add_argument(
-        "--verbose", action="store_true",
-        help="Be verbose")
+        "--destroy_first",
+        action="store_true",
+        help="Destroy all existing autodocs first",
+    )
+    parser.add_argument("--verbose", action="store_true", help="Be verbose")
     args = parser.parse_args()
 
     main_only_quicksetup_rootlogger(
-        level=logging.DEBUG if args.verbose else logging.INFO)
+        level=logging.DEBUG if args.verbose else logging.INFO
+    )
 
-    make_autodoc(make=args.make,
-                 destroy_first=args.destroy_first)
+    make_autodoc(make=args.make, destroy_first=args.destroy_first)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

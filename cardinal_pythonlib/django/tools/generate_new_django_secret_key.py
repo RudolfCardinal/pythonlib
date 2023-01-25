@@ -35,10 +35,10 @@ def main() -> None:
     """
     Generates a new Django secret key and prints it to stdout.
     """
-    chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'  # valid chars
+    chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"  # valid chars
     key = get_random_string(50, chars)
     print(key)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

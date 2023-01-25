@@ -188,7 +188,7 @@ from typing import (
 )
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
-from cardinal_pythonlib.sql.validation import *
+from cardinal_pythonlib.sql.validation import split_long_sqltype
 
 # 1. An ODBC driver
 try:
@@ -959,7 +959,7 @@ def get_sql_select_all_non_pk_fields_by_pk(
     table: str, fieldlist: Sequence[str], delims: Tuple[str, str] = ("", "")
 ) -> str:
     """Returns SQL:
-        SELECT [all but the first field] WHERE [the first field] = ?
+    SELECT [all but the first field] WHERE [the first field] = ?
     """
     return (
         "SELECT "
@@ -979,7 +979,7 @@ def get_sql_select_all_fields_by_key(
     delims: Tuple[str, str] = ("", ""),
 ) -> str:
     """Returns SQL:
-        SELECT [all fields in the fieldlist] WHERE [keyname] = ?
+    SELECT [all fields in the fieldlist] WHERE [keyname] = ?
     """
     return (
         "SELECT "
@@ -1010,7 +1010,8 @@ def get_sql_insert(
 def get_sql_insert_or_update(
     table: str, fieldlist: Sequence[str], delims: Tuple[str, str] = ("", "")
 ) -> str:
-    """Returns ?-marked SQL for an INSERT-or-if-duplicate-key-UPDATE statement.
+    """
+    Returns ?-marked SQL for an INSERT-or-if-duplicate-key-UPDATE statement.
     """
     # https://stackoverflow.com/questions/4205181
     return """
@@ -1104,8 +1105,8 @@ def debug_object(obj: T) -> str:
     """Prints key/value pairs for an object's dictionary."""
     pairs = []
     for k, v in vars(obj).items():
-        pairs.append(u"{}={}".format(k, v))
-    return u", ".join(pairs)
+        pairs.append("{}={}".format(k, v))
+    return ", ".join(pairs)
 
 
 def dump_database_object(obj: T, fieldlist: Iterable[str]) -> None:
@@ -1113,7 +1114,7 @@ def dump_database_object(obj: T, fieldlist: Iterable[str]) -> None:
     log.info(_LINE_EQUALS)
     log.info("DUMP OF: {}", obj)
     for f in fieldlist:
-        log.info(u"{f}: {v}", f=f, v=getattr(obj, f))
+        log.info("{f}: {v}", f=f, v=getattr(obj, f))
     log.info(_LINE_EQUALS)
 
 
@@ -1138,8 +1139,8 @@ def create_object_from_list(
     **kwargs
 ) -> T:
     """
-    Create an object by instantiating ``cls(*args, **kwargs)`` and assigning the
-    values in ``valuelist`` to the fields in ``fieldlist``.
+    Create an object by instantiating ``cls(*args, **kwargs)`` and assigning
+    the values in ``valuelist`` to the fields in ``fieldlist``.
 
     If ``construct_with_pk`` is ``True``, initialize with
     ``cls(valuelist[0], *args, **kwargs)``
@@ -1293,7 +1294,7 @@ def reconfigure_jaydebeapi() -> None:
             log.warning("Old jaydebeapi version")
             # noinspection PyUnresolvedReferences,PyProtectedMember
             converters = jaydebeapi.dbapi2._DEFAULT_CONVERTERS
-    except:  # nopep8
+    except Exception:
         raise AssertionError(
             "Don't know how to hook into this version of JayDeBeApi"
         )
@@ -1499,7 +1500,7 @@ class DatabaseConfig(object):
                 autocommit=autocommit,  # if False, need to commit
             )
             return db
-        except:  # nopep8
+        except Exception:
             if securely:
                 raise NoDatabaseError(
                     "Problem opening or reading from database {}; details "
@@ -1517,7 +1518,7 @@ def get_database_from_configparser(
         dbc = DatabaseConfig(parser, section)
         db = dbc.get_database(securely=securely)
         return db
-    except:  # nopep8
+    except Exception:
         if securely:
             raise NoDatabaseError(
                 "Problem opening or reading from database {}; details "
@@ -1573,8 +1574,8 @@ class DatabaseSupporter:
         use_unicode: bool = True,
     ) -> bool:
         """
-            engine: access, mysql, sqlserver
-            interface: mysql, odbc, jdbc
+        engine: access, mysql, sqlserver
+        interface: mysql, odbc, jdbc
         """
 
         # Catch all exceptions, so the error-catcher never shows a password.
@@ -1811,8 +1812,10 @@ class DatabaseSupporter:
                         dr=driver, s=host, db=database, u=user
                     )
                 )
-                connectstring = "DRIVER={};SERVER={};DATABASE={};UID={};PWD={}".format(
-                    driver, host, database, user, password
+                connectstring = (
+                    "DRIVER={};SERVER={};DATABASE={};UID={};PWD={}".format(
+                        driver, host, database, user, password
+                    )
                 )
             # noinspection PyUnresolvedReferences
             self.db = pyodbc.connect(connectstring, unicode_results=True)
@@ -2117,7 +2120,7 @@ class DatabaseSupporter:
             new_pk = get_pk_of_last_insert(cursor)
             log.debug("Record inserted.")
             return new_pk
-        except:  # nopep8
+        except Exception:
             log.exception("insert_record: Failed to insert record.")
             raise
 
@@ -2165,7 +2168,7 @@ class DatabaseSupporter:
             new_pk = get_pk_of_last_insert(cursor)
             log.debug("Record inserted.")
             return new_pk
-        except:  # nopep8
+        except Exception:
             log.exception("insert_record_by_dict: Failed to insert record.")
             raise
 
@@ -2191,7 +2194,7 @@ class DatabaseSupporter:
             # http://www.python.org/dev/peps/pep-0249/
             log.debug("Records inserted.")
             return cursor.rowcount
-        except:  # nopep8
+        except Exception:
             log.exception("insert_multiple_records: Failed to insert records.")
             raise
 
@@ -2203,7 +2206,7 @@ class DatabaseSupporter:
             debug_sql(sql, args)
             cursor.execute(sql, args)
             return cursor.rowcount
-        except:  # nopep8
+        except Exception:
             log.exception("db_exec_with_cursor: SQL was: " + sql)
             raise
         # MySQLdb:
@@ -2233,7 +2236,7 @@ class DatabaseSupporter:
         try:
             cursor.execute(sql)
             return cursor.rowcount
-        except:  # nopep8
+        except Exception:
             log.exception("db_exec_literal: SQL was: " + sql)
             raise
 
@@ -2265,7 +2268,7 @@ class DatabaseSupporter:
         self.db_exec_with_cursor(cursor, sql, *args)
         try:
             return cursor.fetchone()
-        except:  # nopep8
+        except Exception:
             log.exception("fetchone: SQL was: " + sql)
             raise
 
@@ -2277,7 +2280,7 @@ class DatabaseSupporter:
         try:
             rows = cursor.fetchall()
             return rows
-        except:  # nopep8
+        except Exception:
             log.exception("fetchall: SQL was: " + sql)
             raise
 
@@ -2291,7 +2294,7 @@ class DatabaseSupporter:
             while row is not None:
                 yield row
                 row = cursor.fetchone()
-        except:  # nopep8
+        except Exception:
             log.exception("gen_fetchall: SQL was: " + sql)
             raise
 
@@ -2305,7 +2308,7 @@ class DatabaseSupporter:
             while row is not None:
                 yield row[0]
                 row = cursor.fetchone()
-        except:  # nopep8
+        except Exception:
             log.exception("gen_fetchfirst: SQL was: " + sql)
             raise
 
@@ -2320,7 +2323,7 @@ class DatabaseSupporter:
             rows = cursor.fetchall()
             fieldnames = [i[0] for i in cursor.description]
             return rows, fieldnames
-        except:  # nopep8
+        except Exception:
             log.exception("fetchall_with_fieldnames: SQL was: " + sql)
             raise
 
@@ -2337,7 +2340,7 @@ class DatabaseSupporter:
             for r in rows:
                 dictlist.append(dict(zip(fieldnames, r)))
             return dictlist
-        except:  # nopep8
+        except Exception:
             log.exception("fetchall_as_dictlist: SQL was: " + sql)
             raise
 
@@ -2353,7 +2356,7 @@ class DatabaseSupporter:
         self.db_exec_with_cursor(cursor, sql, *args)
         try:
             return [i[0] for i in cursor.description]
-        except:  # nopep8
+        except Exception:
             log.exception("fetch_fieldnames: SQL was: " + sql)
             raise
 
@@ -2696,7 +2699,7 @@ class DatabaseSupporter:
 
     @staticmethod
     def fieldnames_from_fieldspeclist(
-        fieldspeclist: FIELDSPECLIST_TYPE
+        fieldspeclist: FIELDSPECLIST_TYPE,
     ) -> List[str]:
         """Returns fieldnames from a field specification list."""
         return [x["name"] for x in fieldspeclist]

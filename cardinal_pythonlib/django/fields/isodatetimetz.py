@@ -56,7 +56,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 
 
 def iso_string_to_python_datetime(
-    isostring: str
+    isostring: str,
 ) -> Optional[datetime.datetime]:
     """
     Takes an ISO-8601 string and returns a ``datetime``.
@@ -67,7 +67,7 @@ def iso_string_to_python_datetime(
 
 
 def python_utc_datetime_to_sqlite_strftime_string(
-    value: datetime.datetime
+    value: datetime.datetime,
 ) -> str:
     """
     Converts a Python datetime to a string literal compatible with SQLite,
@@ -246,8 +246,8 @@ class IsoDateTimeTzField(models.CharField):
         Convert Python value to database value for QUERYING.
         We query with UTC, so this function converts datetime values to UTC.
 
-        Calls to this function are followed by calls to ``get_db_prep_value()``,
-        which is for backend-specific conversions.
+        Calls to this function are followed by calls to
+        ``get_db_prep_value()``, which is for backend-specific conversions.
         """
         log.debug("get_prep_value: {}, {}", value, type(value))
         if not value:

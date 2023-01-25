@@ -219,7 +219,7 @@ def gen_lines_without_comments(
 
 
 def gen_textfiles_from_filenames(
-    filenames: Iterable[str]
+    filenames: Iterable[str],
 ) -> Generator[TextIO, None, None]:
     """
     Generates file-like objects from a list of filenames.
@@ -237,7 +237,7 @@ def gen_textfiles_from_filenames(
 
 
 def gen_lines_from_textfiles(
-    files: Iterable[TextIO]
+    files: Iterable[TextIO],
 ) -> Generator[str, None, None]:
     """
     Generates lines from file-like objects.

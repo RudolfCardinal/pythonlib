@@ -158,7 +158,10 @@ class TestDurations(unittest.TestCase):
         self.assertEqual(
             d1,
             d2,
-            f"Failed conversion {iso_duration!r} -> {d1!r} -> {i2!r} -> {d2!r}",
+            (
+                f"Failed conversion {iso_duration!r} "
+                f"-> {d1!r} -> {i2!r} -> {d2!r}",
+            ),
         )
 
     def _assert_bad_iso(self, iso_duration: str) -> None:

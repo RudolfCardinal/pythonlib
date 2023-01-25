@@ -1574,13 +1574,13 @@ def main() -> None:
         help="Use semi-plain format (re e.g. table layouts)",
     )
     parser.add_argument(
-        "--width", type=int, default=DEFAULT_WIDTH, help=f"Word wrapping width"
+        "--width", type=int, default=DEFAULT_WIDTH, help="Word wrapping width"
     )
     parser.add_argument(
         "--min-col-width",
         type=int,
         default=DEFAULT_MIN_COL_WIDTH,
-        help=f"Minimum column width for tables",
+        help="Minimum column width for tables",
     )
     args = parser.parse_args()
     if args.availability:

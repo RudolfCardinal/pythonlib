@@ -42,8 +42,8 @@ DOUBLE_SQUOTE = "''"
 
 def sql_string_literal(text: str) -> str:
     """
-    Transforms text into its ANSI SQL-quoted version, e.g. (in Python ``repr()``
-    format):
+    Transforms text into its ANSI SQL-quoted version, e.g. (in Python
+    ``repr()`` format):
 
     .. code-block:: none
 

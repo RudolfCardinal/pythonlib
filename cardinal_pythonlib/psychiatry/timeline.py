@@ -223,7 +223,7 @@ dates passed from R to Python:
     # reticulate_1.11.1-9000 [see sessionInfo()]...
     # ... yes, that fixes it.
 
-"""
+"""  # noqa: E501
 
 # =============================================================================
 # Imports

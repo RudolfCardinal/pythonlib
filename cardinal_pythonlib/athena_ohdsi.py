@@ -388,42 +388,42 @@ def get_athena_concepts(
                 yield concept
 
     def filter_vocab(
-        concepts_: Iterable[AthenaConceptRow]
+        concepts_: Iterable[AthenaConceptRow],
     ) -> Generator[AthenaConceptRow, None, None]:
         for concept in concepts_:
             if concept.vocabulary_id in vocabulary_ids:
                 yield concept
 
     def filter_code(
-        concepts_: Iterable[AthenaConceptRow]
+        concepts_: Iterable[AthenaConceptRow],
     ) -> Generator[AthenaConceptRow, None, None]:
         for concept in concepts_:
             if concept.concept_code in concept_codes:
                 yield concept
 
     def filter_id(
-        concepts_: Iterable[AthenaConceptRow]
+        concepts_: Iterable[AthenaConceptRow],
     ) -> Generator[AthenaConceptRow, None, None]:
         for concept in concepts_:
             if concept.concept_id in concept_ids:
                 yield concept
 
     def filter_not_vocab(
-        concepts_: Iterable[AthenaConceptRow]
+        concepts_: Iterable[AthenaConceptRow],
     ) -> Generator[AthenaConceptRow, None, None]:
         for concept in concepts_:
             if concept.vocabulary_id not in not_vocabulary_ids:
                 yield concept
 
     def filter_not_code(
-        concepts_: Iterable[AthenaConceptRow]
+        concepts_: Iterable[AthenaConceptRow],
     ) -> Generator[AthenaConceptRow, None, None]:
         for concept in concepts_:
             if concept.concept_code not in not_concept_codes:
                 yield concept
 
     def filter_not_id(
-        concepts_: Iterable[AthenaConceptRow]
+        concepts_: Iterable[AthenaConceptRow],
     ) -> Generator[AthenaConceptRow, None, None]:
         for concept in concepts_:
             if concept.concept_id not in not_concept_ids:
@@ -526,42 +526,42 @@ def get_athena_concept_relationships(
                 yield rel
 
     def filter_rel(
-        rels: Iterable[AthenaConceptRelationshipRow]
+        rels: Iterable[AthenaConceptRelationshipRow],
     ) -> Generator[AthenaConceptRelationshipRow, None, None]:
         for rel in rels:
             if rel.relationship_id in relationship_id_values:
                 yield rel
 
     def filter_c1(
-        rels: Iterable[AthenaConceptRelationshipRow]
+        rels: Iterable[AthenaConceptRelationshipRow],
     ) -> Generator[AthenaConceptRelationshipRow, None, None]:
         for rel in rels:
             if rel.concept_id_1 in concept_id_1_values:
                 yield rel
 
     def filter_c2(
-        rels: Iterable[AthenaConceptRelationshipRow]
+        rels: Iterable[AthenaConceptRelationshipRow],
     ) -> Generator[AthenaConceptRelationshipRow, None, None]:
         for rel in rels:
             if rel.concept_id_2 in concept_id_2_values:
                 yield rel
 
     def filter_not_rel(
-        rels: Iterable[AthenaConceptRelationshipRow]
+        rels: Iterable[AthenaConceptRelationshipRow],
     ) -> Generator[AthenaConceptRelationshipRow, None, None]:
         for rel in rels:
             if rel.relationship_id not in not_relationship_id_values:
                 yield rel
 
     def filter_not_c1(
-        rels: Iterable[AthenaConceptRelationshipRow]
+        rels: Iterable[AthenaConceptRelationshipRow],
     ) -> Generator[AthenaConceptRelationshipRow, None, None]:
         for rel in rels:
             if rel.concept_id_1 not in not_concept_id_1_values:
                 yield rel
 
     def filter_not_c2(
-        rels: Iterable[AthenaConceptRelationshipRow]
+        rels: Iterable[AthenaConceptRelationshipRow],
     ) -> Generator[AthenaConceptRelationshipRow, None, None]:
         for rel in rels:
             if rel.concept_id_2 not in not_concept_id_2_values:

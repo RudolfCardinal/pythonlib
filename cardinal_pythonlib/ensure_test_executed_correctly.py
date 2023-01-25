@@ -28,7 +28,8 @@ breaks imports.**
 """
 
 try:
-    from email import message_from_string  # we want the stdlib email package!
+    # we want the stdlib email package!
+    from email import message_from_string  # noqa: F401
 except ImportError:
     raise ImportError(
         "A test of importing 'email' has found "

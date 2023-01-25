@@ -186,13 +186,13 @@ def count_bool(blist: Iterable[Any]) -> int:
 def delete_elements_by_index(x: List[Any], indices: Sequence[int]) -> None:
     """
     Deletes (in place) objects from a list, by (zero-based) index values.
-    
+
     Args:
         x:
             list to modify
         indices:
             zero-based index values at which to delete elements of x
-            
+
     Note:
     - If you pass duplicate values, unexpected results will occur.
     - If you pass out-of-bound indices, :exc:`IndexError` will be raised.

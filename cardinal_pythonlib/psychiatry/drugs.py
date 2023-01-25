@@ -560,8 +560,8 @@ class Drug(object):
         Args:
             regex_text: regular expression text to work with
             single_wildcard: SQL single wildcard, typically an underscore
-            zero_or_more_wildcard: SQL "zero/one/many" wildcard, probably always
-                a percent symbol
+            zero_or_more_wildcard: SQL "zero/one/many" wildcard, probably
+            always a percent symbol
 
         Returns:
             string for an SQL string literal
@@ -1468,7 +1468,7 @@ def all_drugs_where(
         print([d.generic_name for d in non_ssri_antidep])
         conventional_antidep = all_drugs_where(conventional_antidepressant=True)
         print([d.generic_name for d in conventional_antidep])
-    """
+    """  # noqa: E501
     matching_drugs = []  # type: List[Drug]
     for drug in DRUGS:
         if drug.category_not_drug and not include_categories:

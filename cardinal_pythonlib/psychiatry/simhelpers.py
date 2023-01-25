@@ -58,7 +58,8 @@ def _central_value(values: Union[List, Tuple], name: str = "?") -> Any:
     """
     if not isinstance(values, (list, tuple)):
         raise ValueError(
-            f"Parameter {name!r} should have been list/tuple but was {values!r}"
+            f"Parameter {name!r} should have been list/tuple but was "
+            f"{values!r}"
         )
     n = len(values)
     if n == 0:
@@ -96,13 +97,13 @@ def gen_params_around_centre(
     Collins, 2019, PMID 31769410, Box 2/Figure 1B), because simulating a
     subject that chooses based on calculated probabilities introduces random
     noise. You will want to simulate a range of parameter combinations.
-    
+
     You might want to explore the entire parameter space (in which case, see
     :func:`cardinal_pythonlib.iterhelp.product_dict`), but that may be
     computationally unfeasible -- creating the simulations takes time and
     energy, and analysing them to recover those parameters takes time and
     energy.
-    
+
     An alternative strategy is to take central values of all parameters, and
     then vary one parameter at a time about those central values. For example,
     if you have n = 6 parameters with k = 5 possible values each, the
