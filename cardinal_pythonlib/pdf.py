@@ -604,7 +604,7 @@ def append_memory_pdf_to_writer(
     if not input_pdf:
         return
     if start_recto and len(writer.pages) % 2 != 0:
-        writer.addBlankPage()
+        writer.add_blank_page()
         # ... suitable for double-sided printing
     infile = io.BytesIO(input_pdf)
     reader = PdfReader(infile)

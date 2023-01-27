@@ -39,20 +39,8 @@ from cardinal_pythonlib.pdf import (
 
 class PdfPlanTests(unittest.TestCase):
     def test_html_added_to_writer(self) -> None:
-        html = """
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>The Title</title>
-        <meta charset="utf-8">
-    </head>
+        html = create_html("Main text")
 
-    <body>
-    Main text
-    </body>
-
-</html>
-        """
         plan = PdfPlan(is_html=True, html=html)
 
         writer = PdfWriter()
@@ -61,9 +49,28 @@ class PdfPlanTests(unittest.TestCase):
         plan.add_to_writer(writer)
         self.assertEqual(len(writer.pages), 1)
 
-        page = writer.pages[0]
+        words = writer.pages[0].extract_text().split()
+        self.assertIn("Main", words)
+        self.assertIn("text", words)
 
-        words = page.extract_text().split()
+    def test_html_added_to_writer_with_blank_page(self) -> None:
+        html = create_html("Main text")
+
+        plan = PdfPlan(is_html=True, html=html)
+
+        writer = PdfWriter()
+        # Not the blank page we're testing. We just want the page count to be
+        # odd.
+        writer.add_blank_page(width=100, height=100)
+        self.assertEqual(len(writer.pages), 1)
+
+        plan.add_to_writer(writer, start_recto=True)
+        self.assertEqual(len(writer.pages), 3)
+
+        self.assertEqual(writer.pages[0].extract_text(), "")
+        self.assertEqual(writer.pages[1].extract_text(), "")
+
+        words = writer.pages[2].extract_text().split()
         self.assertIn("Main", words)
         self.assertIn("text", words)
 
@@ -77,14 +84,13 @@ class PdfPlanTests(unittest.TestCase):
         plan.add_to_writer(writer)
         self.assertEqual(len(writer.pages), 1)
 
-        page = writer.pages[0]
-        words = page.extract_text().split()
+        words = writer.pages[0].extract_text().split()
         self.assertIn("Main", words)
         self.assertIn("text", words)
 
         os.remove(filename)
 
-    def test_blank_page_added_to_writer(self) -> None:
+    def test_file_added_to_writer_with_blank_page(self) -> None:
         filename = create_pdf_file("Main text")
         plan = PdfPlan(is_filename=True, filename=filename)
 
@@ -150,3 +156,20 @@ def create_pdf_file(text: str) -> str:
         filename = pdf_file.name
 
     return filename
+
+
+def create_html(text: str) -> str:
+    return f"""
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>The Title</title>
+        <meta charset="utf-8">
+    </head>
+
+    <body>
+    {text}
+    </body>
+
+</html>
+        """
