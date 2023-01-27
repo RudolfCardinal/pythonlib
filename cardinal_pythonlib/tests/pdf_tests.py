@@ -23,14 +23,18 @@
 ===============================================================================
 """
 
+import io
 import os
 import tempfile
 import unittest
 
 import pdfkit
-from PyPDF2 import PdfWriter
+from PyPDF2 import PdfReader, PdfWriter
 
-from cardinal_pythonlib.pdf import PdfPlan
+from cardinal_pythonlib.pdf import (
+    get_concatenated_pdf_from_disk,
+    PdfPlan,
+)
 
 
 class PdfPlanTests(unittest.TestCase):
@@ -64,7 +68,7 @@ class PdfPlanTests(unittest.TestCase):
         self.assertIn("text", words)
 
     def test_file_added_to_writer(self) -> None:
-        filename = self.create_pdf_file("Main text")
+        filename = create_pdf_file("Main text")
         plan = PdfPlan(is_filename=True, filename=filename)
 
         writer = PdfWriter()
@@ -81,7 +85,7 @@ class PdfPlanTests(unittest.TestCase):
         os.remove(filename)
 
     def test_blank_page_added_to_writer(self) -> None:
-        filename = self.create_pdf_file("Main text")
+        filename = create_pdf_file("Main text")
         plan = PdfPlan(is_filename=True, filename=filename)
 
         writer = PdfWriter()
@@ -101,13 +105,33 @@ class PdfPlanTests(unittest.TestCase):
 
         os.remove(filename)
 
-    def create_pdf_file(self, text: str) -> str:
-        pdf_data = pdfkit.from_string(text)
 
-        with tempfile.NamedTemporaryFile(
-            mode="wb", suffix=".pdf", delete=False
-        ) as pdf_file:
-            pdf_file.write(pdf_data)
-            filename = pdf_file.name
+class FunctionTests(unittest.TestCase):
+    def test_concatenated_pdf_from_disk_merges_files(self) -> None:
+        filenames = [
+            create_pdf_file("One"),
+            create_pdf_file("Two"),
+            create_pdf_file("Three"),
+        ]
 
-        return filename
+        pdf_data = get_concatenated_pdf_from_disk(filenames)
+        reader = PdfReader(io.BytesIO(pdf_data))
+
+        self.assertEqual(len(reader.pages), 5)
+        self.assertEqual(reader.pages[0].extract_text(), "One")
+        self.assertEqual(reader.pages[1].extract_text(), "")
+        self.assertEqual(reader.pages[2].extract_text(), "Two")
+        self.assertEqual(reader.pages[3].extract_text(), "")
+        self.assertEqual(reader.pages[4].extract_text(), "Three")
+
+
+def create_pdf_file(text: str) -> str:
+    pdf_data = pdfkit.from_string(text)
+
+    with tempfile.NamedTemporaryFile(
+        mode="wb", suffix=".pdf", delete=False
+    ) as pdf_file:
+        pdf_file.write(pdf_data)
+        filename = pdf_file.name
+
+    return filename

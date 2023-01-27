@@ -39,7 +39,12 @@ from typing import Any, Dict, Iterable, Union
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 # noinspection PyProtectedMember
-from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter, PdfReader
+from PyPDF2 import (
+    PdfFileMerger,
+    PdfFileWriter,
+    PdfReader,
+    PdfWriter,
+)
 from semantic_version import Version
 
 # =============================================================================
@@ -656,13 +661,13 @@ def get_concatenated_pdf_from_disk(
     # https://stackoverflow.com/questions/17104926/pypdf-merging-multiple-pdf-files-into-one-pdf  # noqa
     # https://en.wikipedia.org/wiki/Recto_and_verso
     if start_recto:
-        writer = PdfFileWriter()
+        writer = PdfWriter()
         for filename in filenames:
             if filename:
-                if writer.getNumPages() % 2 != 0:
-                    writer.addBlankPage()
-                writer.appendPagesFromReader(
-                    PdfFileReader(open(filename, "rb"))
+                if len(writer.pages) % 2 != 0:
+                    writer.add_blank_page()
+                writer.append_pages_from_reader(
+                    PdfReader(open(filename, "rb"))
                 )
         return pdf_from_writer(writer)
     else:
