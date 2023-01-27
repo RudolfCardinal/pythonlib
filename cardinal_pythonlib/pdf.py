@@ -587,7 +587,7 @@ def make_pdf_writer() -> PdfFileWriter:
     """
     Creates and returns a PyPDF2 writer.
     """
-    return PdfFileWriter()
+    return PdfWriter()
 
 
 def append_memory_pdf_to_writer(
