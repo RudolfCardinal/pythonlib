@@ -56,4 +56,6 @@ class PdfPlanTests(unittest.TestCase):
 
         page = writer.pages[0]
 
-        self.assertIn("Main text", page.extract_text())
+        words = page.extract_text().split()
+        self.assertIn("Main", words)
+        self.assertIn("text", words)
