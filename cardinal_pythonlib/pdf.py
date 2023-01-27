@@ -40,8 +40,6 @@ from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 # noinspection PyProtectedMember
 from PyPDF2 import (
-    PdfFileMerger,
-    PdfFileWriter,
     PdfMerger,
     PdfReader,
     PdfWriter,
@@ -177,13 +175,13 @@ class PdfPlan(object):
         self.filename = filename
 
     def add_to_writer(
-        self, writer: PdfFileWriter, start_recto: bool = True
+        self, writer: PdfWriter, start_recto: bool = True
     ) -> None:
         """
         Add the PDF described by this class to a PDF writer.
 
         Args:
-            writer: a :class:`PyPDF2.PdfFileWriter`
+            writer: a :class:`PyPDF2.PdfWriter`
             start_recto: start a new right-hand page?
 
         """
@@ -553,7 +551,7 @@ def make_pdf_on_disk_from_html(
     return result
 
 
-def pdf_from_writer(writer: Union[PdfFileWriter, PdfFileMerger]) -> bytes:
+def pdf_from_writer(writer: Union[PdfWriter, PdfMerger]) -> bytes:
     """
     Extracts a PDF (as binary data) from a PyPDF2 writer or merger object.
     """
@@ -583,7 +581,7 @@ def serve_pdf_to_stdout(pdf: bytes) -> None:
     sys.stdout.buffer.write(pdf)
 
 
-def make_pdf_writer() -> PdfFileWriter:
+def make_pdf_writer() -> PdfWriter:
     """
     Creates and returns a PyPDF2 writer.
     """
@@ -591,7 +589,7 @@ def make_pdf_writer() -> PdfFileWriter:
 
 
 def append_memory_pdf_to_writer(
-    input_pdf: bytes, writer: PdfFileWriter, start_recto: bool = True
+    input_pdf: bytes, writer: PdfWriter, start_recto: bool = True
 ) -> None:
     """
     Appends a PDF (as bytes in memory) to a PyPDF2 writer.
@@ -612,7 +610,7 @@ def append_memory_pdf_to_writer(
         writer.add_page(reader.pages[page_num])
 
 
-def append_pdf(input_pdf: bytes, output_writer: PdfFileWriter):
+def append_pdf(input_pdf: bytes, output_writer: PdfWriter):
     """
     Appends a PDF to a pyPDF writer. Legacy interface.
     """
@@ -636,13 +634,13 @@ def append_pdf(input_pdf: bytes, output_writer: PdfFileWriter):
 
 # def append_disk_pdf_to_writer(filename, writer):
 #     """Appends a PDF from disk to a pyPDF writer."""
-#     if writer.getNumPages() % 2 != 0:
-#         writer.addBlankPage()
+#     if len(writer.pages) % 2 != 0:
+#         writer.add_blank_page()
 #         # ... keeps final result suitable for double-sided printing
 #     with open(filename, mode='rb') as infile:
-#         reader = PdfFileReader(infile)
-#         for page_num in range(reader.numPages):
-#             writer.addPage(reader.getPage(page_num))
+#         reader = PdfReader(infile)
+#         for page in reader.pages:
+#             writer.add_page(page)
 
 
 def get_concatenated_pdf_from_disk(
