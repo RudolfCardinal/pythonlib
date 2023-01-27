@@ -191,10 +191,10 @@ class PdfPlan(object):
             )
             append_memory_pdf_to_writer(pdf, writer, start_recto=start_recto)
         elif self.is_filename:
-            if start_recto and writer.getNumPages() % 2 != 0:
+            if start_recto and len(writer.pages) % 2 != 0:
                 writer.addBlankPage()
-            writer.appendPagesFromReader(
-                PdfFileReader(open(self.filename, "rb"))
+            writer.append_pages_from_reader(
+                PdfReader(open(self.filename, "rb"))
             )
         else:
             raise AssertionError("PdfPlan: shouldn't get here!")

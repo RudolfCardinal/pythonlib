@@ -23,8 +23,11 @@
 ===============================================================================
 """
 
+import os
+import tempfile
 import unittest
 
+import pdfkit
 from PyPDF2 import PdfWriter
 
 from cardinal_pythonlib.pdf import PdfPlan
@@ -59,3 +62,25 @@ class PdfPlanTests(unittest.TestCase):
         words = page.extract_text().split()
         self.assertIn("Main", words)
         self.assertIn("text", words)
+
+    def test_file_added_to_writer(self) -> None:
+        pdf_data = pdfkit.from_string("Main text")
+
+        with tempfile.NamedTemporaryFile(
+            mode="wb", suffix=".pdf", delete=False
+        ) as pdf_file:
+            pdf_file.write(pdf_data)
+            filename = pdf_file.name
+
+        plan = PdfPlan(is_filename=True, filename=filename)
+
+        writer = PdfWriter()
+        self.assertEqual(len(writer.pages), 0)
+
+        plan.add_to_writer(writer)
+        self.assertEqual(len(writer.pages), 1)
+
+        page = writer.pages[0]
+        self.assertIn("Main text", page.extract_text())
+
+        os.remove(filename)
