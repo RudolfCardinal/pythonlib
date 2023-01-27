@@ -606,8 +606,8 @@ def append_memory_pdf_to_writer(
         # ... suitable for double-sided printing
     infile = io.BytesIO(input_pdf)
     reader = PdfReader(infile)
-    for page_num in range(len(reader.pages)):
-        writer.add_page(reader.pages[page_num])
+    for page in reader.pages:
+        writer.add_page(page)
 
 
 def append_pdf(input_pdf: bytes, output_writer: PdfWriter):
