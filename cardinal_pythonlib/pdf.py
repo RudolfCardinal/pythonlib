@@ -39,11 +39,8 @@ from typing import Any, Dict, Iterable, Union
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 # noinspection PyProtectedMember
-from PyPDF2 import (
-    PdfMerger,
-    PdfReader,
-    PdfWriter,
-)
+from pypdf import PdfMerger, PdfReader, PdfWriter
+
 from semantic_version import Version
 
 # =============================================================================
@@ -181,7 +178,7 @@ class PdfPlan(object):
         Add the PDF described by this class to a PDF writer.
 
         Args:
-            writer: a :class:`PyPDF2.PdfWriter`
+            writer: a :class:`pypdf.PdfWriter`
             start_recto: start a new right-hand page?
 
         """
@@ -553,7 +550,7 @@ def make_pdf_on_disk_from_html(
 
 def pdf_from_writer(writer: Union[PdfWriter, PdfMerger]) -> bytes:
     """
-    Extracts a PDF (as binary data) from a PyPDF2 writer or merger object.
+    Extracts a PDF (as binary data) from a pypdf writer or merger object.
     """
     memfile = io.BytesIO()
     writer.write(memfile)
@@ -583,7 +580,7 @@ def serve_pdf_to_stdout(pdf: bytes) -> None:
 
 def make_pdf_writer() -> PdfWriter:
     """
-    Creates and returns a PyPDF2 writer.
+    Creates and returns a pypdf writer.
     """
     return PdfWriter()
 
@@ -592,7 +589,7 @@ def append_memory_pdf_to_writer(
     input_pdf: bytes, writer: PdfWriter, start_recto: bool = True
 ) -> None:
     """
-    Appends a PDF (as bytes in memory) to a PyPDF2 writer.
+    Appends a PDF (as bytes in memory) to a pypdf writer.
 
     Args:
         input_pdf: the PDF, as ``bytes``

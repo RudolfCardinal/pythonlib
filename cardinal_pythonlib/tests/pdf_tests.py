@@ -29,7 +29,7 @@ import tempfile
 import unittest
 
 import pdfkit
-from PyPDF2 import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter
 
 from cardinal_pythonlib.pdf import (
     get_concatenated_pdf_from_disk,
