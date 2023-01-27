@@ -39,7 +39,7 @@ from typing import Any, Dict, Iterable, Union
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 # noinspection PyProtectedMember
-from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
+from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter, PdfReader
 from semantic_version import Version
 
 # =============================================================================
@@ -597,13 +597,13 @@ def append_memory_pdf_to_writer(
     """
     if not input_pdf:
         return
-    if start_recto and writer.getNumPages() % 2 != 0:
+    if start_recto and len(writer.pages) % 2 != 0:
         writer.addBlankPage()
         # ... suitable for double-sided printing
     infile = io.BytesIO(input_pdf)
-    reader = PdfFileReader(infile)
-    for page_num in range(reader.numPages):
-        writer.addPage(reader.getPage(page_num))
+    reader = PdfReader(infile)
+    for page_num in range(len(reader.pages)):
+        writer.add_page(reader.pages[page_num])
 
 
 def append_pdf(input_pdf: bytes, output_writer: PdfFileWriter):
