@@ -46,10 +46,7 @@ class PdfPlanTests(unittest.TestCase):
 
 </html>
         """
-        plan = PdfPlan(
-            is_html=True,
-            html=html,
-        )
+        plan = PdfPlan(is_html=True, html=html)
 
         writer = PdfWriter()
         self.assertEqual(len(writer.pages), 0)
