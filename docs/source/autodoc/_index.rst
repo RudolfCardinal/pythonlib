@@ -174,6 +174,7 @@ Automatic documentation of source code
     tests/dogpile_cache_tests.py.rst
     tests/interval_tests.py.rst
     tests/lists_tests.py.rst
+    tests/pdf_tests.py.rst
     tests/rate_limiting_tests.py.rst
     tests/rounding_tests.py.rst
     tests/rpm_tests.py.rst
