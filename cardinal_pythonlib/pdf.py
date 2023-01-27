@@ -693,7 +693,7 @@ def get_concatenated_pdf_in_memory(
         concatenated PDF, as ``bytes``
 
     """
-    writer = PdfFileWriter()
+    writer = PdfWriter()
     for pdfplan in pdf_plans:
         pdfplan.add_to_writer(writer, start_recto=start_recto)
     return pdf_from_writer(writer)

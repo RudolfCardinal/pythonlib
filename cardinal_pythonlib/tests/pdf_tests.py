@@ -33,6 +33,7 @@ from PyPDF2 import PdfReader, PdfWriter
 
 from cardinal_pythonlib.pdf import (
     get_concatenated_pdf_from_disk,
+    get_concatenated_pdf_in_memory,
     PdfPlan,
 )
 
@@ -144,6 +145,23 @@ class FunctionTests(unittest.TestCase):
         self.assertEqual(reader.pages[0].extract_text(), "One")
         self.assertEqual(reader.pages[1].extract_text(), "Two")
         self.assertEqual(reader.pages[2].extract_text(), "Three")
+
+    def test_concatenated_pdf_in_memory_inserts_blank_pages(self) -> None:
+        plans = [
+            PdfPlan(is_html=True, html=create_html("One")),
+            PdfPlan(is_html=True, html=create_html("Two")),
+            PdfPlan(is_html=True, html=create_html("Three")),
+        ]
+
+        pdf_data = get_concatenated_pdf_in_memory(plans)
+        reader = PdfReader(io.BytesIO(pdf_data))
+
+        self.assertEqual(len(reader.pages), 5)
+        self.assertEqual(reader.pages[0].extract_text(), "One")
+        self.assertEqual(reader.pages[1].extract_text(), "")
+        self.assertEqual(reader.pages[2].extract_text(), "Two")
+        self.assertEqual(reader.pages[3].extract_text(), "")
+        self.assertEqual(reader.pages[4].extract_text(), "Three")
 
 
 def create_pdf_file(text: str) -> str:
