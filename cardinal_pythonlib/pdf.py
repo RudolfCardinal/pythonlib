@@ -42,6 +42,7 @@ from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from PyPDF2 import (
     PdfFileMerger,
     PdfFileWriter,
+    PdfMerger,
     PdfReader,
     PdfWriter,
 )
@@ -671,7 +672,7 @@ def get_concatenated_pdf_from_disk(
                 )
         return pdf_from_writer(writer)
     else:
-        merger = PdfFileMerger()
+        merger = PdfMerger()
         for filename in filenames:
             if filename:
                 merger.append(open(filename, "rb"))

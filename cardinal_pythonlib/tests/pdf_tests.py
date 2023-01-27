@@ -107,7 +107,7 @@ class PdfPlanTests(unittest.TestCase):
 
 
 class FunctionTests(unittest.TestCase):
-    def test_concatenated_pdf_from_disk_merges_files(self) -> None:
+    def test_concatenated_pdf_from_disk_inserts_blank_pages(self) -> None:
         filenames = [
             create_pdf_file("One"),
             create_pdf_file("Two"),
@@ -123,6 +123,21 @@ class FunctionTests(unittest.TestCase):
         self.assertEqual(reader.pages[2].extract_text(), "Two")
         self.assertEqual(reader.pages[3].extract_text(), "")
         self.assertEqual(reader.pages[4].extract_text(), "Three")
+
+    def test_concatenated_pdf_from_disk_merges_files(self) -> None:
+        filenames = [
+            create_pdf_file("One"),
+            create_pdf_file("Two"),
+            create_pdf_file("Three"),
+        ]
+
+        pdf_data = get_concatenated_pdf_from_disk(filenames, start_recto=False)
+        reader = PdfReader(io.BytesIO(pdf_data))
+
+        self.assertEqual(len(reader.pages), 3)
+        self.assertEqual(reader.pages[0].extract_text(), "One")
+        self.assertEqual(reader.pages[1].extract_text(), "Two")
+        self.assertEqual(reader.pages[2].extract_text(), "Three")
 
 
 def create_pdf_file(text: str) -> str:
