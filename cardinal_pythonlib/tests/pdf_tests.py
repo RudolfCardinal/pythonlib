@@ -64,14 +64,7 @@ class PdfPlanTests(unittest.TestCase):
         self.assertIn("text", words)
 
     def test_file_added_to_writer(self) -> None:
-        pdf_data = pdfkit.from_string("Main text")
-
-        with tempfile.NamedTemporaryFile(
-            mode="wb", suffix=".pdf", delete=False
-        ) as pdf_file:
-            pdf_file.write(pdf_data)
-            filename = pdf_file.name
-
+        filename = self.create_pdf_file("Main text")
         plan = PdfPlan(is_filename=True, filename=filename)
 
         writer = PdfWriter()
@@ -81,6 +74,40 @@ class PdfPlanTests(unittest.TestCase):
         self.assertEqual(len(writer.pages), 1)
 
         page = writer.pages[0]
-        self.assertIn("Main text", page.extract_text())
+        words = page.extract_text().split()
+        self.assertIn("Main", words)
+        self.assertIn("text", words)
 
         os.remove(filename)
+
+    def test_blank_page_added_to_writer(self) -> None:
+        filename = self.create_pdf_file("Main text")
+        plan = PdfPlan(is_filename=True, filename=filename)
+
+        writer = PdfWriter()
+        # Not the blank page we're testing. We just want the page count to be
+        # odd.
+        writer.add_blank_page(width=100, height=100)
+        self.assertEqual(len(writer.pages), 1)
+
+        plan.add_to_writer(writer, start_recto=True)
+        self.assertEqual(len(writer.pages), 3)
+
+        self.assertEqual(writer.pages[0].extract_text(), "")
+        self.assertEqual(writer.pages[1].extract_text(), "")
+        words = writer.pages[2].extract_text().split()
+        self.assertIn("Main", words)
+        self.assertIn("text", words)
+
+        os.remove(filename)
+
+    def create_pdf_file(self, text: str) -> str:
+        pdf_data = pdfkit.from_string(text)
+
+        with tempfile.NamedTemporaryFile(
+            mode="wb", suffix=".pdf", delete=False
+        ) as pdf_file:
+            pdf_file.write(pdf_data)
+            filename = pdf_file.name
+
+        return filename

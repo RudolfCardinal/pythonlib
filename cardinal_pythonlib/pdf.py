@@ -192,7 +192,7 @@ class PdfPlan(object):
             append_memory_pdf_to_writer(pdf, writer, start_recto=start_recto)
         elif self.is_filename:
             if start_recto and len(writer.pages) % 2 != 0:
-                writer.addBlankPage()
+                writer.add_blank_page()
             writer.append_pages_from_reader(
                 PdfReader(open(self.filename, "rb"))
             )
