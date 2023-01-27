@@ -4,6 +4,8 @@
 
 set -eux -o pipefail
 
+sudo apt-get install wkhtmltopdf
+
 python -m venv "${HOME}/venv"
 source "${HOME}/venv/bin/activate"
 python -m site
