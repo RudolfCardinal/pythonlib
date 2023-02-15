@@ -211,23 +211,21 @@ def main() -> None:
 Performs a grep (global-regular-expression-print) search of files in OpenXML
 format, which is to say inside ZIP files.
 
-Note that you can chain; for example, to search for OpenXML files containing
-both "armadillo" and "bonobo", you can do:
-
-    {exe_name} -l armadillo *.pptx | grep_in_openxml -x -l bonobo
-
-To find files in a tree, you can use the "find" tool. For example, to find all
-".docx" files in a directory (or its subdirectories) that contain the phrase
-"armadillo country", you could use:
+TYPICAL USAGE. To find files in a tree, you can use the "find" tool. For
+example, to find all ".docx" files in a directory (or its subdirectories) that
+contain the phrase "armadillo country", you could use:
 
     find <STARTDIR> -type f -name "*.docx" -exec {exe_name} -l "armadillo country" {{}} \;
 
-Or you could use this tool directly, specifying a directory and "--recursive",
-as in
+Or, if you don't need the restriction to ".docx" files, you could use this tool
+directly, specifying a directory and "--recursive", as in
 
     {exe_name} -l --recursive "armadillo country" <STARTDIR>
 
-but that won't restrict to ".docx" files.
+CHAINING. Note that you can chain. For example, to find both "Laurel" and
+"Hardy" in DOC/DOCX documents, in case-insensitive fashion:
+
+    find . -type f -name "*.doc*" -exec {exe_name} -l -i "laurel" {{}} \; | {exe_name} -x -l -i "hardy"
 """,  # noqa
     )
     parser.add_argument("pattern", help="Regular expression pattern to apply.")
