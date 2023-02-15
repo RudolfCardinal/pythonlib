@@ -762,7 +762,13 @@ Quick links:
   basis. Existing code should be changed so that for example ``".html"`` becomes
   ``"*.html"`` to override all HTML files.
 
-**1.1.24 (IN PROGRESS)**
+
+.. _changelog_2023:
+
+2023
+~~~~
+
+**1.1.24 (2023-02-15)**
 
 - In :func:`cardinal_pythonlib.pdf.make_pdf_from_html`, take a copy of
   ``wkhtmltopdf_options``; this prevents a bug where calls using e.g. a
