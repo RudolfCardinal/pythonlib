@@ -39,6 +39,7 @@ from cardinal_pythonlib.pdf import (
 )
 
 
+# noinspection DuplicatedCode
 class PdfPlanTests(unittest.TestCase):
     def test_html_added_to_writer(self) -> None:
         html = create_html("Main text")
@@ -114,6 +115,7 @@ class PdfPlanTests(unittest.TestCase):
         os.remove(filename)
 
 
+# noinspection DuplicatedCode
 class FunctionTests(unittest.TestCase):
     def test_concatenated_pdf_from_disk_inserts_blank_pages(self) -> None:
         filenames = [

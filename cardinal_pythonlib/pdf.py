@@ -36,12 +36,12 @@ import sys
 import tempfile
 from typing import Any, Dict, Iterable, Union
 
-from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
-
 # noinspection PyProtectedMember
 from pypdf import PdfMerger, PdfReader, PdfWriter
-
 from semantic_version import Version
+
+from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
 
 # =============================================================================
 # Conditional/optional imports
