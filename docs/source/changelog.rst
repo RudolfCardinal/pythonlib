@@ -768,3 +768,6 @@ Quick links:
   ``wkhtmltopdf_options``; this prevents a bug where calls using e.g. a
   temporary file as footer HTML then make the next call, with no footer, fail
   (because the footer filename was written back to the dict).
+
+- ``pdf.py`` updated to use pypdf instead of PyPDF2, which is no longer
+  supported.

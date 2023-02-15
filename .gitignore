@@ -9,3 +9,6 @@ private_testing/*
 
 # Silver searcher
 .ignore
+
+# pytest coverage report
+.coverage

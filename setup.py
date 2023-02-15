@@ -61,7 +61,7 @@ REQUIREMENTS = [
     "psutil",
     "pygments",
     "pyparsing",
-    "PyPDF2",
+    "pypdf>=3.1.0",
     "python-dateutil",  # "import dateutil"
     "scipy",
     "semantic-version",

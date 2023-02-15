@@ -36,11 +36,12 @@ import sys
 import tempfile
 from typing import Any, Dict, Iterable, Union
 
+# noinspection PyProtectedMember
+from pypdf import PdfMerger, PdfReader, PdfWriter
+from semantic_version import Version
+
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
-# noinspection PyProtectedMember
-from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
-from semantic_version import Version
 
 # =============================================================================
 # Conditional/optional imports
@@ -171,13 +172,13 @@ class PdfPlan(object):
         self.filename = filename
 
     def add_to_writer(
-        self, writer: PdfFileWriter, start_recto: bool = True
+        self, writer: PdfWriter, start_recto: bool = True
     ) -> None:
         """
         Add the PDF described by this class to a PDF writer.
 
         Args:
-            writer: a :class:`PyPDF2.PdfFileWriter`
+            writer: a :class:`pypdf.PdfWriter`
             start_recto: start a new right-hand page?
 
         """
@@ -191,10 +192,10 @@ class PdfPlan(object):
             )
             append_memory_pdf_to_writer(pdf, writer, start_recto=start_recto)
         elif self.is_filename:
-            if start_recto and writer.getNumPages() % 2 != 0:
-                writer.addBlankPage()
-            writer.appendPagesFromReader(
-                PdfFileReader(open(self.filename, "rb"))
+            if start_recto and len(writer.pages) % 2 != 0:
+                writer.add_blank_page()
+            writer.append_pages_from_reader(
+                PdfReader(open(self.filename, "rb"))
             )
         else:
             raise AssertionError("PdfPlan: shouldn't get here!")
@@ -547,9 +548,9 @@ def make_pdf_on_disk_from_html(
     return result
 
 
-def pdf_from_writer(writer: Union[PdfFileWriter, PdfFileMerger]) -> bytes:
+def pdf_from_writer(writer: Union[PdfWriter, PdfMerger]) -> bytes:
     """
-    Extracts a PDF (as binary data) from a PyPDF2 writer or merger object.
+    Extracts a PDF (as binary data) from a pypdf writer or merger object.
     """
     memfile = io.BytesIO()
     writer.write(memfile)
@@ -577,18 +578,18 @@ def serve_pdf_to_stdout(pdf: bytes) -> None:
     sys.stdout.buffer.write(pdf)
 
 
-def make_pdf_writer() -> PdfFileWriter:
+def make_pdf_writer() -> PdfWriter:
     """
-    Creates and returns a PyPDF2 writer.
+    Creates and returns a pypdf writer.
     """
-    return PdfFileWriter()
+    return PdfWriter()
 
 
 def append_memory_pdf_to_writer(
-    input_pdf: bytes, writer: PdfFileWriter, start_recto: bool = True
+    input_pdf: bytes, writer: PdfWriter, start_recto: bool = True
 ) -> None:
     """
-    Appends a PDF (as bytes in memory) to a PyPDF2 writer.
+    Appends a PDF (as bytes in memory) to a pypdf writer.
 
     Args:
         input_pdf: the PDF, as ``bytes``
@@ -597,16 +598,16 @@ def append_memory_pdf_to_writer(
     """
     if not input_pdf:
         return
-    if start_recto and writer.getNumPages() % 2 != 0:
-        writer.addBlankPage()
+    if start_recto and len(writer.pages) % 2 != 0:
+        writer.add_blank_page()
         # ... suitable for double-sided printing
     infile = io.BytesIO(input_pdf)
-    reader = PdfFileReader(infile)
-    for page_num in range(reader.numPages):
-        writer.addPage(reader.getPage(page_num))
+    reader = PdfReader(infile)
+    for page in reader.pages:
+        writer.add_page(page)
 
 
-def append_pdf(input_pdf: bytes, output_writer: PdfFileWriter):
+def append_pdf(input_pdf: bytes, output_writer: PdfWriter):
     """
     Appends a PDF to a pyPDF writer. Legacy interface.
     """
@@ -630,13 +631,13 @@ def append_pdf(input_pdf: bytes, output_writer: PdfFileWriter):
 
 # def append_disk_pdf_to_writer(filename, writer):
 #     """Appends a PDF from disk to a pyPDF writer."""
-#     if writer.getNumPages() % 2 != 0:
-#         writer.addBlankPage()
+#     if len(writer.pages) % 2 != 0:
+#         writer.add_blank_page()
 #         # ... keeps final result suitable for double-sided printing
 #     with open(filename, mode='rb') as infile:
-#         reader = PdfFileReader(infile)
-#         for page_num in range(reader.numPages):
-#             writer.addPage(reader.getPage(page_num))
+#         reader = PdfReader(infile)
+#         for page in reader.pages:
+#             writer.add_page(page)
 
 
 def get_concatenated_pdf_from_disk(
@@ -656,17 +657,17 @@ def get_concatenated_pdf_from_disk(
     # https://stackoverflow.com/questions/17104926/pypdf-merging-multiple-pdf-files-into-one-pdf  # noqa
     # https://en.wikipedia.org/wiki/Recto_and_verso
     if start_recto:
-        writer = PdfFileWriter()
+        writer = PdfWriter()
         for filename in filenames:
             if filename:
-                if writer.getNumPages() % 2 != 0:
-                    writer.addBlankPage()
-                writer.appendPagesFromReader(
-                    PdfFileReader(open(filename, "rb"))
+                if len(writer.pages) % 2 != 0:
+                    writer.add_blank_page()
+                writer.append_pages_from_reader(
+                    PdfReader(open(filename, "rb"))
                 )
         return pdf_from_writer(writer)
     else:
-        merger = PdfFileMerger()
+        merger = PdfMerger()
         for filename in filenames:
             if filename:
                 merger.append(open(filename, "rb"))
@@ -687,7 +688,7 @@ def get_concatenated_pdf_in_memory(
         concatenated PDF, as ``bytes``
 
     """
-    writer = PdfFileWriter()
+    writer = PdfWriter()
     for pdfplan in pdf_plans:
         pdfplan.add_to_writer(writer, start_recto=start_recto)
     return pdf_from_writer(writer)
