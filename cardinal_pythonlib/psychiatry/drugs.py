@@ -416,6 +416,8 @@ class Drug(object):
 
         if (
             ssri
+            or snri
+            or nassa
             or non_ssri_modern_antidepressant
             or tricyclic_antidepressant
             or tetracyclic_and_related_antidepressant
