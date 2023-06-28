@@ -60,13 +60,13 @@ def r_string_literal(x: str) -> str:
     - Escape double quotes, " -> \"
     - Surround in double quotes.
     """
-    single_backslash = "\\"
-    double_backslash = "\\\\"
+    backslash = "\\"
+    escaped_backslash = backslash + backslash
     dquote = '"'
-    escaped_dquote = '\\"'
+    escaped_dquote = backslash + dquote
     return (
         dquote
-        + x.replace(single_backslash, double_backslash).replace(
+        + x.replace(backslash, escaped_backslash).replace(
             dquote, escaped_dquote
         )
         + dquote
@@ -84,7 +84,7 @@ def rscript() -> str:
     """
     Generates the R script containing constants of interest.
     """
-    converter = drugs_to_regex  # drugs_to_rvec
+    converter = drugs_to_regex
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
