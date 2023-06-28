@@ -107,6 +107,7 @@ Automatic documentation of source code
     profile.py.rst
     progress.py.rst
     psychiatry/drugs.py.rst
+    psychiatry/mk_r_druglists.py.rst
     psychiatry/rfunc.py.rst
     psychiatry/simhelpers.py.rst
     psychiatry/tests/timeline_tests.py.rst
