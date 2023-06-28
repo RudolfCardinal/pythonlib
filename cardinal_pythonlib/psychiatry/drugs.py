@@ -218,7 +218,7 @@ Test within R:
 """  # noqa
 
 import re
-from typing import Dict, List, Optional, Pattern, Union
+from typing import List, Optional, Pattern, Union
 
 from cardinal_pythonlib.sql.literals import sql_string_literal
 
@@ -228,6 +228,7 @@ from cardinal_pythonlib.sql.literals import sql_string_literal
 # =============================================================================
 
 WILDCARD = ".*"  # if re.DOTALL is set, this also matches newlines
+OL = OPTIONAL_LETTERS = "[a-zA-Z]*"
 WB = WORD_BOUNDARY = r"\b"
 
 
@@ -259,6 +260,8 @@ class Drug(object):
         antidepressant: bool = False,
         conventional_antidepressant: bool = False,
         ssri: bool = False,
+        snri: bool = False,
+        nassa: bool = False,
         non_ssri_modern_antidepressant: bool = False,
         tricyclic_antidepressant: bool = False,
         tetracyclic_and_related_antidepressant: bool = False,
@@ -405,9 +408,7 @@ class Drug(object):
         else:
             raise ValueError(f"Bad generic_name: {generic!r}")
         self.alternatives = alternatives or []  # type: List[str]
-        self._regex_text = None  # type: Optional[str]
         self._regex = None  # type: Optional[Pattern]
-        self._sql_like_fragments = None  # type: Optional[List[str]]
 
         # ---------------------------------------------------------------------
         # Things we know about psychotropics
@@ -472,6 +473,8 @@ class Drug(object):
         self.antidepressant = antidepressant
         self.conventional_antidepressant = conventional_antidepressant
         self.ssri = ssri
+        self.snri = snri
+        self.nassa = nassa
         self.non_ssri_modern_antidepressant = non_ssri_modern_antidepressant
         self.tricyclic = tricyclic_antidepressant
         self.tetracyclic_and_related_antidepressant = (
@@ -515,35 +518,27 @@ class Drug(object):
 
         self.slam_antidepressant_finder = slam_antidepressant_finder
 
-    @property
     def regex_text(self) -> str:
         """
         Return regex text (yet to be compiled) for this drug.
         """
-        if self._regex_text is None:
-            possibilities = []  # type: List[str]
-            for p in list(set(self.all_generics + self.alternatives)):
-                if self.add_preceding_word_boundary and not p.startswith(WB):
-                    p = WB + p
-                if self.add_preceding_wildcards and not p.startswith(WILDCARD):
-                    p = WILDCARD + p
-                if self.add_following_wildcards and not p.endswith(WILDCARD):
-                    p = p + WILDCARD
-                possibilities.append(p)
-            self._regex_text = "|".join("(?:" + x + ")" for x in possibilities)
-        return self._regex_text
+        possibilities = []  # type: List[str]
+        for p in self.all_generics + self.alternatives:
+            if self.add_preceding_word_boundary and not p.startswith(WB):
+                p = WB + p
+            if self.add_preceding_wildcards and not p.startswith(WILDCARD):
+                p = WILDCARD + p
+            if self.add_following_wildcards and not p.endswith(WILDCARD):
+                p = p + WILDCARD
+            possibilities.append(p)
+        return "|".join("(?:" + x + ")" for x in possibilities)
 
-    @property
     def regex(self) -> Pattern:
         """
         Returns a compiled case-insensitive regular expression to match
         possible names for this drug.
         """
-        if self._regex is None:
-            self._regex = re.compile(
-                self.regex_text, re.IGNORECASE | re.DOTALL
-            )
-        return self._regex
+        return re.compile(self.regex_text(), re.IGNORECASE | re.DOTALL)
 
     @staticmethod
     def regex_to_sql_like(
@@ -606,7 +601,7 @@ class Drug(object):
                 option_groups = bracketed.split("|")
                 options = [c for group in option_groups for c in group]
                 split_and_append(options)
-                working = working[close_bracket + 1 :]
+                working = working[close_bracket + 1 :]  # noqa: E203
             elif len(working) > 1 and working[1] == "?":
                 # e.g. "r?azole"
                 split_and_append(["", working[0]])
@@ -628,7 +623,6 @@ class Drug(object):
         # Done
         return results
 
-    @property
     def sql_like_fragments(self) -> List[str]:
         """
         Returns all the string literals to which a database column should be
@@ -638,11 +632,10 @@ class Drug(object):
 
         ``LIKE`` uses the wildcards ``?`` and ``%``.
         """
-        if self._sql_like_fragments is None:
-            self._sql_like_fragments = []
-            for p in list(set(self.all_generics + self.alternatives)):
-                self._sql_like_fragments.extend(self.regex_to_sql_like(p))
-        return self._sql_like_fragments
+        fragments = []  # type: List[str]
+        for p in self.all_generics + self.alternatives:
+            fragments.extend(self.regex_to_sql_like(p))
+        return fragments
 
     def name_matches(self, name: str) -> bool:
         """
@@ -652,7 +645,7 @@ class Drug(object):
 
         The parameter should be pre-stripped of edge whitespace.
         """
-        return bool(self.regex.match(name))
+        return bool(self.regex().match(name))
 
     def sql_column_like_drug(self, column_name: str) -> str:
         """
@@ -674,7 +667,7 @@ class Drug(object):
         """
         clauses = [
             f"{column_name} LIKE {sql_string_literal(f)}"
-            for f in self.sql_like_fragments
+            for f in self.sql_like_fragments()
         ]
         return f"({' OR '.join(clauses)})"
 
@@ -901,6 +894,7 @@ DRUGS = [
     Drug(
         "duloxetine",
         ["Cymbalta", "Yentreve", "duloxat.*"],
+        snri=True,
         non_ssri_modern_antidepressant=True,
         slam_antidepressant_finder=True,
     ),
@@ -909,12 +903,15 @@ DRUGS = [
         ["mirtaz.*", "mirtazepine", "Zispin", "Mirza"],
         # ... actually (CPFT 2013): mirtazapine, mirtazepine(*), "mirtazapine
         # Dec" (?)
+        nassa=True,
         non_ssri_modern_antidepressant=True,
+        tetracyclic_and_related_antidepressant=True,
         slam_antidepressant_finder=True,
     ),
     Drug(
         "reboxetine",
         ["Edronax", "reboxat.*"],
+        snri=True,
         non_ssri_modern_antidepressant=True,
         slam_antidepressant_finder=True,
     ),
@@ -928,6 +925,7 @@ DRUGS = [
         "venlafaxine",
         ["venla.*", "Eff?exor.*"],
         # ... actually (CPFT 2013): venlafaxine, venlafaxine XL,
+        snri=True,
         non_ssri_modern_antidepressant=True,  # though obviously an SSRI too...
         slam_antidepressant_finder=True,
     ),
@@ -996,10 +994,11 @@ DRUGS = [
         slam_antidepressant_finder=True,
     ),
     # -------------------------------------------------------------------------
-    # TETRACYCLIC-RELATED ANTIDEPRESSANTS
+    # TETRACYCLIC-RELATED ANTIDEPRESSANTS (see also mirtazapine above)
     # -------------------------------------------------------------------------
     Drug(
         "mianserin",
+        nassa=True,
         tetracyclic_and_related_antidepressant=True,
         slam_antidepressant_finder=True,
     ),
@@ -1433,7 +1432,7 @@ def drug_names_to_generic(
 # =============================================================================
 
 
-def drug_matches_criteria(drug: Drug, **criteria: Dict[str, bool]) -> bool:
+def drug_matches_criteria(drug: Drug, **criteria: bool) -> bool:
     """
     Determines whether a drug, passed as an instance of :class:`.Drug`, matches
     the specified criteria.
@@ -1451,7 +1450,7 @@ def drug_matches_criteria(drug: Drug, **criteria: Dict[str, bool]) -> bool:
 
 
 def all_drugs_where(
-    sort=True, include_categories: bool = False, **criteria: Dict[str, bool]
+    sort=True, include_categories: bool = False, **criteria: bool
 ) -> List[Drug]:
     """
     Find all drugs matching the specified criteria (see
@@ -1484,7 +1483,7 @@ def drug_name_matches_criteria(
     drug_name: str,
     name_is_generic: bool = False,
     include_categories: bool = False,
-    **criteria: Dict[str, bool],
+    **criteria: bool,
 ) -> bool:
     """
     Establish whether a single drug, passed by name, matches the specified
@@ -1502,7 +1501,7 @@ def drug_names_match_criteria(
     drug_names: List[str],
     names_are_generic: bool = False,
     include_categories: bool = False,
-    **criteria: Dict[str, bool],
+    **criteria: bool,
 ) -> List[bool]:
     """
     Establish whether multiple drugs, passed as a list of drug names, each

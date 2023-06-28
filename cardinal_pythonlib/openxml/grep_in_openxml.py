@@ -36,7 +36,7 @@ Notes:
 
 """
 
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from argparse import ArgumentParser
 import logging
 import multiprocessing
 import os
@@ -45,6 +45,8 @@ from sys import argv, getdefaultencoding, stdin
 from typing import Pattern
 from zipfile import BadZipFile, ZipFile
 import zlib
+
+from rich_argparse import RawDescriptionRichHelpFormatter
 
 from cardinal_pythonlib.logs import (
     BraceStyleAdapter,
@@ -206,7 +208,7 @@ def main() -> None:
     """
     exe_name = os.path.basename(argv[0]) or "grep_in_openxml"
     parser = ArgumentParser(
-        formatter_class=RawDescriptionHelpFormatter,
+        formatter_class=RawDescriptionRichHelpFormatter,
         description=f"""
 Performs a grep (global-regular-expression-print) search of files in OpenXML
 format, which is to say inside ZIP files.

@@ -28,7 +28,7 @@
 
 """
 
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from argparse import ArgumentParser
 import fnmatch
 import logging
 import multiprocessing
@@ -38,6 +38,8 @@ from time import sleep
 import traceback
 from typing import Generator, List
 from zipfile import BadZipFile, ZipFile, ZipInfo
+
+from rich_argparse import RawDescriptionRichHelpFormatter
 
 from cardinal_pythonlib.logs import (
     BraceStyleAdapter,
@@ -179,7 +181,7 @@ def main() -> None:
     Use the ``--help`` option for help.
     """
     parser = ArgumentParser(
-        formatter_class=RawDescriptionHelpFormatter,
+        formatter_class=RawDescriptionRichHelpFormatter,
         description="""
 Tool to scan rescued Microsoft Office OpenXML files (produced by the
 find_recovered_openxml.py tool in this kit; q.v.) and detect bad (corrupted)

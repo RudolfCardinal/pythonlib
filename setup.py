@@ -63,6 +63,7 @@ REQUIREMENTS = [
     "pyparsing",
     "pypdf>=3.1.0",
     "python-dateutil",  # "import dateutil"
+    "rich-argparse>=0.5.0",  # colourful help
     "scipy",
     "semantic-version",
     "SQLAlchemy",

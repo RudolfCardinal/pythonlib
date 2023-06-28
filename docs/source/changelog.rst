@@ -777,3 +777,9 @@ Quick links:
 
 - ``pdf.py`` updated to use pypdf instead of PyPDF2, which is no longer
   supported.
+
+**1.1.25 (in progress 2023-06-27)**
+
+- Use ``rich_argparse`` for colourful help.
+- Small tweaks (and a rather specific R script generator) re psychotropic
+  medications.

@@ -38,6 +38,11 @@ from argparse import (
 )
 from typing import Any, Dict, List, Type
 
+from rich_argparse import (
+    ArgumentDefaultsRichHelpFormatter,
+    RawDescriptionRichHelpFormatter,
+)
+
 
 # =============================================================================
 # Argparse actions
@@ -95,6 +100,19 @@ class RawDescriptionArgumentDefaultsHelpFormatter(
 
     - :class:`RawDescriptionHelpFormatter` -- don't mangle the description
     - :class:`ArgumentDefaultsHelpFormatter` -- print argument defaults
+    """
+
+    pass
+
+
+class RawDescriptionArgumentDefaultsRichHelpFormatter(
+    ArgumentDefaultsRichHelpFormatter, RawDescriptionRichHelpFormatter
+):
+    """
+    Combines the features of
+
+    - :class:`RawDescriptionRichHelpFormatter` -- don't mangle the description
+    - :class:`ArgumentDefaultsRichHelpFormatter` -- print argument defaults
     """
 
     pass

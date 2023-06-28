@@ -38,6 +38,8 @@ import stat
 from time import sleep
 from typing import Dict, List, Union
 
+from rich_argparse import RichHelpFormatter
+
 from cardinal_pythonlib.fileops import gen_filenames
 from cardinal_pythonlib.logs import (
     BraceStyleAdapter,
@@ -199,7 +201,9 @@ def main() -> None:
     """
     Command-line processor. See ``--help`` for details.
     """
-    parser = ArgumentParser(description="Remove duplicate files")
+    parser = ArgumentParser(
+        description="Remove duplicate files", formatter_class=RichHelpFormatter
+    )
     parser.add_argument(
         "directory",
         nargs="+",

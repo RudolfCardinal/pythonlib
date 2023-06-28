@@ -77,7 +77,7 @@ file is badly corrupted (or not a zip at all).
 
 """
 
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from argparse import ArgumentParser
 import fnmatch
 import logging
 import multiprocessing
@@ -90,6 +90,8 @@ from time import sleep
 import traceback
 from typing import List
 from zipfile import BadZipFile, ZipFile
+
+from rich_argparse import RawDescriptionRichHelpFormatter
 
 from cardinal_pythonlib.logs import (
     BraceStyleAdapter,
@@ -373,7 +375,7 @@ def main() -> None:
     Use the ``--help`` option for help.
     """
     parser = ArgumentParser(
-        formatter_class=RawDescriptionHelpFormatter,
+        formatter_class=RawDescriptionRichHelpFormatter,
         description=f"""
 Tool to recognize and rescue Microsoft Office OpenXML files, even if they have
 garbage appended to them.

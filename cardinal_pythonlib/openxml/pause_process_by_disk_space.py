@@ -34,6 +34,8 @@ import sys
 from time import sleep
 from typing import NoReturn
 
+from rich_argparse import RichHelpFormatter
+
 from cardinal_pythonlib.logs import (
     BraceStyleAdapter,
     main_only_quicksetup_rootlogger,
@@ -63,7 +65,8 @@ def main() -> NoReturn:
     Use the ``--help`` option for help.
     """
     parser = ArgumentParser(
-        description="Pauses and resumes a process by disk space; LINUX ONLY."
+        description="Pauses and resumes a process by disk space; LINUX ONLY.",
+        formatter_class=RichHelpFormatter,
     )
     parser.add_argument("process_id", type=int, help="Process ID.")
     parser.add_argument(
