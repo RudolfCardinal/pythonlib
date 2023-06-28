@@ -706,8 +706,6 @@ def html_table_from_query(
 ) -> str:
     """
     Converts rows from an SQL query result to an HTML table.
-    Suitable for processing output from the defunct function
-    ``rnc_db.fetchall_with_fieldnames(sql)``.
     """
     html = "<table>\n"
 

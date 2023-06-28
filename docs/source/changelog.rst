@@ -783,3 +783,4 @@ Quick links:
 - Use ``rich_argparse`` for colourful help.
 - Small tweaks (and a rather specific R script generator) re psychotropic
   medications.
+- Removed defunct ``rnc_db`` module.

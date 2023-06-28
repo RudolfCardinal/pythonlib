@@ -119,18 +119,6 @@ NOTES_RE_OTHER_REQUIREMENTS = """
 # sphinx_rtd_theme
 # twine
 
-# -----------------------------------------------------------------------------
-# NO LONGER REQUIRED (but worth commenting on for now)
-# -----------------------------------------------------------------------------
-
-# DATABASE DRIVERS:
-# jaydebeapi  -- in deprecated rnc_db module only
-# mysql-python  # "import MySQLdb"  -- in deprecated rnc_db module only
-# mysqlclient  # "import MySQLdb"  -- in deprecated rnc_db module only
-# pymysql  -- in deprecated rnc_db module only
-# pyodbc  -- in deprecated rnc_db module only
-# pypyodbc  -- in deprecated rnc_db module only
-
 """
 
 

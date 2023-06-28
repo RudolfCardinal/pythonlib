@@ -122,7 +122,6 @@ Automatic documentation of source code
     regexfunc.py.rst
     register_db_with_odbc.py.rst
     reprfunc.py.rst
-    rnc_db.py.rst
     rnc_text.py.rst
     rnc_web.py.rst
     rounding.py.rst
