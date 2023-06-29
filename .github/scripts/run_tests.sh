@@ -20,5 +20,5 @@ python -m pip install pytest
 python -m pip install xhtml2pdf weasyprint pdfkit  # For PDF tests
 python -m pip install -e .
 
-# pytest
-pytest --log-cli-level=INFO
+# pytest --log-cli-level=INFO
+pytest
