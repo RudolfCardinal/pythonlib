@@ -92,7 +92,7 @@ log = logging.getLogger(__name__)
 # Constants
 # =============================================================================
 
-DEBUG_INTERNALS = True
+DEBUG_INTERNALS = False  # pytest -k dogpile --log-cli-level=DEBUG
 
 
 # =============================================================================
@@ -184,6 +184,13 @@ def fkg_allowing_type_hints(
     ]
     has_self = bool(argnames and argnames[0] in ("self", "cls"))
 
+    if DEBUG_INTERNALS:
+        log.debug(
+            f"At start of fkg_allowing_type_hints: namespace={namespace},"
+            f"sig={sig!r}, argnames={argnames!r}, has_self={has_self}, "
+            f"fn={fn!r}"
+        )
+
     def generate_key(*args: Any, **kw: Any) -> str:
         """
         Makes the actual key for a specific call to the decorated function,
@@ -203,7 +210,7 @@ def fkg_allowing_type_hints(
         if DEBUG_INTERNALS:
             log.debug(
                 f"fkg_allowing_type_hints.generate_key("
-                f"args={args!r}, kw={kw!r}); argnames = {argnames!r} "
+                f"args={args!r}, kw={kw!r}); argnames={argnames!r} "
                 f"-> {key!r}"
             )
         return key

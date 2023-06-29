@@ -1,3 +1,4 @@
+
 ..  cardinal_pythonlib/docs/source/changelog.rst
 
 ..  Copyright (C) 2009-2020 Rudolf Cardinal (rudolf@pobox.com).
@@ -781,6 +782,10 @@ Quick links:
 **1.1.25 (in progress 2023-06-27)**
 
 - Use ``rich_argparse`` for colourful help.
+
 - Small tweaks (and a rather specific R script generator) re psychotropic
   medications.
+
 - Removed defunct ``rnc_db`` module.
+
+- Removed Python 3.7 support (end of life); added Python 3.10 support.

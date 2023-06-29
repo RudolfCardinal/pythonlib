@@ -46,4 +46,4 @@ class TestPdfToBooklet(unittest.TestCase):
 
     def test_sequence(self) -> None:
         for n_sheets in range(1, 8 + 1):
-            log.info("{!r}", page_sequence(n_sheets=n_sheets, one_based=True))
+            log.info(repr(page_sequence(n_sheets=n_sheets, one_based=True)))
