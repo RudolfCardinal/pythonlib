@@ -61,7 +61,7 @@ REQUIREMENTS = [
     "psutil",
     "pygments",
     "pyparsing",
-    "pypdf>=3.1.0",
+    "pypdf>=3.1.0",  # https://pypdf.readthedocs.io/en/stable/
     "python-dateutil",  # "import dateutil"
     "rich-argparse>=0.5.0",  # colourful help
     "scipy",

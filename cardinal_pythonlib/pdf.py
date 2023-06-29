@@ -36,8 +36,7 @@ import sys
 import tempfile
 from typing import Any, Dict, Iterable, Union
 
-# noinspection PyProtectedMember
-from pypdf import PdfMerger, PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter
 from semantic_version import Version
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
@@ -548,9 +547,9 @@ def make_pdf_on_disk_from_html(
     return result
 
 
-def pdf_from_writer(writer: Union[PdfWriter, PdfMerger]) -> bytes:
+def pdf_from_writer(writer: PdfWriter) -> bytes:
     """
-    Extracts a PDF (as binary data) from a pypdf writer or merger object.
+    Extracts a PDF (as binary data) from a pypdf writer object.
     """
     memfile = io.BytesIO()
     writer.write(memfile)
@@ -603,8 +602,7 @@ def append_memory_pdf_to_writer(
         # ... suitable for double-sided printing
     infile = io.BytesIO(input_pdf)
     reader = PdfReader(infile)
-    for page in reader.pages:
-        writer.add_page(page)
+    writer.append(reader)
 
 
 def append_pdf(input_pdf: bytes, output_writer: PdfWriter):
@@ -629,16 +627,6 @@ def append_pdf(input_pdf: bytes, output_writer: PdfWriter):
 #   https://gist.github.com/grantmcconnaughey/ce90a689050c07c61c96
 #   https://stackoverflow.com/questions/3582414/removing-tmp-file-after-return-httpresponse-in-django  # noqa
 
-# def append_disk_pdf_to_writer(filename, writer):
-#     """Appends a PDF from disk to a pyPDF writer."""
-#     if len(writer.pages) % 2 != 0:
-#         writer.add_blank_page()
-#         # ... keeps final result suitable for double-sided printing
-#     with open(filename, mode='rb') as infile:
-#         reader = PdfReader(infile)
-#         for page in reader.pages:
-#             writer.add_page(page)
-
 
 def get_concatenated_pdf_from_disk(
     filenames: Iterable[str], start_recto: bool = True
@@ -656,22 +644,17 @@ def get_concatenated_pdf_from_disk(
     """
     # https://stackoverflow.com/questions/17104926/pypdf-merging-multiple-pdf-files-into-one-pdf  # noqa
     # https://en.wikipedia.org/wiki/Recto_and_verso
-    if start_recto:
-        writer = PdfWriter()
-        for filename in filenames:
-            if filename:
-                if len(writer.pages) % 2 != 0:
-                    writer.add_blank_page()
-                writer.append_pages_from_reader(
-                    PdfReader(open(filename, "rb"))
-                )
-        return pdf_from_writer(writer)
-    else:
-        merger = PdfMerger()
-        for filename in filenames:
-            if filename:
-                merger.append(open(filename, "rb"))
-        return pdf_from_writer(merger)
+    # PdfMerger deprecated as of pypdf==5.0.0; use PdfWriter instead.
+    # - https://pypdf.readthedocs.io/en/stable/modules/PdfMerger.html
+    # - https://pypdf.readthedocs.io/en/stable/modules/PdfWriter.html
+    writer = PdfWriter()
+    for filename in filenames:
+        if not filename:
+            continue
+        if start_recto and len(writer.pages) % 2 != 0:
+            writer.add_blank_page()
+        writer.append(filename)
+    return pdf_from_writer(writer)
 
 
 def get_concatenated_pdf_in_memory(
