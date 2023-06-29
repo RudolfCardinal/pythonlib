@@ -62,6 +62,7 @@ from cardinal_pythonlib.sqlalchemy.dialect import (
 
 log = get_brace_style_log_with_null_handler(__name__)
 
+
 # =============================================================================
 # Constants
 # =============================================================================

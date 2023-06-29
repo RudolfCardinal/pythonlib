@@ -61,6 +61,7 @@ So the best type hints we have are:
 
 """
 
+import logging
 from typing import Any, Callable, Dict, List, Tuple, Type
 
 from sqlalchemy.engine.base import Engine
@@ -72,7 +73,6 @@ from sqlalchemy.schema import sort_tables
 from sqlalchemy.sql.schema import MetaData, Table
 
 from cardinal_pythonlib.dicts import map_keys_to_values
-from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sqlalchemy.orm_inspect import (
     rewrite_relationships,
     colname_to_attrname_dict,
@@ -92,7 +92,7 @@ from cardinal_pythonlib.sqlalchemy.session import (
 )
 from cardinal_pythonlib.sqlalchemy.table_identity import TableIdentity
 
-log = get_brace_style_log_with_null_handler(__name__)
+log = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -737,8 +737,8 @@ def merge_db(
     # Check the right tables are present.
     src_tables = sorted(get_table_names(src_engine))
     dst_tables = sorted(list(tablename_to_ormclass.keys()))
-    log.debug("Source tables: {!r}", src_tables)
-    log.debug("Destination tables: {!r}", dst_tables)
+    log.debug(f"Source tables: {src_tables!r}")
+    log.debug(f"Destination tables: {dst_tables!r}")
     if not allow_missing_src_tables:
         missing_tables = sorted(
             d
@@ -778,16 +778,16 @@ def merge_db(
     circular = [tdc for tdc in dep_classifications if tdc.circular]
     assert not circular, f"Circular dependencies! {circular!r}"
     log.debug(
-        "All table dependencies: {}",
-        "; ".join(str(td) for td in all_dependencies),
+        "All table dependencies: "
+        + "; ".join(str(td) for td in all_dependencies)
     )
     log.debug(
-        "Table dependency classifications: {}",
-        "; ".join(str(c) for c in dep_classifications),
+        "Table dependency classifications: "
+        + "; ".join(str(c) for c in dep_classifications)
     )
     log.info(
-        "Processing tables in the order: {!r}",
-        [table.name for table in ordered_tables],
+        "Processing tables in the order: "
+        + repr([table.name for table in ordered_tables])
     )
 
     objmap = {}
@@ -829,14 +829,14 @@ def merge_db(
         tablename = table.name
 
         if tablename in skip_table_names:
-            log.info("... skipping table {!r} (as per skip_tables)", tablename)
+            log.info(f"... skipping table {tablename!r} (as per skip_tables)")
             continue
         if only_table_names and tablename not in only_table_names:
-            log.info("... ignoring table {!r} (as per only_tables)", tablename)
+            log.info(f"... ignoring table {tablename!r} (as per only_tables)")
             continue
         if allow_missing_src_tables and tablename not in src_tables:
             log.info(
-                "... ignoring table {!r} (not in source database)", tablename
+                f"... ignoring table {tablename!r} (not in source database)"
             )
             continue
         table_num += 1
@@ -858,15 +858,12 @@ def merge_db(
         missing_attrs = map_keys_to_values(missing_columns, c2a)
         tdc = [tdc for tdc in dep_classifications if tdc.table == table][0]
 
-        log.info(
-            "Processing table {!r} via ORM class {!r}", tablename, orm_class
-        )
-        log.debug("PK attributes: {!r}", pk_attrs)
-        log.debug("Table: {!r}", table)
+        log.info(f"Processing table {tablename!r} via ORM class {orm_class!r}")
+        log.debug(f"PK attributes: {pk_attrs!r}")
+        log.debug(f"Table: {table!r}")
         log.debug(
-            "Dependencies: parents = {!r}; children = {!r}",
-            tdc.parent_names,
-            tdc.child_names,
+            f"Dependencies: parents = {tdc.parent_names!r}; "
+            f"children = {tdc.child_names!r}"
         )
 
         if info_only:
@@ -882,14 +879,12 @@ def merge_db(
         if allow_missing_src_columns and missing_columns:
             src_attrs = map_keys_to_values(src_columns, c2a)
             log.info(
-                "Table {} is missing columns {} in the source",
-                tablename,
-                missing_columns,
+                f"Table {tablename} is missing columns {missing_columns} "
+                f"in the source"
             )
             log.debug(
-                "... using only columns {} via attributes {}",
-                src_columns,
-                src_attrs,
+                f"... using only columns {src_columns} "
+                f"via attributes {src_attrs}"
             )
             query = query.options(load_only(*src_attrs))
             # PROBLEM: it will not ignore the PK.
@@ -926,18 +921,15 @@ def merge_db(
         # copy_sqla_object, and re-assign relationships accordingly.
 
         for instance in query.all():
-            # log.debug("Source instance: {!r}", instance)
+            # log.debug(f"Source instance: {instance!r}")
             table_record_num += 1
             overall_record_num += 1
             if table_record_num % report_every == 0:
                 log.info(
-                    "... progress{}: on table {} ({}); record {} this "
-                    "table; overall record {}",
-                    " (DUMMY RUN)" if dummy_run else "",
-                    table_num,
-                    tablename,
-                    table_record_num,
-                    overall_record_num,
+                    f"... progress{' (DUMMY RUN)' if dummy_run else ''}: "
+                    f"on table {table_num} ({tablename}); "
+                    f"record {table_record_num} this table; "
+                    f"overall record {overall_record_num}"
                 )
 
             if tdc.standalone:
