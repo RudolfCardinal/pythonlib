@@ -92,7 +92,9 @@ log = logging.getLogger(__name__)
 # Constants
 # =============================================================================
 
-DEBUG_INTERNALS = False  # pytest -k dogpile --log-cli-level=DEBUG
+# To debug while testing use:
+# pytest -k dogpile --log-cli-level=DEBUG
+DEBUG_INTERNALS = False
 
 
 # =============================================================================
