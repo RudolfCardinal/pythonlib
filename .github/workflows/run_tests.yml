@@ -13,8 +13,7 @@ jobs:
         runs-on: ubuntu-20.04
         strategy:
             matrix:
-                # 3.10.0 passes, >= 3.10.3 fails
-                python-version: ["3.10.2"]
+                python-version: ["3.10"]
         steps:
             - uses: actions/checkout@v3
             - uses: actions/setup-python@v4
