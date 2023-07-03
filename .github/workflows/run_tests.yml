@@ -10,7 +10,7 @@ on:
             - .github/scripts/run_tests.sh
 jobs:
     pip-install-and-tests:
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-latest
         strategy:
             matrix:
                 python-version: ["3.8", "3.9", "3.10"]
