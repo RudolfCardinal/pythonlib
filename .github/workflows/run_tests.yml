@@ -6,6 +6,7 @@ on:
     push:
         paths:
             - '**.py'
+            - .github/scripts/change_apt_mirror.sh
             - .github/workflows/run_tests.yml
             - .github/scripts/run_tests.sh
 jobs:
@@ -19,5 +20,9 @@ jobs:
             - uses: actions/setup-python@v4
               with:
                   python-version: ${{ matrix.python-version }}
+            - name: Change apt mirror
+              run: |
+                  set -euxo pipefail
+                  ${GITHUB_WORKSPACE}/.github/scripts/change_apt_mirror.sh
             - name: Run tests
               run: ${GITHUB_WORKSPACE}/.github/scripts/run_tests.sh
