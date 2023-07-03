@@ -26,7 +26,6 @@
 
 """
 
-import sys
 import unittest
 
 from sqlalchemy.engine import create_engine
@@ -39,7 +38,6 @@ from sqlalchemy.sql.sqltypes import Integer, Text
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sqlalchemy.merge_db import merge_db
-from cardinal_pythonlib.sqlalchemy.dump import dump_database_as_insert_sql
 from cardinal_pythonlib.sqlalchemy.session import SQLITE_MEMORY_URL
 
 log = get_brace_style_log_with_null_handler(__name__)
@@ -72,46 +70,17 @@ class MergeTestMixin(object):
     for unit testing purposes.
     """
 
-    def __init__(self, *args, echo: bool = False, **kwargs) -> None:
-        # noinspection PyArgumentList
-        self.echo = echo
-        super().__init__(*args, **kwargs)
-
     def setUp(self) -> None:
         super().setUp()
 
-        self.src_engine = create_engine(
-            SQLITE_MEMORY_URL, echo=self.echo
-        )  # type: Engine  # noqa
-        self.dst_engine = create_engine(
-            SQLITE_MEMORY_URL, echo=self.echo
-        )  # type: Engine  # noqa
+        self.src_engine = create_engine(SQLITE_MEMORY_URL)  # type: Engine
+        self.dst_engine = create_engine(SQLITE_MEMORY_URL)  # type: Engine
         self.src_session = sessionmaker(
             bind=self.src_engine
-        )()  # type: Session  # noqa
+        )()  # type: Session
         self.dst_session = sessionmaker(
             bind=self.dst_engine
-        )()  # type: Session  # noqa
-        # log.critical("SRC SESSION: {}", self.src_session)
-        # log.critical("DST SESSION: {}", self.dst_session)
-
-    def dump_source(self) -> None:
-        log.info("Dumping source")
-        dump_database_as_insert_sql(
-            engine=self.src_engine,
-            fileobj=sys.stdout,
-            include_ddl=True,
-            multirow=True,
-        )
-
-    def dump_destination(self) -> None:
-        log.info("Dumping destination")
-        dump_database_as_insert_sql(
-            engine=self.dst_engine,
-            fileobj=sys.stdout,
-            include_ddl=True,
-            multirow=True,
-        )
+        )()  # type: Session
 
     def do_merge(self, dummy_run: bool = False) -> None:
         merge_db(
@@ -170,20 +139,34 @@ class MergeTestPlain(MergeTestMixin, unittest.TestCase):
         self.src_session.add_all([p1, p2, c1, c2])
         self.src_session.commit()
 
-    def test_source(self) -> None:
-        self.dump_source()
-
-    def test_dummy(self) -> None:
+    def test_dummy_run_makes_no_changes(self) -> None:
         log.info("Testing merge_db() in dummy run mode")
+        parents_before = self.dst_session.query(Parent).count()
+        children_before = self.dst_session.query(Child).count()
         self.do_merge(dummy_run=True)
         self.dst_session.commit()
-        self.dump_destination()
+        parents_after = self.dst_session.query(Parent).count()
+        children_after = self.dst_session.query(Child).count()
+        self.assertEqual(parents_before, parents_after)
+        self.assertEqual(children_before, children_after)
 
-    def test_merge_to_empty(self) -> None:
+    def test_merge_to_empty_destination_copies_source(self) -> None:
         log.info("Testing merge_db() to empty database")
+
+        destination_parents = self.dst_session.query(Parent).count()
+        destination_children = self.dst_session.query(Child).count()
+        self.assertEqual(destination_parents, 0)
+        self.assertEqual(destination_children, 0)
+
         self.do_merge(dummy_run=False)
         self.dst_session.commit()
-        self.dump_destination()
+
+        destination_parents = self.dst_session.query(Parent).count()
+        destination_children = self.dst_session.query(Child).count()
+        source_parents = self.src_session.query(Parent).count()
+        source_children = self.src_session.query(Child).count()
+        self.assertEqual(source_parents, destination_parents)
+        self.assertEqual(source_children, destination_children)
 
     def test_merge_to_existing(self) -> None:
         log.info("Testing merge_db() to pre-populated database")
@@ -191,4 +174,11 @@ class MergeTestPlain(MergeTestMixin, unittest.TestCase):
         self.dst_session.commit()
         self.do_merge(dummy_run=False)
         self.dst_session.commit()
-        self.dump_destination()
+
+        destination_parents = self.dst_session.query(Parent).count()
+        destination_children = self.dst_session.query(Child).count()
+        source_parents = self.src_session.query(Parent).count()
+        source_children = self.src_session.query(Child).count()
+
+        self.assertEqual(destination_parents, source_parents * 2)
+        self.assertEqual(destination_children, source_children * 2)
