@@ -710,8 +710,6 @@ def merge_db(
     src_session = sessionmaker(bind=src_engine)()  # type: Session
     dst_engine = get_engine_from_session(dst_session)
     tablename_to_ormclass = get_orm_classes_by_table_name_from_base(base_class)
-    with open("/tmp/debugging", "a") as f:
-        f.write(f"tablename_to_ormclass: {tablename_to_ormclass!r}\n")
 
     # Tell all TableIdentity objects about their metadata
     for tilist in [skip_tables, only_tables, tables_to_keep_pks_for]:

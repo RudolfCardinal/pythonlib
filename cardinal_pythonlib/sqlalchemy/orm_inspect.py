@@ -759,16 +759,12 @@ def gen_orm_classes_from_base(base: Type) -> Generator[Type, None, None]:
     If you begin with the proper :class`Base` class, then this should give all
     ORM classes in use.
     """
-    with open("/tmp/debugging", "a") as f:
-        f.write(f"\ngen_orm_classes_from_base({base!r})\n")
-        for cls in gen_all_subclasses(base):
-            f.write(f"{cls!r}\n")
-            if _get_immediate_cls_attr(cls, "__abstract__", strict=True):
-                # This is SQLAlchemy's own way of detecting abstract classes;
-                # see sqlalchemy.ext.declarative.base
-                f.write("Skipping as abstract\n")
-                continue  # NOT an ORM class
-            yield cls
+    for cls in gen_all_subclasses(base):
+        if _get_immediate_cls_attr(cls, "__abstract__", strict=True):
+            # This is SQLAlchemy's own way of detecting abstract classes;
+            # see sqlalchemy.ext.declarative.base
+            continue  # NOT an ORM class
+        yield cls
 
 
 def get_orm_classes_by_table_name_from_base(base: Type) -> Dict[str, Type]:
