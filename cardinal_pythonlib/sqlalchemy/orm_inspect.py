@@ -761,8 +761,8 @@ def gen_orm_classes_from_base(base: Type) -> Generator[Type, None, None]:
     """
     for cls in gen_all_subclasses(base):
         if _get_immediate_cls_attr(cls, "__abstract__", strict=True):
-            # This is SQLAlchemy's own way of detecting abstract classes;
-            # see sqlalchemy.ext.declarative.base
+            # This is SQLAlchemy's own way of detecting abstract classes; see
+            # sqlalchemy.ext.declarative.base
             continue  # NOT an ORM class
         yield cls
 
