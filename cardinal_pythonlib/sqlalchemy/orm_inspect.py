@@ -38,7 +38,6 @@ from typing import (
 )
 
 # noinspection PyProtectedMember
-from sqlalchemy.ext.declarative.base import _get_immediate_cls_attr
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.base import class_mapper
 from sqlalchemy.orm.mapper import Mapper
@@ -760,9 +759,9 @@ def gen_orm_classes_from_base(base: Type) -> Generator[Type, None, None]:
     ORM classes in use.
     """
     for cls in gen_all_subclasses(base):
-        if _get_immediate_cls_attr(cls, "__abstract__", strict=True):
+        if cls.__dict__.get("__abstract__", False):
             # This is SQLAlchemy's own way of detecting abstract classes; see
-            # sqlalchemy.ext.declarative.base
+            # sqlalchemy.orm.decl_base
             continue  # NOT an ORM class
         yield cls
 
