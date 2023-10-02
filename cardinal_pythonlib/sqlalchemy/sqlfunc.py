@@ -75,7 +75,7 @@ def fetch_processed_single_clause(
             f"{len(element.clauses)} were passed"
         )
     clauselist = element.clauses  # type: ClauseList
-    first = clauselist.get_children()[0]
+    first = next(clauselist.get_children())
     return compiler.process(first)
 
 
