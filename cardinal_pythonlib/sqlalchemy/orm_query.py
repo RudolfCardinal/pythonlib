@@ -30,7 +30,7 @@ from typing import Any, Dict, Sequence, Tuple, Union
 
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.engine import Result
-from sqlalchemy.ext.declarative.api import DeclarativeMeta
+from sqlalchemy.orm import DeclarativeMeta
 from sqlalchemy.orm.query import Query
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import ClauseElement, literal
