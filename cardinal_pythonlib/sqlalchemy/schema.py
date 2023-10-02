@@ -39,7 +39,7 @@ from typing import Any, Dict, Generator, List, Optional, Type, Union
 from sqlalchemy.dialects import mssql, mysql
 
 # noinspection PyProtectedMember
-from sqlalchemy.engine import Connection, Engine, ResultProxy
+from sqlalchemy.engine import Connection, Engine, Result
 from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.dialects.mssql.base import TIMESTAMP as MSSQL_TIMESTAMP
@@ -318,7 +318,7 @@ def mssql_get_pk_index_name(
     # http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.Connection.execute  # noqa
     # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html#sqlalchemy.sql.expression.text  # noqa
     # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html#sqlalchemy.sql.expression.TextClause.bindparams  # noqa
-    # http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.ResultProxy  # noqa
+    # http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.Result  # noqa
     query = text(
         """
 SELECT
@@ -334,7 +334,7 @@ WHERE
     """
     ).bindparams(tablename=tablename, schemaname=schemaname)
     with contextlib.closing(engine.execute(query)) as result:
-        result: ResultProxy
+        result: Result
         row = result.fetchone()
         return row[0] if row else ""
 
@@ -360,9 +360,7 @@ WHERE
     AND s.name = :schemaname
     """
     ).bindparams(tablename=tablename, schemaname=schemaname)
-    with contextlib.closing(
-        engine.execute(query)
-    ) as result:  # type: ResultProxy
+    with contextlib.closing(engine.execute(query)) as result:  # type: Result
         row = result.fetchone()
         return row[0] > 0
 
@@ -377,7 +375,7 @@ def mssql_transaction_count(engine_or_conn: Union[Connection, Engine]) -> int:
     sql = "SELECT @@TRANCOUNT"
     with contextlib.closing(
         engine_or_conn.execute(sql)
-    ) as result:  # type: ResultProxy
+    ) as result:  # type: Result
         row = result.fetchone()
         return row[0] if row else None
 

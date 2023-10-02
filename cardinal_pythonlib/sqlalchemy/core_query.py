@@ -29,7 +29,7 @@
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 from sqlalchemy.engine.base import Connection, Engine
-from sqlalchemy.engine.result import ResultProxy
+from sqlalchemy.engine import Result
 from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import (
@@ -70,7 +70,7 @@ def get_rows_fieldnames_from_raw_sql(
         ``fieldnames`` are the name of the result columns/fields.
 
     """
-    result = session.execute(sql)  # type: ResultProxy
+    result = session.execute(sql)  # type: Result
     fieldnames = result.keys()
     rows = result.fetchall()
     return rows, fieldnames
@@ -236,7 +236,7 @@ def fetch_all_first_values(
         a list of the first value of each result row
 
     """
-    rows = session.execute(select_statement)  # type: ResultProxy
+    rows = session.execute(select_statement)  # type: Result
     try:
         return [row[0] for row in rows]
     except ValueError as e:
