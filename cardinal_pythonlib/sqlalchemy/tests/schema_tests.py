@@ -49,37 +49,42 @@ class SchemaTests(unittest.TestCase):
     def test_schema_functions(self) -> None:
         d_mssql = MSDialect()
         d_mysql = MySQLDialect()
-        col1 = Column("hello", BigInteger, nullable=True)
-        col2 = Column("world", BigInteger, autoincrement=True)
+        big_int_null_col = Column("hello", BigInteger, nullable=True)
+        big_int_autoinc_col = Column("world", BigInteger, autoincrement=True)
         # ... used NOT to generate IDENTITY, but now does (2022-02-26, with
         #     SQLAlchemy==1.3.18)
-        col3 = make_bigint_autoincrement_column("you", d_mssql)
+        big_int_autoinc_sequence_col = make_bigint_autoincrement_column(
+            "you", d_mssql
+        )
         metadata = MetaData()
         t = Table("mytable", metadata)
-        t.append_column(col1)
-        t.append_column(col2)
-        t.append_column(col3)
+        t.append_column(big_int_null_col)
+        t.append_column(big_int_autoinc_col)
+        t.append_column(big_int_autoinc_sequence_col)
 
         print("Checking Column -> DDL: SQL Server (mssql)")
         self.assertEqual(
-            column_creation_ddl(col1, d_mssql), "hello BIGINT NULL"
+            column_creation_ddl(big_int_null_col, d_mssql), "hello BIGINT NULL"
         )
         self.assertEqual(
-            column_creation_ddl(col2, d_mssql),
-            # Old:
-            # "world BIGINT NULL"
-            # New:
-            "world BIGINT NOT NULL IDENTITY(1,1)",
+            column_creation_ddl(big_int_autoinc_col, d_mssql),
+            # IDENTITY without any arguments is the same as IDENTITY(1,1)
+            "world BIGINT NOT NULL IDENTITY",
         )
+
         self.assertEqual(
-            column_creation_ddl(col3, d_mssql),
+            column_creation_ddl(big_int_autoinc_sequence_col, d_mssql),
             "you BIGINT NOT NULL IDENTITY(1,1)",
         )
 
         print("Checking Column -> DDL: MySQL (mysql)")
-        self.assertEqual(column_creation_ddl(col1, d_mysql), "hello BIGINT")
-        self.assertEqual(column_creation_ddl(col2, d_mysql), "world BIGINT")
-        # not col3; unsupported
+        self.assertEqual(
+            column_creation_ddl(big_int_null_col, d_mysql), "hello BIGINT"
+        )
+        self.assertEqual(
+            column_creation_ddl(big_int_autoinc_col, d_mysql), "world BIGINT"
+        )
+        # not big_int_autoinc_sequence_col; not supported by MySQL
 
         print("Checking SQL type -> SQL Alchemy type")
         to_check = [

@@ -47,8 +47,8 @@ from sqlalchemy.schema import (
     Column,
     CreateColumn,
     DDL,
+    Identity,
     Index,
-    Sequence,
     Table,
 )
 from sqlalchemy.sql import sqltypes, text
@@ -570,18 +570,24 @@ def add_index(
 
 
 def make_bigint_autoincrement_column(
-    column_name: str, dialect: Dialect
+    column_name: str, dialect: Dialect, nullable=False
 ) -> Column:
     """
     Returns an instance of :class:`Column` representing a :class:`BigInteger`
     ``AUTOINCREMENT`` column in the specified :class:`Dialect`.
     """
+
+    # https://docs.sqlalchemy.org/en/14/core/metadata.html#sqlalchemy.schema.Column.params.nullable  # noqa: E501
+    # Different behaviour of nullable flag observed to the documentation. See
+    # sqlalchemy/tests/schema_tests.py.
+
     # noinspection PyUnresolvedReferences
     if dialect.name == SqlaDialectName.MSSQL:
         return Column(
             column_name,
             BigInteger,
-            Sequence("dummy_name", start=1, increment=1),
+            Identity(start=1, increment=1),
+            nullable=nullable,
         )
     else:
         # return Column(column_name, BigInteger, autoincrement=True)
