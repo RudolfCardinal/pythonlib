@@ -145,6 +145,9 @@ class StringLiteral(String):
     def literal_processor(
         self, dialect: DefaultDialect
     ) -> Callable[[Any], str]:
+        """ """
+        # Docstring above necessary to stop sphinx build error:
+        # undefined label: types_typedecorator
         super_processor = super().literal_processor(dialect)
 
         def process(value: Any) -> str:

@@ -76,6 +76,9 @@ class ArrowMicrosecondType(TypeDecorator):
     def process_bind_param(
         self, value: Any, dialect: DefaultDialect
     ) -> Optional[datetime.datetime]:
+        """Receive a bound parameter value to be converted to DateTime."""
+        # Docstring above necessary to stop sphinx build error:
+        # undefined label: types_typedecorator
         if value:
             return self._coerce(value).to("UTC").naive
             # RNC: unfortunately... can't store and retrieve timezone, see docs
@@ -84,6 +87,9 @@ class ArrowMicrosecondType(TypeDecorator):
     def process_result_value(
         self, value: Any, dialect: DefaultDialect
     ) -> Optional[arrow.Arrow]:
+        """Receive a result-row column value to be converted  to Arrow"""
+        # Docstring above necessary to stop sphinx build error:
+        # undefined label: types_typedecorator
         if value:
             return arrow.get(value)
         return value
