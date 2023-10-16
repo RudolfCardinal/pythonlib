@@ -304,7 +304,7 @@ def index_exists(engine: Engine, tablename: str, indexname: str) -> bool:
     """
     Does the specified index exist for the specified table?
     """
-    insp = Inspector.from_engine(engine)
+    insp = inspect(engine)
     return any(i["name"] == indexname for i in insp.get_indexes(tablename))
 
 

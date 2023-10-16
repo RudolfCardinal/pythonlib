@@ -30,15 +30,20 @@ import unittest
 
 from sqlalchemy.dialects.mssql.base import MSDialect
 from sqlalchemy.dialects.mysql.base import MySQLDialect
+from sqlalchemy.engine import create_engine
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.schema import Column, MetaData, Table
-from sqlalchemy.sql.sqltypes import BigInteger
+from sqlalchemy.sql.sqltypes import BigInteger, Integer
 
 from cardinal_pythonlib.sqlalchemy.schema import (
     column_creation_ddl,
     get_sqla_coltype_from_dialect_str,
+    index_exists,
     make_bigint_autoincrement_column,
 )
+from cardinal_pythonlib.sqlalchemy.session import SQLITE_MEMORY_URL
 
+Base = declarative_base()
 
 # =============================================================================
 # Tests
@@ -103,3 +108,23 @@ class SchemaTests(unittest.TestCase):
                 f"... {coltype!r} -> dialect {dialect.name!r} -> "
                 f"{get_sqla_coltype_from_dialect_str(coltype, dialect)!r}"
             )
+
+
+class IndexExistsTests(unittest.TestCase):
+    class Person(Base):
+        __tablename__ = "person"
+        pk = Column("pk", Integer, primary_key=True, autoincrement=True)
+        name = Column("name", Integer, index=True)
+        address = Column("address", Integer, index=False)
+
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.engine = create_engine(SQLITE_MEMORY_URL)
+
+    def test_exists(self) -> None:
+        self.assertFalse(index_exists(self.engine, "person", "name"))
+        pass
+
+    def test_does_not_exist(self) -> None:
+        self.assertFalse(index_exists(self.engine, "person", "address"))
