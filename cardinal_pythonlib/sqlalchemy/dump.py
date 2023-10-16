@@ -34,7 +34,7 @@ from typing import Any, Callable, Dict, TextIO, Type, Union
 import pendulum
 
 # noinspection PyProtectedMember
-from sqlalchemy.engine import Connectable, create_engine
+from sqlalchemy.engine import Connectable, create_mock_engine
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine.default import DefaultDialect  # for type hints
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
@@ -104,9 +104,7 @@ def dump_ddl(
         writeline_nl(fileobj, f"{compsql};")
 
     writeline_nl(fileobj, sql_comment(f"Schema (for dialect {dialect_name}):"))
-    engine = create_engine(
-        f"{dialect_name}://", strategy="mock", executor=dump
-    )
+    engine = create_mock_engine(f"{dialect_name}://", executor=dump)
     metadata.create_all(engine, checkfirst=checkfirst)
     # ... checkfirst doesn't seem to be working for the mock strategy...
     # http://docs.sqlalchemy.org/en/latest/core/metadata.html
