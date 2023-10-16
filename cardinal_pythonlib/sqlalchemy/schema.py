@@ -36,6 +36,7 @@ import io
 import re
 from typing import Any, Dict, Generator, List, Optional, Type, Union
 
+from sqlalchemy import inspect
 from sqlalchemy.dialects import mssql, mysql
 
 # noinspection PyProtectedMember
@@ -81,7 +82,7 @@ def get_table_names(engine: Engine) -> List[str]:
     """
     Returns a list of database table names from the :class:`Engine`.
     """
-    insp = Inspector.from_engine(engine)
+    insp = inspect(engine)
     return insp.get_table_names()
 
 
@@ -154,7 +155,7 @@ def gen_columns_info(
     """
     # Dictionary structure: see
     # http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns  # noqa
-    insp = Inspector.from_engine(engine)
+    insp = inspect(engine)
     for d in insp.get_columns(tablename):
         yield SqlaColumnInspectionInfo(d)
 
