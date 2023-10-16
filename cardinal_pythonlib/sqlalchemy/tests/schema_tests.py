@@ -28,16 +28,20 @@
 
 import unittest
 
+from sqlalchemy import event, inspect, select
 from sqlalchemy.dialects.mssql.base import MSDialect
 from sqlalchemy.dialects.mysql.base import MySQLDialect
 from sqlalchemy.engine import create_engine
+from sqlalchemy.ext import compiler
 from sqlalchemy.orm import declarative_base
-from sqlalchemy.schema import Column, MetaData, Table
-from sqlalchemy.sql.sqltypes import BigInteger, Integer
+from sqlalchemy.schema import Column, DDLElement, MetaData, Table
+from sqlalchemy.sql import table
+from sqlalchemy.sql.sqltypes import BigInteger, Integer, String
 
 from cardinal_pythonlib.sqlalchemy.schema import (
     column_creation_ddl,
     get_sqla_coltype_from_dialect_str,
+    get_view_names,
     index_exists,
     make_bigint_autoincrement_column,
 )
@@ -128,3 +132,98 @@ class IndexExistsTests(unittest.TestCase):
 
     def test_does_not_exist(self) -> None:
         self.assertFalse(index_exists(self.engine, "person", "address"))
+
+
+# https://github.com/sqlalchemy/sqlalchemy/wiki/Views
+class CreateView(DDLElement):
+    def __init__(self, name, selectable):
+        self.name = name
+        self.selectable = selectable
+
+
+class DropView(DDLElement):
+    def __init__(self, name):
+        self.name = name
+
+
+@compiler.compiles(CreateView)
+def _create_view(element, compiler, **kw):
+    return "CREATE VIEW %s AS %s" % (
+        element.name,
+        compiler.sql_compiler.process(element.selectable, literal_binds=True),
+    )
+
+
+@compiler.compiles(DropView)
+def _drop_view(element, compiler, **kw):
+    return "DROP VIEW %s" % (element.name)
+
+
+def view_exists(ddl, target, connection, **kw):
+    return ddl.name in inspect(connection).get_view_names()
+
+
+def view_doesnt_exist(ddl, target, connection, **kw):
+    return not view_exists(ddl, target, connection, **kw)
+
+
+def view(name, metadata, selectable):
+    t = table(name)
+
+    t._columns._populate_separate_keys(
+        col._make_proxy(t) for col in selectable.selected_columns
+    )
+
+    event.listen(
+        metadata,
+        "after_create",
+        CreateView(name, selectable).execute_if(callable_=view_doesnt_exist),
+    )
+    event.listen(
+        metadata,
+        "before_drop",
+        DropView(name).execute_if(callable_=view_exists),
+    )
+    return t
+
+
+class GetViewNamesTests(unittest.TestCase):
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.engine = create_engine(SQLITE_MEMORY_URL)
+
+    def test_returns_list_of_database_views(self) -> None:
+        metadata = MetaData()
+
+        person = Table(
+            "person",
+            metadata,
+            Column("id", Integer, primary_key=True),
+            Column("name", String(50)),
+        )
+
+        view(
+            "one",
+            metadata,
+            select(person.c.id.label("name")),
+        )
+        view(
+            "two",
+            metadata,
+            select(person.c.id.label("name")),
+        )
+        view(
+            "three",
+            metadata,
+            select(person.c.id.label("name")),
+        )
+
+        with self.engine.begin() as conn:
+            metadata.create_all(conn)
+
+        view_names = get_view_names(self.engine)
+        self.assertEqual(len(view_names), 3)
+        self.assertIn("one", view_names)
+        self.assertIn("two", view_names)
+        self.assertIn("three", view_names)

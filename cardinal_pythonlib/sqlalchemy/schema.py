@@ -42,7 +42,6 @@ from sqlalchemy.dialects import mssql, mysql
 # noinspection PyProtectedMember
 from sqlalchemy.engine import Connection, Engine, CursorResult
 from sqlalchemy.engine.interfaces import Dialect
-from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.dialects.mssql.base import TIMESTAMP as MSSQL_TIMESTAMP
 from sqlalchemy.schema import (
     Column,
@@ -90,7 +89,7 @@ def get_view_names(engine: Engine) -> List[str]:
     """
     Returns a list of database view names from the :class:`Engine`.
     """
-    insp = Inspector.from_engine(engine)
+    insp = inspect(engine)
     return insp.get_view_names()
 
 
