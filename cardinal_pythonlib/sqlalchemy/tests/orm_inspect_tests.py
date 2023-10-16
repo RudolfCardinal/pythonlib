@@ -36,10 +36,10 @@ from cardinal_pythonlib.sqlalchemy.orm_inspect import gen_columns
 Base = declarative_base()
 
 
-class TestClass(Base):
-    __tablename__ = "test_table"
+class Person(Base):
+    __tablename__ = "person"
     pk_attr = Column("pk", Integer, primary_key=True, autoincrement=True)
-    a_attr = Column("a", Integer)
+    name_attr = Column("name", Integer)
 
 
 class GenColumnsTests(unittest.TestCase):
@@ -51,15 +51,15 @@ class GenColumnsTests(unittest.TestCase):
         self.assertEqual(column_info[1].name, column_name)
 
     def test_all_columns_returned_for_instance(self) -> None:
-        test = TestClass()
+        person = Person()
 
-        columns = list(gen_columns(test))
+        columns = list(gen_columns(person))
 
         self.assert_column(columns[0], "pk_attr", "pk")
-        self.assert_column(columns[1], "a_attr", "a")
+        self.assert_column(columns[1], "name_attr", "name")
 
     def test_all_columns_returned_for_class(self) -> None:
-        columns = list(gen_columns(TestClass))
+        columns = list(gen_columns(Person))
 
         self.assert_column(columns[0], "pk_attr", "pk")
-        self.assert_column(columns[1], "a_attr", "a")
+        self.assert_column(columns[1], "name_attr", "name")
