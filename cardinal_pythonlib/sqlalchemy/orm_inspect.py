@@ -38,7 +38,7 @@ from typing import (
 )
 
 # noinspection PyProtectedMember
-from sqlalchemy.inspection import inspect
+from sqlalchemy import inspect
 from sqlalchemy.orm.base import class_mapper
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.orm.relationships import RelationshipProperty
@@ -591,22 +591,9 @@ def gen_columns(obj) -> Generator[Tuple[str, Column], None, None]:
         list(gen_columns(MyClass))
 
     """
-    mapper = obj.__mapper__  # type: Mapper
-    assert (
-        mapper
-    ), f"gen_columns called on {obj!r} which is not an SQLAlchemy ORM object"
-    colmap = mapper.columns  # type: OrderedProperties
-    if not colmap:
-        return
-    for attrname, column in colmap.items():
+    for attrname, column in dict(inspect(obj).mapper.columns).items():
         # NB: column.name is the SQL column name, not the attribute name
         yield attrname, column
-    # Don't bother using
-    #   cls = obj.__class_
-    #   for attrname in dir(cls):
-    #       cls_attr = getattr(cls, attrname)
-    #       # ... because, for columns, these will all be instances of
-    #       # sqlalchemy.orm.attributes.InstrumentedAttribute.
 
 
 def get_pk_attrnames(obj) -> List[str]:
