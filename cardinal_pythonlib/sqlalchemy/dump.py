@@ -34,14 +34,15 @@ from typing import Any, Callable, Dict, TextIO, Type, Union
 import pendulum
 
 # noinspection PyProtectedMember
-from sqlalchemy.engine import Connectable, create_engine
+from sqlalchemy.engine import Connectable, create_mock_engine
 from sqlalchemy.engine.base import Engine
-from sqlalchemy.engine.default import DefaultDialect  # for type hints
+from sqlalchemy.engine.default import DefaultDialect
+from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.query import Query
 from sqlalchemy.sql.base import Executable
-from sqlalchemy.sql.elements import BindParameter
+from sqlalchemy.sql.elements import BindParameter, ClauseElement
 from sqlalchemy.sql.expression import select
 from sqlalchemy.sql.schema import MetaData, Table
 from sqlalchemy.sql.sqltypes import DateTime, NullType, String
@@ -95,6 +96,7 @@ def dump_ddl(
         checkfirst: if ``True``, use ``CREATE TABLE IF NOT EXISTS`` or
             equivalent.
     """
+
     # http://docs.sqlalchemy.org/en/rel_0_8/faq.html#how-can-i-get-the-create-table-drop-table-output-as-a-string  # noqa
     # https://stackoverflow.com/questions/870925/how-to-generate-a-file-with-ddl-in-the-engines-sql-dialect-in-sqlalchemy  # noqa
     # https://github.com/plq/scripts/blob/master/pg_dump.py
@@ -104,199 +106,12 @@ def dump_ddl(
         writeline_nl(fileobj, f"{compsql};")
 
     writeline_nl(fileobj, sql_comment(f"Schema (for dialect {dialect_name}):"))
-    engine = create_engine(
-        f"{dialect_name}://", strategy="mock", executor=dump
-    )
+    engine = create_mock_engine(f"{dialect_name}://", executor=dump)
     metadata.create_all(engine, checkfirst=checkfirst)
     # ... checkfirst doesn't seem to be working for the mock strategy...
     # http://docs.sqlalchemy.org/en/latest/core/metadata.html
     # ... does it implement a *real* check (impossible here), rather than
     # issuing CREATE ... IF NOT EXISTS?
-
-
-def quick_mapper(table: Table) -> Type[DeclarativeMeta]:
-    """
-    Makes a new SQLAlchemy mapper for an existing table.
-    See
-    https://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/
-
-    Args:
-        table: SQLAlchemy :class:`Table` object
-
-    Returns:
-        a :class:`DeclarativeMeta` class
-
-    """  # noqa
-    # noinspection PyPep8Naming
-    Base = declarative_base()
-
-    class GenericMapper(Base):
-        __table__ = table
-
-    # noinspection PyTypeChecker
-    return GenericMapper
-
-
-class StringLiteral(String):
-    """
-    Teach SQLAlchemy how to literalize various things.
-    See
-    https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
-    """
-
-    def literal_processor(
-        self, dialect: DefaultDialect
-    ) -> Callable[[Any], str]:
-        super_processor = super().literal_processor(dialect)
-
-        def process(value: Any) -> str:
-            log.debug("process: {!r}", value)
-            if isinstance(value, int):
-                return str(value)
-            if not isinstance(value, str):
-                value = str(value)
-            result = super_processor(value)
-            if isinstance(result, bytes):
-                result = result.decode(dialect.encoding)
-            return result
-
-        return process
-
-
-# noinspection PyPep8Naming
-def make_literal_query_fn(dialect: DefaultDialect) -> Callable[[str], str]:
-    DialectClass = dialect.__class__
-
-    # noinspection PyClassHasNoInit,PyAbstractClass
-    class LiteralDialect(DialectClass):
-        # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
-        colspecs = {
-            # prevent various encoding explosions
-            String: StringLiteral,
-            # teach SA about how to literalize a datetime
-            DateTime: StringLiteral,
-            # don't format py2 long integers to NULL
-            NullType: StringLiteral,
-        }
-
-    def literal_query(statement: str) -> str:
-        """
-        NOTE: This is entirely insecure. DO NOT execute the resulting
-        strings.
-        """
-        # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
-        if isinstance(statement, Query):
-            statement = statement.statement
-        return (
-            statement.compile(
-                dialect=LiteralDialect(),
-                compile_kwargs={"literal_binds": True},
-            ).string
-            + ";"
-        )
-
-    return literal_query
-
-
-# noinspection PyProtectedMember
-def get_literal_query(
-    statement: Union[Query, Executable], bind: Connectable = None
-) -> str:
-    """
-    Takes an SQLAlchemy statement and produces a literal SQL version, with
-    values filled in.
-
-    As per
-    https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
-
-    Notes:
-    - for debugging purposes *only*
-    - insecure; you should always separate queries from their values
-    - please also note that this function is quite slow
-
-    Args:
-        statement: the SQL statement (a SQLAlchemy object) to use
-        bind: if the statement is unbound, you will need to specify an object
-            here that supports SQL execution
-
-    Returns:
-        a string literal version of the query.
-
-    """  # noqa
-    # log.debug("statement: {!r}", statement)
-    # log.debug("statement.bind: {!r}", statement.bind)
-    if isinstance(statement, Query):
-        if bind is None:
-            bind = statement.session.get_bind(statement._mapper_zero_or_none())
-        statement = statement.statement
-    elif bind is None:
-        bind = statement.bind
-    if bind is None:  # despite all that
-        raise ValueError(
-            "Attempt to call get_literal_query with an unbound "
-            "statement and no 'bind' parameter"
-        )
-
-    # noinspection PyUnresolvedReferences
-    dialect = bind.dialect
-    compiler = statement._compiler(dialect)
-
-    class LiteralCompiler(compiler.__class__):
-        # noinspection PyMethodMayBeStatic
-        def visit_bindparam(
-            self,
-            bindparam: BindParameter,
-            within_columns_clause: bool = False,
-            literal_binds: bool = False,
-            **kwargs,
-        ) -> str:
-            return super().render_literal_bindparam(
-                bindparam,
-                within_columns_clause=within_columns_clause,
-                literal_binds=literal_binds,
-                **kwargs,
-            )
-
-        # noinspection PyUnusedLocal
-        def render_literal_value(self, value: Any, type_) -> str:
-            """Render the value of a bind parameter as a quoted literal.
-
-            This is used for statement sections that do not accept bind
-            paramters on the target driver/database.
-
-            This should be implemented by subclasses using the quoting services
-            of the DBAPI.
-            """
-            if isinstance(value, str):
-                value = value.replace("'", "''")
-                return "'%s'" % value
-            elif value is None:
-                return "NULL"
-            elif isinstance(value, (float, int)):
-                return repr(value)
-            elif isinstance(value, decimal.Decimal):
-                return str(value)
-            elif (
-                isinstance(value, datetime.datetime)
-                or isinstance(value, datetime.date)
-                or isinstance(value, datetime.time)
-                or isinstance(value, pendulum.DateTime)
-                or isinstance(value, pendulum.Date)
-                or isinstance(value, pendulum.Time)
-            ):
-                # All have an isoformat() method.
-                return f"'{value.isoformat()}'"
-                # return (
-                #     "TO_DATE('%s','YYYY-MM-DD HH24:MI:SS')"
-                #     % value.strftime("%Y-%m-%d %H:%M:%S")
-                # )
-            else:
-                raise NotImplementedError(
-                    "Don't know how to literal-quote value %r" % value
-                )
-
-    compiler = LiteralCompiler(dialect, statement)
-    return compiler.process(statement) + ";"
 
 
 def dump_table_as_insert_sql(
@@ -334,7 +149,11 @@ def dump_table_as_insert_sql(
             sql_comment(f"Filters: {wheredict}"),
         ],
     )
-    dialect = engine.dialect
+    # noinspection PyTypeChecker
+    dialect = engine.dialect  # type: DefaultDialect
+    # "supports_multivalues_insert" is part of DefaultDialect, but not Dialect
+    # -- nevertheless, it should be there:
+    # https://docs.sqlalchemy.org/en/20/core/internals.html#sqlalchemy.engine.default.DefaultDialect.supports_multivalues_insert  # noqa
     if not dialect.supports_multivalues_insert:
         multirow = False
     if multirow:
@@ -351,6 +170,7 @@ def dump_table_as_insert_sql(
     table = Table(table_name, meta, autoload=True)
     if include_ddl:
         log.debug("... producing DDL")
+        # noinspection PyUnresolvedReferences
         dump_ddl(
             table.metadata, dialect_name=engine.dialect.name, fileobj=fileobj
         )
@@ -475,37 +295,6 @@ def dump_orm_object_as_insert_sql(
     writeline_nl(fileobj, insert_str)
 
 
-def bulk_insert_extras(
-    dialect_name: str, fileobj: TextIO, start: bool
-) -> None:
-    """
-    Writes bulk ``INSERT`` preamble (start=True) or end (start=False).
-
-    For MySQL, this temporarily switches off autocommit behaviour and index/FK
-    checks, for speed, then re-enables them at the end and commits.
-
-    Args:
-        dialect_name: SQLAlchemy dialect name (see :class:`SqlaDialectName`)
-        fileobj: file-like object to write to
-        start: if ``True``, write preamble; if ``False``, write end
-    """
-    lines = []
-    if dialect_name == SqlaDialectName.MYSQL:
-        if start:
-            lines = [
-                "SET autocommit=0;",
-                "SET unique_checks=0;",
-                "SET foreign_key_checks=0;",
-            ]
-        else:
-            lines = [
-                "SET foreign_key_checks=1;",
-                "SET unique_checks=1;",
-                "COMMIT;",
-            ]
-    writelines_nl(fileobj, lines)
-
-
 def dump_orm_tree_as_insert_sql(
     engine: Engine, baseobj: object, fileobj: TextIO
 ) -> None:
@@ -537,3 +326,264 @@ def dump_orm_tree_as_insert_sql(
     for part in walk_orm_tree(baseobj):
         dump_orm_object_as_insert_sql(engine, part, fileobj)
     bulk_insert_extras(engine.dialect.name, fileobj, start=False)
+
+
+# =============================================================================
+# Helper functions
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Mappers
+# -----------------------------------------------------------------------------
+
+
+def quick_mapper(table: Table) -> Type[DeclarativeMeta]:
+    """
+    Makes a new SQLAlchemy mapper for an existing table.
+    See
+    https://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/
+
+    Args:
+        table: SQLAlchemy :class:`Table` object
+
+    Returns:
+        a :class:`DeclarativeMeta` class
+
+    """  # noqa
+    # noinspection PyPep8Naming
+    Base = declarative_base()
+
+    class GenericMapper(Base):
+        __table__ = table
+
+    # noinspection PyTypeChecker
+    return GenericMapper
+
+
+# -----------------------------------------------------------------------------
+# Bulk INSERT statement helper functions
+# -----------------------------------------------------------------------------
+
+
+def bulk_insert_extras(
+    dialect_name: str, fileobj: TextIO, start: bool
+) -> None:
+    """
+    Writes bulk ``INSERT`` preamble (start=True) or end (start=False).
+
+    For MySQL, this temporarily switches off autocommit behaviour and index/FK
+    checks, for speed, then re-enables them at the end and commits.
+
+    Args:
+        dialect_name: SQLAlchemy dialect name (see :class:`SqlaDialectName`)
+        fileobj: file-like object to write to
+        start: if ``True``, write preamble; if ``False``, write end
+    """
+    lines = []
+    if dialect_name == SqlaDialectName.MYSQL:
+        if start:
+            lines = [
+                "SET autocommit=0;",
+                "SET unique_checks=0;",
+                "SET foreign_key_checks=0;",
+            ]
+        else:
+            lines = [
+                "SET foreign_key_checks=1;",
+                "SET unique_checks=1;",
+                "COMMIT;",
+            ]
+    writelines_nl(fileobj, lines)
+
+
+# -----------------------------------------------------------------------------
+# Generate SQL queries as strings with literal values, for debugging
+# -----------------------------------------------------------------------------
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Method 1
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+class StringLiteral(String):
+    """
+    Teach SQLAlchemy how to literalize various things. Used by
+    `make_literal_query_fn`, below. See
+    https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
+    """
+
+    def literal_processor(
+        self, dialect: DefaultDialect
+    ) -> Callable[[Any], str]:
+        """Returns a function to translate any value to a string."""
+        # Docstring above necessary to stop sphinx build error:
+        # undefined label: types_typedecorator
+
+        super_processor = super().literal_processor(dialect)
+
+        def process(value: Any) -> str:
+            log.debug("process: {!r}", value)
+            if isinstance(value, int):
+                return str(value)
+            if not isinstance(value, str):
+                value = str(value)
+            # noinspection PyCallingNonCallable
+            result = super_processor(value)
+            if isinstance(result, bytes):
+                result = result.decode(dialect.encoding)
+            return result
+
+        return process
+
+
+# noinspection PyPep8Naming
+def make_literal_query_fn(
+    dialect: Union[Dialect, DefaultDialect],
+) -> Callable[[Union[ClauseElement, Query]], str]:
+    """
+    Returns a function that converts SQLAlchemy statements to literal
+    representations.
+    """
+    DialectClass = dialect.__class__
+
+    # noinspection PyClassHasNoInit,PyAbstractClass
+    class LiteralDialect(DialectClass):
+        """
+        An SQLAlchemy quasi-dialect that uses our StringLiteral class to
+        override the encode of various kinds of data to literal values.
+        """
+
+        # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
+        colspecs = {
+            # prevent various encoding explosions
+            String: StringLiteral,
+            # teach SA about how to literalize a datetime
+            DateTime: StringLiteral,
+            # don't format py2 long integers to NULL
+            NullType: StringLiteral,
+        }
+
+    def literal_query(statement: Union[ClauseElement, Query]) -> str:
+        """
+        Produce an SQL query with literal values. NOTE: This is entirely
+        insecure. DO NOT execute the resulting strings.
+        """
+        # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
+        if isinstance(statement, Query):
+            statement = statement.statement
+        return (
+            statement.compile(
+                dialect=LiteralDialect(),
+                compile_kwargs={"literal_binds": True},
+            ).string
+            + ";"
+        )
+
+    return literal_query
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Method 2
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+# noinspection PyProtectedMember
+def get_literal_query(
+    statement: Union[Query, Executable], bind: Connectable = None
+) -> str:
+    """
+    Takes an SQLAlchemy statement and produces a literal SQL version, with
+    values filled in.
+
+    As per
+    https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
+
+    Notes:
+    - for debugging purposes *only*
+    - insecure; you should always separate queries from their values
+    - please also note that this function is quite slow
+
+    Args:
+        statement: the SQL statement (a SQLAlchemy object) to use
+        bind: if the statement is unbound, you will need to specify an object
+            here that supports SQL execution
+
+    Returns:
+        a string literal version of the query.
+
+    """  # noqa
+    # log.debug("statement: {!r}", statement)
+    # log.debug("statement.bind: {!r}", statement.bind)
+    if isinstance(statement, Query):
+        if bind is None:
+            bind = statement.session.get_bind(statement._mapper_zero_or_none())
+        statement = statement.statement
+    elif bind is None:
+        bind = statement.bind
+    if bind is None:  # despite all that
+        raise ValueError(
+            "Attempt to call get_literal_query with an unbound "
+            "statement and no 'bind' parameter"
+        )
+
+    # noinspection PyUnresolvedReferences
+    dialect = bind.dialect
+    compiler = statement._compiler(dialect)
+
+    class LiteralCompiler(compiler.__class__):
+        # noinspection PyMethodMayBeStatic
+        def visit_bindparam(
+            self,
+            bindparam: BindParameter,
+            within_columns_clause: bool = False,
+            literal_binds: bool = False,
+            **kwargs,
+        ) -> str:
+            return super().render_literal_bindparam(
+                bindparam,
+                within_columns_clause=within_columns_clause,
+                literal_binds=literal_binds,
+                **kwargs,
+            )
+
+        # noinspection PyUnusedLocal
+        def render_literal_value(self, value: Any, type_) -> str:
+            """
+            Render the value of a bind parameter as a quoted literal.
+
+            This is used for statement sections that do not accept bind
+            paramters on the target driver/database.
+
+            This should be implemented by subclasses using the quoting services
+            of the DBAPI.
+            """
+            if isinstance(value, str):
+                value = value.replace("'", "''")
+                return "'%s'" % value
+            elif value is None:
+                return "NULL"
+            elif isinstance(value, (float, int)):
+                return repr(value)
+            elif isinstance(value, decimal.Decimal):
+                return str(value)
+            elif (
+                isinstance(value, datetime.datetime)
+                or isinstance(value, datetime.date)
+                or isinstance(value, datetime.time)
+                or isinstance(value, pendulum.DateTime)
+                or isinstance(value, pendulum.Date)
+                or isinstance(value, pendulum.Time)
+            ):
+                # All have an isoformat() method.
+                return f"'{value.isoformat()}'"
+                # return (
+                #     "TO_DATE('%s','YYYY-MM-DD HH24:MI:SS')"
+                #     % value.strftime("%Y-%m-%d %H:%M:%S")
+                # )
+            else:
+                raise NotImplementedError(
+                    "Don't know how to literal-quote value %r" % value
+                )
+
+    compiler = LiteralCompiler(dialect, statement)
+    return compiler.process(statement) + ";"

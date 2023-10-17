@@ -31,7 +31,7 @@ from typing import TYPE_CHECKING
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sqlalchemy.session import get_safe_url_from_engine
 from sqlalchemy.engine.base import Engine
-from sqlalchemy.ext.declarative.api import DeclarativeMeta
+from sqlalchemy.orm import DeclarativeMeta
 from sqlalchemy.schema import CreateTable
 
 if TYPE_CHECKING:

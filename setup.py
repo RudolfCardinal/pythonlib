@@ -66,7 +66,7 @@ REQUIREMENTS = [
     "rich-argparse>=0.5.0",  # colourful help
     "scipy",
     "semantic-version",
-    "SQLAlchemy>=1.3.0",
+    "SQLAlchemy>=1.4,<2.0",
     "sqlparse",
 ]
 

@@ -104,8 +104,9 @@ def get_safe_url_from_engine(engine: Engine) -> str:
     raw_url = engine.url  # type: str
     url_obj = make_url(raw_url)  # type: URL
     return repr(url_obj)
-    # The default repr() implementation calls
-    # self.__to_string__(hide_password=False)
+    # For SQLAlchemy URL objects, the default str() implementation calls
+    # self.__to_string__(hide_password=False), but the default repr() hides
+    # passwords.
 
 
 def get_safe_url_from_session(dbsession: Session) -> str:

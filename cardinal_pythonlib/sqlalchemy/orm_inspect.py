@@ -38,8 +38,7 @@ from typing import (
 )
 
 # noinspection PyProtectedMember
-from sqlalchemy.ext.declarative.base import _get_immediate_cls_attr
-from sqlalchemy.inspection import inspect
+from sqlalchemy import inspect
 from sqlalchemy.orm.base import class_mapper
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.orm.relationships import RelationshipProperty
@@ -592,22 +591,9 @@ def gen_columns(obj) -> Generator[Tuple[str, Column], None, None]:
         list(gen_columns(MyClass))
 
     """
-    mapper = obj.__mapper__  # type: Mapper
-    assert (
-        mapper
-    ), f"gen_columns called on {obj!r} which is not an SQLAlchemy ORM object"
-    colmap = mapper.columns  # type: OrderedProperties
-    if not colmap:
-        return
-    for attrname, column in colmap.items():
+    for attrname, column in dict(inspect(obj).mapper.columns).items():
         # NB: column.name is the SQL column name, not the attribute name
         yield attrname, column
-    # Don't bother using
-    #   cls = obj.__class_
-    #   for attrname in dir(cls):
-    #       cls_attr = getattr(cls, attrname)
-    #       # ... because, for columns, these will all be instances of
-    #       # sqlalchemy.orm.attributes.InstrumentedAttribute.
 
 
 def get_pk_attrnames(obj) -> List[str]:
@@ -760,9 +746,9 @@ def gen_orm_classes_from_base(base: Type) -> Generator[Type, None, None]:
     ORM classes in use.
     """
     for cls in gen_all_subclasses(base):
-        if _get_immediate_cls_attr(cls, "__abstract__", strict=True):
+        if cls.__dict__.get("__abstract__", False):
             # This is SQLAlchemy's own way of detecting abstract classes; see
-            # sqlalchemy.ext.declarative.base
+            # sqlalchemy.orm.decl_base
             continue  # NOT an ORM class
         yield cls
 

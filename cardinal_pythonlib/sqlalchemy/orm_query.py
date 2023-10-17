@@ -29,8 +29,8 @@
 from typing import Any, Dict, Sequence, Tuple, Union
 
 from sqlalchemy.engine.base import Connection, Engine
-from sqlalchemy.engine.result import ResultProxy
-from sqlalchemy.ext.declarative.api import DeclarativeMeta
+from sqlalchemy.engine import CursorResult
+from sqlalchemy.orm import DeclarativeMeta
 from sqlalchemy.orm.query import Query
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import ClauseElement, literal
@@ -67,7 +67,7 @@ def get_rows_fieldnames_from_query(
     # https://stackoverflow.com/questions/6455560/how-to-get-column-names-from-sqlalchemy-result-declarative-syntax  # noqa
     # No! Returns e.g. "User" for session.Query(User)...
     # fieldnames = [cd['name'] for cd in query.column_descriptions]
-    result = session.execute(query)  # type: ResultProxy
+    result = session.execute(query)  # type: CursorResult
     fieldnames = result.keys()
     # ... yes! Comes out as "_table_field", which is how SQLAlchemy SELECTs
     # things.

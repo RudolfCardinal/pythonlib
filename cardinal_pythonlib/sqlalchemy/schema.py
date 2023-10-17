@@ -36,17 +36,18 @@ import io
 import re
 from typing import Any, Dict, Generator, List, Optional, Type, Union
 
+from sqlalchemy import inspect
 from sqlalchemy.dialects import mssql, mysql
 
 # noinspection PyProtectedMember
-from sqlalchemy.engine import Connection, Engine, ResultProxy
+from sqlalchemy.engine import Connection, Engine, CursorResult
 from sqlalchemy.engine.interfaces import Dialect
-from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.dialects.mssql.base import TIMESTAMP as MSSQL_TIMESTAMP
 from sqlalchemy.schema import (
     Column,
     CreateColumn,
     DDL,
+    Identity,
     Index,
     Table,
 )
@@ -81,7 +82,7 @@ def get_table_names(engine: Engine) -> List[str]:
     """
     Returns a list of database table names from the :class:`Engine`.
     """
-    insp = Inspector.from_engine(engine)
+    insp = inspect(engine)
     return insp.get_table_names()
 
 
@@ -89,7 +90,7 @@ def get_view_names(engine: Engine) -> List[str]:
     """
     Returns a list of database view names from the :class:`Engine`.
     """
-    insp = Inspector.from_engine(engine)
+    insp = inspect(engine)
     return insp.get_view_names()
 
 
@@ -154,7 +155,7 @@ def gen_columns_info(
     """
     # Dictionary structure: see
     # http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns  # noqa
-    insp = Inspector.from_engine(engine)
+    insp = inspect(engine)
     for d in insp.get_columns(tablename):
         yield SqlaColumnInspectionInfo(d)
 
@@ -303,7 +304,7 @@ def index_exists(engine: Engine, tablename: str, indexname: str) -> bool:
     """
     Does the specified index exist for the specified table?
     """
-    insp = Inspector.from_engine(engine)
+    insp = inspect(engine)
     return any(i["name"] == indexname for i in insp.get_indexes(tablename))
 
 
@@ -318,7 +319,7 @@ def mssql_get_pk_index_name(
     # http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.Connection.execute  # noqa
     # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html#sqlalchemy.sql.expression.text  # noqa
     # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html#sqlalchemy.sql.expression.TextClause.bindparams  # noqa
-    # http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.ResultProxy  # noqa
+    # http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.CursorResult  # noqa
     query = text(
         """
 SELECT
@@ -334,7 +335,7 @@ WHERE
     """
     ).bindparams(tablename=tablename, schemaname=schemaname)
     with contextlib.closing(engine.execute(query)) as result:
-        result: ResultProxy
+        result: CursorResult
         row = result.fetchone()
         return row[0] if row else ""
 
@@ -362,7 +363,7 @@ WHERE
     ).bindparams(tablename=tablename, schemaname=schemaname)
     with contextlib.closing(
         engine.execute(query)
-    ) as result:  # type: ResultProxy
+    ) as result:  # type: CursorResult
         row = result.fetchone()
         return row[0] > 0
 
@@ -377,7 +378,7 @@ def mssql_transaction_count(engine_or_conn: Union[Connection, Engine]) -> int:
     sql = "SELECT @@TRANCOUNT"
     with contextlib.closing(
         engine_or_conn.execute(sql)
-    ) as result:  # type: ResultProxy
+    ) as result:  # type: CursorResult
         row = result.fetchone()
         return row[0] if row else None
 
@@ -570,37 +571,25 @@ def add_index(
 
 
 def make_bigint_autoincrement_column(
-    column_name: str, dialect: Dialect
+    column_name: str, dialect: Dialect, nullable=False
 ) -> Column:
     """
     Returns an instance of :class:`Column` representing a :class:`BigInteger`
     ``AUTOINCREMENT`` column in the specified :class:`Dialect`.
     """
+
+    # https://docs.sqlalchemy.org/en/14/core/metadata.html#sqlalchemy.schema.Column.params.nullable  # noqa: E501
+    # Different behaviour of nullable flag observed to the documentation. See
+    # sqlalchemy/tests/schema_tests.py.
+
     # noinspection PyUnresolvedReferences
     if dialect.name == SqlaDialectName.MSSQL:
-        # As of SQLAlchemy 1.3:
-        # SADeprecationWarning: Use of Sequence with SQL Server in order to
-        # affect the parameters of the IDENTITY value is deprecated, as
-        # Sequence will correspond to an actual SQL Server CREATE SEQUENCE in a
-        # future release.  Please use the mssql_identity_start and
-        # mssql_identity_increment parameters.
-        #
-        # See
-        # https://docs.sqlalchemy.org/en/13/dialects/mssql.html#mssql-identity.
-        #
-        # return Column(
-        #     column_name,
-        #     BigInteger,
-        #     Sequence("dummy_name", start=1, increment=1),
-        # )
-        #
-        # Instead:
         return Column(
             column_name,
             BigInteger,
+            Identity(start=1, increment=1),
+            nullable=nullable,
             autoincrement=True,
-            mssql_identity_start=1,
-            mssql_identity_increment=1,
         )
     else:
         # return Column(column_name, BigInteger, autoincrement=True)
