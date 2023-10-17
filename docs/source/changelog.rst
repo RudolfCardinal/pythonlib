@@ -779,7 +779,7 @@ Quick links:
 - ``pdf.py`` updated to use pypdf instead of PyPDF2, which is no longer
   supported.
 
-**1.1.25 (in progress 2023-06-27)**
+**1.1.25 (2023-10-17)**
 
 - Use ``rich_argparse`` for colourful help.
 
@@ -791,3 +791,5 @@ Quick links:
 - Removed Python 3.7 support (end of life); added Python 3.10 support.
 
 - Supported SQLAlchemy version now 1.4
+
+**1.1.26 (in progress)**
