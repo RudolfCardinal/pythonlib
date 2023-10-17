@@ -30,7 +30,7 @@ from typing import Any, List, Optional, Sequence, Tuple, Union
 
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.engine import CursorResult
-from sqlalchemy.orm.exc import MultipleResultsFound
+from sqlalchemy.exc import MultipleResultsFound
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import (
     column,
