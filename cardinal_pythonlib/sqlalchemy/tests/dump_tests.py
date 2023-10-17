@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/sqlalchemy/tests/merge_db_tests.py
+# cardinal_pythonlib/sqlalchemy/tests/dump_tests.py
 
 """
 ===============================================================================
