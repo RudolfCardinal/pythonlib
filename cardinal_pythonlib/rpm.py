@@ -138,7 +138,7 @@ def rpm_probabilities_successes_totals(
 # =============================================================================
 
 
-@jit
+@jit(nopython=True)
 def incbeta(x: float, a: float, b: float) -> float:
     """
     - This is an implementation of the regularized incomplete beta function, or

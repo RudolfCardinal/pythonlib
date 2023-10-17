@@ -26,6 +26,7 @@
 
 """
 
+import logging
 import unittest
 
 from sqlalchemy.dialects.mssql.base import MSDialect
@@ -38,6 +39,8 @@ from cardinal_pythonlib.sqlalchemy.schema import (
     get_sqla_coltype_from_dialect_str,
     make_bigint_autoincrement_column,
 )
+
+log = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -60,7 +63,7 @@ class SchemaTests(unittest.TestCase):
         t.append_column(col2)
         t.append_column(col3)
 
-        print("Checking Column -> DDL: SQL Server (mssql)")
+        log.info("Checking Column -> DDL: SQL Server (mssql)")
         self.assertEqual(
             column_creation_ddl(col1, d_mssql), "hello BIGINT NULL"
         )
@@ -76,12 +79,12 @@ class SchemaTests(unittest.TestCase):
             "you BIGINT NOT NULL IDENTITY(1,1)",
         )
 
-        print("Checking Column -> DDL: MySQL (mysql)")
+        log.info("Checking Column -> DDL: MySQL (mysql)")
         self.assertEqual(column_creation_ddl(col1, d_mysql), "hello BIGINT")
         self.assertEqual(column_creation_ddl(col2, d_mysql), "world BIGINT")
         # not col3; unsupported
 
-        print("Checking SQL type -> SQL Alchemy type")
+        log.info("Checking SQL type -> SQL Alchemy type")
         to_check = [
             # mssql
             ("BIGINT", d_mssql),
@@ -94,7 +97,7 @@ class SchemaTests(unittest.TestCase):
             ("ENUM('red','green','blue')", d_mysql),
         ]
         for coltype, dialect in to_check:
-            print(
+            log.info(
                 f"... {coltype!r} -> dialect {dialect.name!r} -> "
                 f"{get_sqla_coltype_from_dialect_str(coltype, dialect)!r}"
             )

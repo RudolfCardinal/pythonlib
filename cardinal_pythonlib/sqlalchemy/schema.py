@@ -48,7 +48,6 @@ from sqlalchemy.schema import (
     CreateColumn,
     DDL,
     Index,
-    Sequence,
     Table,
 )
 from sqlalchemy.sql import sqltypes, text
@@ -62,6 +61,7 @@ from cardinal_pythonlib.sqlalchemy.dialect import (
 )
 
 log = get_brace_style_log_with_null_handler(__name__)
+
 
 # =============================================================================
 # Constants
@@ -578,10 +578,29 @@ def make_bigint_autoincrement_column(
     """
     # noinspection PyUnresolvedReferences
     if dialect.name == SqlaDialectName.MSSQL:
+        # As of SQLAlchemy 1.3:
+        # SADeprecationWarning: Use of Sequence with SQL Server in order to
+        # affect the parameters of the IDENTITY value is deprecated, as
+        # Sequence will correspond to an actual SQL Server CREATE SEQUENCE in a
+        # future release.  Please use the mssql_identity_start and
+        # mssql_identity_increment parameters.
+        #
+        # See
+        # https://docs.sqlalchemy.org/en/13/dialects/mssql.html#mssql-identity.
+        #
+        # return Column(
+        #     column_name,
+        #     BigInteger,
+        #     Sequence("dummy_name", start=1, increment=1),
+        # )
+        #
+        # Instead:
         return Column(
             column_name,
             BigInteger,
-            Sequence("dummy_name", start=1, increment=1),
+            autoincrement=True,
+            mssql_identity_start=1,
+            mssql_identity_increment=1,
         )
     else:
         # return Column(column_name, BigInteger, autoincrement=True)

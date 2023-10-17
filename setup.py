@@ -61,12 +61,12 @@ REQUIREMENTS = [
     "psutil",
     "pygments",
     "pyparsing",
-    "pypdf>=3.1.0",
+    "pypdf>=3.1.0",  # https://pypdf.readthedocs.io/en/stable/
     "python-dateutil",  # "import dateutil"
     "rich-argparse>=0.5.0",  # colourful help
     "scipy",
     "semantic-version",
-    "SQLAlchemy",
+    "SQLAlchemy>=1.3.0",
     "sqlparse",
 ]
 
@@ -152,9 +152,9 @@ setup(
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Libraries",
     ],
     keywords="cardinal",
