@@ -31,7 +31,7 @@ import unittest
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.base import Engine
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm.session import Session, sessionmaker
 from sqlalchemy.schema import Column, MetaData, Table
 from sqlalchemy.sql.expression import select
