@@ -789,3 +789,5 @@ Quick links:
 - Removed defunct ``rnc_db`` module.
 
 - Removed Python 3.7 support (end of life); added Python 3.10 support.
+
+- Supported SQLAlchemy version now 1.4
