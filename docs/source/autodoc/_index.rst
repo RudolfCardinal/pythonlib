@@ -163,6 +163,7 @@ Automatic documentation of source code
     sqlalchemy/sqlfunc.py.rst
     sqlalchemy/sqlserver.py.rst
     sqlalchemy/table_identity.py.rst
+    sqlalchemy/tests/dump_tests.py.rst
     sqlalchemy/tests/merge_db_tests.py.rst
     sqlalchemy/tests/orm_inspect_tests.py.rst
     sqlalchemy/tests/schema_tests.py.rst
