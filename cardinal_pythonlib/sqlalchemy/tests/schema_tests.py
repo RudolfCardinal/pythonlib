@@ -26,6 +26,7 @@
 
 """
 
+import logging
 import unittest
 
 from sqlalchemy import event, inspect, select
@@ -48,6 +49,8 @@ from cardinal_pythonlib.sqlalchemy.schema import (
 from cardinal_pythonlib.sqlalchemy.session import SQLITE_MEMORY_URL
 
 Base = declarative_base()
+log = logging.getLogger(__name__)
+
 
 # =============================================================================
 # Tests
@@ -71,7 +74,7 @@ class SchemaTests(unittest.TestCase):
         t.append_column(big_int_autoinc_col)
         t.append_column(big_int_autoinc_sequence_col)
 
-        print("Checking Column -> DDL: SQL Server (mssql)")
+        log.info("Checking Column -> DDL: SQL Server (mssql)")
         self.assertEqual(
             column_creation_ddl(big_int_null_col, d_mssql), "hello BIGINT NULL"
         )
@@ -86,7 +89,7 @@ class SchemaTests(unittest.TestCase):
             "you BIGINT NOT NULL IDENTITY(1,1)",
         )
 
-        print("Checking Column -> DDL: MySQL (mysql)")
+        log.info("Checking Column -> DDL: MySQL (mysql)")
         self.assertEqual(
             column_creation_ddl(big_int_null_col, d_mysql), "hello BIGINT"
         )
@@ -95,7 +98,7 @@ class SchemaTests(unittest.TestCase):
         )
         # not big_int_autoinc_sequence_col; not supported by MySQL
 
-        print("Checking SQL type -> SQL Alchemy type")
+        log.info("Checking SQL type -> SQL Alchemy type")
         to_check = [
             # mssql
             ("BIGINT", d_mssql),
@@ -108,7 +111,7 @@ class SchemaTests(unittest.TestCase):
             ("ENUM('red','green','blue')", d_mysql),
         ]
         for coltype, dialect in to_check:
-            print(
+            log.info(
                 f"... {coltype!r} -> dialect {dialect.name!r} -> "
                 f"{get_sqla_coltype_from_dialect_str(coltype, dialect)!r}"
             )
@@ -128,7 +131,6 @@ class IndexExistsTests(unittest.TestCase):
 
     def test_exists(self) -> None:
         self.assertFalse(index_exists(self.engine, "person", "name"))
-        pass
 
     def test_does_not_exist(self) -> None:
         self.assertFalse(index_exists(self.engine, "person", "address"))

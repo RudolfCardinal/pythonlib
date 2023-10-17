@@ -26,7 +26,6 @@
 
 """
 
-import sys
 import unittest
 
 from sqlalchemy.engine import create_engine
@@ -39,7 +38,6 @@ from sqlalchemy.sql.sqltypes import Integer, Text
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sqlalchemy.merge_db import merge_db
-from cardinal_pythonlib.sqlalchemy.dump import dump_database_as_insert_sql
 from cardinal_pythonlib.sqlalchemy.session import SQLITE_MEMORY_URL
 
 log = get_brace_style_log_with_null_handler(__name__)
@@ -49,6 +47,22 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Unit tests
 # =============================================================================
 
+Base = declarative_base()
+
+
+class Parent(Base):
+    __tablename__ = "parent"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(Text)
+
+
+class Child(Base):
+    __tablename__ = "child"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(Text)
+    parent_id = Column(Integer, ForeignKey("parent.id"))
+    parent = relationship(Parent)
+
 
 class MergeTestMixin(object):
     """
@@ -56,48 +70,21 @@ class MergeTestMixin(object):
     for unit testing purposes.
     """
 
-    def __init__(self, *args, echo: bool = False, **kwargs) -> None:
-        self.src_engine = create_engine(
-            SQLITE_MEMORY_URL, echo=echo
-        )  # type: Engine  # noqa
-        self.dst_engine = create_engine(
-            SQLITE_MEMORY_URL, echo=echo
-        )  # type: Engine  # noqa
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.src_engine = create_engine(SQLITE_MEMORY_URL)  # type: Engine
+        self.dst_engine = create_engine(SQLITE_MEMORY_URL)  # type: Engine
         self.src_session = sessionmaker(
             bind=self.src_engine
-        )()  # type: Session  # noqa
+        )()  # type: Session
         self.dst_session = sessionmaker(
             bind=self.dst_engine
-        )()  # type: Session  # noqa
-        # log.critical("SRC SESSION: {}", self.src_session)
-        # log.critical("DST SESSION: {}", self.dst_session)
-
-        self.Base = declarative_base()
-
-        # noinspection PyArgumentList
-        super().__init__(*args, **kwargs)
-
-    def dump_source(self) -> None:
-        log.info("Dumping source")
-        dump_database_as_insert_sql(
-            engine=self.src_engine,
-            fileobj=sys.stdout,
-            include_ddl=True,
-            multirow=True,
-        )
-
-    def dump_destination(self) -> None:
-        log.info("Dumping destination")
-        dump_database_as_insert_sql(
-            engine=self.dst_engine,
-            fileobj=sys.stdout,
-            include_ddl=True,
-            multirow=True,
-        )
+        )()  # type: Session
 
     def do_merge(self, dummy_run: bool = False) -> None:
         merge_db(
-            base_class=self.Base,
+            base_class=Base,
             src_engine=self.src_engine,
             dst_session=self.dst_session,
             allow_missing_src_tables=False,
@@ -135,25 +122,13 @@ class MergeTestPlain(MergeTestMixin, unittest.TestCase):
     - If you use mixins, they go AFTER :class:`unittest.TestCase`; see
       https://stackoverflow.com/questions/1323455/python-unit-test-with-base-and-sub-class
 
-    """  # noqa
+    """  # noqa: E501
 
     def setUp(self) -> None:
-        # log.info('In setUp()')
+        super().setUp()
 
-        class Parent(self.Base):
-            __tablename__ = "parent"
-            id = Column(Integer, primary_key=True, autoincrement=True)
-            name = Column(Text)
-
-        class Child(self.Base):
-            __tablename__ = "child"
-            id = Column(Integer, primary_key=True, autoincrement=True)
-            name = Column(Text)
-            parent_id = Column(Integer, ForeignKey("parent.id"))
-            parent = relationship(Parent)
-
-        self.Base.metadata.create_all(self.src_engine)
-        self.Base.metadata.create_all(self.dst_engine)
+        Base.metadata.create_all(self.src_engine)
+        Base.metadata.create_all(self.dst_engine)
 
         p1 = Parent(name="Parent 1")
         p2 = Parent(name="Parent 2")
@@ -164,74 +139,46 @@ class MergeTestPlain(MergeTestMixin, unittest.TestCase):
         self.src_session.add_all([p1, p2, c1, c2])
         self.src_session.commit()
 
-    def tearDown(self) -> None:
-        pass
-        # log.info('In tearDown()')
-
-    def test_source(self) -> None:
-        self.dump_source()
-
-    def test_dummy(self) -> None:
+    def test_dummy_run_makes_no_changes(self) -> None:
         log.info("Testing merge_db() in dummy run mode")
+        parents_before = self.dst_session.query(Parent).count()
+        children_before = self.dst_session.query(Child).count()
         self.do_merge(dummy_run=True)
         self.dst_session.commit()
-        self.dump_destination()
+        parents_after = self.dst_session.query(Parent).count()
+        children_after = self.dst_session.query(Child).count()
+        self.assertEqual(parents_before, parents_after)
+        self.assertEqual(children_before, children_after)
 
-    def test_merge_to_empty(self) -> None:
+    def test_merge_to_empty_destination_copies_source(self) -> None:
         log.info("Testing merge_db() to empty database")
+
+        destination_parents = self.dst_session.query(Parent).count()
+        destination_children = self.dst_session.query(Child).count()
+        self.assertEqual(destination_parents, 0)
+        self.assertEqual(destination_children, 0)
+
         self.do_merge(dummy_run=False)
         self.dst_session.commit()
-        self.dump_destination()
 
-    # @unittest.skip
+        destination_parents = self.dst_session.query(Parent).count()
+        destination_children = self.dst_session.query(Child).count()
+        source_parents = self.src_session.query(Parent).count()
+        source_children = self.src_session.query(Child).count()
+        self.assertEqual(source_parents, destination_parents)
+        self.assertEqual(source_children, destination_children)
+
     def test_merge_to_existing(self) -> None:
         log.info("Testing merge_db() to pre-populated database")
         self.do_merge(dummy_run=False)
         self.dst_session.commit()
         self.do_merge(dummy_run=False)
         self.dst_session.commit()
-        self.dump_destination()
 
+        destination_parents = self.dst_session.query(Parent).count()
+        destination_children = self.dst_session.query(Child).count()
+        source_parents = self.src_session.query(Parent).count()
+        source_children = self.src_session.query(Child).count()
 
-class MergeTestCircular(MergeTestMixin, unittest.TestCase):
-    """
-    Unit tests including a circular dependency, which will fail.
-    """
-
-    @unittest.expectedFailure
-    def test_setup_circular(self):
-        class Parent(self.Base):
-            __tablename__ = "parent"
-            id = Column(Integer, primary_key=True, autoincrement=True)
-            name = Column(Text)
-            child_id = Column(Integer, ForeignKey("child.id"))
-            child = relationship("Child", foreign_keys=[child_id])
-
-        class Child(self.Base):
-            __tablename__ = "child"
-            id = Column(Integer, primary_key=True, autoincrement=True)
-            name = Column(Text)
-            parent_id = Column(Integer, ForeignKey("parent.id"))
-            parent = relationship(Parent, foreign_keys=[parent_id])
-
-        self.Base.metadata.create_all(self.src_engine)
-        self.Base.metadata.create_all(self.dst_engine)
-
-        p1 = Parent(name="Parent 1")
-        p2 = Parent(name="Parent 2")
-        c1 = Child(name="Child 1")
-        c2 = Child(name="Child 2")
-        c1.parent = p1
-        c2.parent = p2
-        p1.child = c1
-        p2.child = c2
-        self.src_session.add_all([p1, p2, c1, c2])
-        self.src_session.commit()  # will raise sqlalchemy.exc.CircularDependencyError  # noqa
-
-    @unittest.expectedFailure
-    def test_circular(self) -> None:
-        self.test_setup_circular()  # fails here
-        log.info("Testing merge_db() with circular relationship")
-        self.do_merge(dummy_run=False)  # would fail here, but fails earlier!
-        self.dst_session.commit()
-        self.dump_destination()
+        self.assertEqual(destination_parents, source_parents * 2)
+        self.assertEqual(destination_children, source_children * 2)

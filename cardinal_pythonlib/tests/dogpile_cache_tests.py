@@ -36,7 +36,6 @@ import unittest
 
 # noinspection PyPackageRequirements
 from dogpile.cache import make_region
-import pytest
 
 from cardinal_pythonlib.dogpile_cache import (
     fkg_allowing_type_hints,
@@ -47,12 +46,119 @@ log = logging.getLogger(__name__)
 
 
 # =============================================================================
+# Some testing for args/kwargs!
+# =============================================================================
+
+_TEST_PYTHON_ARGS_KWARGS_BEHAVIOUR = """
+
+These test functions seems consistent across Python 3.6-3.10:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+import sys
+from typing import Any
+
+def f1(*args, **kwargs):
+    print(f"f1: args={args!r}, kwargs={kwargs!r}")
+
+def f2(*args: Any, **kwargs: Any) -> None:
+    print(f"f2: args={args!r}, kwargs={kwargs!r}")
+
+def decorated(fn):
+    def intermediate_fn(*args, **kwargs):
+        print(f"intermediate_fn: args={args!r}, kwargs={kwargs!r}")
+        return fn(*args, **kwargs)
+    return intermediate_fn
+
+@decorated
+def f3(a, b):
+    print(f"f3: a={a!r}, b={b!r}")
+
+@decorated
+def f4(a, b = "b_default"):
+    print(f"f3: a={a!r}, b={b!r}")
+
+print(sys.version)
+print("--- Both as named args:")
+f1(a="a", b="b")
+f2(a="a", b="b")
+f3(a="a", b="b")
+f4(a="a", b="b")
+print("--- Both as positional args:")
+f1("a", "b")
+f2("a", "b")
+f3("a", "b")
+f4("a", "b")
+print("--- a positional, b named:")
+f1("a", b="b")
+f2("a", b="b")
+f3("a", b="b")
+f4("a", b="b")
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Python 3.6 gives:
+
+    3.6.15 (default, Apr 25 2022, 01:55:53)
+    [GCC 9.4.0]
+    --- Both as named args:
+    f1: args=(), kwargs={'a': 'a', 'b': 'b'}
+    --- Both as positional args:
+    f1: args=('a', 'b'), kwargs={}
+    --- a positional, b named:
+    f1: args=('a',), kwargs={'b': 'b'}
+
+    # ... others not yet checked
+
+Python 3.8 gives:
+
+    3.8.5 (default, Jul 20 2020, 23:11:29)
+    [GCC 9.3.0]
+    --- Both as named args:
+    f1: args=(), kwargs={'a': 'a', 'b': 'b'}
+    --- Both as positional args:
+    f1: args=('a', 'b'), kwargs={}
+    --- a positional, b named:
+    f1: args=('a',), kwargs={'b': 'b'}
+
+    # ... others not yet checked
+
+Python 3.10 gives:
+
+    3.10.6 (main, Mar 10 2023, 10:55:28) [GCC 11.3.0]
+    --- Both as named args:
+    f1: args=(), kwargs={'a': 'a', 'b': 'b'}
+    f2: args=(), kwargs={'a': 'a', 'b': 'b'}
+    intermediate_fn: args=(), kwargs={'a': 'a', 'b': 'b'}
+    f3: a='a', b='b'
+    intermediate_fn: args=(), kwargs={'a': 'a', 'b': 'b'}
+    f3: a='a', b='b'
+    --- Both as positional args:
+    f1: args=('a', 'b'), kwargs={}
+    f2: args=('a', 'b'), kwargs={}
+    intermediate_fn: args=('a', 'b'), kwargs={}
+    f3: a='a', b='b'
+    intermediate_fn: args=('a', 'b'), kwargs={}
+    f3: a='a', b='b'
+    --- a positional, b named:
+    f1: args=('a',), kwargs={'b': 'b'}
+    f2: args=('a',), kwargs={'b': 'b'}
+    intermediate_fn: args=('a',), kwargs={'b': 'b'}
+    f3: a='a', b='b'
+    intermediate_fn: args=('a',), kwargs={'b': 'b'}
+    f3: a='a', b='b'
+
+So the type hints don't change it, and nor does the presence of a simple
+decorator function.
+
+"""
+
+# =============================================================================
 # Unit tests
 # =============================================================================
 
 
 class DogpileCacheTests(unittest.TestCase):
-    @pytest.mark.xfail(reason="Needs investigating")
     @staticmethod
     def test_dogpile_cache() -> None:
         """
@@ -139,18 +245,18 @@ class DogpileCacheTests(unittest.TestCase):
             fn_called("CACHED FUNCTION oneparam() CALLED")
             return "oneparam: hello, " + a
 
-        @mycache.cache_on_arguments(function_key_generator=plain_fkg)
-        def twoparam_with_default_wrong_dec(a: str, b: str = "Zelda") -> str:
-            # The decorator shouldn't work with keyword arguments.
-            fn_called(
-                "CACHED FUNCTION twoparam_with_default_wrong_dec() CALLED"
-            )
-            return (
-                "twoparam_with_default_wrong_dec: hello, "
-                + a
-                + "; this is "
-                + b
-            )
+        # @mycache.cache_on_arguments(function_key_generator=plain_fkg)
+        # def twoparam_with_default_wrong_dec(a: str, b: str = "Zelda") -> str:
+        #     # The decorator shouldn't work with keyword arguments.
+        #     fn_called(
+        #         "CACHED FUNCTION twoparam_with_default_wrong_dec() CALLED"
+        #     )
+        #     return (
+        #         "twoparam_with_default_wrong_dec: hello, "
+        #         + a
+        #         + "; this is "
+        #         + b
+        #     )
 
         @mycache.cache_on_arguments(function_key_generator=kw_fkg)
         def twoparam_with_default_right_dec(a: str, b: str = "Zelda") -> str:
@@ -176,6 +282,18 @@ class DogpileCacheTests(unittest.TestCase):
                 + "; this is "
                 + b
             )
+
+        @mycache.cache_on_arguments(function_key_generator=plain_fkg)
+        def arg_kwarg_wrong_dec(a: str, **kwargs: str) -> str:
+            b = kwargs.get("b", "Yorick")  # default value
+            fn_called("CACHED FUNCTION arg_kwarg_wrong_dec() CALLED")
+            return "arg_kwarg_wrong_dec: hello, " + a + "; this is " + b
+
+        @mycache.cache_on_arguments(function_key_generator=kw_fkg)
+        def arg_kwarg_right_dec(a: str, **kwargs: str) -> str:
+            b = kwargs.get("b", "Yorick")  # default value
+            fn_called("CACHED FUNCTION arg_kwarg_right_dec() CALLED")
+            return "arg_kwarg_right_dec: hello, " + a + "; this is " + b
 
         @mycache.cache_on_arguments(function_key_generator=kw_fkg)
         def fn_args_kwargs(*args, **kwargs):
@@ -334,38 +452,47 @@ class DogpileCacheTests(unittest.TestCase):
         test(oneparam("Arthur"), False)
         test(oneparam("Bob"), True)
         test(oneparam("Bob"), False)
-        test(twoparam_with_default_wrong_dec("Celia"), True)
-        test(twoparam_with_default_wrong_dec("Celia"), False)
-        test(twoparam_with_default_wrong_dec("Celia", "Yorick"), True)
-        test(twoparam_with_default_wrong_dec("Celia", "Yorick"), False)
 
-        log.info("Trying with keyword arguments and wrong key generator")
-        try:
-            log.info(
-                twoparam_with_default_wrong_dec(a="Celia[a]", b="Yorick[b]")
-            )
-            raise AssertionError(
-                "Inappropriate success with keyword arguments!"
-            )
-            _ = """
-            2022-04-27: This test is failing. The call above, with named
-            parameters a="Celia[a]", b="Yorick[b]", is reaching
-            fkg_allowing_type_hints.generate_key() with
-            args=('Celia[a]', 'Yorick[b]'), kw={}); argnames = ['a', 'b'].
-            That's with Python 3.8.
+        # test(twoparam_with_default_wrong_dec("Celia"), True)
+        # test(twoparam_with_default_wrong_dec("Celia"), False)
+        # test(twoparam_with_default_wrong_dec("Celia", "Yorick"), True)
+        # test(twoparam_with_default_wrong_dec("Celia", "Yorick"), False)
 
-            A test function works fnie in Python 3.8:
-
-                def f(*args, **kwargs):
-                    print(f"args={args!r}, kwargs={kwargs!r}")
-
-                f(a="a", b="b")  # args=(), kwargs={'a': 'a', 'b': 'b'}
-                f("a", "b")  #  args=('a', 'b'), kwargs={}
-                f("a", b="b")  #  args=('a',), kwargs={'b': 'b'}
-
-            """
-        except ValueError:
-            log.info("Correct rejection of keyword arguments")
+        # This test started to fail around Python 3.10 (or 3.8 sometimes?) and
+        # it is likely to do with the version of dogpile.cache and/or
+        # decorator. (For example: Python 3.10, dogpile.cache==0.9.2,
+        # decorator=5.1.1 was failing here.)
+        #
+        # See https://github.com/RudolfCardinal/pythonlib/issues/15
+        #
+        # The problem was that if you explicitly called a function with keyword
+        # syntax (named arguments), those parameters got moved into "args" if
+        # they were also valid as positional arguments. The reason is that:
+        #
+        # - dogpile.cache.region.CacheRegion.cache_on_arguments decorates the
+        #   cached function with decorator.decorate(); search for "return
+        #   decorate".
+        # - The kwsyntax flag is not specified, so it defaults to false.
+        # - When kwsyntax is false, decorate() shufts things into args; see
+        #   https://github.com/micheles/decorator/blob/master/docs/documentation.md#mimicking-the-behavior-of-functoolswrap
+        #
+        # It is not a change in Python behaviour (see
+        # _TEST_PYTHON_ARGS_KWARGS_BEHAVIOUR above).
+        #
+        # But it is a slightly inappropriate test, because args are fine here
+        # (functionally). Replaced with arg_kwarg_wrong_dec,
+        # arg_kwarg_right_dec (below).
+        #
+        # log.info("Trying with keyword arguments and wrong key generator")
+        # try:
+        #     log.info(
+        #         twoparam_with_default_wrong_dec(a="Celia[a]", b="Yorick[b]")
+        #     )
+        #     raise AssertionError(
+        #         "Inappropriate success with keyword arguments!"
+        #     )
+        # except ValueError:
+        #     log.info("Correct rejection of keyword arguments")
 
         log.info("Trying with keyword arguments and right key generator")
         test(twoparam_with_default_right_dec(a="Celia"), True)
@@ -394,6 +521,21 @@ class DogpileCacheTests(unittest.TestCase):
         test(
             twoparam_all_defaults_no_typehints(b="Sigurd", a="Felicity"), False
         )
+
+        log.info("Trying with keyword arguments and wrong key generator")
+        try:
+            log.info(arg_kwarg_wrong_dec(a="Celia[a]", b="Yorick[b]"))
+            raise AssertionError(
+                "Inappropriate success with keyword arguments!"
+            )
+        except ValueError:
+            log.info("Correct rejection of keyword arguments")
+
+        log.info("Trying with keyword arguments and right key generator")
+        test(arg_kwarg_right_dec(a="Celia"), True)
+        test(arg_kwarg_right_dec(a="Celia", b="Yorick"), True)
+        test(arg_kwarg_right_dec(b="Yorick", a="Celia"), False)
+        test(arg_kwarg_right_dec("Celia", b="Yorick"), False)
 
         test(fn_args_kwargs(1, 2, 3, d="David", f="Edgar"), True)
         test(fn_args_kwargs(1, 2, 3, d="David", f="Edgar"), False)
