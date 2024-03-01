@@ -12,6 +12,11 @@ pyramid==1.10.8
 pytest
 # CamCOPS and CRATE both on this version
 sphinx==4.2.0
+sphinxcontrib-applehelp==1.0.4
+sphinxcontrib-devhelp==1.0.2
+sphinxcontrib-htmlhelp==2.0.1
+sphinxcontrib-serializinghtml==1.1.5
+sphinxcontrib-qthelp==1.0.3
 sphinx-paramlinks
 sphinx_rtd_theme
 weasyprint
