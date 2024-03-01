@@ -497,8 +497,10 @@ def add_index(
             # Note that the database must also have had a
             #   CREATE FULLTEXT CATALOG somename AS DEFAULT;
             # statement executed on it beforehand.
+            connection = Connection(engine)
             schemaname = (
-                engine.schema_for_object(sqla_table) or MSSQL_DEFAULT_SCHEMA
+                connection.schema_for_object(sqla_table)
+                or MSSQL_DEFAULT_SCHEMA
             )
             if mssql_table_has_ft_index(
                 engine=engine, tablename=tablename, schemaname=schemaname
