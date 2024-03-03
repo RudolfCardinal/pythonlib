@@ -792,8 +792,10 @@ Quick links:
 
 - Supported SQLAlchemy version now 1.4
 
-**1.1.26 (in progress)**
+**1.1.26 (2024-03-03)**
 
 - Fix ``AttributeError: 'Engine' object has no attribute 'schema_for_object'``
   when adding a full text index to an anonymised SQL Server database table.
   This bug has been present since the SQLAlchemy 1.4 upgrade in 1.1.25.
+
+**1.1.27 (in progress)**
