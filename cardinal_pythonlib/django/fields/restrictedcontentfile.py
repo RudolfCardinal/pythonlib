@@ -43,7 +43,7 @@ from django.db import models
 from django.template.defaultfilters import filesizeformat
 
 # noinspection PyUnresolvedReferences
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext_lazy
 
 
 # =============================================================================
@@ -96,7 +96,7 @@ class ContentTypeRestrictedFileField(models.FileField):
         content_type = f.content_type
         if content_type not in self.content_types:
             raise forms.ValidationError(
-                ugettext_lazy("Filetype not supported.")
+                gettext_lazy("Filetype not supported.")
             )
         if hasattr(f, "size"):  # e.g. Django 2.1.2
             uploaded_file_size = f.size
@@ -110,7 +110,7 @@ class ContentTypeRestrictedFileField(models.FileField):
             and uploaded_file_size > self.max_upload_size
         ):
             raise forms.ValidationError(
-                ugettext_lazy(
+                gettext_lazy(
                     "Please keep filesize under %s. Current filesize %s"
                 )
                 % (
