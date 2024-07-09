@@ -53,7 +53,7 @@ REQUIREMENTS = [
     "colorlog",
     "isodate>=0.5.4",
     "numba",  # just-in-time compilation
-    "numpy>=1.20.0",  # 1.20.0 required for numpy.typing
+    "numpy>=1.20.0,<2.0",  # 1.20.0 required for numpy.typing
     "openpyxl",
     "pandas",
     "pendulum>=2.1.1",
