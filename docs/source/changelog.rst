@@ -31,6 +31,8 @@ Quick links:
 - :ref:`2020 <changelog_2020>`
 - :ref:`2021 <changelog_2021>`
 - :ref:`2022 <changelog_2022>`
+- :ref:`2023 <changelog_2023>`
+- :ref:`2024 <changelog_2024>`
 
 
 .. _changelog_2017:
@@ -792,6 +794,8 @@ Quick links:
 
 - Supported SQLAlchemy version now 1.4
 
+.. _changelog_2024:
+
 **1.1.26 (2024-03-03)**
 
 - Fix ``AttributeError: 'Engine' object has no attribute 'schema_for_object'``
@@ -799,3 +803,8 @@ Quick links:
   This bug has been present since the SQLAlchemy 1.4 upgrade in 1.1.25.
 
 **1.1.27 (in progress)**
+
+- Fixes for Django 4.
+
+  - Replace ugettext_* calls removed in Django 4.0.
+    https://docs.djangoproject.com/en/4.2/releases/4.0/#features-removed-in-4-0

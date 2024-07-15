@@ -38,9 +38,6 @@ from django.db import models
 # noinspection PyUnresolvedReferences
 from django.db.models.fields import DateField, DateTimeField, Field
 
-# noinspection PyUnresolvedReferences
-from django.utils import timezone
-
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 log = get_brace_style_log_with_null_handler(__name__)
@@ -256,7 +253,7 @@ class IsoDateTimeTzField(models.CharField):
             # function must always return a string type.
             # https://docs.djangoproject.com/en/1.8/howto/custom-model-fields/
         # Convert to UTC
-        return value.astimezone(timezone.utc)
+        return value.astimezone(datetime.timezone.utc)
 
     def get_db_prep_value(self, value, connection, prepared=False):
         """

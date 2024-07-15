@@ -89,7 +89,7 @@ NOTES_RE_OTHER_REQUIREMENTS = """
 # bcrypt
 # colander
 # deform
-# Django>=2.0.0
+# Django>=4.2
 # dogpile.cache
 # pyramid
 # webob  # installed by pyramid
