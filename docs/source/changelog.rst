@@ -802,9 +802,11 @@ Quick links:
   when adding a full text index to an anonymised SQL Server database table.
   This bug has been present since the SQLAlchemy 1.4 upgrade in 1.1.25.
 
-**1.1.27 (in progress)**
+**1.1.27 (2024-07-15)**
 
 - Fixes for Django 4.
 
   - Replace ugettext_* calls removed in Django 4.0.
     https://docs.djangoproject.com/en/4.2/releases/4.0/#features-removed-in-4-0
+
+**1.1.28 (in progress)**
