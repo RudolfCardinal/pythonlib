@@ -321,7 +321,7 @@ class AutoStrEnum(str, StrEnum, metaclass=AutoStrEnumMeta):  # was Enum,
     https://stackoverflow.com/questions/32214614/automatically-setting-an-enum-members-value-to-its-name/32215467
     and then inherit from :class:`StrEnum` rather than :class:`Enum`.
 
-    """  # noqa
+    """  # noqa: E501
 
     pass
 

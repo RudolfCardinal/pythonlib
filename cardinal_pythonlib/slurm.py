@@ -104,7 +104,7 @@ def launch_slurm(
         modules = ["default-wbic"]
 
     log.info("Launching SLURM job: {}", jobname)
-    script = f"""#!/bin/bash
+    script = rf"""#!/bin/bash
 
 #! Name of the job:
 #SBATCH -J {jobname}
@@ -194,7 +194,7 @@ fi
 echo -e "\nExecuting command:\n==================\n$CMD\n"
 
 eval $CMD
-    """  # noqa
+    """  # noqa: E501
     cmdargs = ["sbatch"]
     with pushd(directory):
         p = Popen(cmdargs, stdin=PIPE)

@@ -74,7 +74,7 @@
       discussion below as to why ``"repr"`` is suitable while ``"str"`` is
       not).
 
-"""  # noqa
+"""  # noqa: E501
 
 
 # =============================================================================
@@ -128,7 +128,7 @@ def get_namespace(fn: Callable, namespace: Optional[str]) -> str:
             normally a ``str``; if not ``None``, ``str(namespace)`` will be
             added to the result. See
             https://dogpilecache.readthedocs.io/en/latest/api.html#dogpile.cache.region.CacheRegion.cache_on_arguments
-    """  # noqa
+    """  # noqa: E501
     # See hidden attributes with dir(fn)
     # noinspection PyUnresolvedReferences
     return "{module}:{name}{extra}".format(

@@ -181,7 +181,7 @@ def incbeta(x: float, a: float, b: float) -> float:
          * 3. This notice may not be removed or altered from any source distribution.
          */
 
-    """  # noqa
+    """  # noqa: E501
     # logger.critical(f"incbeta(x={x}, a={a}, b={b})")
 
     if a <= 0.0 or b <= 0.0:
@@ -302,7 +302,7 @@ def stirlerr(n: float) -> float:
          * R has lgammafn, and lgamma is not part of ISO C
          */
 
-    """  # noqa
+    """  # noqa: E501
     s0 = 0.083333333333333333333  # 1/12
     s1 = 0.00277777777777777777778  # 1/360
     s2 = 0.00079365079365079365079365  # 1/1260

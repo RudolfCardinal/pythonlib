@@ -88,7 +88,7 @@ def gzip_string(text: str, encoding: str = "utf-8") -> bytes:
         print(gz1 == gz2)  # False
         # ... but the difference is probably in the timestamp bytes!
 
-    """  # noqa
+    """  # noqa: E501
     data = text.encode(encoding)
     return gzip.compress(data)
 

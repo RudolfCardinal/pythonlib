@@ -56,7 +56,7 @@ def genrows(
     Yields:
         each row
     """
-    # http://code.activestate.com/recipes/137270-use-generators-for-fetching-large-db-record-sets/  # noqa
+    # http://code.activestate.com/recipes/137270-use-generators-for-fetching-large-db-record-sets/  # noqa: E501
     while True:
         results = cursor.fetchmany(arraysize)
         if not results:

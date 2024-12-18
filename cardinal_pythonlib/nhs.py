@@ -92,7 +92,7 @@ def is_valid_nhs_number(n: int) -> bool:
     Checksum details are at
     https://web.archive.org/web/20180311083424/https://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp;
     https://web.archive.org/web/20220503215904/https://www.datadictionary.nhs.uk/attributes/nhs_number.html
-    """  # noqa
+    """  # noqa: E501
     if not isinstance(n, int):
         log.debug("is_valid_nhs_number: parameter was not of integer type")
         return False

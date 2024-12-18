@@ -198,7 +198,7 @@ def windows_get_environment_from_batch_command(
 
     Returns:
         dict: environment created after running the command
-    """  # noqa
+    """  # noqa: E501
     if not isinstance(env_cmd, (list, tuple)):
         env_cmd = [env_cmd]
     # construct the command that will alter the environment

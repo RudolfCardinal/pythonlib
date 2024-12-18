@@ -37,7 +37,7 @@ from typing import Any, Dict, Generator, List, Type, TypeVar
 https://stackoverflow.com/questions/1776994
 https://docs.python.org/3/library/inspect.html
 https://github.com/edoburu/django-fluent-contents/issues/43
-https://bytes.com/topic/python/answers/843424-python-2-6-3-0-determining-if-method-inherited  # noqa
+https://bytes.com/topic/python/answers/843424-python-2-6-3-0-determining-if-method-inherited  # noqa: E501
 https://docs.python.org/3/reference/datamodel.html
 
 In Python 2, you can do this:

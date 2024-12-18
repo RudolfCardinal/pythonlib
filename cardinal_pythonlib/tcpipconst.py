@@ -71,10 +71,10 @@ class Ports(object):
     # servers SHOULD support both 587 and 465.
     #
     # Older sources will say that 587 is preferred for SMTP. See
-    # https://serverfault.com/questions/1064955/why-is-port-587-preferred-over-port-465-in-smtp  # noqa
+    # https://serverfault.com/questions/1064955/why-is-port-587-preferred-over-port-465-in-smtp  # noqa: E501
 
     SMTP = 25  # its formal IANA name;
-    # ... https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?search=25  # noqa
+    # ... https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml?search=25  # noqa: E501
     SMTP_UNENCRYPTED = 25  # https://datatracker.ietf.org/doc/html/rfc5321
     SMTP_MTA = SMTP
     # ... MTA = message transfer agent = for server-to-server transmission
@@ -90,7 +90,7 @@ class Ports(object):
     # ... "submission-s[ecure]", not plural of submission.
     SMTPS = SUBMISSIONS
     # ... https://datatracker.ietf.org/doc/html/rfc8314
-    # ... https://stackoverflow.com/questions/15796530/what-is-the-difference-between-ports-465-and-587  # noqa
+    # ... https://stackoverflow.com/questions/15796530/what-is-the-difference-between-ports-465-and-587  # noqa: E501
     # ... requires negotiation of TLS/SSL at connection setup
     # Was initially intended for another purpose (URL Rendezvous Directory for
     # SSM), but was co-opted for e-mail and formalized by RFC8314.
@@ -102,7 +102,7 @@ class Ports(object):
     # ... MSA = message submission agent = client-to-server
     # ... can
     # ... https://datatracker.ietf.org/doc/html/rfc8314
-    # ... https://stackoverflow.com/questions/15796530/what-is-the-difference-between-ports-465-and-587  # noqa
+    # ... https://stackoverflow.com/questions/15796530/what-is-the-difference-between-ports-465-and-587  # noqa: E501
     # ... requires SMTP AUTH (authentication);
     #     https://en.wikipedia.org/wiki/SMTP_Authentication
     # ... uses STARTTLS if one chooses to negotiate TLS

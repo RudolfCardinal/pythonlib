@@ -55,7 +55,7 @@ def round_half_up(x: Union[float, Decimal], dp: int = 0) -> Decimal:
     - https://kodify.net/python/math/round-decimals/
     - https://stackoverflow.com/questions/33019698/how-to-properly-round-up-half-float-numbers-in-python
 
-    """  # noqa
+    """  # noqa: E501
     x = Decimal(x)
     context = decimal.getcontext()
     factor = context.power(10, dp)
@@ -142,7 +142,7 @@ def range_roundable_up_to(
 
     Note that ``dp`` can be negative, as in other Python functions.
 
-    """  # noqa
+    """  # noqa: E501
     y = Decimal(y)
     assert num_dp_from_decimal(y, with_negative_dp=True) <= dp, (
         f"Number {y} is not rounded to {dp} dp as claimed; it has "

@@ -48,14 +48,14 @@ def cmdline_split(s: str, platform: Union[int, str] = "this") -> List[str]:
             - ``1`` = POSIX;
             - ``0`` = Windows/CMD
             - (other values reserved)
-    """  # noqa
+    """  # noqa: E501
     if platform == "this":
         platform = sys.platform != "win32"  # RNC: includes 64-bit Windows
 
     if platform == 1:  # POSIX
-        re_cmd_lex = r""""((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)"""  # noqa
+        re_cmd_lex = r""""((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)"""  # noqa: E501
     elif platform == 0:  # Windows/CMD
-        re_cmd_lex = r""""((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)"""  # noqa
+        re_cmd_lex = r""""((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)"""  # noqa: E501
     else:
         raise AssertionError(f"unknown platform {platform!r}")
 

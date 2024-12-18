@@ -201,16 +201,16 @@ Here's another tricky thing. In ``setup.py``, you have ``package_data`` and
 
     #
     # or MANIFEST.in ?
-    # - https://stackoverflow.com/questions/24727709/i-dont-understand-python-manifest-in  # noqa
-    # - https://stackoverflow.com/questions/1612733/including-non-python-files-with-setup-py  # noqa
+    # - https://stackoverflow.com/questions/24727709/i-dont-understand-python-manifest-in  # noqa: E501
+    # - https://stackoverflow.com/questions/1612733/including-non-python-files-with-setup-py  # noqa: E501
     #
     # or both?
-    # - https://stackoverflow.com/questions/3596979/manifest-in-ignored-on-python-setup-py-install-no-data-files-installed  # noqa
+    # - https://stackoverflow.com/questions/3596979/manifest-in-ignored-on-python-setup-py-install-no-data-files-installed  # noqa: E501
     # ... MANIFEST gets the files into the distribution
     # ... package_data gets them installed in the distribution
     #
     # data_files is from distutils, and we're using setuptools
-    # - https://docs.python.org/3.5/distutils/setupscript.html#installing-additional-files  # noqa
+    # - https://docs.python.org/3.5/distutils/setupscript.html#installing-additional-files  # noqa: E501
 
 
 

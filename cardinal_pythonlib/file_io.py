@@ -78,8 +78,8 @@ def smart_open(
     a :class:`IO` object. If the filename is ``'-'``, however, then
     ``sys.stdin`` is used for reading and ``sys.stdout`` is used for writing.
     """
-    # https://stackoverflow.com/questions/17602878/how-to-handle-both-with-open-and-sys-stdout-nicely  # noqa
-    # https://stackoverflow.com/questions/1744989/read-from-file-or-stdin/29824059#29824059  # noqa
+    # https://stackoverflow.com/questions/17602878/how-to-handle-both-with-open-and-sys-stdout-nicely  # noqa: E501
+    # https://stackoverflow.com/questions/1744989/read-from-file-or-stdin/29824059#29824059  # noqa: E501
     if filename == "-":
         if mode is None or mode == "" or "r" in mode:
             fh = sys.stdin
@@ -123,7 +123,7 @@ def writelines_nl(fileobj: TextIO, lines: Iterable[str]) -> None:
 
     (Since :func:`fileobj.writelines` doesn't add newlines...
     https://stackoverflow.com/questions/13730107/writelines-writes-lines-without-newline-just-fills-the-file)
-    """  # noqa
+    """  # noqa: E501
     fileobj.write("\n".join(lines) + "\n")
 
 
@@ -145,7 +145,7 @@ def write_gzipped_text(basefilename: str, text: str) -> None:
     files, or it complains:
     - https://lintian.debian.org/tags/package-contains-timestamped-gzip.html
     - See https://stackoverflow.com/questions/25728472/python-gzip-omit-the-original-filename-and-timestamp
-    """  # noqa
+    """  # noqa: E501
     zipfilename = basefilename + ".gz"
     compresslevel = 9
     mtime = 0

@@ -601,9 +601,9 @@ class HtmlColorHandler(logging.StreamHandler):
 # Brace formatters, for log.info("{}, {}", "hello", "world")
 # =============================================================================
 
-# - https://docs.python.org/3/howto/logging-cookbook.html#use-of-alternative-formatting-styles  # noqa
-# - https://stackoverflow.com/questions/13131400/logging-variable-data-with-new-format-string  # noqa
-# - https://stackoverflow.com/questions/13131400/logging-variable-data-with-new-format-string/24683360#24683360  # noqa
+# - https://docs.python.org/3/howto/logging-cookbook.html#use-of-alternative-formatting-styles  # noqa: E501
+# - https://stackoverflow.com/questions/13131400/logging-variable-data-with-new-format-string  # noqa: E501
+# - https://stackoverflow.com/questions/13131400/logging-variable-data-with-new-format-string/24683360#24683360  # noqa: E501
 # ... plus modifications to use inspect.signature() not inspect.getargspec()
 # ... plus a performance tweak so we're not calling signature() every time
 # See also:

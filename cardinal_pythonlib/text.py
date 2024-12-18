@@ -156,7 +156,7 @@ def _unicode_def_src_to_str(srclist: List[Union[str, int]]) -> str:
     return "".join(charlist)
 
 
-# https://stackoverflow.com/questions/13233076/determine-if-a-unicode-character-is-alphanumeric-without-using-a-regular-express  # noqa
+# https://stackoverflow.com/questions/13233076/determine-if-a-unicode-character-is-alphanumeric-without-using-a-regular-express  # noqa: E501
 _UNICODE_CATEGORY_SRC = {
     # From https://github.com/slevithan/xregexp/blob/master/tools/scripts/property-regex.py  # noqa
     "ASCII": ["0000-007F"],

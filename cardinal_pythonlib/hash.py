@@ -325,7 +325,7 @@ def to_bytes(data: Any) -> bytearray:
 
     - https://stackoverflow.com/questions/7585435/best-way-to-convert-string-to-bytes-in-python-3
     - https://stackoverflow.com/questions/10459067/how-to-convert-my-bytearrayb-x9e-x18k-x9a-to-something-like-this-x9e-x11
-    """  # noqa
+    """  # noqa: E501
     if isinstance(data, int):
         return bytearray([data])
     return bytearray(data, encoding="latin-1")

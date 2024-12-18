@@ -58,7 +58,7 @@ See
 
   - ... additionally, stored procedures have no user interface
 
-"""  # noqa
+"""  # noqa: E501
 
 from __future__ import division, print_function, absolute_import
 import ctypes

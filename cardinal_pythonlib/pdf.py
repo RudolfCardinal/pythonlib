@@ -573,7 +573,7 @@ def serve_pdf_to_stdout(pdf: bytes) -> None:
     """
     # print("Content-type: text/plain\n")  # for debugging
     print("Content-Type: application/pdf\n")
-    # https://stackoverflow.com/questions/908331/how-to-write-binary-data-to-stdout-in-python-3  # noqa
+    # https://stackoverflow.com/questions/908331/how-to-write-binary-data-to-stdout-in-python-3  # noqa: E501
     sys.stdout.buffer.write(pdf)
 
 

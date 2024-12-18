@@ -71,5 +71,5 @@ def is_false(x: Any) -> bool:
     # ... but comparisons to booleans with "==" fail PEP8:
     # http://legacy.python.org/dev/peps/pep-0008/
     # ... so use e.g. "bool(x)" or "x" or "not x"
-    # http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=True/False_evaluations#True/False_evaluations  # noqa
+    # http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=True/False_evaluations#True/False_evaluations  # noqa: E501
     return not x and x is not None

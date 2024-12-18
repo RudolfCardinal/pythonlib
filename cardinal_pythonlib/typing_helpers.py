@@ -68,7 +68,7 @@ def with_typehint(baseclass: Type[T]) -> Type[T]:
         class MyMixin1(with_typehint(SomeBaseClass))):
             # ...
 
-    """  # noqa
+    """  # noqa: E501
     if TYPE_CHECKING:
         return baseclass
     return object
@@ -88,7 +88,7 @@ def with_typehints(*baseclasses: Type[T]) -> Type[T]:
         class MyMixin2(*with_typehints(SomeBaseClass, AnotherBaseClass))):
             # ...
 
-    """  # noqa
+    """  # noqa: E501
     if TYPE_CHECKING:
         return baseclasses
     return object
@@ -104,7 +104,7 @@ class CSVWriterType(object):
     Type hint for the result of ``csv.writer()``
 
     See https://stackoverflow.com/questions/51264355/how-to-type-annotate-object-returned-by-csv-writer
-    """  # noqa
+    """  # noqa: E501
 
     @abstractmethod
     def writerow(self, row: List[str]) -> None:
@@ -134,7 +134,7 @@ class Pep249DatabaseConnectionType(object):
 
     - https://www.python.org/dev/peps/pep-0249/#optional-error-handling-extensions
     - https://www.python.org/dev/peps/pep-0249/#optional-two-phase-commit-extensions
-    """  # noqa
+    """  # noqa: E501
 
     @abstractmethod
     def close(self) -> None:

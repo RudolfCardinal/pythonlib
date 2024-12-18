@@ -118,7 +118,7 @@ def bytes2human(
       >>> bytes2human(10000, format="%(value).5f %(symbol)s")
       '9.76562 K'
 
-    """  # noqa
+    """  # noqa: E501
     n = int(n)
     if n < 0:
         raise ValueError("n < 0")
@@ -163,7 +163,7 @@ def human2bytes(s: str) -> int:
       Traceback (most recent call last):
           ...
       ValueError: can't interpret '12 foo'
-    """  # noqa
+    """  # noqa: E501
     if not s:
         raise ValueError(f"Can't interpret {s!r} as integer")
     try:
@@ -182,7 +182,8 @@ def human2bytes(s: str) -> int:
             break
     else:
         if letter == "k":
-            # treat 'k' as an alias for 'K' as per https://en.wikipedia.org/wiki/Binary_prefix  # noqa
+            # treat 'k' as an alias for 'K' as per
+            # https://en.wikipedia.org/wiki/Binary_prefix
             sset = SYMBOLS["customary"]
             letter = letter.upper()
         else:

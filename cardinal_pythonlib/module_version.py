@@ -29,7 +29,7 @@ See
 - https://stackoverflow.com/questions/710609/checking-a-python-module-version-at-runtime
 - https://stackoverflow.com/questions/20180543/how-to-check-version-of-python-modules
 
-"""  # noqa
+"""  # noqa: E501
 
 # =============================================================================
 # Imports

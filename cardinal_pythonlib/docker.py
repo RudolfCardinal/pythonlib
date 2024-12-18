@@ -35,7 +35,7 @@ def running_under_docker() -> bool:
     As per
     https://stackoverflow.com/questions/43878953/how-does-one-detect-if-one-is-running-within-a-docker-container-within-python
     ... but without leaving a file open.
-    """  # noqa
+    """  # noqa: E501
     # 1. Does /.dockerenv exist?
     if os.path.exists("/.dockerenv"):
         return True

@@ -519,7 +519,7 @@ def csv_to_list_of_fields(
         csv_to_list_of_fields(mycsvlines, myheader)
         # [['row1value1', 'row1value2', 'row1value3'], ['row2value1', 'row2value2', 'row2value3']]
 
-    """  # noqa
+    """  # noqa: E501
     data = []  # type: List[List[str]]
     # an empty line marks the end of the block
     csvlines = get_lines_from_to(lines, csvheader, [None])[1:]

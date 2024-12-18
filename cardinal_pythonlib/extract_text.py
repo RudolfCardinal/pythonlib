@@ -114,7 +114,7 @@ except ImportError:
 
 try:
     # noinspection PyPackageRequirements
-    import docx  # pip install python-docx (NOT docx) - BUT python-docx requires lxml which has C dependencies  # noqa
+    import docx  # pip install python-docx (NOT docx) - BUT python-docx requires lxml which has C dependencies  # noqa: E501
 
     # noinspection PyPackageRequirements
     import docx.document
@@ -169,7 +169,7 @@ except ImportError:
 
 try:
     # noinspection PyPackageRequirements
-    import pyth  # pip install pyth (PYTHON 2 ONLY; https://pypi.python.org/pypi/pyth/0.5.4)  # noqa
+    import pyth  # pip install pyth (PYTHON 2 ONLY; https://pypi.python.org/pypi/pyth/0.5.4)  # noqa: E501
 
     # noinspection PyPackageRequirements
     import pyth.plugins.rtf15.reader
@@ -201,7 +201,7 @@ tools = {
     "pdftotext": shutil.which("pdftotext"),  # core part of Linux?
     "strings": shutil.which("strings"),  # part of standard Unix
     "strings2": shutil.which("strings2"),
-    # ... Windows: https://technet.microsoft.com/en-us/sysinternals/strings.aspx  # noqa
+    # ... Windows: https://technet.microsoft.com/en-us/sysinternals/strings.aspx  # noqa: E501
     # ... Windows: http://split-code.com/strings2.html
     "unrtf": shutil.which("unrtf"),  # sudo apt-get install unrtf
 }

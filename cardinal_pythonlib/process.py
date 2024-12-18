@@ -167,7 +167,7 @@ def kill_proc_tree(
         tuple: ``(gone, still_alive)``, where both are sets of
         :class:`psutil.Process` objects
 
-    """  # noqa
+    """  # noqa: E501
     parent = psutil.Process(pid)
     to_kill = parent.children(recursive=True)  # type: List[psutil.Process]
     if including_parent:

@@ -48,7 +48,7 @@ Note grammar:
 
 - https://www.snomed.org/scg
 - https://confluence.ihtsdotools.org/display/DOCSCG
-- https://confluence.ihtsdotools.org/download/attachments/33494865/SnomedCtExpo_Expressions_20161028_s2_20161101.pdf  # noqa
+- https://confluence.ihtsdotools.org/download/attachments/33494865/SnomedCtExpo_Expressions_20161028_s2_20161101.pdf
 - https://confluence.ihtsdotools.org/display/SLPG/SNOMED+CT+Expression+Constraint+Language
 
 Test basic expressions:
@@ -105,7 +105,7 @@ Test basic expressions:
     print(amoxicillin_500mg_capsule.longform)
     print(amoxicillin_500mg_capsule.shortform)
 
-"""  # noqa
+"""  # noqa: E501
 
 from typing import Dict, Iterable, List, Union
 

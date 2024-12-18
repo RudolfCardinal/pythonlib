@@ -136,7 +136,7 @@ def git_clone(
         )
         run_func([git, "-C", directory, "reset", "--hard", commit])
         # Using a Git repository that's not in the working directory:
-        # https://stackoverflow.com/questions/1386291/git-git-dir-not-working-as-expected  # noqa
+        # https://stackoverflow.com/questions/1386291/git-git-dir-not-working-as-expected  # noqa: E501
     return True
 
 

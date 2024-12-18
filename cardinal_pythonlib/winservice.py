@@ -245,7 +245,7 @@ to clean up. Still, it works (usually at one of the two TASKKILL stages).
 
 - https://stackoverflow.com/questions/20561990
 
-"""  # noqa
+"""  # noqa: E501
 
 import atexit
 import ctypes
@@ -666,7 +666,7 @@ class ProcessManager(object):
             REM ... 0 for success (Windows 10), e.g.
             REM 'SUCCESS: The process with PID 11892 has been terminated.'
 
-        """  # noqa
+        """  # noqa: E501
         args = [
             "taskkill",  # built in to Windows XP and higher
             "/pid",
@@ -677,7 +677,7 @@ class ProcessManager(object):
             args.append("/f")  # forcefully
         callname = " ".join(args)
         retcode = subprocess.call(args)
-        # https://stackoverflow.com/questions/18682681/what-are-exit-codes-from-the-taskkill-utility  # noqa
+        # https://stackoverflow.com/questions/18682681/what-are-exit-codes-from-the-taskkill-utility  # noqa: E501
         # noinspection PyUnresolvedReferences
         if retcode == winerror.ERROR_SUCCESS:  # 0
             self.info("Killed with " + repr(callname))

@@ -92,7 +92,7 @@ def ln(x: float) -> float:
         timeit.timeit('(ln(x) for x in range(1, 100))', number=10000)
         # 0.007783170789480209
 
-    """  # noqa
+    """  # noqa: E501
     # return math_ln(x) if x != 0 else MINUS_INFINITY  # slower, less helpful
     try:
         return math_ln(x)
@@ -367,7 +367,7 @@ def log_likelihood_ratio_from_p(
     Returns:
         float: log likelihood ratio, as above
 
-    """  # noqa
+    """
     return ln(p_d_given_h) - ln(p_d_given_not_h)
 
 

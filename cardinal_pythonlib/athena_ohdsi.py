@@ -213,7 +213,7 @@ class AthenaConceptRow(object):
         - https://www.nltk.org/
 
         BINNED. We will use human judgement.
-        """  # noqa
+        """  # noqa: E501
         self_words = set(x.lower() for x in self.concept_name.split())
         other_words = set(x.lower() for x in target.concept_name.split())
         # More matching words better

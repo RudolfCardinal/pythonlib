@@ -222,7 +222,7 @@ def pendulum_to_utc_datetime_without_tz(x: DateTime) -> datetime.datetime:
         dt_utc_from_moscow = pendulum_to_utc_datetime_without_tz(in_moscow)  # 6am, no timezone info
         dt_utc_from_london = pendulum_to_utc_datetime_without_tz(in_london)  # 6am, no timezone info
 
-    """  # noqa
+    """  # noqa: E501
     pendulum_in_utc = pendulum.UTC.convert(x)
     return pendulum_to_datetime_stripping_tz(pendulum_in_utc)
 

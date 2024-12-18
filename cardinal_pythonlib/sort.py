@@ -34,7 +34,7 @@ from typing import Any, List, Union
 # =============================================================================
 # Natural sorting, e.g. for COM ports
 # =============================================================================
-# https://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside  # noqa
+# https://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside  # noqa: E501
 
 
 def atoi(text: str) -> Union[int, str]:
@@ -69,7 +69,7 @@ def natural_keys(text: str) -> List[Union[int, str]]:
         >>> alist
         ['something1', 'something2', 'something12', 'something17', 'something25', 'something29']
 
-    """  # noqa
+    """  # noqa: E501
     return [atoi(c) for c in re.split(r"(\d+)", text)]
 
 

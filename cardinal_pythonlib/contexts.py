@@ -38,5 +38,5 @@ def dummy_context_mgr():
     - https://stackoverflow.com/questions/27803059/conditional-with-statement-in-python
     - See also
       https://stackoverflow.com/questions/893333/multiple-variables-in-a-with-statement
-    """  # noqa
+    """  # noqa: E501
     yield None

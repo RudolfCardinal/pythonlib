@@ -33,9 +33,13 @@ import pdb
 import sys
 import traceback
 from types import FrameType
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, List, Optional, TYPE_CHECKING
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+
+if TYPE_CHECKING:
+    # noinspection PyUnresolvedReferences
+    from inspect import FrameInfo
 
 log = get_brace_style_log_with_null_handler(__name__)
 
@@ -80,7 +84,7 @@ def get_class_name_from_frame(fr: FrameType) -> Optional[str]:
     If the call was to a member function of a class, this function attempts
     to read the class's name. It returns ``None`` otherwise.
     """
-    # https://stackoverflow.com/questions/2203424/python-how-to-retrieve-class-information-from-a-frame-object  # noqa
+    # https://stackoverflow.com/questions/2203424/python-how-to-retrieve-class-information-from-a-frame-object  # noqa: E501
     args, _, _, value_dict = inspect.getargvalues(fr)
     # we check the first parameter for the frame function is named 'self'
     if len(args) and args[0] == "self":
@@ -138,7 +142,7 @@ def get_caller_name(back: int = 0) -> str:
         That was called by: f1
 
     """
-    # https://stackoverflow.com/questions/5067604/determine-function-name-from-within-that-function-without-using-traceback  # noqa
+    # https://stackoverflow.com/questions/5067604/determine-function-name-from-within-that-function-without-using-traceback  # noqa: E501
     try:
         # noinspection PyProtectedMember
         frame = sys._getframe(back + 2)
@@ -241,7 +245,7 @@ def get_caller_stack_info(start_back: int = 1) -> List[str]:
     # "0 back" is debug_callers, so "1 back" its caller
     # https://docs.python.org/3/library/inspect.html
     callers = []  # type: List[str]
-    frameinfolist = inspect.stack()  # type: List[FrameInfo]  # noqa
+    frameinfolist = inspect.stack()  # type: List[FrameInfo]
     frameinfolist = frameinfolist[start_back:]
     for frameinfo in frameinfolist:
         frame = frameinfo.frame

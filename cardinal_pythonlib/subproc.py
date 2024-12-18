@@ -150,7 +150,8 @@ def _start_process(
     proc = Popen(args, stdin=stdin, stdout=stdout, stderr=stderr)
     # proc = Popen(args, stdin=None, stdout=PIPE, stderr=STDOUT)
     # proc = Popen(args, stdin=None, stdout=PIPE, stderr=PIPE)
-    # Can't preserve colour: https://stackoverflow.com/questions/13299550/preserve-colored-output-from-python-os-popen  # noqa
+    # Can't preserve colour:
+    # https://stackoverflow.com/questions/13299550/preserve-colored-output-from-python-os-popen  # noqa: E501
     _g_processes.append(proc)
     _g_proc_args_list.append(args)
     return proc
@@ -198,7 +199,8 @@ def _wait_for_processes(
                             "Exiting top-level process (will kill "
                             "all other children)"
                         )
-                        fail()  # exit this process, therefore kill its children  # noqa
+                        fail()
+                        # ... exit this process, therefore kill its children
             except TimeoutExpired:
                 something_running = True
     _g_processes.clear()

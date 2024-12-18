@@ -129,7 +129,7 @@ def download(
     # urllib.request.urlretrieve(url, filename)
     # ... sometimes fails (e.g. downloading
     # https://www.openssl.org/source/openssl-1.1.0g.tar.gz under Windows) with:
-    # ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:777)  # noqa
+    # ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:777)  # noqa: E501
     # ... due to this certificate root problem (probably because OpenSSL
     #     [used by Python] doesn't play entirely by the same rules as others?):
     # https://stackoverflow.com/questions/27804710
@@ -137,7 +137,7 @@ def download(
 
     # Patching this by faking a browser request by adding User-Agent to request
     # headers, using this as example:
-    # https://stackoverflow.com/questions/42863240/how-to-get-round-the-http-error-403-forbidden-with-urllib-request-using-python  # noqa
+    # https://stackoverflow.com/questions/42863240/how-to-get-round-the-http-error-403-forbidden-with-urllib-request-using-python  # noqa: E501
 
     ctx = ssl.create_default_context()  # type: ssl.SSLContext
     if skip_cert_verify:

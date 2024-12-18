@@ -118,7 +118,7 @@ def flatten_list(x: List[Any]) -> List[Any]:
     As per
     https://stackoverflow.com/questions/952914/making-a-flat-list-out-of-list-of-lists-in-python
 
-    """  # noqa
+    """  # noqa: E501
     return [item for sublist in x for item in sublist]
 
 
@@ -135,7 +135,7 @@ def unique_list(seq: Iterable[Any]) -> List[Any]:
     As per
     https://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-whilst-preserving-order
 
-    """  # noqa
+    """  # noqa: E501
     seen = set()
     seen_add = seen.add
     return [x for x in seq if not (x in seen or seen_add(x))]
@@ -201,6 +201,6 @@ def delete_elements_by_index(x: List[Any], indices: Sequence[int]) -> None:
     - https://thispointer.com/python-remove-elements-from-list-by-index/
     - https://stackoverflow.com/questions/11520492/difference-between-del-remove-and-pop-on-lists
     - https://stackoverflow.com/questions/627435/how-to-remove-an-element-from-a-list-by-index
-    """  # noqa
+    """  # noqa: E501
     for i in sorted(indices, reverse=True):  # work from high to low
         del x[i]

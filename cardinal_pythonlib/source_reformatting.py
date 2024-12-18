@@ -38,7 +38,7 @@ from cardinal_pythonlib.logs import BraceStyleAdapter
 
 log = BraceStyleAdapter(logging.getLogger(__name__))
 
-TRANSITION = "==============================================================================="  # noqa
+TRANSITION = "==============================================================================="  # noqa: E501
 CORRECT_SHEBANG = "#!/usr/bin/env python"
 RST_COMMENT_LINE = ".."
 SHEBANG_START = "#!"

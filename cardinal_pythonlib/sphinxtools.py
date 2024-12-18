@@ -214,7 +214,7 @@ class FileToAutodocument(object):
         print(f.rst_content(prefix=".. Hello!", method=AutodocMethod.CONTENTS))
         f.write_rst(prefix=".. Hello!")
 
-    """  # noqa
+    """  # noqa: E501
 
     def __init__(
         self,

@@ -47,7 +47,7 @@ except ImportError:
 # =============================================================================
 # Read single character, waiting for it
 # =============================================================================
-# https://stackoverflow.com/questions/510357/python-read-a-single-character-from-the-user  # noqa
+# https://stackoverflow.com/questions/510357/python-read-a-single-character-from-the-user  # noqa: E501
 # http://home.wlu.edu/~levys/software/kbhit.py
 # ... modified a little
 

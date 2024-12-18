@@ -104,7 +104,7 @@ def trap_ctrl_c_ctrl_break() -> None:
       signal.signal(signal.SIGINT, signal.SIG_IGN)  # SIG_IGN = "ignore me"
 
     or pass a specified handler, as in the code here.
-    """  # noqa
+    """  # noqa: E501
 
     signal.signal(signal.SIGINT, ctrl_c_trapper)
     signal.signal(signal.SIGTERM, sigterm_trapper)

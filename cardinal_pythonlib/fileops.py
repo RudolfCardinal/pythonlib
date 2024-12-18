@@ -150,7 +150,7 @@ def preserve_cwd(func: Callable) -> Callable:
         myfunc()
         assert os.getcwd() == "/home"
     """
-    # https://stackoverflow.com/questions/169070/python-how-do-i-write-a-decorator-that-restores-the-cwd  # noqa
+    # https://stackoverflow.com/questions/169070/python-how-do-i-write-a-decorator-that-restores-the-cwd  # noqa: E501
     def decorator(*args_, **kwargs) -> Any:
         cwd = os.getcwd()
         result = func(*args_, **kwargs)

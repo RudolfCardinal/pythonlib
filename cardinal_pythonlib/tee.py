@@ -59,7 +59,7 @@ See
 
 - https://stackoverflow.com/questions/4984428/python-subprocess-get-childrens-output-to-file-and-terminal/4985080#4985080
 
-"""  # noqa
+"""  # noqa: E501
 
 from contextlib import contextmanager
 from io import TextIOWrapper
@@ -131,7 +131,7 @@ def tee(infile: IO, *files: IO) -> Thread:
         x = t.readline()  # "hello\n"
         y = b.readline()  # b"world\n"
 
-    """  # noqa
+    """  # noqa: E501
 
     def fanout(_infile: IO, *_files: IO):
         for line in iter(_infile.readline, ""):
@@ -170,14 +170,14 @@ def teed_call(
         encoding: encoding to apply to ``stdout`` and ``stderr``
         kwargs: additional arguments for :class:`subprocess.Popen`
 
-    """  # noqa
+    """  # noqa: E501
     # Make a copy so we can append without damaging the original:
     stdout_targets = (
         stdout_targets.copy() if stdout_targets else []
-    )  # type: List[TextIO]  # noqa
+    )  # type: List[TextIO]
     stderr_targets = (
         stderr_targets.copy() if stderr_targets else []
-    )  # type: List[TextIO]  # noqa
+    )  # type: List[TextIO]
     p = Popen(cmd_args, stdout=PIPE, stderr=PIPE, **kwargs)
     threads = []  # type: List[Thread]
     with open(os.devnull, "w") as null:  # type: TextIO
@@ -187,12 +187,8 @@ def teed_call(
             stderr_targets.append(null)
         # Now, by default, because we're not using "universal_newlines", both
         # p.stdout and p.stderr are binary.
-        stdout_txt = TextIOWrapper(
-            p.stdout, encoding=encoding
-        )  # type: TextIO  # noqa
-        stderr_txt = TextIOWrapper(
-            p.stderr, encoding=encoding
-        )  # type: TextIO  # noqa
+        stdout_txt = TextIOWrapper(p.stdout, encoding=encoding)  # type: TextIO
+        stderr_txt = TextIOWrapper(p.stderr, encoding=encoding)  # type: TextIO
         threads.append(tee(stdout_txt, *stdout_targets))
         threads.append(tee(stderr_txt, *stderr_targets))
         for t in threads:
