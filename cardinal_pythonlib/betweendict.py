@@ -72,7 +72,7 @@ class BetweenDict(dict):
       ... NB has initialization default argument bug
     - https://pypi.python.org/pypi/rangedict/0.1.5
     - https://stackoverflow.com/questions/30254739/is-there-a-library-implemented-rangedict-in-python
-    """  # noqa
+    """  # noqa: E501
     INVALID_MSG_TYPE = "Key must be an iterable with length 2"
     INVALID_MSG_VALUE = "First element of key must be less than second element"
 

@@ -201,7 +201,7 @@ class TestRoundingAndReversal(unittest.TestCase):
             Decimal("-0.5"),
         )
 
-        # range_roundable_up_to(0.5, 0)  # bad input (not correctly rounded); would assert  # noqa
+        # range_roundable_up_to(0.5, 0)  # bad input (not correctly rounded); would assert  # noqa: E501
 
         for x in [Decimal("100.332"), Decimal("-150.12")]:
             for dp in [-2, -1, 0, 1, 2]:
@@ -243,7 +243,7 @@ class TestRoundingAndReversal(unittest.TestCase):
             Decimal("-1"),
         )
 
-        # range_truncatable_to(0.5, 0)  # bad input (not correctly rounded); would assert  # noqa
+        # range_truncatable_to(0.5, 0)  # bad input (not correctly rounded); would assert  # noqa: E501
 
         for x in [Decimal("100.332"), Decimal("-150.12")]:
             for dp in [-2, -1, 0, 1, 2]:

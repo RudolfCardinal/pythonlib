@@ -62,7 +62,7 @@ class ReplaceableObject(object):
                         config C
                         INNER JOIN session S ON S.config_id = C.config_id
 
-        """  # noqa
+        """  # noqa: E501
         self.name = name
         self.sqltext = sqltext
 

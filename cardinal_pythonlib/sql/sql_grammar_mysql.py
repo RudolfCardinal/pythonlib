@@ -427,7 +427,7 @@ YEAR
     # CASE
     # -----------------------------------------------------------------------------
     # NOT THIS: https://dev.mysql.com/doc/refman/5.7/en/case.html
-    # THIS: https://dev.mysql.com/doc/refman/5.7/en/control-flow-functions.html#operator_case  # noqa
+    # THIS: https://dev.mysql.com/doc/refman/5.7/en/control-flow-functions.html#operator_case  # noqa: E501
     case_expr = (
         (
             CASE
@@ -477,7 +477,7 @@ YEAR
     expr_term = (
         INTERVAL + expr + time_unit
         |
-        # "{" + identifier + expr + "}" |  # see MySQL notes; antique ODBC syntax  # noqa
+        # "{" + identifier + expr + "}" |  # see MySQL notes; antique ODBC syntax  # noqa: E501
         Optional(EXISTS) + LPAR + select_statement + RPAR
         |
         # ... e.g. mycol = EXISTS(SELECT ...)
@@ -598,9 +598,7 @@ YEAR
         + DISTINCT
         + expr
         + RPAR
-        | Combine(  # special aggregate function  # noqa
-            aggregate_function + LPAR
-        )
+        | Combine(aggregate_function + LPAR)  # special aggregate function
         + expr
         + RPAR
         | expr

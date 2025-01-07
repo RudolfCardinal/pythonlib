@@ -28,16 +28,27 @@
 
 from contextlib import contextmanager
 
-from sqlalchemy.orm import Session as SqlASession
+from sqlalchemy.engine.base import Engine
+from sqlalchemy.orm.session import Session as SqlASession
+from sqlalchemy.schema import DDL
 
-from cardinal_pythonlib.sqlalchemy.dialect import quote_identifier
-from cardinal_pythonlib.sqlalchemy.engine_func import is_sqlserver
+from cardinal_pythonlib.sqlalchemy.dialect import (
+    quote_identifier,
+    SqlaDialectName,
+)
 from cardinal_pythonlib.sqlalchemy.session import get_engine_from_session
 
 
 # =============================================================================
 # Workarounds for SQL Server "DELETE takes forever" bug
 # =============================================================================
+
+
+def _exec_ddl_if_sqlserver(engine: Engine, sql: str) -> None:
+    """
+    Execute DDL only if we are running on Microsoft SQL Server.
+    """
+    DDL(sql, bind=engine).execute_if(dialect=SqlaDialectName.SQLSERVER)
 
 
 @contextmanager
@@ -54,19 +65,18 @@ def if_sqlserver_disable_constraints(
 
     See
     https://stackoverflow.com/questions/123558/sql-server-2005-t-sql-to-temporarily-disable-a-trigger
-    """  # noqa
+    """  # noqa: E501
     engine = get_engine_from_session(session)
-    if is_sqlserver(engine):
-        quoted_tablename = quote_identifier(tablename, engine)
-        session.execute(
-            f"ALTER TABLE {quoted_tablename} NOCHECK CONSTRAINT all"
-        )
-        yield
-        session.execute(
-            f"ALTER TABLE {quoted_tablename} WITH CHECK CHECK CONSTRAINT all"
-        )
-    else:
-        yield
+    quoted_tablename = quote_identifier(tablename, engine)
+    _exec_ddl_if_sqlserver(
+        engine, f"ALTER TABLE {quoted_tablename} NOCHECK CONSTRAINT all"
+    )
+    yield
+    _exec_ddl_if_sqlserver(
+        engine,
+        f"ALTER TABLE {quoted_tablename} WITH CHECK CHECK CONSTRAINT all",
+    )
+    # "CHECK CHECK" is correct here.
 
 
 @contextmanager
@@ -83,15 +93,16 @@ def if_sqlserver_disable_triggers(
 
     See
     https://stackoverflow.com/questions/123558/sql-server-2005-t-sql-to-temporarily-disable-a-trigger
-    """  # noqa
+    """  # noqa: E501
     engine = get_engine_from_session(session)
-    if is_sqlserver(engine):
-        quoted_tablename = quote_identifier(tablename, engine)
-        session.execute(f"ALTER TABLE {quoted_tablename} DISABLE TRIGGER all")
-        yield
-        session.execute(f"ALTER TABLE {quoted_tablename} ENABLE TRIGGER all")
-    else:
-        yield
+    quoted_tablename = quote_identifier(tablename, engine)
+    _exec_ddl_if_sqlserver(
+        engine, f"ALTER TABLE {quoted_tablename} DISABLE TRIGGER all"
+    )
+    yield
+    _exec_ddl_if_sqlserver(
+        engine, f"ALTER TABLE {quoted_tablename} ENABLE TRIGGER all"
+    )
 
 
 @contextmanager

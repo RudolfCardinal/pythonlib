@@ -88,7 +88,7 @@ def rscript() -> str:
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # https://www.nhs.uk/mental-health/talking-therapies-medicine-treatments/medicines-and-psychiatry/antidepressants/overview/  # noqa
+    # https://www.nhs.uk/mental-health/talking-therapies-medicine-treatments/medicines-and-psychiatry/antidepressants/overview/  # noqa: E501
     ssri = converter(all_drugs_where(ssri=True, mixture=False))
     snri = converter(all_drugs_where(snri=True, mixture=False))
     mirtazapine = converter([get_drug("mirtazapine")])
@@ -181,7 +181,7 @@ TRIIODOTHYRONINE <- {triiodothyronine}
 
 ANTIDEPRESSANTS_BROAD_INC_ANTIDEP_SGA <- {antidepressants_broad_inc_antidep_sga}
 
-"""  # noqa
+"""  # noqa: E501
 
 
 # =============================================================================

@@ -50,7 +50,7 @@ def product_dict(**kwargs: Iterable) -> Iterable[Dict]:
 
         >>> product_dict(a="x", b=range(3))
         <generator object product_dict at 0x7fb328070678>
-    """  # noqa
+    """  # noqa: E501
     keys = kwargs.keys()
     vals = kwargs.values()
     for instance in product(*vals):

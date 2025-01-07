@@ -439,7 +439,7 @@ def dbinom_raw_log(x: float, n: float, p: float, q: float) -> float:
          *         Do this in the calling function.
          */
 
-    """  # noqa
+    """  # noqa: E501
     log_0 = -inf
     log_1 = 0
 
@@ -537,7 +537,7 @@ def beta_pdf_fast(x: float, a: float, b: float) -> float:
          *    term is large.  We use Loader's code only if both a and b > 2.
          */
 
-    """  # noqa
+    """  # noqa: E501
     # logger.critical(f"beta_pdf_fast(x={x}, a={a}, b={b})")
     if a < 0 or b < 0:
         return NaN
@@ -721,7 +721,7 @@ def rpm_probabilities_successes_failures_twochoice_fast(
     Massively tedious optimization (translation from R's C code to Python) but
     it works very well.
 
-    """  # noqa
+    """  # noqa: E501
     args = (n_success_this, n_failure_this, n_success_other, n_failure_other)
     # ... tuple, not numpy array, or we get "TypeError: only size-1 arrays can
     # be converted to Python scalars"

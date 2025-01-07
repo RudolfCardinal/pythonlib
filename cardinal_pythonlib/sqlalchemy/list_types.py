@@ -178,7 +178,7 @@ class StringListType(TypeDecorator):
                 # noinspection PyAugmentAssignment
                 self.mylist = self.mylist + [text]  # not "append()", not "+="
 
-    """  # noqa
+    """  # noqa: E501
     impl = UnicodeText()
 
     @property

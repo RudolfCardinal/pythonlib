@@ -142,7 +142,7 @@ class SemanticVersionColType(TypeDecorator):
             which will be alphabetical and therefore wrong.
             Disabled on 2019-04-28.
 
-        """  # noqa
+        """  # noqa: E501
 
         def operate(self, op, *other, **kwargs):
             assert len(other) == 1

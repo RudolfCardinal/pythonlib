@@ -365,7 +365,7 @@ def gen_part_from_iterables(
 
     """
     # RST: make part of word bold/italic:
-    # https://stackoverflow.com/questions/12771480/part-of-a-word-bold-in-restructuredtext  # noqa
+    # https://stackoverflow.com/questions/12771480/part-of-a-word-bold-in-restructuredtext  # noqa: E501
     for iterable in iterables:
         yield iterable[part_index]
 

@@ -192,7 +192,7 @@ def nice_call(
 
     Modified from
     https://stackoverflow.com/questions/34458583/python-subprocess-call-doesnt-handle-signal-correctly
-    """  # noqa
+    """  # noqa: E501
     with subprocess.Popen(*popenargs, **kwargs) as p:
         try:
             return p.wait(timeout=timeout)

@@ -28,7 +28,6 @@ Core.**
 """
 
 import ast
-import contextlib
 import copy
 import csv
 from functools import lru_cache
@@ -37,11 +36,10 @@ import re
 from typing import Any, Dict, Generator, List, Optional, Type, Union
 
 from sqlalchemy import inspect
-from sqlalchemy.dialects import mssql, mysql
 
-# noinspection PyProtectedMember
-from sqlalchemy.engine import Connection, Engine, CursorResult
+from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.engine.interfaces import Dialect
+from sqlalchemy.dialects import postgresql, mssql, mysql, sqlite
 from sqlalchemy.dialects.mssql.base import TIMESTAMP as MSSQL_TIMESTAMP
 from sqlalchemy.schema import (
     Column,
@@ -133,14 +131,14 @@ class SqlaColumnInspectionInfo(object):
 
                 - https://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns
                 - https://bitbucket.org/zzzeek/sqlalchemy/issues/4051/sqlalchemyenginereflectioninspectorget_col
-        """  # noqa
+        """  # noqa: E501
         # log.debug(repr(sqla_info_dict))
         self.name = sqla_info_dict["name"]  # type: str
         self.type = sqla_info_dict["type"]  # type: TypeEngine
         self.nullable = sqla_info_dict["nullable"]  # type: bool
         self.default = sqla_info_dict[
             "default"
-        ]  # type: str  # SQL string expression
+        ]  # type: Optional[str]  # SQL string expression
         self.attrs = sqla_info_dict.get("attrs", {})  # type: Dict[str, Any]
         self.comment = sqla_info_dict.get("comment", "")
         # ... NB not appearing in
@@ -154,7 +152,7 @@ def gen_columns_info(
     :class:`SqlaColumnInspectionInfo` objects.
     """
     # Dictionary structure: see
-    # http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns  # noqa
+    # http://docs.sqlalchemy.org/en/latest/core/reflection.html#sqlalchemy.engine.reflection.Inspector.get_columns  # noqa: E501
     insp = inspect(engine)
     for d in insp.get_columns(tablename):
         yield SqlaColumnInspectionInfo(d)
@@ -236,6 +234,35 @@ def get_single_int_pk_colname(table_: Table) -> Optional[str]:
     return None
 
 
+def is_int_autoincrement_column(c: Column, t: Table) -> bool:
+    """
+    Is this an integer AUTOINCREMENT column? Used by
+    get_single_int_autoincrement_colname(); q.v.
+    """
+    # https://docs.sqlalchemy.org/en/20/core/metadata.html#sqlalchemy.schema.Column.params.autoincrement  # noqa: E501
+    # "The setting only has an effect for columns which are:
+    # - Integer derived (i.e. INT, SMALLINT, BIGINT).
+    # - Part of the primary key
+    # - Not referring to another column via ForeignKey, unless the value is
+    #   specified as 'ignore_fk':"
+    if not c.primary_key or not is_sqlatype_integer(c.type):
+        return False
+    a = c.autoincrement
+    if isinstance(a, bool):
+        # Specified as True or False.
+        return a
+    if a == "auto":
+        # "indicates that a single-column (i.e. non-composite) primary key that
+        # is of an INTEGER type with no other client-side or server-side
+        # default constructs indicated should receive auto increment semantics
+        # automatically." Therefore:
+        n_pk = sum(x.primary_key for x in t.columns)
+        return n_pk == 1 and c.default is None
+    if c.foreign_keys:
+        return a == "ignore_fk"
+    return False
+
+
 def get_single_int_autoincrement_colname(table_: Table) -> Optional[str]:
     """
     If a table has a single integer ``AUTOINCREMENT`` column, this will
@@ -267,19 +294,19 @@ def get_single_int_autoincrement_colname(table_: Table) -> Optional[str]:
       ... which is what SQLAlchemy does (``dialects/mssql/base.py``, in
       :func:`get_columns`).
     """
-    n_autoinc = 0
-    int_autoinc_names = []
+    int_autoinc_names = []  # type: List[str]
     for col in table_.columns:
-        if col.autoincrement:
-            n_autoinc += 1
-            if is_sqlatype_integer(col.type):
-                int_autoinc_names.append(col.name)
+        if is_int_autoincrement_column(col, table_):
+            int_autoinc_names.append(col.name)
+    n_autoinc = len(int_autoinc_names)
+    if n_autoinc == 1:
+        return int_autoinc_names[0]
     if n_autoinc > 1:
         log.warning(
-            "Table {!r} has {} autoincrement columns", table_.name, n_autoinc
+            "Table {!r} has {} integer autoincrement columns",
+            table_.name,
+            n_autoinc,
         )
-    if n_autoinc == 1 and len(int_autoinc_names) == 1:
-        return int_autoinc_names[0]
     return None
 
 
@@ -316,10 +343,10 @@ def mssql_get_pk_index_name(
     for the specified table (in the specified schema), or ``''`` if none is
     found.
     """
-    # http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.Connection.execute  # noqa
-    # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html#sqlalchemy.sql.expression.text  # noqa
-    # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html#sqlalchemy.sql.expression.TextClause.bindparams  # noqa
-    # http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.CursorResult  # noqa
+    # http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.Connection.execute  # noqa: E501
+    # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html#sqlalchemy.sql.expression.text  # noqa: E501
+    # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html#sqlalchemy.sql.expression.TextClause.bindparams  # noqa: E501
+    # http://docs.sqlalchemy.org/en/latest/core/connections.html#sqlalchemy.engine.CursorResult  # noqa: E501
     query = text(
         """
 SELECT
@@ -332,10 +359,10 @@ WHERE
     kc.[type] = 'PK'
     AND ta.name = :tablename
     AND s.name = :schemaname
-    """
+        """
     ).bindparams(tablename=tablename, schemaname=schemaname)
-    with contextlib.closing(engine.execute(query)) as result:
-        result: CursorResult
+    with engine.begin() as connection:
+        result = connection.execute(query)
         row = result.fetchone()
         return row[0] if row else ""
 
@@ -359,11 +386,10 @@ FROM
 WHERE
     ta.name = :tablename
     AND s.name = :schemaname
-    """
+        """
     ).bindparams(tablename=tablename, schemaname=schemaname)
-    with contextlib.closing(
-        engine.execute(query)
-    ) as result:  # type: CursorResult
+    with engine.begin() as connection:
+        result = connection.execute(query)
         row = result.fetchone()
         return row[0] > 0
 
@@ -375,12 +401,17 @@ def mssql_transaction_count(engine_or_conn: Union[Connection, Engine]) -> int:
     https://docs.microsoft.com/en-us/sql/t-sql/functions/trancount-transact-sql?view=sql-server-2017).
     Returns ``None`` if it can't be found (unlikely?).
     """
-    sql = "SELECT @@TRANCOUNT"
-    with contextlib.closing(
-        engine_or_conn.execute(sql)
-    ) as result:  # type: CursorResult
+    query = text("SELECT @@TRANCOUNT")
+    if isinstance(engine_or_conn, Connection):
+        result = engine_or_conn.execute(query)
         row = result.fetchone()
-        return row[0] if row else None
+    elif isinstance(engine_or_conn, Engine):
+        with engine_or_conn.begin() as connection:
+            result = connection.execute(query)
+            row = result.fetchone()
+    else:
+        raise ValueError(f"Unexpected {engine_or_conn=}")
+    return row[0] if row else None
 
 
 def add_index(
@@ -416,7 +447,7 @@ def add_index(
     """
     # We used to process a table as a unit; this makes index creation faster
     # (using ALTER TABLE).
-    # http://dev.mysql.com/doc/innodb/1.1/en/innodb-create-index-examples.html  # noqa
+    # http://dev.mysql.com/doc/innodb/1.1/en/innodb-create-index-examples.html  # noqa: E501
     # ... ignored in transition to SQLAlchemy
 
     def quote(identifier: str) -> str:
@@ -424,6 +455,7 @@ def add_index(
 
     is_mssql = engine.dialect.name == SqlaDialectName.MSSQL
     is_mysql = engine.dialect.name == SqlaDialectName.MYSQL
+    is_sqlite = engine.dialect.name == SqlaDialectName.SQLITE
 
     multiple_sqla_columns = multiple_sqla_columns or []  # type: List[Column]
     if multiple_sqla_columns and not (fulltext and is_mssql):
@@ -458,6 +490,9 @@ def add_index(
             idxname = "_idxft_{}".format("_".join(colnames))
     else:
         idxname = "_idx_{}".format("_".join(colnames))
+    if is_sqlite:
+        # SQLite doesn't allow indexes with the same names on different tables.
+        idxname = f"{tablename}_{idxname}"
     if idxname and index_exists(engine, tablename, idxname):
         log.info(
             f"Skipping creation of index {idxname} on "
@@ -571,36 +606,41 @@ def add_index(
 # More DDL
 # =============================================================================
 
+# https://stackoverflow.com/questions/18835740/does-bigint-auto-increment-work-for-sqlalchemy-with-sqlite  # noqa: E501
+
+BigIntegerForAutoincrementType = BigInteger()
+BigIntegerForAutoincrementType = BigIntegerForAutoincrementType.with_variant(
+    postgresql.BIGINT(), SqlaDialectName.POSTGRES
+)
+BigIntegerForAutoincrementType = BigIntegerForAutoincrementType.with_variant(
+    mssql.BIGINT(), SqlaDialectName.MSSQL
+)
+BigIntegerForAutoincrementType = BigIntegerForAutoincrementType.with_variant(
+    mysql.BIGINT(), SqlaDialectName.MYSQL
+)
+BigIntegerForAutoincrementType = BigIntegerForAutoincrementType.with_variant(
+    sqlite.INTEGER(), SqlaDialectName.SQLITE
+)
+
 
 def make_bigint_autoincrement_column(
-    column_name: str, dialect: Dialect, nullable=False
+    column_name: str, nullable: bool = False, comment: str = None
 ) -> Column:
     """
     Returns an instance of :class:`Column` representing a :class:`BigInteger`
-    ``AUTOINCREMENT`` column in the specified :class:`Dialect`.
+    ``AUTOINCREMENT`` column, or the closest that the database engine can
+    manage.
     """
-
-    # https://docs.sqlalchemy.org/en/14/core/metadata.html#sqlalchemy.schema.Column.params.nullable  # noqa: E501
-    # Different behaviour of nullable flag observed to the documentation. See
-    # sqlalchemy/tests/schema_tests.py.
-
-    # noinspection PyUnresolvedReferences
-    if dialect.name == SqlaDialectName.MSSQL:
-        return Column(
-            column_name,
-            BigInteger,
-            Identity(start=1, increment=1),
-            nullable=nullable,
-            autoincrement=True,
-        )
-    else:
-        # return Column(column_name, BigInteger, autoincrement=True)
-        # noinspection PyUnresolvedReferences
-        raise AssertionError(
-            f"SQLAlchemy doesn't support non-PK autoincrement fields yet for "
-            f"dialect {dialect.name!r}"
-        )
-        # see https://stackoverflow.com/questions/2937229
+    return Column(
+        column_name,
+        BigIntegerForAutoincrementType,
+        Identity(start=1, increment=1),
+        # https://docs.sqlalchemy.org/en/20/core/defaults.html#identity-ddl
+        autoincrement=True,
+        nullable=nullable,
+        comment=comment,
+    )
+    # see also: https://stackoverflow.com/questions/2937229
 
 
 def column_creation_ddl(sqla_column: Column, dialect: Dialect) -> str:
@@ -608,35 +648,13 @@ def column_creation_ddl(sqla_column: Column, dialect: Dialect) -> str:
     Returns DDL to create a column, using the specified dialect.
 
     The column should already be bound to a table (because e.g. the SQL Server
-    dialect requires this for DDL generation).
+    dialect requires this for DDL generation). If you don't append the column
+    to a Table object, the DDL generation step gives
+    "sqlalchemy.exc.CompileError: mssql requires Table-bound columns in order
+    to generate DDL".
 
-    Manual testing:
-
-    .. code-block:: python
-
-        from sqlalchemy.schema import Column, CreateColumn, MetaData, Sequence, Table
-        from sqlalchemy.sql.sqltypes import BigInteger
-        from sqlalchemy.dialects.mssql.base import MSDialect
-        dialect = MSDialect()
-        col1 = Column('hello', BigInteger, nullable=True)
-        col2 = Column('world', BigInteger, autoincrement=True)  # does NOT generate IDENTITY
-        col3 = Column('you', BigInteger, Sequence('dummy_name', start=1, increment=1))
-        metadata = MetaData()
-        t = Table('mytable', metadata)
-        t.append_column(col1)
-        t.append_column(col2)
-        t.append_column(col3)
-        print(str(CreateColumn(col1).compile(dialect=dialect)))  # hello BIGINT NULL
-        print(str(CreateColumn(col2).compile(dialect=dialect)))  # world BIGINT NULL
-        print(str(CreateColumn(col3).compile(dialect=dialect)))  # you BIGINT NOT NULL IDENTITY(1,1)
-
-    If you don't append the column to a Table object, the DDL generation step
-    gives:
-
-    .. code-block:: none
-
-        sqlalchemy.exc.CompileError: mssql requires Table-bound columns in order to generate DDL
-    """  # noqa
+    Testing: see schema_tests.py
+    """
     return str(CreateColumn(sqla_column).compile(dialect=dialect))
 
 
@@ -652,12 +670,24 @@ def giant_text_sqltype(dialect: Dialect) -> str:
         the SQL data type of "giant text", typically 'LONGTEXT' for MySQL
         and 'NVARCHAR(MAX)' for SQL Server.
     """
-    if dialect.name == SqlaDialectName.SQLSERVER:
+    dname = dialect.name
+    if dname == SqlaDialectName.MSSQL:
         return "NVARCHAR(MAX)"
-    elif dialect.name == SqlaDialectName.MYSQL:
+        # https://learn.microsoft.com/en-us/sql/t-sql/data-types/nchar-and-nvarchar-transact-sql?view=sql-server-ver16  # noqa: E501
+    elif dname == SqlaDialectName.MYSQL:
         return "LONGTEXT"
+        # https://dev.mysql.com/doc/refman/8.4/en/blob.html
+    elif dname == SqlaDialectName.ORACLE:
+        return "LONG"
+        # https://docs.oracle.com/cd/A58617_01/server.804/a58241/ch5.htm
+    elif dname == SqlaDialectName.POSTGRES:
+        return "TEXT"
+        # https://www.postgresql.org/docs/current/datatype-character.html
+    elif dname == SqlaDialectName.SQLITE:
+        return "TEXT"
+        # https://www.sqlite.org/datatype3.html
     else:
-        raise ValueError(f"Unknown dialect: {dialect.name}")
+        raise ValueError(f"Unknown dialect: {dname}")
 
 
 # =============================================================================
@@ -979,11 +1009,11 @@ def convert_sqla_type_for_dialect(
     if is_mssql_timestamp and to_mssql and convert_mssql_timestamp:
         # You cannot write explicitly to a TIMESTAMP field in SQL Server; it's
         # used for autogenerated values only.
-        # - https://stackoverflow.com/questions/10262426/sql-server-cannot-insert-an-explicit-value-into-a-timestamp-column  # noqa
-        # - https://social.msdn.microsoft.com/Forums/sqlserver/en-US/5167204b-ef32-4662-8e01-00c9f0f362c2/how-to-tranfer-a-column-with-timestamp-datatype?forum=transactsql  # noqa
+        # - https://stackoverflow.com/questions/10262426/sql-server-cannot-insert-an-explicit-value-into-a-timestamp-column  # noqa: E501
+        # - https://social.msdn.microsoft.com/Forums/sqlserver/en-US/5167204b-ef32-4662-8e01-00c9f0f362c2/how-to-tranfer-a-column-with-timestamp-datatype?forum=transactsql  # noqa: E501
         #   ... suggesting BINARY(8) to store the value.
         # MySQL is more helpful:
-        # - https://stackoverflow.com/questions/409286/should-i-use-field-datetime-or-timestamp  # noqa
+        # - https://stackoverflow.com/questions/409286/should-i-use-field-datetime-or-timestamp  # noqa: E501
         return mssql.base.BINARY(8)
 
     # -------------------------------------------------------------------------
@@ -1062,6 +1092,8 @@ def is_sqlatype_numeric(coltype: Union[TypeEngine, VisitableType]) -> bool:
     """
     Is the SQLAlchemy column type one that inherits from :class:`Numeric`,
     such as :class:`Float`, :class:`Decimal`?
+
+    Note that integers don't count as Numeric!
     """
     coltype = _coltype_to_typeengine(coltype)
     return isinstance(coltype, sqltypes.Numeric)  # includes Float, Decimal
@@ -1098,7 +1130,6 @@ def is_sqlatype_text_over_one_char(
     Is the SQLAlchemy column type a string type that's more than one character
     long?
     """
-    coltype = _coltype_to_typeengine(coltype)
     return is_sqlatype_text_of_length_at_least(coltype, 2)
 
 
@@ -1110,7 +1141,6 @@ def does_sqlatype_merit_fulltext_index(
     Is the SQLAlchemy column type a type that might merit a ``FULLTEXT``
     index (meaning a string type of at least ``min_length``)?
     """
-    coltype = _coltype_to_typeengine(coltype)
     return is_sqlatype_text_of_length_at_least(coltype, min_length)
 
 
@@ -1134,30 +1164,10 @@ def does_sqlatype_require_index_len(
 
 
 # =============================================================================
-# Hack in new type
+# hack_in_mssql_xml_type:
+#
+# Removed, as mssql.base.ischema_names["xml"] is now defined.
 # =============================================================================
-
-
-def hack_in_mssql_xml_type():
-    r"""
-    Modifies SQLAlchemy's type map for Microsoft SQL Server to support XML.
-
-    SQLAlchemy does not support the XML type in SQL Server (mssql).
-    Upon reflection, we get:
-
-    .. code-block:: none
-
-       sqlalchemy\dialects\mssql\base.py:1921: SAWarning: Did not recognize type 'xml' of column '...'
-
-    We will convert anything of type ``XML`` into type ``TEXT``.
-
-    """  # noqa
-    log.debug("Adding type 'xml' to SQLAlchemy reflection for dialect 'mssql'")
-    mssql.base.ischema_names["xml"] = mssql.base.TEXT
-    # https://stackoverflow.com/questions/32917867/sqlalchemy-making-schema-reflection-find-use-a-custom-type-for-all-instances  # noqa
-
-    # print(repr(mssql.base.ischema_names.keys()))
-    # print(repr(mssql.base.ischema_names))
 
 
 # =============================================================================
@@ -1173,7 +1183,7 @@ def column_types_equal(a_coltype: TypeEngine, b_coltype: TypeEngine) -> bool:
     See https://stackoverflow.com/questions/34787794/sqlalchemy-column-type-comparison.
 
     IMPERFECT.
-    """  # noqa
+    """  # noqa: E501
     return str(a_coltype) == str(b_coltype)
 
 

@@ -72,8 +72,12 @@ class MergeTestMixin(object):
     def setUp(self) -> None:
         super().setUp()
 
-        self.src_engine = create_engine(SQLITE_MEMORY_URL)  # type: Engine
-        self.dst_engine = create_engine(SQLITE_MEMORY_URL)  # type: Engine
+        self.src_engine = create_engine(
+            SQLITE_MEMORY_URL, future=True
+        )  # type: Engine
+        self.dst_engine = create_engine(
+            SQLITE_MEMORY_URL, future=True
+        )  # type: Engine
         self.src_session = sessionmaker(
             bind=self.src_engine
         )()  # type: Session

@@ -353,7 +353,7 @@ def shutil_rmtree_onerror(
 
     See
     https://stackoverflow.com/questions/2656322/shutil-rmtree-fails-on-windows-with-access-is-denied
-    """  # noqa
+    """  # noqa: E501
     if not os.access(path, os.W_OK):
         # Is the error an access error ?
         os.chmod(path, stat.S_IWUSR)
@@ -539,7 +539,7 @@ def get_directory_contents_size(directory: str = ".") -> int:
 
     Returns:
         int: size in bytes
-    """  # noqa
+    """  # noqa: E501
     total_size = 0
     for dirpath, dirnames, filenames in os.walk(directory):
         for f in filenames:

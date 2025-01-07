@@ -115,7 +115,7 @@ def normal_round_float(x: float, dp: int = 0) -> float:
 
     Note that round() implements "banker's rounding", which is never what
     we want:
-    - https://stackoverflow.com/questions/33019698/how-to-properly-round-up-half-float-numbers-in-python  # noqa
+    - https://stackoverflow.com/questions/33019698/how-to-properly-round-up-half-float-numbers-in-python  # noqa: E501
     """
     if not math.isfinite(x):
         return x

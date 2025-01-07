@@ -71,7 +71,7 @@ def clang_format(
     # you can specify "-style=PATH_TO_CONFIG", but no; you have to use
     # "-style=file" literally, and have the config file correctly named in the
     # current directory.
-    # https://stackoverflow.com/questions/46373858/how-do-i-specify-a-clang-format-file  # noqa
+    # https://stackoverflow.com/questions/46373858/how-do-i-specify-a-clang-format-file  # noqa: E501
     fixed_config_filename = ".clang-format"
     fixed_config_path = os.path.join(dir, fixed_config_filename)
 

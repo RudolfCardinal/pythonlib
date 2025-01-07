@@ -135,7 +135,7 @@ def django_cache_function(
         def wrapper(*args, **kwargs):
             # - NOTE that Django returns None from cache.get() for "not in
             #   cache", so can't cache a None value;
-            #   https://docs.djangoproject.com/en/1.10/topics/cache/#basic-usage  # noqa
+            #   https://docs.djangoproject.com/en/1.10/topics/cache/#basic-usage  # noqa: E501
             # - We need to store a bit more than just the function result
             #   anyway, to detect hash collisions when the user doesn't specify
             #   the cache_key, so we may as well use that format even if the

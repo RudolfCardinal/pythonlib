@@ -113,7 +113,7 @@ def make_table_args(*args, **kwargs) -> Tuple[Any]:
 # noinspection PyUnusedLocal
 @listens_for(Session, "before_flush")
 def before_flush(session: Session, flush_context, instances) -> None:
-    # https://docs.sqlalchemy.org/en/14/orm/events.html#sqlalchemy.orm.SessionEvents.before_flush  # noqa
+    # https://docs.sqlalchemy.org/en/14/orm/events.html#sqlalchemy.orm.SessionEvents.before_flush  # noqa: E501
     for instance in session.dirty:
         if not isinstance(instance, Config):
             continue
@@ -136,7 +136,7 @@ class Config(Base):
 
     - https://docs.sqlalchemy.org/en/14/_modules/examples/versioned_rows/versioned_rows.html
     - https://docs.sqlalchemy.org/en/14/orm/examples.html#module-examples.versioned_rows
-    """  # noqa
+    """  # noqa: E501
 
     __tablename__ = "config"
     __table_args__ = make_table_args(comment="Stores configuration records.")
@@ -148,9 +148,9 @@ class Config(Base):
     config_id = Column(
         Integer,
         # ... may not be supported by all databases; see
-        # https://docs.sqlalchemy.org/en/14/core/constraints.html#check-constraint  # noqa
+        # https://docs.sqlalchemy.org/en/14/core/constraints.html#check-constraint  # noqa: E501
         # ... though MySQL has recently added this:
-        # https://dev.mysql.com/doc/refman/8.0/en/create-table-check-constraints.html  # noqa
+        # https://dev.mysql.com/doc/refman/8.0/en/create-table-check-constraints.html  # noqa: E501
         primary_key=True,
         autoincrement=True,
         comment="Primary key.",
@@ -457,7 +457,7 @@ class Job(Base):
             .where(
                 and_(
                     SendAttempt.job_id == Job.job_id,
-                    SendAttempt.success == True,  # noqa
+                    SendAttempt.success == True,  # noqa: E712
                 )
             )
         )
@@ -474,7 +474,7 @@ class Job(Base):
         query = (
             CountStarSpecializedQuery([Job], session=session)
             .join(SendAttempt)
-            .filter(SendAttempt.success == True)  # noqa
+            .filter(SendAttempt.success == True)  # noqa: E712
         )
         return query.count_star()
 

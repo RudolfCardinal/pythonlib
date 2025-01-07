@@ -34,7 +34,7 @@ Example:
     cardinalpythonlib_convert_athena_ohdsi_codes 175898006 118677009 265764009 --src_vocabulary SNOMED --descendants --dest_vocabulary OPCS4 > renal_procedures_opcs4.txt
     # ... kidney operation, procedure on urinary system, renal dialysis
 
-"""  # noqa
+"""  # noqa: E501
 
 import argparse
 import logging

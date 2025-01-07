@@ -122,7 +122,7 @@ e.g.:
     print(repr(x))
     print(repr(x2))
 
-"""  # noqa
+"""  # noqa: E501
 
 # noinspection PyUnresolvedReferences
 from django.core.exceptions import ValidationError

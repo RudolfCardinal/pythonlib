@@ -138,7 +138,7 @@ def extract_year_default(
 def extract_year_year(
     element: "ClauseElement", compiler: "SQLCompiler", **kw
 ) -> str:
-    # https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_year  # noqa
+    # https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_year  # noqa: E501
     # https://docs.microsoft.com/en-us/sql/t-sql/functions/year-transact-sql
     clause = fetch_processed_single_clause(element, compiler)
     return f"YEAR({clause})"

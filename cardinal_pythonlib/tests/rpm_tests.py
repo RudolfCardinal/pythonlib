@@ -162,7 +162,7 @@ class TestRpm(unittest.TestCase):
                         seen.add(forwards)
                         successes = [success_this, success_other]
                         failures = [failure_this, failure_other]
-                        p_fast_this = rpm_probabilities_successes_failures_twochoice_fast(  # noqa
+                        p_fast_this = rpm_probabilities_successes_failures_twochoice_fast(  # noqa: E501
                             success_this,
                             failure_this,
                             success_other,

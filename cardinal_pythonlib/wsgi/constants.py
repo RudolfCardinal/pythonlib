@@ -119,10 +119,10 @@ class WsgiEnvVar(object):
     #     optional); https://wsgi.readthedocs.io/en/latest/definitions.html
     # [3] Also standard WSGI, but not CGI; must always be present.
     # [4] From non-standard but common HTTP request fields;
-    #     https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Common_non-standard_request_fields  # noqa
-    #     https://github.com/omnigroup/Apache/blob/master/httpd/modules/proxy/mod_proxy_http.c  # noqa
+    #     https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Common_non-standard_request_fields  # noqa: E501
+    #     https://github.com/omnigroup/Apache/blob/master/httpd/modules/proxy/mod_proxy_http.c  # noqa: E501
     # [5] Non-standard; Nginx-specific? Nonetheless, all "HTTP_" variables in
     #     WSGI should follow the HTTP request headers.
     # [6] Protocols (i.e. http versus https):
-    #     https://stackoverflow.com/questions/16042647/whats-the-de-facto-standard-for-a-reverse-proxy-to-tell-the-backend-ssl-is-used  # noqa
-    # [7] https://modwsgi.readthedocs.io/en/develop/release-notes/version-4.4.9.html  # noqa
+    #     https://stackoverflow.com/questions/16042647/whats-the-de-facto-standard-for-a-reverse-proxy-to-tell-the-backend-ssl-is-used  # noqa: E501
+    # [7] https://modwsgi.readthedocs.io/en/develop/release-notes/version-4.4.9.html  # noqa: E501

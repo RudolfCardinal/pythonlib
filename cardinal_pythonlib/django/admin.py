@@ -41,7 +41,7 @@ from django.urls import reverse
 # =============================================================================
 # Disable boolean icons for a ModelAdmin field
 # =============================================================================
-# https://stackoverflow.com/questions/13990846/disable-on-off-icon-for-boolean-field-in-django  # noqa
+# https://stackoverflow.com/questions/13990846/disable-on-off-icon-for-boolean-field-in-django  # noqa: E501
 # ... extended to use closures
 
 
@@ -114,7 +114,7 @@ def admin_view_fk_link(
     app_name = linked_obj._meta.app_label.lower()
     model_name = linked_obj._meta.object_name.lower()
     viewname = f"admin:{app_name}_{model_name}_{view_type}"
-    # https://docs.djangoproject.com/en/dev/ref/contrib/admin/#reversing-admin-urls  # noqa
+    # https://docs.djangoproject.com/en/dev/ref/contrib/admin/#reversing-admin-urls  # noqa: E501
     if current_app is None:
         current_app = modeladmin.admin_site.name
         # ... plus a bit of home-grown magic; see Django source

@@ -64,7 +64,7 @@ def is_sqlserver(engine: "Engine") -> bool:
     return dialect_name == SqlaDialectName.SQLSERVER
 
 
-def get_sqlserver_product_version(engine: "Engine") -> Tuple[int]:
+def get_sqlserver_product_version(engine: "Engine") -> Tuple[int, ...]:
     """
     Gets SQL Server version information.
 
@@ -75,7 +75,7 @@ def get_sqlserver_product_version(engine: "Engine") -> Tuple[int]:
         from sqlalchemy import create_engine
 
         url = "mssql+pyodbc://USER:PASSWORD@ODBC_NAME"
-        engine = create_engine(url)
+        engine = create_engine(url, future=True)
         dialect = engine.dialect
         vi = dialect.server_version_info
 
@@ -110,7 +110,7 @@ def get_sqlserver_product_version(engine: "Engine") -> Tuple[int]:
     return tuple(int(x) for x in dotted_version.split("."))
 
 
-# https://www.mssqltips.com/sqlservertip/1140/how-to-tell-what-sql-server-version-you-are-running/  # noqa
+# https://www.mssqltips.com/sqlservertip/1140/how-to-tell-what-sql-server-version-you-are-running/  # noqa: E501
 SQLSERVER_MAJOR_VERSION_2000 = 8
 SQLSERVER_MAJOR_VERSION_2005 = 9
 SQLSERVER_MAJOR_VERSION_2008 = 10

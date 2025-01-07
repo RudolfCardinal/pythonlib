@@ -24,6 +24,9 @@
 
 **Add "INSERT ON DUPLICATE KEY UPDATE" functionality to SQLAlchemy for MySQL.**
 
+OLD VERSION (before SQLAlchemy 1.4/future=True or SQLAlchemy 2.0):
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - https://www.reddit.com/r/Python/comments/p5grh/sqlalchemy_whats_the_idiomatic_way_of_writing/
 - https://github.com/bedwards/sqlalchemy_mysql_ext/blob/master/duplicate.py
   ... modified
@@ -38,159 +41,119 @@ Once implemented, you can do
     q = sqla_table.insert_on_duplicate().values(destvalues)
     session.execute(q)
 
-**Note: superseded by SQLAlchemy v1.2:**
+**Then: this partly superseded by SQLAlchemy v1.2:**
 
 - https://docs.sqlalchemy.org/en/latest/changelog/migration_12.html
 - https://docs.sqlalchemy.org/en/latest/dialects/mysql.html#mysql-insert-on-duplicate-key-update
 
-"""  # noqa
 
-import re
-from typing import Any
+FOR SQLAlchemy 1.4/future=True OR SQLAlchemy 2.0:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.sql.compiler import SQLCompiler
-from sqlalchemy.sql.expression import Insert, TableClause
+New function: insert_with_upsert_if_supported().
 
-from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+"""  # noqa: E501
+
+# =============================================================================
+# Imports
+# =============================================================================
+
+import logging
+from typing import Dict
+
+from cardinal_pythonlib.sqlalchemy.dialect import get_dialect_name
+from sqlalchemy.dialects.mysql import insert as insert_mysql
+from sqlalchemy.engine.interfaces import Dialect
+from sqlalchemy.schema import Table
+from sqlalchemy.orm.session import Session
+from sqlalchemy.sql.expression import Insert
+
 from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
 
-log = get_brace_style_log_with_null_handler(__name__)
+log = logging.getLogger(__name__)
 
 
-# noinspection PyAbstractClass
-class InsertOnDuplicate(Insert):
+# =============================================================================
+# insert_with_upsert_if_supported
+# =============================================================================
+
+
+def insert_with_upsert_if_supported(
+    table: Table,
+    values: Dict,
+    session: Session = None,
+    dialect: Dialect = None,
+) -> Insert:
     """
-    Class that derives from :class:`Insert`, so we can hook in to operations
-    involving it.
-    """
-
-    pass
-
-
-def insert_on_duplicate(
-    tablename: str, values: Any = None, inline: bool = False, **kwargs
-):
-    """
-    Command to produce an :class:`InsertOnDuplicate` object.
+    Creates an "upsert" (INSERT ... ON DUPLICATE KEY UPDATE) statment if
+    possible (e.g. MySQL/MariaDB). Failing that, returns an INSERT statement.
 
     Args:
-        tablename: name of the table
-        values: values to ``INSERT``
-        inline: as per
-            https://docs.sqlalchemy.org/en/latest/core/dml.html#sqlalchemy.sql.expression.insert
-        kwargs: additional parameters
+        table:
+            SQLAlchemy Table in which to insert values.
+        values:
+            Values to insert (column: value dictionary).
+        session:
+            Session from which to extract a dialect.
+        dialect:
+            Explicit dialect.
 
-    Returns:
-        an :class:`InsertOnDuplicate` object
+    Previously (prior to 2025-01-05 and prior to SQLAlchemy 2), we did this:
 
-    """  # noqa
-    return InsertOnDuplicate(tablename, values, inline=inline, **kwargs)
+    .. code-block:: python
 
+        q = sqla_table.insert_on_duplicate().values(destvalues)
 
-# noinspection PyPep8Naming
-def monkeypatch_TableClause() -> None:
+    This "insert_on_duplicate" member was available because
+    crate_anon/anonymise/config.py ran monkeypatch_TableClause(), from
+    cardinal_pythonlib.sqlalchemy.insert_on_duplicate. The function did dialect
+    detection via "@compiles(InsertOnDuplicate, SqlaDialectName.MYSQL)". But
+    it did nasty text-based hacking to get the column names.
+
+    However, SQLAlchemy now supports "upsert" for MySQL:
+    https://docs.sqlalchemy.org/en/20/dialects/mysql.html#insert-on-duplicate-key-update-upsert
+
+    Note the varying argument forms possible.
+
+    The only other question: if the dialect is not MySQL, will the reference to
+    insert_stmt.on_duplicate_key_update crash or just not do anything? To test:
+
+    .. code-block:: python
+
+        from sqlalchemy import table
+        t = table("tablename")
+        destvalues = {"a": 1}
+
+        insert_stmt = t.insert().values(destvalues)
+        on_dup_key_stmt = insert_stmt.on_duplicate_key_update(destvalues)
+
+    This does indeed crash (AttributeError: 'Insert' object has no attribute
+    'on_duplicate_key_update'). In contrast, this works:
+
+    .. code-block:: python
+
+        from sqlalchemy.dialects.mysql import insert as insert_mysql
+
+        insert2 = insert_mysql(t).values(destvalues)
+        on_dup_key2 = insert2.on_duplicate_key_update(destvalues)
+
+    Note also that an insert() statement doesn't gain a
+    "on_duplicate_key_update" attribute just because MySQL is used (the insert
+    statement doesn't know that yet).
+
+    The old way was good for dialect detection but ugly for textual analysis of
+    the query. The new way is more elegant in the query, but less for dialect
+    detection. Overall, new way likely preferable.
+
     """
-    Modifies :class:`sqlalchemy.sql.expression.TableClause` to insert
-    a ``insert_on_duplicate`` member that is our :func:`insert_on_duplicate`
-    function as above.
-    """
-    log.debug(
-        "Adding 'INSERT ON DUPLICATE KEY UPDATE' support for MySQL "
-        "to SQLAlchemy"
-    )
-    TableClause.insert_on_duplicate = insert_on_duplicate
-
-
-# noinspection PyPep8Naming
-def unmonkeypatch_TableClause() -> None:
-    """
-    Reverses the action of :func:`monkeypatch_TableClause`.
-    """
-    del TableClause.insert_on_duplicate
-
-
-STARTSEPS = "`"
-ENDSEPS = "`"
-INSERT_FIELDNAMES_REGEX = (
-    r"^INSERT\sINTO\s[{startseps}]?(?P<table>\w+)[{endseps}]?\s+"
-    r"\((?P<columns>[, {startseps}{endseps}\w]+)\)\s+VALUES".format(
-        startseps=STARTSEPS, endseps=ENDSEPS
-    )
-)
-# http://pythex.org/ !
-RE_INSERT_FIELDNAMES = re.compile(INSERT_FIELDNAMES_REGEX)
-
-
-@compiles(InsertOnDuplicate, SqlaDialectName.MYSQL)
-def compile_insert_on_duplicate_key_update(
-    insert: Insert, compiler: SQLCompiler, **kw
-) -> str:
-    """
-    Hooks into the use of the :class:`InsertOnDuplicate` class
-    for the MySQL dialect. Compiles the relevant SQL for an ``INSERT...
-    ON DUPLICATE KEY UPDATE`` statement.
-
-    Notes:
-
-    - We can't get the fieldnames directly from ``insert`` or ``compiler``.
-    - We could rewrite the innards of the visit_insert statement
-      (https://github.com/bedwards/sqlalchemy_mysql_ext/blob/master/duplicate.py)...
-      but, like that, it will get outdated.
-    - We could use a hack-in-by-hand method
-      (https://stackoverflow.com/questions/6611563/sqlalchemy-on-duplicate-key-update)
-      ... but a little automation would be nice.
-    - So, regex to the rescue.
-    - NOTE THAT COLUMNS ARE ALREADY QUOTED by this stage; no need to repeat.
-    """  # noqa
-    # log.critical(compiler.__dict__)
-    # log.critical(compiler.dialect.__dict__)
-    # log.critical(insert.__dict__)
-    s = compiler.visit_insert(insert, **kw)
-    # log.critical(s)
-    m = RE_INSERT_FIELDNAMES.match(s)
-    if m is None:
-        raise ValueError("compile_insert_on_duplicate_key_update: no match")
-    columns = [c.strip() for c in m.group("columns").split(",")]
-    # log.critical(columns)
-    updates = ", ".join([f"{c} = VALUES({c})" for c in columns])
-    s += f" ON DUPLICATE KEY UPDATE {updates}"
-    # log.critical(s)
-    return s
-
-
-_TEST_CODE = """
-
-from sqlalchemy import Column, String, Integer, create_engine
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
-
-
-class OrmObject(Base):
-    __tablename__ = "sometable"
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-
-
-engine = create_engine("sqlite://", echo=True)
-Base.metadata.create_all(engine)
-
-session = Session(engine)
-
-d1 = dict(id=1, name="One")
-d2 = dict(id=2, name="Two")
-
-insert_1 = OrmObject.__table__.insert(values=d1)
-insert_2 = OrmObject.__table__.insert(values=d2)
-session.execute(insert_1)
-session.execute(insert_2)
-session.execute(insert_1)  # raises sqlalchemy.exc.IntegrityError
-
-
-# ... recommended cross-platform way is SELECT then INSERT or UPDATE
-# accordingly; see
-# https://groups.google.com/forum/#!topic/sqlalchemy/aQLqeHmLPQY
-
-"""
+    if bool(session) + bool(dialect) != 1:
+        raise ValueError(
+            f"Must specify exactly one of: {session=}, {dialect=}"
+        )
+    dialect_name = get_dialect_name(dialect or session)
+    if dialect_name == SqlaDialectName.MYSQL:
+        return (
+            insert_mysql(table).values(values).on_duplicate_key_update(values)
+        )
+    else:
+        return table.insert().values(values)

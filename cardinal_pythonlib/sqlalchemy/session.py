@@ -120,5 +120,5 @@ def get_safe_url_from_url(url: str) -> str:
     """
     Converts an SQLAlchemy URL into a safe version that obscures the password.
     """
-    engine = create_engine(url)
+    engine = create_engine(url, future=True)
     return get_safe_url_from_engine(engine)

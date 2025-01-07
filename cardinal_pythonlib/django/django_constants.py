@@ -36,11 +36,11 @@ class ConnectionVendors(object):
     ORACLE = "oracle"  # built in; [1]
     POSTGRESQL = "postgresql"  # built in; [1]
     SQLITE = "sqlite"  # built in; [1]
-    # [1] https://docs.djangoproject.com/en/1.10/howto/custom-lookups/#writing-alternative-implementations-for-existing-lookups  # noqa
+    # [1] https://docs.djangoproject.com/en/1.10/howto/custom-lookups/#writing-alternative-implementations-for-existing-lookups  # noqa: E501
 
     # I think this is HYPOTHETICAL: SQLSERVER = 'sqlserver'  # [2]
     # [2] https://docs.djangoproject.com/en/1.11/ref/models/expressions/
 
     MICROSOFT = "microsoft"  # [3]
     # [3] "pip install django-mssql" = sqlserver_ado;
-    #     https://bitbucket.org/Manfre/django-mssql/src/d44721ba17acf95da89f06bd7270dabc1cd33deb/sqlserver_ado/base.py?at=master&fileviewer=file-view-default  # noqa
+    #     https://bitbucket.org/Manfre/django-mssql/src/d44721ba17acf95da89f06bd7270dabc1cd33deb/sqlserver_ado/base.py?at=master&fileviewer=file-view-default  # noqa: E501

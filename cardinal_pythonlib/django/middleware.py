@@ -234,7 +234,7 @@ class LoginRequiredMiddleware(MiddlewareMixin):
 # =============================================================================
 # DisableClientSideCachingMiddleware
 # =============================================================================
-# https://stackoverflow.com/questions/2095520/fighting-client-side-caching-in-django  # noqa
+# https://stackoverflow.com/questions/2095520/fighting-client-side-caching-in-django  # noqa: E501
 
 
 class DisableClientSideCachingMiddleware(MiddlewareMixin):

@@ -48,7 +48,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 # Constants for Alembic
 # =============================================================================
 # https://alembic.readthedocs.org/en/latest/naming.html
-# http://docs.sqlalchemy.org/en/latest/core/constraints.html#configuring-constraint-naming-conventions  # noqa
+# http://docs.sqlalchemy.org/en/latest/core/constraints.html#configuring-constraint-naming-conventions  # noqa: E501
 
 ALEMBIC_NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",
@@ -66,7 +66,7 @@ DEFAULT_ALEMBIC_VERSION_TABLE = "alembic_version"
 # =============================================================================
 # Alembic revision/migration system
 # =============================================================================
-# https://stackoverflow.com/questions/24622170/using-alembic-api-from-inside-application-code  # noqa
+# https://stackoverflow.com/questions/24622170/using-alembic-api-from-inside-application-code  # noqa: E501
 
 
 def get_head_revision_from_alembic(
@@ -103,7 +103,7 @@ def get_current_revision(
         database_url: SQLAlchemy URL for the database
         version_table: table name for Alembic versions
     """
-    engine = create_engine(database_url)
+    engine = create_engine(database_url, future=True)
     conn = engine.connect()
     opts = {"version_table": version_table}
     mig_context = MigrationContext.configure(conn, opts=opts)
@@ -334,7 +334,7 @@ def create_database_migration_numbered_style(
          message: message to be associated with this revision
          n_sequence_chars: number of numerical sequence characters to use in the
              filename/revision (see above).
-    """  # noqa
+    """  # noqa: E501
     file_regex = r"\d{" + str(n_sequence_chars) + r"}_\S*\.py$"
 
     _, _, existing_version_filenames = next(
@@ -403,7 +403,7 @@ def stamp_allowing_unusual_version_table(
     This function is a clone of ``alembic.command.stamp()``, but allowing
     ``version_table`` to change. See
     https://alembic.zzzcomputing.com/en/latest/api/commands.html#alembic.command.stamp
-    """  # noqa
+    """  # noqa: E501
 
     script = ScriptDirectory.from_config(config)
 

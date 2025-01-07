@@ -127,7 +127,7 @@ def generate_random_nhs_number(official_test_range: bool = True) -> int:
             https://digital.nhs.uk/services/e-referral-service/document-library/synthetic-data-in-live-environments,
             saved at
             https://web.archive.org/web/20210116183039/https://digital.nhs.uk/services/e-referral-service/document-library/synthetic-data-in-live-environments.
-    """  # noqa
+    """  # noqa: E501
     check_digit = 10  # NHS numbers with this check digit are all invalid
     while check_digit == 10:
         if official_test_range:
@@ -218,7 +218,7 @@ def nhs_number_from_text_or_none(s: str) -> Optional[int]:
 
     NHS number rules:
     https://www.datadictionary.nhs.uk/version2/data_dictionary/data_field_notes/n/nhs_number_de.asp?shownav=0
-    """  # noqa
+    """  # noqa: E501
     # None in, None out.
     funcname = "nhs_number_from_text_or_none: "
     if not s:

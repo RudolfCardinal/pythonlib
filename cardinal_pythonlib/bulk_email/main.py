@@ -531,7 +531,7 @@ def main() -> None:
             f"via the environment variable {DB_URL_ENVVAR}"
         )
         sys.exit(EXIT_FAILURE)
-    engine = create_engine(db_url, echo=args.echo)
+    engine = create_engine(db_url, echo=args.echo, future=True)
     log.info(f"Using database: {get_safe_url_from_engine(engine)}")
     session = Session(engine)
 

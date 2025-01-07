@@ -105,7 +105,7 @@ def derived_class_implements_method(
 # =============================================================================
 # Subclasses
 # =============================================================================
-# https://stackoverflow.com/questions/3862310/how-can-i-find-all-subclasses-of-a-class-given-its-name  # noqa
+# https://stackoverflow.com/questions/3862310/how-can-i-find-all-subclasses-of-a-class-given-its-name  # noqa: E501
 
 
 def gen_all_subclasses(cls: Type) -> Generator[Type, None, None]:

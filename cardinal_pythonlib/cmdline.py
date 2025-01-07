@@ -78,7 +78,7 @@ def cmdline_split(s: str, platform: Union[int, str] = "this") -> List[str]:
         elif qs:
             word = qs.replace(r"\"", '"').replace(r"\\", "\\")
             # ... raw strings can't end in single backslashes;
-            # https://stackoverflow.com/questions/647769/why-cant-pythons-raw-string-literals-end-with-a-single-backslash  # noqa
+            # https://stackoverflow.com/questions/647769/why-cant-pythons-raw-string-literals-end-with-a-single-backslash  # noqa: E501
             if platform == 0:
                 word = word.replace('""', '"')
         else:

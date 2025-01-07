@@ -26,10 +26,10 @@
 
 """
 
-from typing import Any, List, Optional, Sequence, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 from sqlalchemy.engine.base import Connection, Engine
-from sqlalchemy.engine import CursorResult
+from sqlalchemy.engine.row import Row
 from sqlalchemy.exc import MultipleResultsFound
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import (
@@ -39,6 +39,7 @@ from sqlalchemy.sql.expression import (
     literal,
     select,
     table,
+    text,
 )
 from sqlalchemy.sql.schema import Table
 from sqlalchemy.sql.selectable import Select
@@ -56,23 +57,108 @@ log = get_brace_style_log_with_null_handler(__name__)
 
 def get_rows_fieldnames_from_raw_sql(
     session: Union[Session, Engine, Connection], sql: str
-) -> Tuple[Sequence[Sequence[Any]], Sequence[str]]:
+) -> Tuple[List[Row], List[str]]:
     """
     Returns results and column names from a query.
 
     Args:
-        session: SQLAlchemy :class:`Session`, :class:`Engine`, or
+        session:
+            SQLAlchemy :class:`Session`, :class:`Engine`, or
             :class:`Connection` object
-        sql: raw SQL to execure
+        sql:
+            raw SQL to execure
 
     Returns:
         ``(rows, fieldnames)`` where ``rows`` is the usual set of results and
         ``fieldnames`` are the name of the result columns/fields.
 
     """
-    result = session.execute(sql)  # type: CursorResult
+    if not isinstance(sql, str):
+        raise ValueError("sql argument must be a string")
+    result = session.execute(text(sql))
     fieldnames = result.keys()
     rows = result.fetchall()
+    return rows, fieldnames
+
+
+def get_rows_fieldnames_from_select(
+    session: Union[Session, Engine, Connection], select_query: Select
+) -> Tuple[List[Row], List[str]]:
+    """
+    Returns results and column names from a query.
+
+    Args:
+        session:
+            SQLAlchemy :class:`Session`, :class:`Engine`, or
+            :class:`Connection` object
+        select_query:
+            select() statement, i.e. instance of
+            :class:`sqlalchemy.sql.selectable.Select`
+
+    Returns:
+        ``(rows, fieldnames)`` where ``rows`` is the usual set of results and
+        ``fieldnames`` are the name of the result columns/fields.
+
+    """
+    if not isinstance(select_query, Select):
+        raise ValueError("select_query argument must be a select() statement")
+
+    # Check that the user is not querying an ORM *class* rather than columns.
+    # It doesn't make much sense to use this function in that case.
+    # If Pet is an ORM class (see unit tests!), then:
+    #
+    # - select(Pet).column_descriptions:
+    #
+    #   [{'name': 'Pet', 'type': <class 'orm_query_tests.Pet'>, 'aliased':
+    #   False, 'expr': <class 'orm_query_tests.Pet'>, 'entity': <class
+    #   'orm_query_tests.Pet'>}]
+    #
+    #   "entity" matches "type"; this is the one we want to disallow
+    #
+    # - select(Pet.id, Pet.name).column_descriptions:
+    #
+    #   [{'name': 'id', 'type': Integer(), 'aliased': False, 'expr':
+    #   <sqlalchemy.orm.attributes.InstrumentedAttribute object at
+    #   0x7bda9e1b7330>, 'entity': <class 'orm_query_tests.Pet'>}, {'name':
+    #   'name', 'type': String(length=50), 'aliased': False, 'expr':
+    #   <sqlalchemy.orm.attributes.InstrumentedAttribute object at
+    #   0x7bda9e1b7380>, 'entity': <class 'orm_query_tests.Pet'>}]
+    #
+    #  ... "entity" differs from "type"
+    #
+    # - select(sometable.a, sometable.b).column_descriptions:
+    #
+    #   [{'name': 'a', 'type': INTEGER(), 'expr': Column('a', INTEGER(),
+    #   table=<t>, primary_key=True)}, {'name': 'b', 'type': INTEGER(), 'expr':
+    #   Column('b', INTEGER(), table=<t>)}]
+    #
+    #   ... no "entity" key.
+    #
+    # Therefore:
+    for cd in select_query.column_descriptions:
+        # https://docs.sqlalchemy.org/en/20/core/selectable.html#sqlalchemy.sql.expression.Select.column_descriptions  # noqa: E501
+        # For
+        if "entity" not in cd:
+            continue
+        if cd["type"] == cd["entity"]:
+            raise ValueError(
+                "It looks like your select() query is querying whole ORM "
+                "object classes, not just columns or column-like "
+                "expressions. Its column_descriptions are: "
+                f"{select_query.column_descriptions}"
+            )
+
+    result = session.execute(select_query)
+
+    fieldnames_rmkview = result.keys()
+    # ... of type RMKeyView, e.g. RMKeyView(['a', 'b'])
+    fieldnames = [x for x in fieldnames_rmkview]
+
+    rows = result.fetchall()
+
+    # I don't know how to differentiate select(Pet), selecting an ORM class,
+    # from select(Pet.name), selecting a column.
+
     return rows, fieldnames
 
 
@@ -100,7 +186,7 @@ def count_star(
     """
     # works if you pass a connection or a session or an engine; all have
     # the execute() method
-    query = select([func.count()]).select_from(table(tablename))
+    query = select(func.count()).select_from(table(tablename))
     for criterion in criteria:
         query = query.where(criterion)
     return session.execute(query).scalar()
@@ -115,7 +201,7 @@ def count_star_and_max(
     session: Union[Session, Engine, Connection],
     tablename: str,
     maxfield: str,
-    *criteria: Any
+    *criteria: Any,
 ) -> Tuple[int, Optional[int]]:
     """
 
@@ -130,13 +216,14 @@ def count_star_and_max(
         a tuple: ``(count, maximum)``
 
     """
-    query = select([func.count(), func.max(column(maxfield))]).select_from(
+    query = select(func.count(), func.max(column(maxfield))).select_from(
         table(tablename)
     )
     for criterion in criteria:
         query = query.where(criterion)
     result = session.execute(query)
-    return result.fetchone()  # count, maximum
+    count, maximum = result.fetchone()
+    return count, maximum
 
 
 # =============================================================================
@@ -176,10 +263,10 @@ def exists_in_table(session: Session, table_: Table, *criteria: Any) -> bool:
     # ... EXISTS (SELECT * FROM tablename WHERE ...)
 
     if session.get_bind().dialect.name == SqlaDialectName.MSSQL:
-        query = select([literal(True)]).where(exists_clause)
+        query = select(literal(True)).where(exists_clause)
         # ... SELECT 1 WHERE EXISTS (SELECT * FROM tablename WHERE ...)
     else:
-        query = select([exists_clause])
+        query = select(exists_clause)
         # ... SELECT EXISTS (SELECT * FROM tablename WHERE ...)
 
     result = session.execute(query).scalar()
@@ -236,7 +323,7 @@ def fetch_all_first_values(
         a list of the first value of each result row
 
     """
-    rows = session.execute(select_statement)  # type: CursorResult
+    rows = session.execute(select_statement)
     try:
         return [row[0] for row in rows]
     except ValueError as e:

@@ -177,9 +177,9 @@ def double_quoted(s: str) -> str:
         test("ab'c\"d")
         test('ab"cd')
 
-    """  # noqa
+    """  # noqa: E501
     # For efficiency, we use a list:
-    # https://stackoverflow.com/questions/3055477/how-slow-is-pythons-string-concatenation-vs-str-join  # noqa
+    # https://stackoverflow.com/questions/3055477/how-slow-is-pythons-string-concatenation-vs-str-join  # noqa: E501
     # https://waymoot.org/home/python_string/
     dquote = '"'
     ret = [dquote]  # type: List[str]

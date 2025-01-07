@@ -41,10 +41,10 @@ REGEX_INVALID_TABLE_FIELD_CHARS = re.compile("[^\x20-\x7E]")
 # ... SQL Server is very liberal!
 
 
-# - ANSI: http://jakewheat.github.io/sql-overview/sql-2011-foundation-grammar.html#predefined-type  # noqa
+# - ANSI: http://jakewheat.github.io/sql-overview/sql-2011-foundation-grammar.html#predefined-type  # noqa: E501
 # - SQL Server:
-#   - https://support.microsoft.com/en-us/office/equivalent-ansi-sql-data-types-7a0a6bef-ef25-45f9-8a9a-3c5f21b5c65d  # noqa
-#   - https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql?view=sql-server-ver15  # noqa
+#   - https://support.microsoft.com/en-us/office/equivalent-ansi-sql-data-types-7a0a6bef-ef25-45f9-8a9a-3c5f21b5c65d  # noqa: E501
+#   - https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql?view=sql-server-ver15  # noqa: E501
 #   - Note that ANSI "BIT" is SQL Server "BINARY".
 # - MySQL: https://dev.mysql.com/doc/refman/8.0/en/data-types.html
 # - PostgreSQL: https://www.postgresql.org/docs/9.5/datatype.html

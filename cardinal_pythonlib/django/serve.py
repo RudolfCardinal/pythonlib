@@ -157,8 +157,8 @@ def serve_file(
             HTTP content type to use as default, if ``content_type`` is
             ``None``
     """
-    # https://stackoverflow.com/questions/1156246/having-django-serve-downloadable-files  # noqa
-    # https://docs.djangoproject.com/en/dev/ref/request-response/#telling-the-browser-to-treat-the-response-as-a-file-attachment  # noqa
+    # https://stackoverflow.com/questions/1156246/having-django-serve-downloadable-files  # noqa: E501
+    # https://docs.djangoproject.com/en/dev/ref/request-response/#telling-the-browser-to-treat-the-response-as-a-file-attachment  # noqa: E501
     # https://djangosnippets.org/snippets/365/
     if offered_filename is None:
         offered_filename = os.path.basename(path_to_file) or ""
@@ -182,7 +182,7 @@ def serve_file(
     # Note for debugging: Chrome may request a file more than once (e.g. with a
     # GET request that's then marked 'canceled' in the Network tab of the
     # developer console); this is normal:
-    #   https://stackoverflow.com/questions/4460661/what-to-do-with-chrome-sending-extra-requests  # noqa
+    #   https://stackoverflow.com/questions/4460661/what-to-do-with-chrome-sending-extra-requests  # noqa: E501
 
 
 def serve_buffer(

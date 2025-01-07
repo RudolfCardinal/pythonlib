@@ -61,7 +61,7 @@ History
 - REVISED 16 Jan 2017: conversion to Python 3.
 - Fixed a bit more, 2020-01-19. Also type hinting.
 
-"""  # noqa
+"""  # noqa: E501
 
 import argparse
 import getpass
@@ -146,7 +146,7 @@ class PasswordPromptAction(argparse.Action):
 
     Modified from
     https://stackoverflow.com/questions/27921629/python-using-getpass-with-argparse
-    """  # noqa
+    """  # noqa: E501
 
     # noinspection PyShadowingBuiltins
     def __init__(
@@ -318,7 +318,7 @@ def main() -> None:
     # ... BUT (Jan 2013): now mdb-tools is better, text-processing not
     # necessary - can use temporary disk file
     # Turns out the bottleneck is the import to MySQL, not the export from MDB.
-    # So see http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html  # noqa
+    # So see http://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html  # noqa: E501
     # The massive improvement is by disabling autocommit. (Example source
     # database is 208M; largest table here is 554M as a textfile; it has
     # 1,686,075 rows.) This improvement was from 20 Hz to the whole database

@@ -69,7 +69,7 @@ class MultipleIntAreaField(forms.Field):
     Django ``forms.Field`` to capture multiple integers.
     """
 
-    # See also https://stackoverflow.com/questions/29303902/django-form-with-list-of-integers  # noqa
+    # See also https://stackoverflow.com/questions/29303902/django-form-with-list-of-integers  # noqa: E501
     widget = forms.Textarea
 
     def clean(self, value) -> List[int]:

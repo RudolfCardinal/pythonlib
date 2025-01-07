@@ -260,7 +260,7 @@ class FileToAutodocument(object):
         )
         self.pygments_language_override = (
             pygments_language_override or {}
-        )  # type: Dict[str, str]  # noqa
+        )  # type: Dict[str, str]
         assert isfile(
             self.source_filename
         ), f"Not a file: source_filename={self.source_filename!r}"
@@ -554,7 +554,7 @@ class AutodocIndex(object):
         print(flatidx.index_content())
         flatidx.write_index_and_rst_files(overwrite=True, mock=True)
 
-    """  # noqa
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -688,7 +688,7 @@ class AutodocIndex(object):
         self.source_rst_title_style_python = source_rst_title_style_python
         self.pygments_language_override = (
             pygments_language_override or {}
-        )  # type: Dict[str, str]  # noqa
+        )  # type: Dict[str, str]
 
         assert isdir(
             self.project_root_dir
@@ -716,7 +716,7 @@ class AutodocIndex(object):
 
         self.files_to_index = (
             []
-        )  # type: List[Union[FileToAutodocument, AutodocIndex]]  # noqa
+        )  # type: List[Union[FileToAutodocument, AutodocIndex]]
         if source_filenames_or_globs:
             self.add_source_files(source_filenames_or_globs)
 
@@ -883,7 +883,7 @@ class AutodocIndex(object):
                 f.write_rst(
                     prefix=self.rst_prefix,
                     suffix=self.rst_suffix,
-                    heading_underline_char=self.source_rst_heading_underline_char,  # noqa
+                    heading_underline_char=self.source_rst_heading_underline_char,  # noqa: E501
                     overwrite=overwrite,
                     mock=mock,
                 )

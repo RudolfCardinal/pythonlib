@@ -437,7 +437,7 @@ class AutoNumberObjectMetaClass(type):
                     '__module__': 0
                 }
             )
-        """  # noqa
+        """  # noqa: E501
         # print("__new__: name={}, bases={}, classdict={}".format(
         #     repr(name), repr(bases), repr(classdict)))
         cls = type.__new__(mcs, name, bases, dict(classdict))
@@ -689,7 +689,7 @@ class CaseInsensitiveEnumMeta(EnumMeta):
         TestEnum["PineApple"]  # <TestEnum.PineApple: 3>
         TestEnum["PineApplE"]  # <TestEnum.PineApple: 3>
 
-    """  # noqa
+    """  # noqa: E501
 
     def __getitem__(self, item: Any) -> Any:
         if isinstance(item, str):

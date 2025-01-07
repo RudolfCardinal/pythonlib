@@ -891,9 +891,8 @@ class RowHolder(object):
     def __init__(self, sheetholder: SheetHolder, row: int) -> None:
         self.sheetholder = sheetholder
         self.row = row  # zero-based index of our row
-        self._next_col = (
-            0  # zero-based column index of the next column to read  # noqa
-        )
+        self._next_col = 0
+        # ... zero-based column index of the next column to read
 
     # -------------------------------------------------------------------------
     # Information
