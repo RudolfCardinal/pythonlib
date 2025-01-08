@@ -386,22 +386,32 @@ def bulk_insert_extras(
 
 class StringLiteral(String):
     """
-    Teach SQLAlchemy how to literalize various things. Used by
-    `make_literal_query_fn`, below. See
-    https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
+    Teach sqlalchemy how to literalize various things. Used by
+    make_literal_query_fn, below. See
+    https://stackoverflow.com/questions/5631078.
     """
+
+    def __init__(self, *args, **kwargs) -> None:
+        """
+        This __init__() function exists purely because the docstring in the
+        SQLAlchemy superclass (String) has "pycon+sql" as its source type,
+        which Sphinx warns about.
+        """
+        super().__init__(*args, **kwargs)
 
     def literal_processor(
         self, dialect: DefaultDialect
     ) -> Callable[[Any], str]:
-        """Returns a function to translate any value to a string."""
-        # Docstring above necessary to stop sphinx build error:
-        # undefined label: types_typedecorator
-
+        """
+        Returns a function to translate any value to a string.
+        """
         super_processor = super().literal_processor(dialect)
 
         def process(value: Any) -> str:
-            log.debug("process: {!r}", value)
+            """
+            Translate any value to a string.
+            """
+            # log.debug("process: {!r}", value)
             if isinstance(value, int):
                 return str(value)
             if not isinstance(value, str):
