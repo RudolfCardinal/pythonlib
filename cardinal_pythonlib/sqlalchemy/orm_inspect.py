@@ -45,7 +45,7 @@ from sqlalchemy.orm.relationships import RelationshipProperty
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.schema import Column, MetaData
 from sqlalchemy.sql.type_api import TypeEngine
-from sqlalchemy.sql.visitors import VisitableType
+from sqlalchemy.sql.visitors import Visitable
 from sqlalchemy.util import OrderedProperties
 
 from cardinal_pythonlib.classes import gen_all_subclasses
@@ -58,6 +58,13 @@ if TYPE_CHECKING:
     from sqlalchemy.sql.schema import Table
 
 log = get_brace_style_log_with_null_handler(__name__)
+
+
+# =============================================================================
+# Constants
+# =============================================================================
+
+VisitableType = Type[Visitable]  # for SQLAlchemy 2.0
 
 
 # =============================================================================
@@ -78,9 +85,14 @@ def coltype_as_typeengine(
 
     .. code-block:: python
 
+        from sqlalchemy.sql.schema import Column
+        from sqlalchemy.sql.sqltypes import Integer, String, TypeEngine
+
         a = Column("a", Integer)
         b = Column("b", Integer())
         c = Column("c", String(length=50))
+
+        # In SQLAlchemy to 1.4:
 
         isinstance(Integer, TypeEngine)  # False
         isinstance(Integer(), TypeEngine)  # True
@@ -91,11 +103,30 @@ def coltype_as_typeengine(
         type(String)  # <class 'sqlalchemy.sql.visitors.VisitableType'>
         type(String(length=50))  # <class 'sqlalchemy.sql.sqltypes.String'>
 
+        # In SQLAlchemy 2.0, VisitableType has gone. Though there is Visitable.
+        # (So we can also recreate VisitableType, as above, although only for
+        # type hints, not e.g. isinstance.)
+
+        from sqlalchemy.sql.visitors import Visitable
+
+        isinstance(Integer, TypeEngine)  # False
+        isinstance(Integer(), TypeEngine)  # True
+        isinstance(String(length=50), TypeEngine)  # True
+
+        type(Integer)  # <class 'type'>
+        issubclass(Integer, Visitable)  # True
+        type(Integer())  # <class 'sqlalchemy.sql.sqltypes.Integer'>
+        type(String)  # <class 'type'>
+        issubclass(String, Visitable)  # True
+        type(String(length=50))  # <class 'sqlalchemy.sql.sqltypes.String'>
+
     This function coerces things to a :class:`TypeEngine`.
     """
     if isinstance(coltype, TypeEngine):
         return coltype
-    return coltype()
+    instance = coltype()
+    assert isinstance(instance, TypeEngine)
+    return instance
 
 
 # =============================================================================

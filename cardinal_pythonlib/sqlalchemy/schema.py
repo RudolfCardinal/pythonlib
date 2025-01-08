@@ -33,7 +33,16 @@ import csv
 from functools import lru_cache
 import io
 import re
-from typing import Any, Dict, Generator, List, Optional, Type, Union
+from typing import (
+    Any,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Type,
+    Union,
+    TYPE_CHECKING,
+)
 
 from sqlalchemy import inspect
 
@@ -51,13 +60,17 @@ from sqlalchemy.schema import (
 )
 from sqlalchemy.sql import sqltypes, text
 from sqlalchemy.sql.sqltypes import BigInteger, TypeEngine
-from sqlalchemy.sql.visitors import VisitableType
+from sqlalchemy.sql.visitors import Visitable
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 from cardinal_pythonlib.sqlalchemy.dialect import (
     quote_identifier,
     SqlaDialectName,
 )
+from cardinal_pythonlib.sqlalchemy.orm_inspect import coltype_as_typeengine
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine.interfaces import ReflectedIndex
 
 log = get_brace_style_log_with_null_handler(__name__)
 
@@ -65,6 +78,8 @@ log = get_brace_style_log_with_null_handler(__name__)
 # =============================================================================
 # Constants
 # =============================================================================
+
+VisitableType = Type[Visitable]  # for SQLAlchemy 2.0
 
 MIN_TEXT_LENGTH_FOR_FREETEXT_INDEX = 1000
 MSSQL_DEFAULT_SCHEMA = "dbo"
@@ -327,12 +342,39 @@ def get_effective_int_pk_col(table_: Table) -> Optional[str]:
 # =============================================================================
 
 
-def index_exists(engine: Engine, tablename: str, indexname: str) -> bool:
+def index_exists(
+    engine: Engine,
+    tablename: str,
+    indexname: str = None,
+    colnames: Union[str, List[str]] = None,
+    raise_if_nonexistent_table: bool = True,
+) -> bool:
     """
     Does the specified index exist for the specified table?
+
+    You can specify either the name of the index, or the name(s) of columns.
+    But not both.
+
+    If the table doesn't exist, then if raise_if_nonexistent_table is True,
+    raise sqlalchemy.exc.NoSuchTableError; otherwise, warn and return False.
     """
+    assert bool(indexname) ^ bool(colnames)  # one or the other
     insp = inspect(engine)
-    return any(i["name"] == indexname for i in insp.get_indexes(tablename))
+    if not raise_if_nonexistent_table and not insp.has_table(tablename):
+        log.warning(f"index_exists(): no such table {tablename!r}")
+        return False
+    indexes = insp.get_indexes(tablename)  # type: List[ReflectedIndex]
+    if indexname:
+        # Look up by index name.
+        return any(i["name"] == indexname for i in indexes)
+    else:
+        # Look up by column names. All must be present in a given index.
+        if isinstance(colnames, str):
+            colnames = [colnames]
+        return any(
+            all(colname in i["column_names"] for colname in colnames)
+            for i in indexes
+        )
 
 
 def mssql_get_pk_index_name(
@@ -1026,36 +1068,6 @@ def convert_sqla_type_for_dialect(
 # Questions about SQLAlchemy column types
 # =============================================================================
 
-# Note:
-#   x = String        } type(x) == VisitableType  # metaclass
-#   x = BigInteger    }
-# but:
-#   x = String()      } type(x) == TypeEngine
-#   x = BigInteger()  }
-#
-# isinstance also cheerfully handles multiple inheritance, i.e. if you have
-# class A(object), class B(object), and class C(A, B), followed by x = C(),
-# then all of isinstance(x, A), isinstance(x, B), isinstance(x, C) are True
-
-
-def _coltype_to_typeengine(
-    coltype: Union[TypeEngine, VisitableType]
-) -> TypeEngine:
-    """
-    An example is simplest: if you pass in ``Integer()`` (an instance of
-    :class:`TypeEngine`), you'll get ``Integer()`` back. If you pass in
-    ``Integer`` (an instance of :class:`VisitableType`), you'll also get
-    ``Integer()`` back. The function asserts that its return type is an
-    instance of :class:`TypeEngine`.
-
-    See also
-    :func:`cardinal_pythonlib.sqlalchemy.orm_inspect.coltype_as_typeengine`.
-    """
-    if isinstance(coltype, VisitableType):
-        coltype = coltype()
-    assert isinstance(coltype, TypeEngine)
-    return coltype
-
 
 def is_sqlatype_binary(coltype: Union[TypeEngine, VisitableType]) -> bool:
     """
@@ -1063,7 +1075,7 @@ def is_sqlatype_binary(coltype: Union[TypeEngine, VisitableType]) -> bool:
     """
     # Several binary types inherit internally from _Binary, making that the
     # easiest to check.
-    coltype = _coltype_to_typeengine(coltype)
+    coltype = coltype_as_typeengine(coltype)
     # noinspection PyProtectedMember
     return isinstance(coltype, sqltypes._Binary)
 
@@ -1072,9 +1084,7 @@ def is_sqlatype_date(coltype: Union[TypeEngine, VisitableType]) -> bool:
     """
     Is the SQLAlchemy column type a date type?
     """
-    coltype = _coltype_to_typeengine(coltype)
-    # No longer valid in SQLAlchemy 1.2.11:
-    # return isinstance(coltype, sqltypes._DateAffinity)
+    coltype = coltype_as_typeengine(coltype)
     return isinstance(coltype, sqltypes.DateTime) or isinstance(
         coltype, sqltypes.Date
     )
@@ -1084,7 +1094,7 @@ def is_sqlatype_integer(coltype: Union[TypeEngine, VisitableType]) -> bool:
     """
     Is the SQLAlchemy column type an integer type?
     """
-    coltype = _coltype_to_typeengine(coltype)
+    coltype = coltype_as_typeengine(coltype)
     return isinstance(coltype, sqltypes.Integer)
 
 
@@ -1095,7 +1105,7 @@ def is_sqlatype_numeric(coltype: Union[TypeEngine, VisitableType]) -> bool:
 
     Note that integers don't count as Numeric!
     """
-    coltype = _coltype_to_typeengine(coltype)
+    coltype = coltype_as_typeengine(coltype)
     return isinstance(coltype, sqltypes.Numeric)  # includes Float, Decimal
 
 
@@ -1103,7 +1113,7 @@ def is_sqlatype_string(coltype: Union[TypeEngine, VisitableType]) -> bool:
     """
     Is the SQLAlchemy column type a string type?
     """
-    coltype = _coltype_to_typeengine(coltype)
+    coltype = coltype_as_typeengine(coltype)
     return isinstance(coltype, sqltypes.String)
 
 
@@ -1115,7 +1125,7 @@ def is_sqlatype_text_of_length_at_least(
     Is the SQLAlchemy column type a string type that's at least the specified
     length?
     """
-    coltype = _coltype_to_typeengine(coltype)
+    coltype = coltype_as_typeengine(coltype)
     if not isinstance(coltype, sqltypes.String):
         return False  # not a string/text type at all
     if coltype.length is None:
@@ -1155,7 +1165,7 @@ def does_sqlatype_require_index_len(
     ``TEXT`` columns:
     https://dev.mysql.com/doc/refman/5.7/en/create-index.html.)
     """
-    coltype = _coltype_to_typeengine(coltype)
+    coltype = coltype_as_typeengine(coltype)
     if isinstance(coltype, sqltypes.Text):
         return True
     if isinstance(coltype, sqltypes.LargeBinary):

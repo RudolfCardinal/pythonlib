@@ -79,10 +79,10 @@ class MergeTestMixin(object):
             SQLITE_MEMORY_URL, future=True
         )  # type: Engine
         self.src_session = sessionmaker(
-            bind=self.src_engine
+            bind=self.src_engine, future=True
         )()  # type: Session
         self.dst_session = sessionmaker(
-            bind=self.dst_engine
+            bind=self.dst_engine, future=True
         )()  # type: Session
 
     def do_merge(self, dummy_run: bool = False) -> None:

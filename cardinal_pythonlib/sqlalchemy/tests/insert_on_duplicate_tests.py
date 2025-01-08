@@ -64,7 +64,7 @@ class InsertOnDuplicateKeyUpdateTests(TestCase):
         sqlite_engine = create_engine("sqlite://", echo=True, future=True)
         Base.metadata.create_all(sqlite_engine)
 
-        session = Session(sqlite_engine)
+        session = Session(sqlite_engine, future=True)
 
         d1 = dict(id=1, name="One")
         d2 = dict(id=2, name="Two")

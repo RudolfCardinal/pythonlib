@@ -533,7 +533,7 @@ def main() -> None:
         sys.exit(EXIT_FAILURE)
     engine = create_engine(db_url, echo=args.echo, future=True)
     log.info(f"Using database: {get_safe_url_from_engine(engine)}")
-    session = Session(engine)
+    session = Session(engine, future=True)
 
     # -------------------------------------------------------------------------
     # Launch subcommand

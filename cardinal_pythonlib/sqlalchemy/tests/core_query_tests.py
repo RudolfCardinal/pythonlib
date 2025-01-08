@@ -33,7 +33,7 @@
 from unittest import TestCase
 
 from sqlalchemy.engine import create_engine
-from sqlalchemy.orm.session import sessionmaker
+from sqlalchemy.orm.session import sessionmaker, Session
 from sqlalchemy.sql.expression import column, select, table, text
 from sqlalchemy.sql.schema import MetaData
 
@@ -84,7 +84,9 @@ class CoreQueryTests(TestCase):
                     f"VALUES ({self.a_val2}, {self.b_val2})"
                 )
             )
-        self.session = sessionmaker(bind=self.engine)()  # for ORM
+        self.session = sessionmaker(
+            bind=self.engine, future=True
+        )()  # type: Session
         self.metadata = MetaData()
         self.metadata.reflect(bind=self.engine)
         self.table = self.metadata.tables[self.tablename]

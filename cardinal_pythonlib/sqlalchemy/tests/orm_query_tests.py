@@ -90,7 +90,7 @@ class OrmQueryTests(TestCase):
         self.engine = create_engine(
             SQLITE_MEMORY_URL, echo=self.echo, future=True
         )
-        self.session = sessionmaker(bind=self.engine)()  # for ORM
+        self.session = sessionmaker(bind=self.engine, future=True)()  # for ORM
         Base.metadata.create_all(bind=self.engine)
         self._pet_1_name = "Garfield"
         self.pet1 = Pet(id=1, name=self._pet_1_name)

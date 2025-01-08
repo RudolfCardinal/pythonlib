@@ -113,7 +113,9 @@ class DumpTests(unittest.TestCase):
             SQLITE_MEMORY_URL, echo=self.echo, future=True
         )  # type: Engine
         self.dialect = self.engine.dialect
-        self.session = sessionmaker(bind=self.engine)()  # type: Session
+        self.session = sessionmaker(
+            bind=self.engine, future=True
+        )()  # type: Session
 
         Base.metadata.create_all(bind=self.engine)
         with self.engine.begin() as connection:

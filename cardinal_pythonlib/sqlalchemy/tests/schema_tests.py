@@ -33,12 +33,13 @@ from sqlalchemy import event, inspect, select
 from sqlalchemy.dialects.mssql.base import MSDialect, DECIMAL as MS_DECIMAL
 from sqlalchemy.dialects.mysql.base import MySQLDialect
 from sqlalchemy.engine import create_engine
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import NoSuchTableError, OperationalError
 from sqlalchemy.ext import compiler
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.schema import (
     Column,
     DDLElement,
+    Index,
     MetaData,
     Sequence,
     Table,
@@ -183,23 +184,66 @@ class SchemaTests(unittest.TestCase):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # index_exists
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 class IndexExistsTests(unittest.TestCase):
-    class Person(Base):
-        __tablename__ = "person"
-        pk = Column("pk", Integer, primary_key=True, autoincrement=True)
-        name = Column("name", Integer, index=True)
-        address = Column("address", Integer, index=False)
+    def __init__(self, *args, echo: bool = True, **kwargs) -> None:
+        self.echo = echo
+        super().__init__(*args, **kwargs)
 
     def setUp(self) -> None:
         super().setUp()
+        self.engine = create_engine(
+            SQLITE_MEMORY_URL, echo=self.echo, future=True
+        )
+        metadata = MetaData()
+        self.person = Table(
+            "person",
+            metadata,
+            Column("id", Integer, primary_key=True),
+            Column("name", String(50), index=True),
+            Column("address", String(50)),
+            Index("my_index2", "id", "name"),
+        )
+        # Expected indexes, therefore:
+        # 1. "ix_person_name" (by default naming convention) on person.name
+        # 2. "my_index2" on {person.id, person.name}
+        with self.engine.begin() as conn:
+            metadata.create_all(conn)
 
-        self.engine = create_engine(SQLITE_MEMORY_URL, future=True)
+    def test_bad_table(self) -> None:
+        with self.assertRaises(NoSuchTableError):
+            index_exists(
+                self.engine,
+                "nonexistent_table",
+                "does_not_matter",
+                raise_if_nonexistent_table=True,
+            )
 
     def test_exists(self) -> None:
-        self.assertFalse(index_exists(self.engine, "person", "name"))
+        # First index:
+        self.assertTrue(index_exists(self.engine, "person", colnames="name"))
+        self.assertTrue(index_exists(self.engine, "person", colnames=["name"]))
+        # And by the default naming convention:
+        self.assertTrue(
+            index_exists(self.engine, "person", indexname="ix_person_name")
+        )
+        # Second index:
+        self.assertTrue(
+            index_exists(self.engine, "person", colnames=["id", "name"])
+        )
+        self.assertTrue(
+            index_exists(self.engine, "person", indexname="my_index2")
+        )
 
     def test_does_not_exist(self) -> None:
-        self.assertFalse(index_exists(self.engine, "person", "address"))
+        self.assertFalse(index_exists(self.engine, "person", indexname="name"))
+        self.assertFalse(
+            index_exists(self.engine, "person", colnames="address")
+        )
+        self.assertFalse(
+            index_exists(self.engine, "person", colnames=["name", "address"])
+        )
 
 
 # -----------------------------------------------------------------------------

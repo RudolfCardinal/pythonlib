@@ -707,7 +707,7 @@ def merge_db(
     # We need both Core and ORM for the source.
     # noinspection PyUnresolvedReferences
     metadata = base_class.metadata  # type: MetaData
-    src_session = sessionmaker(bind=src_engine)()  # type: Session
+    src_session = sessionmaker(bind=src_engine, future=True)()  # type: Session
     dst_engine = get_engine_from_session(dst_session)
     tablename_to_ormclass = get_orm_classes_by_table_name_from_base(base_class)
 
