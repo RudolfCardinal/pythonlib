@@ -56,6 +56,9 @@ class SqlaDialectName(object):
     SYBASE = "sybase"
 
     # Additional third-party dialects:
+    # - https://docs.sqlalchemy.org/en/20/dialects/
+    # Interface:
+    # - https://docs.sqlalchemy.org/en/20/core/internals.html#sqlalchemy.engine.Dialect  # noqa: E501
 
     DATABRICKS = "databricks"
     # ... https://github.com/databricks/databricks-sqlalchemy

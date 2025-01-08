@@ -25,6 +25,9 @@
 **Functions to work with SQLAlchemy schemas (schemata) directly, via SQLAlchemy
 Core.**
 
+Functions that have to work with specific dialect information are marked
+DIALECT-AWARE.
+
 """
 
 import ast
@@ -60,7 +63,19 @@ from sqlalchemy.schema import (
 )
 from sqlalchemy.sql import sqltypes, text
 from sqlalchemy.sql.ddl import DDLElement
-from sqlalchemy.sql.sqltypes import BigInteger, TypeEngine
+from sqlalchemy.sql.sqltypes import (
+    BigInteger,
+    Boolean,
+    Date,
+    DateTime,
+    Double,
+    Float,
+    Integer,
+    Numeric,
+    SmallInteger,
+    Text,
+    TypeEngine,
+)
 from sqlalchemy.sql.visitors import Visitable
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
@@ -85,6 +100,23 @@ VisitableType = Type[Visitable]  # for SQLAlchemy 2.0
 MIN_TEXT_LENGTH_FOR_FREETEXT_INDEX = 1000
 MSSQL_DEFAULT_SCHEMA = "dbo"
 POSTGRES_DEFAULT_SCHEMA = "public"
+
+DATABRICKS_SQLCOLTYPE_TO_SQLALCHEMY_GENERIC = {
+    # A bit nasty: https://github.com/databricks/databricks-sqlalchemy
+    # Part of the reverse mapping is via
+    #   from databricks.sqlalchemy import DatabricksDialect
+    #   print(DatabricksDialect.colspecs)
+    "BIGINT": BigInteger,
+    "BOOLEAN": Boolean,
+    "DATE": Date,
+    "TIMESTAMP_NTZ": DateTime,
+    "DOUBLE": Double,
+    "FLOAT": Float,
+    "INT": Integer,
+    "DECIMAL": Numeric,
+    "SMALLINT": SmallInteger,
+    "STRING": Text,
+}
 
 
 # =============================================================================
@@ -498,6 +530,8 @@ def add_index(
 
     The table name is worked out from the :class:`Column` object.
 
+    DIALECT-AWARE.
+
     Args:
         engine: SQLAlchemy :class:`Engine` object
         sqla_column: single column to index
@@ -733,6 +767,8 @@ def giant_text_sqltype(dialect: Dialect) -> str:
     Returns the SQL column type used to make very large text columns for a
     given dialect.
 
+    DIALECT-AWARE.
+
     Args:
         dialect: a SQLAlchemy :class:`Dialect`
     Returns:
@@ -755,6 +791,9 @@ def giant_text_sqltype(dialect: Dialect) -> str:
     elif dname == SqlaDialectName.SQLITE:
         return "TEXT"
         # https://www.sqlite.org/datatype3.html
+    elif dname == SqlaDialectName.DATABRICKS:
+        return "STRING"
+        # https://github.com/databricks/databricks-sqlalchemy
     else:
         raise ValueError(f"Unknown dialect: {dname}")
 
@@ -787,16 +826,40 @@ def _get_sqla_coltype_class_from_str(
     Returns the SQLAlchemy class corresponding to a particular SQL column
     type in a given dialect.
 
+    DIALECT-AWARE.
+
     Performs an upper- and lower-case search.
     For example, the SQLite dialect uses upper case, and the
     MySQL dialect uses lower case.
+
+    For exploratory thinking, see
+    dev_notes/convert_sql_string_coltype_to_sqlalchemy_type.py.
+
+    DISCUSSION AT: https://github.com/sqlalchemy/sqlalchemy/discussions/12230
     """
-    # noinspection PyUnresolvedReferences
-    ischema_names = dialect.ischema_names
-    try:
-        return ischema_names[coltype.upper()]
-    except KeyError:
-        return ischema_names[coltype.lower()]
+    if hasattr(dialect, "ischema_names"):
+        # The built-in dialects all have this, even though it's an internal
+        # detail.
+        ischema_names = dialect.ischema_names
+        try:
+            return ischema_names[coltype.upper()]
+        except KeyError:
+            return ischema_names[coltype.lower()]
+    elif dialect.name == SqlaDialectName.DATABRICKS:
+        # Ugly hack.
+        # Databricks is an example that doesn't have ischema_names.
+        try:
+            return DATABRICKS_SQLCOLTYPE_TO_SQLALCHEMY_GENERIC[coltype.upper()]
+        except KeyError:
+            raise ValueError(
+                f"Don't know how to convert SQL column type {coltype!r} "
+                f"to SQLAlchemy dialect {dialect!r}"
+            )
+    else:
+        raise ValueError(
+            f"Don't know a generic way to convert SQL column types "
+            f"(in text format) to SQLAlchemy dialect {dialect.name!r}. "
+        )
 
 
 def get_list_of_sql_string_literals_from_quoted_csv(x: str) -> List[str]:
@@ -829,6 +892,8 @@ def get_sqla_coltype_from_dialect_str(
     NOTE that the reverse operation is performed by ``str(coltype)`` or
     ``coltype.compile()`` or ``coltype.compile(dialect)``; see
     :class:`TypeEngine`.
+
+    DIALECT-AWARE.
 
     Args:
         dialect: a SQLAlchemy :class:`Dialect` class
@@ -999,6 +1064,8 @@ def convert_sqla_type_for_dialect(
     """
     Converts an SQLAlchemy column type from one SQL dialect to another.
 
+    DIALECT-AWARE.
+
     Args:
         coltype: SQLAlchemy column type in the source dialect
 
@@ -1024,9 +1091,7 @@ def convert_sqla_type_for_dialect(
     """
     assert coltype is not None
 
-    # noinspection PyUnresolvedReferences
     to_mysql = dialect.name == SqlaDialectName.MYSQL
-    # noinspection PyUnresolvedReferences
     to_mssql = dialect.name == SqlaDialectName.MSSQL
     typeclass = type(coltype)
 
@@ -1201,10 +1266,10 @@ def does_sqlatype_require_index_len(
 
 
 # =============================================================================
-# hack_in_mssql_xml_type:
+# hack_in_mssql_xml_type
+# =============================================================================
 #
 # Removed, as mssql.base.ischema_names["xml"] is now defined.
-# =============================================================================
 
 
 # =============================================================================
