@@ -33,19 +33,18 @@ from sqlalchemy.engine.row import Row
 from sqlalchemy.exc import MultipleResultsFound
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import (
+    case,
     column,
     exists,
     func,
-    literal,
     select,
     table,
     text,
 )
 from sqlalchemy.sql.schema import Table
-from sqlalchemy.sql.selectable import Select
+from sqlalchemy.sql.selectable import Select, TableClause
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
-from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
 
 log = get_brace_style_log_with_null_handler(__name__)
 
@@ -233,7 +232,9 @@ def count_star_and_max(
 # http://docs.sqlalchemy.org/en/latest/orm/query.html
 
 
-def exists_in_table(session: Session, table_: Table, *criteria: Any) -> bool:
+def exists_in_table(
+    session: Session, table_: Union[Table, TableClause], *criteria: Any
+) -> bool:
     """
     Implements an efficient way of detecting if a record or records exist;
     should be faster than ``COUNT(*)`` in some circumstances.
@@ -241,7 +242,7 @@ def exists_in_table(session: Session, table_: Table, *criteria: Any) -> bool:
     Args:
         session: SQLAlchemy :class:`Session`, :class:`Engine`, or
             :class:`Connection` object
-        table_: SQLAlchemy :class:`Table` object
+        table_: SQLAlchemy :class:`Table` object or table clause
         criteria: optional SQLAlchemy "where" criteria
 
     Returns:
@@ -262,15 +263,70 @@ def exists_in_table(session: Session, table_: Table, *criteria: Any) -> bool:
         exists_clause = exists_clause.where(criterion)
     # ... EXISTS (SELECT * FROM tablename WHERE ...)
 
-    if session.get_bind().dialect.name == SqlaDialectName.MSSQL:
-        query = select(literal(True)).where(exists_clause)
-        # ... SELECT 1 WHERE EXISTS (SELECT * FROM tablename WHERE ...)
-    else:
-        query = select(exists_clause)
-        # ... SELECT EXISTS (SELECT * FROM tablename WHERE ...)
+    # Methods as follows.
+    # SQL validation: http://developer.mimer.com/validator/
+    # Standard syntax: https://en.wikipedia.org/wiki/SQL_syntax
+    # We can make it conditional on dialect via
+    #       session.get_bind().dialect.name
+    # but it would be better not to need to.
+    #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # SELECT 1 FROM mytable WHERE EXISTS (SELECT * FROM mytable WHERE ...)
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # - Produces multiple results (a 1 for each row).
+    #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # SELECT 1 WHERE EXISTS (SELECT * FROM tablename WHERE ...)
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # - Produces either 1 or NULL (no rows).
+    # - Implementation:
+    #
+    #       query = select(literal(True)).where(exists_clause)
+    #       result = session.execute(query).scalar()
+    #       return bool(result)  # None/0 become False; 1 becomes True
+    #
+    # - However, may be non-standard: no FROM clause.
+    # - Works on SQL Server (empirically).
+    #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # SELECT EXISTS (SELECT * FROM tablename WHERE ...)
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # - Produces 0 or 1.
+    # - Implementation:
+    #
+    #       query = select(exists_clause)
+    #       result = session.execute(query).scalar()
+    #       return bool(result)
+    #
+    # - But it may not be standard.
+    #
+    # - Supported by MySQL:
+    #   - https://dev.mysql.com/doc/refman/8.4/en/exists-and-not-exists-subqueries.html  # noqa: E501
+    #   - and an empirical test
+    #
+    #   Suported by SQLite:
+    #   - https://www.sqlite.org/lang_expr.html#the_exists_operator
+    #   - and an empirical test
+    #
+    #   Possibly not SQL Server.
+    #
+    #   Possibly not Databricks.
+    #   - https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-qry-select.html  # noqa: E501
+    #   - https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-qry-select-where.html  # noqa: E501
+    #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # SELECT CASE WHEN EXISTS(SELECT * FROM tablename WHERE...) THEN 0 ELSE 1 END  # noqa: E501
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # - ANSI standard.
+    #   - https://stackoverflow.com/questions/17284688/how-to-efficiently-check-if-a-table-is-empty  # noqa: E501
+    # - Returns 0 or 1.
+    # - May be possible to use "SELECT 1 FROM tablename" also, but unclear
+    #   what's faster, and likely EXISTS() should optimise.
+    # - Implementation as below.
 
+    query = select(case((exists_clause, 1), else_=0))
     result = session.execute(query).scalar()
-    return bool(result)
+    return bool(result)  # None/0 become False; 1 becomes True
 
 
 def exists_plain(session: Session, tablename: str, *criteria: Any) -> bool:

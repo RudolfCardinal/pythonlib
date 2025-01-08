@@ -190,7 +190,7 @@ class SchemaTests(unittest.TestCase):
 
 
 class IndexExistsTests(unittest.TestCase):
-    def __init__(self, *args, echo: bool = True, **kwargs) -> None:
+    def __init__(self, *args, echo: bool = False, **kwargs) -> None:
         self.echo = echo
         super().__init__(*args, **kwargs)
 

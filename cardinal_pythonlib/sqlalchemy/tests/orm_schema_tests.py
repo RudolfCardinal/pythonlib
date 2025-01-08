@@ -65,7 +65,7 @@ class Pet(Base):
 
 
 class OrmQueryTests(TestCase):
-    def __init__(self, *args, echo: bool = True, **kwargs) -> None:
+    def __init__(self, *args, echo: bool = False, **kwargs) -> None:
         self.echo = echo
         super().__init__(*args, **kwargs)
 

@@ -130,3 +130,16 @@ def is_sqlserver_2008_or_later(engine: "Engine") -> bool:
         return False
     version_tuple = get_sqlserver_product_version(engine)
     return version_tuple >= (SQLSERVER_MAJOR_VERSION_2008,)
+
+
+# =============================================================================
+# Helper functions for Databricks
+# =============================================================================
+
+
+def is_databricks(engine: "Engine") -> bool:
+    """
+    Is the SQLAlchemy :class:`Engine` a Databricks database?
+    """
+    dialect_name = get_dialect_name(engine)
+    return dialect_name == SqlaDialectName.DATABRICKS

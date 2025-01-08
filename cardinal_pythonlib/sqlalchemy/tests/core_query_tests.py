@@ -54,8 +54,14 @@ from cardinal_pythonlib.sqlalchemy.session import SQLITE_MEMORY_URL
 
 
 class CoreQueryTests(TestCase):
+    def __init__(self, *args, echo: bool = False, **kwargs) -> None:
+        self.echo = echo
+        super().__init__(*args, **kwargs)
+
     def setUp(self) -> None:
-        self.engine = create_engine(SQLITE_MEMORY_URL, future=True)
+        self.engine = create_engine(
+            SQLITE_MEMORY_URL, echo=self.echo, future=True
+        )
         self.tablename = "t"
         self.a = "a"
         self.b = "b"
@@ -63,6 +69,7 @@ class CoreQueryTests(TestCase):
         self.a_val2 = 2
         self.b_val1 = 101
         self.b_val2 = 102
+        self.emptytablename = "emptytable"
         with self.engine.begin() as con:
             con.execute(
                 text(
@@ -84,12 +91,16 @@ class CoreQueryTests(TestCase):
                     f"VALUES ({self.a_val2}, {self.b_val2})"
                 )
             )
+            con.execute(
+                text(f"CREATE TABLE {self.emptytablename} (x INTEGER)")
+            )
         self.session = sessionmaker(
             bind=self.engine, future=True
         )()  # type: Session
         self.metadata = MetaData()
         self.metadata.reflect(bind=self.engine)
         self.table = self.metadata.tables[self.tablename]
+        self.emptytable = self.metadata.tables[self.emptytablename]
 
     # noinspection DuplicatedCode
     def test_get_rows_fieldnames_from_raw_sql(self) -> None:
@@ -117,20 +128,39 @@ class CoreQueryTests(TestCase):
         self.assertEqual(maximum, self.b_val2)
 
     def test_exists_in_table(self) -> None:
+        # exists:
         exists1 = exists_in_table(self.session, self.table)
         self.assertTrue(exists1)
         exists2 = exists_in_table(
             self.session, self.table, column(self.a) == 1
         )
         self.assertTrue(exists2)
+        # does not exist:
+        exists3 = exists_in_table(
+            self.session, self.table, column(self.a) == 99
+        )
+        self.assertFalse(exists3)
+        exists4 = exists_in_table(self.session, self.emptytable)
+        self.assertFalse(exists4)
 
     def test_exists_plain(self) -> None:
+        # exists:
         exists1 = exists_plain(self.session, self.tablename)
         self.assertTrue(exists1)
         exists2 = exists_plain(
             self.session, self.tablename, column(self.a) == 1
         )
         self.assertTrue(exists2)
+        # does not exist:
+        exists3 = exists_plain(
+            self.session, self.tablename, column(self.a) == 99
+        )
+        self.assertFalse(exists3)
+        exists4 = exists_plain(
+            self.session,
+            self.emptytablename,
+        )
+        self.assertFalse(exists4)
 
     def test_fetch_all_first_values(self) -> None:
         select_stmt = select(text("*")).select_from(table(self.tablename))

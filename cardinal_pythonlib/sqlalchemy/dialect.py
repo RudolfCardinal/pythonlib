@@ -44,6 +44,8 @@ class SqlaDialectName(object):
     Dialect names used by SQLAlchemy.
     """
 
+    # SQLAlchemy itself:
+
     FIREBIRD = "firebird"
     MYSQL = "mysql"
     MSSQL = "mssql"
@@ -52,6 +54,12 @@ class SqlaDialectName(object):
     SQLITE = "sqlite"
     SQLSERVER = MSSQL  # synonym
     SYBASE = "sybase"
+
+    # Additional third-party dialects:
+
+    DATABRICKS = "databricks"
+    # ... https://github.com/databricks/databricks-sqlalchemy
+    # ... https://docs.databricks.com/en/sql/language-manual/index.html
 
 
 ALL_SQLA_DIALECTS = list(
