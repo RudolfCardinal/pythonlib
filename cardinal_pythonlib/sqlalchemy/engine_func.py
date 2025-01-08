@@ -104,8 +104,9 @@ def get_sqlserver_product_version(engine: "Engine") -> Tuple[int, ...]:
         "instances."
     )
     sql = "SELECT CAST(SERVERPROPERTY('ProductVersion') AS VARCHAR)"
-    rp = engine.execute(sql)  # type: Result
-    row = rp.fetchone()
+    with engine.begin() as connection:
+        rp = connection.execute(sql)  # type: Result
+        row = rp.fetchone()
     dotted_version = row[0]  # type: str  # e.g. '12.0.5203.0'
     return tuple(int(x) for x in dotted_version.split("."))
 

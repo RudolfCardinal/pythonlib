@@ -265,8 +265,9 @@ def dump_orm_object_as_insert_sql(
         core_pkcol = table.columns.get(orm_pkcol.name)
         pkval = getattr(obj, orm_pkcol.name)
         query = query.where(core_pkcol == pkval)
-    cursor = engine.execute(query)
-    row = cursor.fetchone()  # should only be one...
+    with engine.begin() as connection:
+        cursor = connection.execute(query)
+        row = cursor.fetchone()  # should only be one...
     row_dict = dict(row)
     statement = table.insert(values=row_dict)
     insert_str = get_literal_query(statement, bind=engine)

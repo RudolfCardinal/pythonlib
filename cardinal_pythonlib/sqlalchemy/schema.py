@@ -59,6 +59,7 @@ from sqlalchemy.schema import (
     Table,
 )
 from sqlalchemy.sql import sqltypes, text
+from sqlalchemy.sql.ddl import DDLElement
 from sqlalchemy.sql.sqltypes import BigInteger, TypeEngine
 from sqlalchemy.sql.visitors import Visitable
 
@@ -338,6 +339,33 @@ def get_effective_int_pk_col(table_: Table) -> Optional[str]:
 
 
 # =============================================================================
+# Execute DDL
+# =============================================================================
+
+
+def execute_ddl(
+    engine: Engine, sql: str = None, ddl: DDLElement = None
+) -> None:
+    """
+    Execute DDL, either from a plain SQL string, or from an SQLAlchemy DDL
+    element.
+
+    Previously we would use DDL(sql, bind=engine).execute(), but this has gone
+    in SQLAlchemy 2.0.
+
+    If you want dialect-conditional execution, create the DDL object with e.g.
+    ddl = DDL(sql).execute_if(dialect=SqlaDialectName.SQLSERVER), and pass that
+    DDL object to this function.
+    """
+    assert bool(sql) ^ bool(ddl)  # one or the other.
+    if sql:
+        ddl = DDL(sql)
+    with engine.connect() as connection:
+        # DDL doesn't need a COMMIT.
+        connection.execute(ddl)
+
+
+# =============================================================================
 # Indexes
 # =============================================================================
 
@@ -565,8 +593,7 @@ def add_index(
                     colnames=", ".join(quote(c) for c in colnames),
                 )
             )
-            # DDL(sql, bind=engine).execute_if(dialect=SqlaDialectName.MYSQL)
-            DDL(sql, bind=engine).execute()
+            execute_ddl(engine, sql=sql)
 
         elif is_mssql:  # Microsoft SQL Server
             # https://msdn.microsoft.com/library/ms187317(SQL.130).aspx
@@ -628,7 +655,7 @@ def add_index(
                 )
                 # Executing serial COMMITs or a ROLLBACK won't help here if
                 # this transaction is due to Python DBAPI default behaviour.
-            DDL(sql, bind=engine).execute()
+            execute_ddl(engine, sql=sql)
 
             # The reversal procedure is DROP FULLTEXT INDEX ON tablename;
 

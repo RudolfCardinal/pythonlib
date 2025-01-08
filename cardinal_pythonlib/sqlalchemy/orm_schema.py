@@ -29,10 +29,12 @@
 import logging
 from typing import Type, TYPE_CHECKING
 
-from cardinal_pythonlib.sqlalchemy.session import get_safe_url_from_engine
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import DeclarativeMeta
 from sqlalchemy.schema import CreateTable
+
+from cardinal_pythonlib.sqlalchemy.schema import execute_ddl
+from cardinal_pythonlib.sqlalchemy.session import get_safe_url_from_engine
 
 if TYPE_CHECKING:
     from sqlalchemy.sql.schema import Table
@@ -73,5 +75,4 @@ def create_table_from_orm_class(
     creator = CreateTable(
         table, include_foreign_key_constraints=include_foreign_key_constraints
     )
-    with engine.begin() as conn:  # though DML/DDL doesn't really need a COMMIT
-        conn.execute(creator)
+    execute_ddl(engine, ddl=creator)
