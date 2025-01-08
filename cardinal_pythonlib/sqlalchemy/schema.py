@@ -357,7 +357,7 @@ def execute_ddl(
     ddl = DDL(sql).execute_if(dialect=SqlaDialectName.SQLSERVER), and pass that
     DDL object to this function.
     """
-    assert bool(sql) ^ bool(ddl)  # one or the other.
+    assert bool(sql) ^ (ddl is not None)  # one or the other.
     if sql:
         ddl = DDL(sql)
     with engine.connect() as connection:

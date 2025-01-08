@@ -38,6 +38,7 @@ from sqlalchemy.ext import compiler
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.schema import (
     Column,
+    CreateTable,
     DDLElement,
     Index,
     MetaData,
@@ -45,6 +46,7 @@ from sqlalchemy.schema import (
     Table,
 )
 from sqlalchemy.sql import table
+from sqlalchemy.sql.selectable import Select
 from sqlalchemy.sql.sqltypes import (
     BigInteger,
     Date,
@@ -65,6 +67,7 @@ from cardinal_pythonlib.sqlalchemy.schema import (
     columns_equal,
     convert_sqla_type_for_dialect,
     does_sqlatype_require_index_len,
+    execute_ddl,
     gen_columns_info,
     get_column_info,
     get_column_names,
@@ -287,8 +290,15 @@ def _view_doesnt_exist(ddl, target, connection, **kw):
     return not _view_exists(ddl, target, connection, **kw)
 
 
-def _view(name, metadata, selectable) -> Table:
-    t = table(name)
+def _attach_view(
+    tablename: str, metadata: MetaData, selectable: Select
+) -> None:
+    """
+    Attaches a view to a table of the given name, such that the view (which is
+    of "selectable") is created after the table is created, and dropped before
+    the table is dropped, via listeners.
+    """
+    t = table(tablename)
 
     # noinspection PyProtectedMember
     t._columns._populate_separate_keys(
@@ -298,14 +308,15 @@ def _view(name, metadata, selectable) -> Table:
     event.listen(
         metadata,
         "after_create",
-        CreateView(name, selectable).execute_if(callable_=_view_doesnt_exist),
+        CreateView(tablename, selectable).execute_if(
+            callable_=_view_doesnt_exist
+        ),
     )
     event.listen(
         metadata,
         "before_drop",
-        DropView(name).execute_if(callable_=_view_exists),
+        DropView(tablename).execute_if(callable_=_view_exists),
     )
-    return t
 
 
 class MoreSchemaTests(unittest.TestCase):
@@ -322,17 +333,17 @@ class MoreSchemaTests(unittest.TestCase):
             Column("name", String(50)),
         )
 
-        _view(
+        _attach_view(
             "one",
             metadata,
             select(self.person.c.id.label("name")),
         )
-        _view(
+        _attach_view(
             "two",
             metadata,
             select(self.person.c.id.label("name")),
         )
-        _view(
+        _attach_view(
             "three",
             metadata,
             select(self.person.c.id.label("name")),
@@ -486,16 +497,16 @@ class YetMoreSchemaTests(unittest.TestCase):
         self.engine = create_engine(
             SQLITE_MEMORY_URL, echo=self.echo, future=True
         )
-        metadata = MetaData()
+        self.metadata = MetaData()
         self.person = Table(
             "person",
-            metadata,
+            self.metadata,
             Column("id", Integer, primary_key=True, autoincrement=False),
             Column("name", String(50)),
             make_bigint_autoincrement_column("bigthing"),
         )
         with self.engine.begin() as conn:
-            metadata.create_all(conn)
+            self.metadata.create_all(conn)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # get_single_int_autoincrement_colname (again)
@@ -527,8 +538,8 @@ class YetMoreSchemaTests(unittest.TestCase):
             "you", BigInteger, Sequence("dummy_name", start=1, increment=1)
         )
 
-        metadata = MetaData()
-        t = Table("mytable", metadata)
+        self.metadata = MetaData()
+        t = Table("mytable", self.metadata)
         t.append_column(col1)
         t.append_column(col2)
         t.append_column(col3)
@@ -604,6 +615,21 @@ class YetMoreSchemaTests(unittest.TestCase):
         self.assertTrue(column_lists_equal([a, b], [a, b]))
         self.assertFalse(column_lists_equal([a, b], [b, a]))
         self.assertFalse(column_lists_equal([a, b], [a]))
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # execute_ddl
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    def test_execute_ddl(self) -> None:
+        sql = "CREATE TABLE x (a INT)"
+        execute_ddl(self.engine, sql=sql)
+
+        ddl = CreateTable(Table("y", self.metadata, Column("z", Integer)))
+        execute_ddl(self.engine, ddl=ddl)
+
+        with self.assertRaises(AssertionError):
+            execute_ddl(self.engine, sql=sql, ddl=ddl)  # both
+        with self.assertRaises(AssertionError):
+            execute_ddl(self.engine)  # neither
 
 
 class SchemaAbstractTests(unittest.TestCase):
