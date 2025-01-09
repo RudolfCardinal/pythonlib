@@ -14,7 +14,7 @@
 
 # For exploring some files directly:
 from sqlalchemy.inspection import inspect  # noqa: F401
-import sqlalchemy.dialects.sqlite.base  # noqa: F401
+import sqlalchemy.dialects.sqlite.base
 import sqlalchemy.dialects.sqlite.pysqlite  # noqa: F401
 
 # Test code for dialects:

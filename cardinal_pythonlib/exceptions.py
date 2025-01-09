@@ -50,7 +50,7 @@ def add_info_to_exception(err: Exception, info: Dict) -> None:
     Args:
         err: the exception to be modified
         info: the information to add
-    """  # noqa: E501
+    """
     if not err.args:
         err.args = ("",)
     err.args += (info,)
@@ -106,7 +106,7 @@ def die(exc: Exception = None, exit_code: int = 1) -> NoReturn:
 
         echo $?  # show exit code
 
-    """  # noqa: E501
+    """
     if exc:
         lines = traceback.format_exception(
             None, exc, exc.__traceback__  # etype: ignored

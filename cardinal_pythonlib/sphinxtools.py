@@ -214,7 +214,7 @@ class FileToAutodocument(object):
         print(f.rst_content(prefix=".. Hello!", method=AutodocMethod.CONTENTS))
         f.write_rst(prefix=".. Hello!")
 
-    """  # noqa: E501
+    """
 
     def __init__(
         self,
@@ -554,7 +554,7 @@ class AutodocIndex(object):
         print(flatidx.index_content())
         flatidx.write_index_and_rst_files(overwrite=True, mock=True)
 
-    """  # noqa: E501
+    """
 
     def __init__(
         self,

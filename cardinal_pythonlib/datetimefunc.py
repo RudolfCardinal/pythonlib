@@ -307,7 +307,7 @@ def strfdelta(
 
     Modified from
     https://stackoverflow.com/questions/538666/python-format-timedelta-to-string
-    """  # noqa: E501
+    """
 
     # Convert tdelta to integer seconds.
     if inputtype == "timedelta":
@@ -639,7 +639,7 @@ def duration_to_iso(
       realistic (negative, 1000 years, 11 months, and the maximum length for
       seconds/microseconds).
 
-    """  # noqa: E501
+    """
     prefix = ""
     negative = d < Duration()
     if negative and minus_sign_at_front:

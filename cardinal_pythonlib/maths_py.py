@@ -171,7 +171,7 @@ def round_sf(x: float, n: int = 2) -> float:
         round_sf(1234567890000, 3)  # 1230000000000
         round_sf(9876543210000, 3)  # 9880000000000
 
-    """  # noqa: E501
+    """
     y = abs(x)
     if y <= sys.float_info.min:
         return 0.0

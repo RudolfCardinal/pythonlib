@@ -67,7 +67,7 @@ def if_sqlserver_disable_constraints(
 
     See
     https://stackoverflow.com/questions/123558/sql-server-2005-t-sql-to-temporarily-disable-a-trigger
-    """  # noqa: E501
+    """
     engine = get_engine_from_session(session)
     quoted_tablename = quote_identifier(tablename, engine)
     _exec_ddl_if_sqlserver(
@@ -95,7 +95,7 @@ def if_sqlserver_disable_triggers(
 
     See
     https://stackoverflow.com/questions/123558/sql-server-2005-t-sql-to-temporarily-disable-a-trigger
-    """  # noqa: E501
+    """
     engine = get_engine_from_session(session)
     quoted_tablename = quote_identifier(tablename, engine)
     _exec_ddl_if_sqlserver(

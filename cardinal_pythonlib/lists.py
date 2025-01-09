@@ -118,7 +118,7 @@ def flatten_list(x: List[Any]) -> List[Any]:
     As per
     https://stackoverflow.com/questions/952914/making-a-flat-list-out-of-list-of-lists-in-python
 
-    """  # noqa: E501
+    """
     return [item for sublist in x for item in sublist]
 
 
@@ -135,7 +135,7 @@ def unique_list(seq: Iterable[Any]) -> List[Any]:
     As per
     https://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-whilst-preserving-order
 
-    """  # noqa: E501
+    """
     seen = set()
     seen_add = seen.add
     return [x for x in seq if not (x in seen or seen_add(x))]

@@ -167,7 +167,7 @@ def kill_proc_tree(
         tuple: ``(gone, still_alive)``, where both are sets of
         :class:`psutil.Process` objects
 
-    """  # noqa: E501
+    """
     parent = psutil.Process(pid)
     to_kill = parent.children(recursive=True)  # type: List[psutil.Process]
     if including_parent:
@@ -192,7 +192,7 @@ def nice_call(
 
     Modified from
     https://stackoverflow.com/questions/34458583/python-subprocess-call-doesnt-handle-signal-correctly
-    """  # noqa: E501
+    """
     with subprocess.Popen(*popenargs, **kwargs) as p:
         try:
             return p.wait(timeout=timeout)

@@ -48,7 +48,7 @@ def cmdline_split(s: str, platform: Union[int, str] = "this") -> List[str]:
             - ``1`` = POSIX;
             - ``0`` = Windows/CMD
             - (other values reserved)
-    """  # noqa: E501
+    """
     if platform == "this":
         platform = sys.platform != "win32"  # RNC: includes 64-bit Windows
 

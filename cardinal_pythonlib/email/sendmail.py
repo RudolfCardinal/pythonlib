@@ -462,7 +462,7 @@ def send_email(
       https://docs.djangoproject.com/en/2.1/ref/settings/#email-use-ssl). We
       don't support that here.
 
-    """  # noqa: E501
+    """
     if isinstance(to, str):
         to = [to]
     if isinstance(cc, str):
@@ -533,7 +533,7 @@ def is_email_valid(email_: str) -> bool:
 
     See
     https://stackoverflow.com/questions/8022530/how-to-check-for-valid-email-address.
-    """  # noqa: E501
+    """
     # Very basic checks!
     if not email_:
         return False

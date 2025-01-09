@@ -45,7 +45,7 @@ def find_nth(s: str, x: str, n: int = 0, overlap: bool = False) -> int:
 
     As per
     https://stackoverflow.com/questions/1883980/find-the-nth-occurrence-of-substring-in-a-string
-    """  # noqa: E501
+    """
     length_of_fragment = 1 if overlap else len(x)
     i = -length_of_fragment
     for _ in range(n + 1):

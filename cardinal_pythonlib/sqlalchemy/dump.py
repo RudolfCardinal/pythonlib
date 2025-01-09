@@ -296,7 +296,7 @@ def dump_orm_tree_as_insert_sql(
       https://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
     - Not so obvious how we can iterate through the list of ORM objects and
       guarantee correct insertion order with respect to all FKs.
-    """  # noqa: E501
+    """
     writeline_nl(
         fileobj,
         sql_comment("Data for all objects related to the first below:"),
@@ -328,7 +328,7 @@ def quick_mapper(table: Table) -> Type[DeclarativeMeta]:
     Returns:
         a :class:`DeclarativeMeta` class
 
-    """  # noqa: E501
+    """
     # noinspection PyPep8Naming
     Base = declarative_base()
 
@@ -501,7 +501,7 @@ def get_literal_query(
     Returns:
         a string literal version of the query.
 
-    """  # noqa: E501
+    """
     # log.debug("statement: {!r}", statement)
     # log.debug("statement.bind: {!r}", statement.bind)
     if isinstance(statement, Query):

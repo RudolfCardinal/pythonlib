@@ -142,7 +142,7 @@ def range_roundable_up_to(
 
     Note that ``dp`` can be negative, as in other Python functions.
 
-    """  # noqa: E501
+    """
     y = Decimal(y)
     assert num_dp_from_decimal(y, with_negative_dp=True) <= dp, (
         f"Number {y} is not rounded to {dp} dp as claimed; it has "

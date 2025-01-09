@@ -125,7 +125,7 @@ class MergeTestPlain(MergeTestMixin, unittest.TestCase):
     - If you use mixins, they go AFTER :class:`unittest.TestCase`; see
       https://stackoverflow.com/questions/1323455/python-unit-test-with-base-and-sub-class
 
-    """  # noqa: E501
+    """
 
     def setUp(self) -> None:
         super().setUp()

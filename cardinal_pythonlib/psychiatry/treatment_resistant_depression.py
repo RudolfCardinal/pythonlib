@@ -55,7 +55,7 @@ Performance notes:
 - Profiler off: 2.38s for 300 patients, or 126 Hz. Let's call that a day; we've
   achieved a 5-fold speedup.
 
-"""  # noqa: E501
+"""
 
 import cProfile
 from concurrent.futures import ThreadPoolExecutor

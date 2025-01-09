@@ -125,7 +125,7 @@ def request_accepts_gzip(request: Request) -> bool:
     - So we'll do a case-sensitive check for "gzip".
     - But there is also a bit of other syntax possible; see
       https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Encoding.
-    """  # noqa: E501
+    """
     headers = request.headers  # type: EnvironHeaders
     if HTTP_ACCEPT_ENCODING not in headers:
         return False

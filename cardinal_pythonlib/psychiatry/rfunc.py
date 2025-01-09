@@ -64,7 +64,7 @@ Briefly:
 
     repl_python()  # start an interactive Python session
 
-"""  # noqa: E501
+"""
 
 import sys
 from typing import Any, Dict

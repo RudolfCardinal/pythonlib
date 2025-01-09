@@ -603,7 +603,7 @@ class Drug(object):
                 option_groups = bracketed.split("|")
                 options = [c for group in option_groups for c in group]
                 split_and_append(options)
-                working = working[close_bracket + 1 :]  # noqa: E203
+                working = working[close_bracket + 1 :]
             elif len(working) > 1 and working[1] == "?":
                 # e.g. "r?azole"
                 split_and_append(["", working[0]])

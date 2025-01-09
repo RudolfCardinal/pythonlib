@@ -65,7 +65,7 @@ def normalized_frequency(f: float, sampling_freq: float) -> float:
     - e.g. see https://en.wikipedia.org/wiki/Nyquist_frequency,
       https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirnotch.html
 
-    """  # noqa: E501
+    """
     return f / (sampling_freq / 2.0)
 
 

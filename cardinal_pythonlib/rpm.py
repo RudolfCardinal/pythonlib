@@ -748,8 +748,8 @@ def rpm_integrand_n_choice(args: np.ndarray) -> float:
     x = args[0]
     k = int(args[1])  # k is the number of actions
     current_action = int(args[2])  # zero-based index
-    n_successes_plus_one = args[3 : k + 3]  # noqa: E203
-    n_failures_plus_one = args[k + 3 :]  # noqa: E203
+    n_successes_plus_one = args[3 : k + 3]
+    n_failures_plus_one = args[k + 3 :]
 
     r = beta_pdf_fast(
         x,

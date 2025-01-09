@@ -414,7 +414,7 @@ def murmur3_x86_32(data: Union[bytes, bytearray], seed: int = 0) -> int:
     Returns:
         integer hash
 
-    """  # noqa: E501
+    """
     c1 = 0xCC9E2D51
     c2 = 0x1B873593
 
@@ -481,7 +481,7 @@ def murmur3_64(data: Union[bytes, bytearray], seed: int = 19820125) -> int:
 
     Returns:
         integer hash
-    """  # noqa: E501
+    """
     m = 0xC6A4A7935BD1E995
     r = 47
 

@@ -403,7 +403,7 @@ def stamp_allowing_unusual_version_table(
     This function is a clone of ``alembic.command.stamp()``, but allowing
     ``version_table`` to change. See
     https://alembic.zzzcomputing.com/en/latest/api/commands.html#alembic.command.stamp
-    """  # noqa: E501
+    """
 
     script = ScriptDirectory.from_config(config)
 

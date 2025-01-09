@@ -146,7 +146,7 @@ class PasswordPromptAction(argparse.Action):
 
     Modified from
     https://stackoverflow.com/questions/27921629/python-using-getpass-with-argparse
-    """  # noqa: E501
+    """
 
     # noinspection PyShadowingBuiltins
     def __init__(

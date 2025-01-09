@@ -53,7 +53,7 @@ class CooperativeMeta(type):
 
     See also
     https://blog.ionelmc.ro/2015/02/09/understanding-python-metaclasses/.
-    """  # noqa: E501
+    """
 
     def __new__(
         mcs: Type, name: str, bases: Tuple[Type, ...], members: Dict[str, Any]

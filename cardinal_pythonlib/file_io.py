@@ -123,7 +123,7 @@ def writelines_nl(fileobj: TextIO, lines: Iterable[str]) -> None:
 
     (Since :func:`fileobj.writelines` doesn't add newlines...
     https://stackoverflow.com/questions/13730107/writelines-writes-lines-without-newline-just-fills-the-file)
-    """  # noqa: E501
+    """
     fileobj.write("\n".join(lines) + "\n")
 
 

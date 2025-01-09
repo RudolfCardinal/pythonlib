@@ -261,7 +261,7 @@ class CountStarSpecializedQuery:
         somewhat surprisingly to me, that gives 1 rather than an error, at
         least in SQLite. So now we inherit from Select, not Query.
 
-        """  # noqa: E501
+        """
         # https://docs.sqlalchemy.org/en/20/core/selectable.html#sqlalchemy.sql.expression.select  # noqa: E501
         # ... accepts "series of ColumnElement and / or FromClause objects"
         # But passing the table to select() just means you select too many
