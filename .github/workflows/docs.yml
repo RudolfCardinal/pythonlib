@@ -24,3 +24,9 @@ jobs:
               run: ${GITHUB_WORKSPACE}/.github/scripts/install_base_python_packages.sh
             - name: Build docs
               run: ${GITHUB_WORKSPACE}/.github/scripts/build_docs.sh
+            - name: Dump stuff on failure
+              if: failure()
+              run: |
+                  set -euxo pipefail
+                  ls -l ${HOME}/venv/bin
+                  ${HOME}/venv/bin/python -m pip freeze
