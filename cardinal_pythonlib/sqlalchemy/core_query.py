@@ -62,8 +62,8 @@ def get_rows_fieldnames_from_raw_sql(
 
     Args:
         session:
-            SQLAlchemy :class:`Session`, :class:`Engine`, or
-            :class:`Connection` object
+            SQLAlchemy :class:`Session`, :class:`Engine` (SQL Alchemy 1.4
+            only), or :class:`Connection` object
         sql:
             raw SQL to execure
 
@@ -88,8 +88,8 @@ def get_rows_fieldnames_from_select(
 
     Args:
         session:
-            SQLAlchemy :class:`Session`, :class:`Engine`, or
-            :class:`Connection` object
+            SQLAlchemy :class:`Session`, :class:`Engine` (SQL Alchemy 1.4
+            only), or :class:`Connection` object
         select_query:
             select() statement, i.e. instance of
             :class:`sqlalchemy.sql.selectable.Select`
@@ -175,8 +175,9 @@ def count_star(
     additional ``WHERE`` criteria if desired).
 
     Args:
-        session: SQLAlchemy :class:`Session`, :class:`Engine`, or
-            :class:`Connection` object
+        session:
+            SQLAlchemy :class:`Session`, :class:`Engine` (SQL Alchemy 1.4
+            only), or :class:`Connection` object
         tablename: name of the table
         criteria: optional SQLAlchemy "where" criteria
 
@@ -205,8 +206,9 @@ def count_star_and_max(
     """
 
     Args:
-        session: SQLAlchemy :class:`Session`, :class:`Engine`, or
-            :class:`Connection` object
+        session:
+            SQLAlchemy :class:`Session`, :class:`Engine` (SQL Alchemy 1.4
+            only), or :class:`Connection` object
         tablename: name of the table
         maxfield: name of column (field) to take the ``MAX()`` of
         criteria: optional SQLAlchemy "where" criteria
@@ -240,8 +242,9 @@ def exists_in_table(
     should be faster than ``COUNT(*)`` in some circumstances.
 
     Args:
-        session: SQLAlchemy :class:`Session`, :class:`Engine`, or
-            :class:`Connection` object
+        session:
+            SQLAlchemy :class:`Session`, :class:`Engine` (SQL Alchemy 1.4
+            only), or :class:`Connection` object
         table_: SQLAlchemy :class:`Table` object or table clause
         criteria: optional SQLAlchemy "where" criteria
 
@@ -335,8 +338,9 @@ def exists_plain(session: Session, tablename: str, *criteria: Any) -> bool:
     should be faster than COUNT(*) in some circumstances.
 
     Args:
-        session: SQLAlchemy :class:`Session`, :class:`Engine`, or
-            :class:`Connection` object
+        session:
+            SQLAlchemy :class:`Session`, :class:`Engine` (SQL Alchemy 1.4
+            only), or :class:`Connection` object
         tablename: name of the table
         criteria: optional SQLAlchemy "where" criteria
 
