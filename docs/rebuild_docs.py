@@ -59,8 +59,6 @@ if __name__ == "__main__":
     if args.warnings_as_errors:
         cmdargs.append('SPHINXOPTS="-W"')
 
-    sphinx_build = shutil.which("sphinx-build")
-    cmdargs.append(f"SPHINXBUILD={sphinx_build}")
     subprocess.check_call(cmdargs)
 
     # Copy
