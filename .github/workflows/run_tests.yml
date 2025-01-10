@@ -9,7 +9,7 @@ on:
             - .github/scripts/change_apt_mirror.sh
             - .github/scripts/create_virtualenv.sh
             - .github/scripts/install_base_python_packages.sh
-            - .github/scripts/install_test_packages.sh
+            - .github/scripts/install_test_python_packages.sh
             - .github/scripts/run_tests.sh
             - .github/workflows/run_tests.yml
 jobs:
