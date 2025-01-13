@@ -131,7 +131,7 @@ def tee(infile: IO, *files: IO) -> Thread:
         x = t.readline()  # "hello\n"
         y = b.readline()  # b"world\n"
 
-    """  # noqa: E501
+    """
 
     def fanout(_infile: IO, *_files: IO):
         for line in iter(_infile.readline, ""):
@@ -170,7 +170,7 @@ def teed_call(
         encoding: encoding to apply to ``stdout`` and ``stderr``
         kwargs: additional arguments for :class:`subprocess.Popen`
 
-    """  # noqa: E501
+    """
     # Make a copy so we can append without damaging the original:
     stdout_targets = (
         stdout_targets.copy() if stdout_targets else []

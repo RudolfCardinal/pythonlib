@@ -25,7 +25,7 @@
 **Command-line tool to remove duplicate files from a path.**
 
 Largely based on
-https://code.activestate.com/recipes/362459-dupinator-detect-and-delete-duplicate-files/  # noqa
+https://code.activestate.com/recipes/362459-dupinator-detect-and-delete-duplicate-files/  # noqa: E501
 
 """
 
@@ -69,7 +69,7 @@ def deduplicate(
     # -------------------------------------------------------------------------
     files_by_size = (
         {}
-    )  # type: Dict[int, List[str]]  # maps size to list of filenames  # noqa
+    )  # type: Dict[int, List[str]]  # maps size to list of filenames
     num_considered = 0
     for filename in gen_filenames(directories, recursive=recursive):
         if not os.path.isfile(filename):

@@ -179,7 +179,7 @@ def make_email(
     attachment_binaries = attachment_binaries or []  # type: List[bytes]
     attachment_binary_filenames = (
         attachment_binary_filenames or []
-    )  # type: List[str]  # noqa
+    )  # type: List[str]
     assert len(attachment_binaries) == len(attachment_binary_filenames), (
         "If you specify attachment_binaries or attachment_binary_filenames, "
         "they must be iterables of the same length."
@@ -462,7 +462,7 @@ def send_email(
       https://docs.djangoproject.com/en/2.1/ref/settings/#email-use-ssl). We
       don't support that here.
 
-    """  # noqa
+    """
     if isinstance(to, str):
         to = [to]
     if isinstance(cc, str):
@@ -533,7 +533,7 @@ def is_email_valid(email_: str) -> bool:
 
     See
     https://stackoverflow.com/questions/8022530/how-to-check-for-valid-email-address.
-    """  # noqa
+    """
     # Very basic checks!
     if not email_:
         return False

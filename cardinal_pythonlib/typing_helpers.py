@@ -68,7 +68,7 @@ def with_typehint(baseclass: Type[T]) -> Type[T]:
         class MyMixin1(with_typehint(SomeBaseClass))):
             # ...
 
-    """  # noqa: E501
+    """
     if TYPE_CHECKING:
         return baseclass
     return object
@@ -88,7 +88,7 @@ def with_typehints(*baseclasses: Type[T]) -> Type[T]:
         class MyMixin2(*with_typehints(SomeBaseClass, AnotherBaseClass))):
             # ...
 
-    """  # noqa: E501
+    """
     if TYPE_CHECKING:
         return baseclasses
     return object

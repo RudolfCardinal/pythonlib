@@ -348,7 +348,7 @@ class DogpileCacheTests(unittest.TestCase):
                 return f"TestClass.no_params_instance_cache: a={self.a}"
 
             # Decorator order is critical here:
-            # https://stackoverflow.com/questions/1987919/why-can-decorator-not-decorate-a-staticmethod-or-a-classmethod  # noqa
+            # https://stackoverflow.com/questions/1987919/why-can-decorator-not-decorate-a-staticmethod-or-a-classmethod  # noqa: E501
             @classmethod
             @mycache.cache_on_arguments(function_key_generator=plain_fkg)
             def classy(cls) -> str:
@@ -410,7 +410,7 @@ class DogpileCacheTests(unittest.TestCase):
                 return f"Inherited.no_params_instance_cache: a={self.a}"
 
             # Decorator order is critical here:
-            # https://stackoverflow.com/questions/1987919/why-can-decorator-not-decorate-a-staticmethod-or-a-classmethod  # noqa
+            # https://stackoverflow.com/questions/1987919/why-can-decorator-not-decorate-a-staticmethod-or-a-classmethod  # noqa: E501
             @classmethod
             @mycache.cache_on_arguments(function_key_generator=plain_fkg)
             def classy(cls) -> str:

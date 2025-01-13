@@ -26,10 +26,7 @@
 
 """
 
-from semantic_version import Version
-import sqlalchemy
-
-SQLA_VERSION = Version(sqlalchemy.__version__)
-SQLA_SUPPORTS_POOL_PRE_PING = SQLA_VERSION >= Version("1.2.0")
-SQLA_SUPPORTS_MYSQL_UPSERT = SQLA_VERSION >= Version("1.2.0")
-# "upsert" = INSERT ... ON DUPLICATE KEY UPDATE
+# SQLA_VERSION = Version(sqlalchemy.__version__)
+# SQLA_SUPPORTS_POOL_PRE_PING = SQLA_VERSION >= Version("1.2.0")
+# SQLA_SUPPORTS_MYSQL_UPSERT = SQLA_VERSION >= Version("1.2.0")
+# ... "upsert" = INSERT ... ON DUPLICATE KEY UPDATE

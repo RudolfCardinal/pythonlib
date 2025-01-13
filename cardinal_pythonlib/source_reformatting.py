@@ -171,7 +171,7 @@ class PythonProcessor(object):
                         docstring_done = True
                         in_body = True
                         # ... and keep dl, so we write the end of the
-                        # docstring, potentially with e.g. "# noqa" on the end
+                        # docstring, potentially with e.g. a noqa on the end
                     elif not docstring_done:  # docstring starting
                         in_docstring = True
                         # self._critical("adding our new docstring")

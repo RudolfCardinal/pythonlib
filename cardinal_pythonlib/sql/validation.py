@@ -24,8 +24,6 @@
 
 **Functions to check table/column names etc. for validity in SQL.**
 
-This is a slight
-
 """
 
 import re
@@ -41,13 +39,29 @@ REGEX_INVALID_TABLE_FIELD_CHARS = re.compile("[^\x20-\x7E]")
 # ... SQL Server is very liberal!
 
 
-# - ANSI: http://jakewheat.github.io/sql-overview/sql-2011-foundation-grammar.html#predefined-type  # noqa
+# - ANSI:
+#   - http://jakewheat.github.io/sql-overview/sql-2011-foundation-grammar.html#predefined-type  # noqa: E501
+#
 # - SQL Server:
-#   - https://support.microsoft.com/en-us/office/equivalent-ansi-sql-data-types-7a0a6bef-ef25-45f9-8a9a-3c5f21b5c65d  # noqa
-#   - https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql?view=sql-server-ver15  # noqa
+#   - https://support.microsoft.com/en-us/office/equivalent-ansi-sql-data-types-7a0a6bef-ef25-45f9-8a9a-3c5f21b5c65d  # noqa: E501
+#   - https://docs.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql?view=sql-server-ver15  # noqa: E501
+#   - https://learn.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql?view=sql-server-ver16  # noqa: E501
 #   - Note that ANSI "BIT" is SQL Server "BINARY".
-# - MySQL: https://dev.mysql.com/doc/refman/8.0/en/data-types.html
-# - PostgreSQL: https://www.postgresql.org/docs/9.5/datatype.html
+#
+# - MySQL:
+#   - https://dev.mysql.com/doc/refman/8.0/en/data-types.html
+#   - https://dev.mysql.com/doc/refman/9.1/en/data-types.html
+#
+# - PostgreSQL:
+#   - https://www.postgresql.org/docs/9.5/datatype.html
+#
+# - SQLite:
+#   - https://www.sqlite.org/datatype3.html
+#
+# - Databricks:
+#   - https://github.com/databricks/databricks-sqlalchemy
+
+SQLTYPE_DATE = "DATE"  # ANSI
 
 SQLTYPES_INTEGER = (
     "BIGINT",  # ANSI
@@ -71,6 +85,12 @@ SQLTYPES_INTEGER = (
     "SMALLSERIAL",  # PostgreSQL
     "TINYINT",  # SQL Server, MySQL
 )
+SQLTYPES_BIT = (
+    "BIT VARYING",  # ANSI
+    "BIT",  # ANSI
+    "BOOL",  # MySQL synonym for BOOLEAN or TINYINT(1)
+    "BOOLEAN",  # ANSI
+)
 SQLTYPES_FLOAT = (
     "DOUBLE PRECISION",  # ANSI (8 bytes)
     "DOUBLE",  # SQL Server, MySQL; synonym for DOUBLE PRECISION
@@ -84,16 +104,13 @@ SQLTYPES_FLOAT = (
     "SINGLE",  # SQL Server
 )
 SQLTYPES_OTHER_NUMERIC = (
-    "BIT VARYING",  # ANSI
-    "BIT",  # ANSI
-    "BOOL",  # MySQL synonym for BOOLEAN or TINYINT(1)
-    "BOOLEAN",  # ANSI
     "DEC",  # ANSI; synonym for DECIMAL
     "DECIMAL",  # ANSI
     "FIXED",  # MySQL; synonym for DECIMAL
     "LOGICAL",  # SQL Server
     "LOGICAL1",  # SQL Server
     "NUMERIC",  # ANSI; synonym for DECIMAL
+    "SMALLMONEY",  # SQL Server
     "ROWVERSION",  # SQL Server
     "VARBIT",  # PostgreSQL synonym for BIT VARYING
     "YESNO",  # SQL Server
@@ -125,8 +142,8 @@ SQLTYPES_TEXT = (
     "NTEXT",  # SQL Server
     "NVARCHAR",  # SQL Server
     "SET",  # MySQL
-    "STRING",  # SQL Server
-    "TEXT",  # SQL Server, MySQL
+    "STRING",  # SQL Server, Databricks
+    "TEXT",  # SQL Server, MySQL, SQLite
     "TINYTEXT",  # MySQL
     "VARCHAR",  # ANSI
 )
@@ -146,12 +163,13 @@ SQLTYPES_BINARY = (
     "VARBINARY",  # ANSI
 )
 SQLTYPES_WITH_DATE = (
-    "DATE",  # ANSI
-    "DATETIME",  # SQL Server, MySQL
+    SQLTYPE_DATE,  # ANSI
+    "DATETIME",  # SQL Server, MySQL, most
     "DATETIME2",  # SQL Server
     "DATETIMEOFFSET",  # SQL Server (date + time + time zone)
     "SMALLDATETIME",  # SQL Server
     "TIMESTAMP",  # ANSI
+    "TIMESTAMP_NTZ",  # Databricks
 )
 SQLTYPES_DATETIME_OTHER = (
     "INTERVAL",  # ANSI (not always supported); PostgreSQL

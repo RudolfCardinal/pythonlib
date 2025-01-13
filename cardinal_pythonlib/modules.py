@@ -136,7 +136,7 @@ def is_c_extension(module: ModuleType) -> bool:
         is_c_extension(et)  # False on my system (Python 3.5.6). True in the original example.
         is_c_extension(numpy_multiarray)  # True
 
-    """  # noqa
+    """  # noqa: E501
     assert inspect.ismodule(module), f'"{module}" not a module.'
 
     # If this module was loaded by a PEP 302-compliant CPython-specific loader
@@ -220,7 +220,7 @@ def contains_c_extension(
 
         contains_c_extension(django)
 
-    """  # noqa
+    """  # noqa: E501
     assert inspect.ismodule(module), f'"{module}" not a module.'
 
     if seen is None:  # only true for the top-level call
@@ -275,7 +275,7 @@ def contains_c_extension(
         # Recurse:
         if contains_c_extension(
             module=candidate,
-            import_all_submodules=False,  # only done at the top level, below  # noqa
+            import_all_submodules=False,  # only done at the top level, below
             include_external_imports=include_external_imports,
             seen=seen,
         ):
@@ -288,7 +288,7 @@ def contains_c_extension(
 
         # Otherwise, for things like Django, we need to recurse in a different
         # way to scan everything.
-        # See https://stackoverflow.com/questions/3365740/how-to-import-all-submodules.  # noqa
+        # See https://stackoverflow.com/questions/3365740/how-to-import-all-submodules.  # noqa: E501
         log.debug("Walking path: {!r}", top_path)
         # noinspection PyBroadException
         try:
@@ -312,7 +312,7 @@ def contains_c_extension(
                     continue
                 if contains_c_extension(
                     module=candidate,
-                    import_all_submodules=False,  # only done at the top level  # noqa
+                    import_all_submodules=False,  # only done at the top level
                     include_external_imports=include_external_imports,
                     seen=seen,
                 ):

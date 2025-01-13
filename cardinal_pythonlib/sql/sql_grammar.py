@@ -61,7 +61,7 @@ ANSI SQL syntax:
 
 - https://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt
     ... particularly the formal specifications in chapter 5 on words
-"""  # noqa
+"""  # noqa: E501
 
 import re
 from typing import List, Union
@@ -115,7 +115,7 @@ def delim_list(
 
 WORD_BOUNDARY = r"\b"
 # The meaning of \b:
-# https://stackoverflow.com/questions/4213800/is-there-something-like-a-counter-variable-in-regular-expression-replace/4214173#4214173  # noqa
+# https://stackoverflow.com/questions/4213800/is-there-something-like-a-counter-variable-in-regular-expression-replace/4214173#4214173  # noqa: E501
 
 
 def word_regex_element(word: str) -> str:
@@ -403,7 +403,7 @@ literal_value = (
     | datetime_literal
 ).setName("literal_value")
 
-# https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_date-add  # noqa
+# https://dev.mysql.com/doc/refman/5.7/en/date-and-time-functions.html#function_date-add  # noqa: E501
 time_unit = make_words_regex(
     "MICROSECOND SECOND MINUTE HOUR DAY WEEK MONTH QUARTER YEAR"
     " SECOND_MICROSECOND"

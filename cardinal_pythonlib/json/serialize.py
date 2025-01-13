@@ -500,7 +500,7 @@ def register_for_json(*args, **kwargs) -> Any:
         print(f"register_for_json: args = {args!r}")
         print(f"register_for_json: kwargs = {kwargs!r}")
 
-    # https://stackoverflow.com/questions/653368/how-to-create-a-python-decorator-that-can-be-used-either-with-or-without-paramet  # noqa
+    # https://stackoverflow.com/questions/653368/how-to-create-a-python-decorator-that-can-be-used-either-with-or-without-paramet  # noqa: E501
     # In brief,
     #   @decorator
     #   x
@@ -540,13 +540,13 @@ def register_for_json(*args, **kwargs) -> Any:
     method = kwargs.pop("method", METHOD_SIMPLE)  # type: str
     obj_to_dict_fn = kwargs.pop(
         "obj_to_dict_fn", None
-    )  # type: InstanceToDictFnType  # noqa
+    )  # type: InstanceToDictFnType
     dict_to_obj_fn = kwargs.pop(
         "dict_to_obj_fn", initdict_to_instance
-    )  # type: DictToInstanceFnType  # noqa
+    )  # type: DictToInstanceFnType
     default_factory = kwargs.pop(
         "default_factory", None
-    )  # type: DefaultFactoryFnType  # noqa
+    )  # type: DefaultFactoryFnType
     check_result = kwargs.pop("check_results", True)  # type: bool
 
     def register_json_class(cls_: ClassType) -> ClassType:

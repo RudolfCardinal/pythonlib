@@ -62,7 +62,7 @@ class CompressionTweenFactory(object):
     - https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hooks.html
     - https://docs.pylonsproject.org/projects/pyramid/en/latest/api/request.html
     - https://docs.pylonsproject.org/projects/pyramid/en/latest/api/response.html
-    """  # noqa
+    """  # noqa: E501
 
     def __init__(
         self, handler: PyramidHandlerType, registry: Registry

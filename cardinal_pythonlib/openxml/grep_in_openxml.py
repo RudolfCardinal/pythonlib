@@ -209,7 +209,7 @@ def main() -> None:
     exe_name = os.path.basename(argv[0]) or "grep_in_openxml"
     parser = ArgumentParser(
         formatter_class=RawDescriptionRichHelpFormatter,
-        description=f"""
+        description=rf"""
 Performs a grep (global-regular-expression-print) search of files in OpenXML
 format, which is to say inside ZIP files.
 
@@ -228,7 +228,7 @@ CHAINING. Note that you can chain. For example, to find both "Laurel" and
 "Hardy" in DOC/DOCX documents, in case-insensitive fashion:
 
     find . -type f -name "*.doc*" -exec {exe_name} -l -i "laurel" {{}} \; | {exe_name} -x -l -i "hardy"
-""",  # noqa
+""",  # noqa: E501
     )
     parser.add_argument("pattern", help="Regular expression pattern to apply.")
     parser.add_argument(

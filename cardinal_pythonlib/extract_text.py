@@ -613,7 +613,7 @@ def availability_pdf() -> bool:
 # -----------------------------------------------------------------------------
 # In a D.I.Y. fashion
 # -----------------------------------------------------------------------------
-# DOCX specification: http://www.ecma-international.org/news/TC45_current_work/TC45_available_docs.htm  # noqa
+# DOCX specification: http://www.ecma-international.org/news/TC45_current_work/TC45_available_docs.htm  # noqa: E501
 
 DOCX_HEADER_FILE_REGEX = re.compile("word/header[0-9]*.xml")
 DOCX_DOC_FILE = "word/document.xml"
@@ -630,7 +630,7 @@ def docx_qn(tagroot):
 DOCX_TEXT = docx_qn("t")
 DOCX_TABLE = docx_qn(
     "tbl"
-)  # https://github.com/python-openxml/python-docx/blob/master/docx/table.py  # noqa
+)  # https://github.com/python-openxml/python-docx/blob/master/docx/table.py
 DOCX_TAB = docx_qn("tab")
 DOCX_NEWLINES = [docx_qn("br"), docx_qn("cr")]
 DOCX_NEWPARA = docx_qn("p")
@@ -1315,7 +1315,7 @@ def convert_rtf_to_text(
         else:
             return get_cmd_output_from_stdin(blob, *args)
     elif pyth:  # Very memory-consuming:
-        # https://github.com/brendonh/pyth/blob/master/pyth/plugins/rtf15/reader.py  # noqa
+        # https://github.com/brendonh/pyth/blob/master/pyth/plugins/rtf15/reader.py  # noqa: E501
         with get_filelikeobject(filename, blob) as fp:
             doc = pyth.plugins.rtf15.reader.Rtf15Reader.read(fp)
         return pyth.plugins.plaintext.writer.PlaintextWriter.write(

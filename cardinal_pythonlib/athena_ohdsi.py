@@ -366,7 +366,7 @@ def get_athena_concepts(
         timeit.timeit(concept_testcode, number=1, globals=globals())
         # After speedup: 3.9 s for 1.1m rows.
 
-    """  # noqa
+    """  # noqa: E501
     assert bool(tsv_filename) != bool(
         cached_concepts
     ), "Specify either tsv_filename or cached_concepts"
@@ -461,7 +461,7 @@ def get_athena_concept_relationships(
     tsv_filename: str = "",
     cached_concept_relationships: Iterable[
         AthenaConceptRelationshipRow
-    ] = None,  # noqa
+    ] = None,
     concept_id_1_values: Collection[int] = None,
     concept_id_2_values: Collection[int] = None,
     relationship_id_values: Collection[str] = None,

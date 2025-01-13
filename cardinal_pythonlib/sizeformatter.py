@@ -163,7 +163,7 @@ def human2bytes(s: str) -> int:
       Traceback (most recent call last):
           ...
       ValueError: can't interpret '12 foo'
-    """  # noqa: E501
+    """
     if not s:
         raise ValueError(f"Can't interpret {s!r} as integer")
     try:

@@ -414,7 +414,7 @@ def murmur3_x86_32(data: Union[bytes, bytearray], seed: int = 0) -> int:
     Returns:
         integer hash
 
-    """  # noqa
+    """
     c1 = 0xCC9E2D51
     c2 = 0x1B873593
 
@@ -481,7 +481,7 @@ def murmur3_64(data: Union[bytes, bytearray], seed: int = 19820125) -> int:
 
     Returns:
         integer hash
-    """  # noqa
+    """
     m = 0xC6A4A7935BD1E995
     r = 47
 
@@ -1070,7 +1070,7 @@ def main() -> None:
     print(twos_comp_to_signed(2 ** 32 - 1, n_bits=32))  # -1
     print(signed_to_twos_comp(-1, n_bits=32))  # 4294967295 = 2 ** 32 - 1
     print(signed_to_twos_comp(-(2 ** 31), n_bits=32))  # 2147483648 = 2 ** 31 - 1
-    """  # noqa
+    """  # noqa: E501
     testdata = ["hello", 1, ["bongos", "today"]]
     for data in testdata:
         compare_python_to_reference_murmur3_32(data, seed=0)

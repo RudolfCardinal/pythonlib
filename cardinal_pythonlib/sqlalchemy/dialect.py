@@ -28,9 +28,9 @@
 
 from typing import Union
 
-# noinspection PyProtectedMember
-from sqlalchemy.engine import create_engine, Engine
+from sqlalchemy.engine import Connection, create_engine, Engine
 from sqlalchemy.engine.interfaces import Dialect
+from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.compiler import IdentifierPreparer, SQLCompiler
 
 
@@ -44,6 +44,8 @@ class SqlaDialectName(object):
     Dialect names used by SQLAlchemy.
     """
 
+    # SQLAlchemy itself:
+
     FIREBIRD = "firebird"
     MYSQL = "mysql"
     MSSQL = "mssql"
@@ -52,6 +54,15 @@ class SqlaDialectName(object):
     SQLITE = "sqlite"
     SQLSERVER = MSSQL  # synonym
     SYBASE = "sybase"
+
+    # Additional third-party dialects:
+    # - https://docs.sqlalchemy.org/en/20/dialects/
+    # Interface:
+    # - https://docs.sqlalchemy.org/en/20/core/internals.html#sqlalchemy.engine.Dialect  # noqa: E501
+
+    DATABRICKS = "databricks"
+    # ... https://github.com/databricks/databricks-sqlalchemy
+    # ... https://docs.databricks.com/en/sql/language-manual/index.html
 
 
 ALL_SQLA_DIALECTS = list(
@@ -70,13 +81,16 @@ ALL_SQLA_DIALECTS = list(
 # =============================================================================
 
 
-def get_dialect(mixed: Union[SQLCompiler, Engine, Dialect]) -> Dialect:
+def get_dialect(
+    mixed: Union[Engine, Dialect, Session, SQLCompiler]
+) -> Union[Dialect, type(Dialect)]:
     """
     Finds the SQLAlchemy dialect in use.
 
     Args:
-        mixed: an SQLAlchemy :class:`SQLCompiler`, :class:`Engine`, or
-            :class:`Dialect` object
+        mixed:
+            An SQLAlchemy engine, bound session, SQLCompiler, or Dialect
+            object.
 
     Returns: the SQLAlchemy :class:`Dialect` being used
 
@@ -85,19 +99,30 @@ def get_dialect(mixed: Union[SQLCompiler, Engine, Dialect]) -> Dialect:
         return mixed
     elif isinstance(mixed, Engine):
         return mixed.dialect
+    elif isinstance(mixed, Session):
+        if mixed.bind is None:
+            raise ValueError("get_dialect: parameter is an unbound session")
+        bind = mixed.bind
+        assert isinstance(bind, (Engine, Connection))
+        return bind.dialect
     elif isinstance(mixed, SQLCompiler):
         return mixed.dialect
     else:
-        raise ValueError("get_dialect: 'mixed' parameter of wrong type")
+        raise ValueError(
+            f"get_dialect: 'mixed' parameter of wrong type: {mixed!r}"
+        )
 
 
-def get_dialect_name(mixed: Union[SQLCompiler, Engine, Dialect]) -> str:
+def get_dialect_name(
+    mixed: Union[Engine, Dialect, Session, SQLCompiler]
+) -> str:
     """
     Finds the name of the SQLAlchemy dialect in use.
 
     Args:
-        mixed: an SQLAlchemy :class:`SQLCompiler`, :class:`Engine`, or
-            :class:`Dialect` object
+        mixed:
+            An SQLAlchemy engine, bound session, SQLCompiler, or Dialect
+            object.
 
     Returns: the SQLAlchemy dialect name being used
     """
@@ -107,15 +132,16 @@ def get_dialect_name(mixed: Union[SQLCompiler, Engine, Dialect]) -> str:
 
 
 def get_preparer(
-    mixed: Union[SQLCompiler, Engine, Dialect]
+    mixed: Union[Engine, Dialect, Session, SQLCompiler]
 ) -> IdentifierPreparer:
     """
     Returns the SQLAlchemy :class:`IdentifierPreparer` in use for the dialect
     being used.
 
     Args:
-        mixed: an SQLAlchemy :class:`SQLCompiler`, :class:`Engine`, or
-            :class:`Dialect` object
+        mixed:
+            An SQLAlchemy engine, bound session, SQLCompiler, or Dialect
+            object.
 
     Returns: an :class:`IdentifierPreparer`
 
@@ -126,7 +152,7 @@ def get_preparer(
 
 
 def quote_identifier(
-    identifier: str, mixed: Union[SQLCompiler, Engine, Dialect]
+    identifier: str, mixed: Union[Engine, Dialect, Session, SQLCompiler]
 ) -> str:
     """
     Converts an SQL identifier to a quoted version, via the SQL dialect in
@@ -134,14 +160,15 @@ def quote_identifier(
 
     Args:
         identifier: the identifier to be quoted
-        mixed: an SQLAlchemy :class:`SQLCompiler`, :class:`Engine`, or
-            :class:`Dialect` object
+        mixed:
+            An SQLAlchemy engine, bound session, SQLCompiler, or Dialect
+            object.
 
     Returns:
         the quoted identifier
 
     """
-    # See also http://sqlalchemy-utils.readthedocs.io/en/latest/_modules/sqlalchemy_utils/functions/orm.html  # noqa
+    # See also http://sqlalchemy-utils.readthedocs.io/en/latest/_modules/sqlalchemy_utils/functions/orm.html  # noqa: E501
     return get_preparer(mixed).quote(identifier)
 
 
@@ -155,6 +182,9 @@ def get_dialect_from_name(dialect_name: str) -> Dialect:
         pass
 
     engine = create_engine(
-        f"{dialect_name}://", strategy="mock", executor=null_executor
+        f"{dialect_name}://",
+        strategy="mock",
+        executor=null_executor,
+        future=True,
     )
     return engine.dialect

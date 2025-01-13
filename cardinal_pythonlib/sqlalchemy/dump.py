@@ -33,7 +33,6 @@ from typing import Any, Callable, Dict, TextIO, Type, Union
 
 import pendulum
 
-# noinspection PyProtectedMember
 from sqlalchemy.engine import Connectable, create_mock_engine
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine.default import DefaultDialect
@@ -53,11 +52,12 @@ from cardinal_pythonlib.sql.literals import sql_comment
 from cardinal_pythonlib.sqlalchemy.dialect import SqlaDialectName
 from cardinal_pythonlib.sqlalchemy.orm_inspect import walk_orm_tree
 from cardinal_pythonlib.sqlalchemy.schema import get_table_names
+from cardinal_pythonlib.sqlalchemy.session import get_safe_url_from_engine
 
 log = get_brace_style_log_with_null_handler(__name__)
 
-SEP1 = sql_comment("=" * 76)
-SEP2 = sql_comment("-" * 76)
+COMMENT_SEP1 = sql_comment("=" * 76)
+COMMENT_SEP2 = sql_comment("-" * 76)
 
 
 # =============================================================================
@@ -67,7 +67,7 @@ SEP2 = sql_comment("-" * 76)
 
 def dump_connection_info(engine: Engine, fileobj: TextIO = sys.stdout) -> None:
     """
-    Dumps some connection info, as an SQL comment. Obscures passwords.
+    Dumps the engine's connection info, as an SQL comment. Obscures passwords.
 
     Args:
         engine: the SQLAlchemy :class:`Engine` to dump metadata information
@@ -75,8 +75,8 @@ def dump_connection_info(engine: Engine, fileobj: TextIO = sys.stdout) -> None:
         fileobj: the file-like object (default ``sys.stdout``) to write
             information to
     """
-    meta = MetaData(bind=engine)
-    writeline_nl(fileobj, sql_comment(f"Database info: {meta}"))
+    url = get_safe_url_from_engine(engine)
+    writeline_nl(fileobj, sql_comment(f"Database info: {url}"))
 
 
 def dump_ddl(
@@ -97,8 +97,8 @@ def dump_ddl(
             equivalent.
     """
 
-    # http://docs.sqlalchemy.org/en/rel_0_8/faq.html#how-can-i-get-the-create-table-drop-table-output-as-a-string  # noqa
-    # https://stackoverflow.com/questions/870925/how-to-generate-a-file-with-ddl-in-the-engines-sql-dialect-in-sqlalchemy  # noqa
+    # http://docs.sqlalchemy.org/en/rel_0_8/faq.html#how-can-i-get-the-create-table-drop-table-output-as-a-string  # noqa: E501
+    # https://stackoverflow.com/questions/870925/how-to-generate-a-file-with-ddl-in-the-engines-sql-dialect-in-sqlalchemy  # noqa: E501
     # https://github.com/plq/scripts/blob/master/pg_dump.py
     # noinspection PyUnusedLocal
     def dump(querysql, *multiparams, **params):
@@ -135,17 +135,17 @@ def dump_table_as_insert_sql(
         include_ddl: if ``True``, include the DDL to create the table as well
         multirow: write multi-row ``INSERT`` statements
     """
-    # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
+    # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa: E501
     # http://docs.sqlalchemy.org/en/latest/faq/sqlexpressions.html
-    # http://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/  # noqa
+    # http://www.tylerlesmann.com/2009/apr/27/copying-databases-across-platforms-sqlalchemy/  # noqa: E501
     # https://github.com/plq/scripts/blob/master/pg_dump.py
     log.info("dump_data_as_insert_sql: table_name={}", table_name)
     writelines_nl(
         fileobj,
         [
-            SEP1,
+            COMMENT_SEP1,
             sql_comment(f"Data for table: {table_name}"),
-            SEP2,
+            COMMENT_SEP2,
             sql_comment(f"Filters: {wheredict}"),
         ],
     )
@@ -153,7 +153,7 @@ def dump_table_as_insert_sql(
     dialect = engine.dialect  # type: DefaultDialect
     # "supports_multivalues_insert" is part of DefaultDialect, but not Dialect
     # -- nevertheless, it should be there:
-    # https://docs.sqlalchemy.org/en/20/core/internals.html#sqlalchemy.engine.default.DefaultDialect.supports_multivalues_insert  # noqa
+    # https://docs.sqlalchemy.org/en/20/core/internals.html#sqlalchemy.engine.default.DefaultDialect.supports_multivalues_insert  # noqa: E501
     if not dialect.supports_multivalues_insert:
         multirow = False
     if multirow:
@@ -163,59 +163,46 @@ def dump_table_as_insert_sql(
         )
         multirow = False
 
-    # literal_query = make_literal_query_fn(dialect)
-
-    meta = MetaData(bind=engine)
+    meta = MetaData()
     log.debug("... retrieving schema")
-    table = Table(table_name, meta, autoload=True)
+    table = Table(table_name, meta, autoload_with=engine)
     if include_ddl:
         log.debug("... producing DDL")
         # noinspection PyUnresolvedReferences
         dump_ddl(
-            table.metadata, dialect_name=engine.dialect.name, fileobj=fileobj
+            metadata=table.metadata,
+            dialect_name=engine.dialect.name,
+            fileobj=fileobj,
         )
-    # NewRecord = quick_mapper(table)
-    # columns = table.columns.keys()
     log.debug("... fetching records")
-    # log.debug("meta: {}", meta)  # obscures password
-    # log.debug("table: {}", table)
-    # log.debug("table.columns: {!r}", table.columns)
-    # log.debug("multirow: {}", multirow)
-    query = select(table.columns)
+    query = select(*table.columns)
     if wheredict:
         for k, v in wheredict.items():
             col = table.columns.get(k)
             query = query.where(col == v)
-    # log.debug("query: {}", query)
-    cursor = engine.execute(query)
-    if multirow:
-        row_dict_list = []
-        for r in cursor:
-            row_dict_list.append(dict(r))
-        # log.debug("row_dict_list: {}", row_dict_list)
-        if row_dict_list:
-            statement = table.insert().values(row_dict_list)
-            # log.debug("statement: {!r}", statement)
-            # insert_str = literal_query(statement)
-            insert_str = get_literal_query(statement, bind=engine)
-            # NOT WORKING FOR MULTIROW INSERTS. ONLY SUBSTITUTES FIRST ROW.
-            writeline_nl(fileobj, insert_str)
+    with engine.begin() as connection:
+        cursor = connection.execute(query)
+        if multirow:
+            row_dict_list = []
+            for r in cursor.mappings():
+                row_dict_list.append(dict(r))
+            if row_dict_list:
+                statement = table.insert().values(row_dict_list)
+                insert_str = get_literal_query(statement, bind=engine)
+                # NOT WORKING FOR MULTIROW INSERTS. ONLY SUBSTITUTES FIRST ROW.
+                writeline_nl(fileobj, insert_str)
+            else:
+                writeline_nl(fileobj, sql_comment("No data!"))
         else:
-            writeline_nl(fileobj, sql_comment("No data!"))
-    else:
-        found_one = False
-        for r in cursor:
-            found_one = True
-            row_dict = dict(r)
-            statement = table.insert(values=row_dict)
-            # insert_str = literal_query(statement)
-            insert_str = get_literal_query(statement, bind=engine)
-            # log.debug("row_dict: {}", row_dict)
-            # log.debug("insert_str: {}", insert_str)
-            writeline_nl(fileobj, insert_str)
-        if not found_one:
-            writeline_nl(fileobj, sql_comment("No data!"))
-    writeline_nl(fileobj, SEP2)
+            found_one = False
+            for r in cursor.mappings():
+                found_one = True
+                statement = table.insert().values(dict(r))
+                insert_str = get_literal_query(statement, bind=engine)
+                writeline_nl(fileobj, insert_str)
+            if not found_one:
+                writeline_nl(fileobj, sql_comment("No data!"))
+    writeline_nl(fileobj, COMMENT_SEP2)
     log.debug("... done")
 
 
@@ -260,9 +247,9 @@ def dump_orm_object_as_insert_sql(
     # literal_query = make_literal_query_fn(engine.dialect)
     insp = inspect(obj)
     # insp: an InstanceState
-    # http://docs.sqlalchemy.org/en/latest/orm/internals.html#sqlalchemy.orm.state.InstanceState  # noqa
+    # http://docs.sqlalchemy.org/en/latest/orm/internals.html#sqlalchemy.orm.state.InstanceState  # noqa: E501
     # insp.mapper: a Mapper
-    # http://docs.sqlalchemy.org/en/latest/orm/mapping_api.html#sqlalchemy.orm.mapper.Mapper  # noqa
+    # http://docs.sqlalchemy.org/en/latest/orm/mapping_api.html#sqlalchemy.orm.mapper.Mapper  # noqa: E501
 
     # Don't do this:
     #   table = insp.mapper.mapped_table
@@ -271,26 +258,18 @@ def dump_orm_object_as_insert_sql(
     # from the database itself.
     meta = MetaData(bind=engine)
     table_name = insp.mapper.mapped_table.name
-    # log.debug("table_name: {}", table_name)
     table = Table(table_name, meta, autoload=True)
-    # log.debug("table: {}", table)
 
-    # NewRecord = quick_mapper(table)
-    # columns = table.columns.keys()
     query = select(table.columns)
-    # log.debug("query: {}", query)
     for orm_pkcol in insp.mapper.primary_key:
         core_pkcol = table.columns.get(orm_pkcol.name)
         pkval = getattr(obj, orm_pkcol.name)
         query = query.where(core_pkcol == pkval)
-    # log.debug("query: {}", query)
-    cursor = engine.execute(query)
-    row = cursor.fetchone()  # should only be one...
+    with engine.begin() as connection:
+        cursor = connection.execute(query)
+        row = cursor.fetchone()  # should only be one...
     row_dict = dict(row)
-    # log.debug("obj: {}", obj)
-    # log.debug("row_dict: {}", row_dict)
     statement = table.insert(values=row_dict)
-    # insert_str = literal_query(statement)
     insert_str = get_literal_query(statement, bind=engine)
     writeline_nl(fileobj, insert_str)
 
@@ -311,13 +290,13 @@ def dump_orm_tree_as_insert_sql(
 
     - MySQL/InnoDB doesn't wait to the end of a transaction to check FK
       integrity (which it should):
-      https://stackoverflow.com/questions/5014700/in-mysql-can-i-defer-referential-integrity-checks-until-commit  # noqa
+      https://stackoverflow.com/questions/5014700/in-mysql-can-i-defer-referential-integrity-checks-until-commit  # noqa: E501
     - PostgreSQL can.
     - Anyway, slightly ugly hacks...
       https://dev.mysql.com/doc/refman/5.5/en/optimizing-innodb-bulk-data-loading.html
     - Not so obvious how we can iterate through the list of ORM objects and
       guarantee correct insertion order with respect to all FKs.
-    """  # noqa
+    """
     writeline_nl(
         fileobj,
         sql_comment("Data for all objects related to the first below:"),
@@ -349,7 +328,7 @@ def quick_mapper(table: Table) -> Type[DeclarativeMeta]:
     Returns:
         a :class:`DeclarativeMeta` class
 
-    """  # noqa
+    """
     # noinspection PyPep8Naming
     Base = declarative_base()
 
@@ -369,7 +348,8 @@ def bulk_insert_extras(
     dialect_name: str, fileobj: TextIO, start: bool
 ) -> None:
     """
-    Writes bulk ``INSERT`` preamble (start=True) or end (start=False).
+    Writes bulk ``INSERT`` preamble (start=True) or end (start=False) to our
+    text file.
 
     For MySQL, this temporarily switches off autocommit behaviour and index/FK
     checks, for speed, then re-enables them at the end and commits.
@@ -407,22 +387,32 @@ def bulk_insert_extras(
 
 class StringLiteral(String):
     """
-    Teach SQLAlchemy how to literalize various things. Used by
-    `make_literal_query_fn`, below. See
-    https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query
+    Teach sqlalchemy how to literalize various things. Used by
+    make_literal_query_fn, below. See
+    https://stackoverflow.com/questions/5631078.
     """
+
+    def __init__(self, *args, **kwargs) -> None:
+        """
+        This __init__() function exists purely because the docstring in the
+        SQLAlchemy superclass (String) has "pycon+sql" as its source type,
+        which Sphinx warns about.
+        """
+        super().__init__(*args, **kwargs)
 
     def literal_processor(
         self, dialect: DefaultDialect
     ) -> Callable[[Any], str]:
-        """Returns a function to translate any value to a string."""
-        # Docstring above necessary to stop sphinx build error:
-        # undefined label: types_typedecorator
-
+        """
+        Returns a function to translate any value to a string.
+        """
         super_processor = super().literal_processor(dialect)
 
         def process(value: Any) -> str:
-            log.debug("process: {!r}", value)
+            """
+            Translate any value to a string.
+            """
+            # log.debug("process: {!r}", value)
             if isinstance(value, int):
                 return str(value)
             if not isinstance(value, str):
@@ -453,7 +443,7 @@ def make_literal_query_fn(
         override the encode of various kinds of data to literal values.
         """
 
-        # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
+        # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa: E501
         colspecs = {
             # prevent various encoding explosions
             String: StringLiteral,
@@ -468,7 +458,7 @@ def make_literal_query_fn(
         Produce an SQL query with literal values. NOTE: This is entirely
         insecure. DO NOT execute the resulting strings.
         """
-        # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa
+        # https://stackoverflow.com/questions/5631078/sqlalchemy-print-the-actual-query  # noqa: E501
         if isinstance(statement, Query):
             statement = statement.statement
         return (
@@ -511,7 +501,7 @@ def get_literal_query(
     Returns:
         a string literal version of the query.
 
-    """  # noqa
+    """
     # log.debug("statement: {!r}", statement)
     # log.debug("statement.bind: {!r}", statement.bind)
     if isinstance(statement, Query):

@@ -107,8 +107,8 @@ class RequestLoggingMiddleware(object):
     ) -> TYPE_WSGI_APP_RESULT:
         query_string = environ.get(WsgiEnvVar.QUERY_STRING, "")
         try:
-            # https://stackoverflow.com/questions/7835030/obtaining-client-ip-address-from-a-wsgi-app-using-eventlet  # noqa
-            # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For  # noqa
+            # https://stackoverflow.com/questions/7835030/obtaining-client-ip-address-from-a-wsgi-app-using-eventlet  # noqa: E501
+            # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For  # noqa: E501
             forwarded_for = " [forwarded for {}]".format(
                 environ[WsgiEnvVar.HTTP_X_FORWARDED_FOR]
             )

@@ -158,7 +158,7 @@ def _unicode_def_src_to_str(srclist: List[Union[str, int]]) -> str:
 
 # https://stackoverflow.com/questions/13233076/determine-if-a-unicode-character-is-alphanumeric-without-using-a-regular-express  # noqa: E501
 _UNICODE_CATEGORY_SRC = {
-    # From https://github.com/slevithan/xregexp/blob/master/tools/scripts/property-regex.py  # noqa
+    # From https://github.com/slevithan/xregexp/blob/master/tools/scripts/property-regex.py  # noqa: E501
     "ASCII": ["0000-007F"],
     "Alphabetic": [
         "0041-005A",
@@ -2241,7 +2241,7 @@ _UNICODE_CATEGORY_SRC = {
         "1F130-1F149",
         "1F150-1F169",
         "1F170-1F189",
-    ],  # noqa
+    ],
     "White_Space": [
         "0009-000D",
         0x0020,
@@ -2254,7 +2254,7 @@ _UNICODE_CATEGORY_SRC = {
         0x202F,
         0x205F,
         0x3000,
-    ],  # noqa
+    ],
     # From https://en.wikipedia.org/wiki/Latin_script_in_Unicode
     "Latin": [
         "0000-007F",  # Basic Latin; this block corresponds to ASCII.
@@ -2286,7 +2286,7 @@ _UNICODE_CATEGORY_SRC = {
         # more symbols
         "00C0-00D6",  # Basic Latin: accented capitals
         # multiplication symbol
-        "00D8-00F6",  # Basic Latin: more accented capitals, something odd, Eszett, accented lower case  # noqa
+        "00D8-00F6",  # Basic Latin: more accented capitals, something odd, Eszett, accented lower case  # noqa: E501
         # division symbol
         "00F8-00FF",  # Basic Latin: more accented...
         "0100-017F",  # Latin Extended-A
@@ -2304,7 +2304,7 @@ _UNICODE_CATEGORY_SRC = {
         "A7B0-A7B7",  # Latin Extended-D: part 2
         "A7F7-A7FF",  # Latin Extended-D: part 3
         "AB30-AB65",  # Latin Extended-E: those assigned
-        "FB00-FB06",  # Alphabetic Presentation Forms (Latin ligatures): those assigned  # noqa
+        "FB00-FB06",  # Alphabetic Presentation Forms (Latin ligatures): those assigned  # noqa: E501
         "FF20-FF5F",  # Halfwidth and Fullwidth Forms: those assigned
     ],
 }

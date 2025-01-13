@@ -115,7 +115,7 @@ def normal_round_float(x: float, dp: int = 0) -> float:
 
     Note that round() implements "banker's rounding", which is never what
     we want:
-    - https://stackoverflow.com/questions/33019698/how-to-properly-round-up-half-float-numbers-in-python  # noqa
+    - https://stackoverflow.com/questions/33019698/how-to-properly-round-up-half-float-numbers-in-python  # noqa: E501
     """
     if not math.isfinite(x):
         return x
@@ -171,7 +171,7 @@ def round_sf(x: float, n: int = 2) -> float:
         round_sf(1234567890000, 3)  # 1230000000000
         round_sf(9876543210000, 3)  # 9880000000000
 
-    """  # noqa: E501
+    """
     y = abs(x)
     if y <= sys.float_info.min:
         return 0.0

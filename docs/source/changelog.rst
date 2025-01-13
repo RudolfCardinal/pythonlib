@@ -796,6 +796,9 @@ Quick links:
 
 .. _changelog_2024:
 
+2024
+~~~~
+
 **1.1.26 (2024-03-03)**
 
 - Fix ``AttributeError: 'Engine' object has no attribute 'schema_for_object'``
@@ -809,4 +812,37 @@ Quick links:
   - Replace ugettext_* calls removed in Django 4.0.
     https://docs.djangoproject.com/en/4.2/releases/4.0/#features-removed-in-4-0
 
-**1.1.28 (in progress)**
+.. _changelog_2025:
+
+2025
+~~~~
+
+**2.0.0 (2025-01-07)**
+
+- Update for SQLAlchemy 2.
+
+  ADDED:
+
+  - cardinal_pythonlib.sqlalchemy.insert_on_duplicate.insert_with_upsert_if_supported
+  - cardinal_pythonlib.sqlalchemy.core_query.get_rows_fieldnames_from_select
+
+  REMOVED:
+
+  - cardinal_pythonlib.sqlalchemy.insert_on_duplicate.InsertOnDuplicate
+
+    Use insert_with_upsert_if_supported() instead.
+
+  - cardinal_pythonlib.sqlalchemy.orm_query.get_rows_fieldnames_from_query
+
+    This will now raise NotImplementedError. Use
+    get_rows_fieldnames_from_select() instead. This reflects a core change in
+    SQLAlchemy 2, moving towards the use of select() statements for all
+    queries.
+
+  SHOULDN'T BE NOTICEABLE:
+
+  - cardinal_pythonlib.sqlalchemy.orm_query.CountStarSpecializedQuery has
+    changed type. But operation is as before, assuming all you did with it
+    was apply filters (if required) and execute.
+
+  - Multiple internal changes to support SQLAlchemy 2.

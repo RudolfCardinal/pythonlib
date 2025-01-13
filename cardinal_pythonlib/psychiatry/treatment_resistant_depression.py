@@ -29,7 +29,7 @@ Performance notes:
 
 - 200 test patients; baseline about 7.65-8.57 seconds (25 Hz).
 - From https://stackoverflow.com/questions/19237878/ to
-  https://stackoverflow.com/questions/17071871/select-rows-from-a-dataframe-based-on-values-in-a-column-in-pandas  # noqa
+  https://stackoverflow.com/questions/17071871/select-rows-from-a-dataframe-based-on-values-in-a-column-in-pandas  # noqa: E501
 - Change from parallel to single-threading: down to 4.38 s (!).
 - Avoid a couple of slices: down to 3.85 s for 200 patients.
 - Add test patient E; up to 4.63 s for 250 patients (54 Hz).
@@ -55,7 +55,7 @@ Performance notes:
 - Profiler off: 2.38s for 300 patients, or 126 Hz. Let's call that a day; we've
   achieved a 5-fold speedup.
 
-"""  # noqa
+"""
 
 import cProfile
 from concurrent.futures import ThreadPoolExecutor
@@ -80,8 +80,8 @@ log = BraceStyleAdapter(logging.getLogger(__name__))
 DTYPE_STRING = "<U255"
 # ... getting this right is surprisingly tricky!
 # ... https://docs.scipy.org/doc/numpy-1.13.0/reference/arrays.dtypes.html
-# ... https://stackoverflow.com/questions/30086936/what-is-the-difference-between-the-types-type-numpy-string-and-type-str  # noqa
-# ... https://stackoverflow.com/questions/49127844/python-convert-python-string-to-numpy-unicode-string  # noqa
+# ... https://stackoverflow.com/questions/30086936/what-is-the-difference-between-the-types-type-numpy-string-and-type-str  # noqa: E501
+# ... https://stackoverflow.com/questions/49127844/python-convert-python-string-to-numpy-unicode-string  # noqa: E501
 DTYPE_DATE = "datetime64[D]"  # D for day resolution, ns for nanoseconds, etc.
 # ... https://docs.scipy.org/doc/numpy/reference/arrays.datetime.html
 
@@ -180,7 +180,7 @@ def two_antidepressant_episodes_single_patient(
     date_colname: str = DEFAULT_SOURCE_DATE_COLNAME,
     course_length_days: int = DEFAULT_ANTIDEPRESSANT_COURSE_LENGTH_DAYS,
     expect_response_by_days: int = DEFAULT_EXPECT_RESPONSE_BY_DAYS,
-    symptom_assessment_time_days: int = DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,  # noqa
+    symptom_assessment_time_days: int = DEFAULT_SYMPTOM_ASSESSMENT_TIME_DAYS,
     first_episode_only: bool = True,
 ) -> Optional[DataFrame]:
     """
@@ -349,8 +349,8 @@ def two_antidepressant_episodes_single_patient(
         # OK; here we have found a combination that we like.
         # Add it to the results.
         # ---------------------------------------------------------------------
-        # https://stackoverflow.com/questions/19365513/how-to-add-an-extra-row-to-a-pandas-dataframe/19368360  # noqa
-        # http://pandas.pydata.org/pandas-docs/stable/indexing.html#setting-with-enlargement  # noqa
+        # https://stackoverflow.com/questions/19365513/how-to-add-an-extra-row-to-a-pandas-dataframe/19368360  # noqa: E501
+        # http://pandas.pydata.org/pandas-docs/stable/indexing.html#setting-with-enlargement  # noqa: E501
 
         expect_response_by_date = (
             antidepressant_b_first_mention
@@ -509,7 +509,7 @@ def test_two_antidepressant_episodes(
                     (bob_s, venla, "2018-04-01"),
                     (bob_s, sert, "2018-05-01"),
                     (bob_s, sert, "2018-06-01"),
-                    # Alice: two consecutive switches; should pick the first, c -> f  # noqa
+                    # Alice: two consecutive switches; should pick the first, c -> f  # noqa: E501
                     # ... goes second in the data; should be sorted to first
                     (alice_s, cital, "2018-01-01"),
                     (alice_s, cital, "2018-02-01"),

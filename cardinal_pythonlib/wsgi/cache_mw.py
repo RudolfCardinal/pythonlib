@@ -45,8 +45,8 @@ log = get_brace_style_log_with_null_handler(__name__)
 # =============================================================================
 # DisableClientSideCachingMiddleware
 # =============================================================================
-# https://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers  # noqa
-# https://stackoverflow.com/questions/3859097/how-to-add-http-headers-in-wsgi-middleware  # noqa
+# https://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers  # noqa: E501
+# https://stackoverflow.com/questions/3859097/how-to-add-http-headers-in-wsgi-middleware  # noqa: E501
 
 
 def add_never_cache_headers(headers: TYPE_WSGI_RESPONSE_HEADERS) -> None:
@@ -55,7 +55,7 @@ def add_never_cache_headers(headers: TYPE_WSGI_RESPONSE_HEADERS) -> None:
     """
     headers.append(
         ("Cache-Control", "no-cache, no-store, must-revalidate")
-    )  # HTTP 1.1  # noqa
+    )  # HTTP 1.1
     headers.append(("Pragma", "no-cache"))  # HTTP 1.0
     headers.append(("Expires", "0"))  # Proxies
 

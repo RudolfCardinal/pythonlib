@@ -120,7 +120,7 @@ def rename_keys_in_dict(d: Dict[str, Any], renames: Dict[str, str]) -> None:
 
     See
     https://stackoverflow.com/questions/4406501/change-the-name-of-a-key-in-dictionary.
-    """  # noqa
+    """
     for old_key, new_key in renames.items():
         if new_key == old_key:
             continue
@@ -257,7 +257,7 @@ class LazyDict(dict):
 
     The ``*args``/``**kwargs`` parts are useful, but we don't want to have to
     name 'thunk' explicitly.
-    """  # noqa
+    """
 
     def get(
         self, key: Hashable, thunk: Any = None, *args: Any, **kwargs: Any
@@ -292,7 +292,7 @@ class LazyButHonestDict(dict):
     Compared to the StackOverflow version: no obvious need to have a default
     returning ``None``, when we're implementing this as a special function.
     In contrast, helpful to have ``*args``/``**kwargs`` options.
-    """  # noqa
+    """
 
     def lazyget(
         self, key: Hashable, thunk: Callable, *args: Any, **kwargs: Any
@@ -365,7 +365,7 @@ class CaseInsensitiveDict(dict):
         d1.update([('K', 11), ('L', 12)])
         d1  # {'e': 5, 'f': 6, 'g': 7, 'j': 10, 'k': 11, 'l': 12}
 
-    """  # noqa
+    """  # noqa: E501
 
     @classmethod
     def _k(cls, key: Any) -> Any:

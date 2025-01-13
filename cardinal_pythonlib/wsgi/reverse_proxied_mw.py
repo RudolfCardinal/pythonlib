@@ -63,7 +63,7 @@ def ip_addresses_from_xff(value: str) -> List[str]:
 
     See:
     - https://en.wikipedia.org/wiki/X-Forwarded-For
-    - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For  # noqa
+    - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For  # noqa: E501
     - NOT THIS: https://tools.ietf.org/html/rfc7239
     """
     if not value:
@@ -170,7 +170,7 @@ EXAMPLE_APACHE_REVERSE_PROXY_CONFIG = """
         Require all granted
     </Directory>
 
-"""  # noqa
+"""  # noqa: E501
 
 
 class ReverseProxiedConfig(object):
@@ -281,7 +281,7 @@ class ReverseProxiedMiddleware(object):
     - http://modwsgi.readthedocs.io/en/develop/release-notes/version-4.4.9.html
     - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
 
-    """  # noqa
+    """  # noqa: E501
 
     CANDIDATES_HTTP_HOST = [
         # These are variables that may contain a value for HTTP_HOST.
@@ -295,7 +295,7 @@ class ReverseProxiedMiddleware(object):
     CANDIDATES_REMOTE_ADDR = [
         # These are variables that may contain a value for REMOTE_ADDR.
         # However, they differ:
-        WsgiEnvVar.HTTP_X_FORWARDED_FOR,  # may contain many values; first is taken  # noqa
+        WsgiEnvVar.HTTP_X_FORWARDED_FOR,  # may contain many values; first is taken  # noqa: E501
         WsgiEnvVar.HTTP_X_REAL_IP,  # may contain only one
     ]
     _CANDIDATES_URL_SCHEME_GIVING_PROTOCOL = [
@@ -496,13 +496,13 @@ class ReverseProxiedMiddleware(object):
 
         Should we be looking at HTTP_X_FORWARDED_HOST or
         HTTP_X_FORWARDED_SERVER?
-        See https://github.com/omnigroup/Apache/blob/master/httpd/modules/proxy/mod_proxy_http.c  # noqa
+        See https://github.com/omnigroup/Apache/blob/master/httpd/modules/proxy/mod_proxy_http.c
         ... and let's follow mod_wsgi.
 
         -----------------------------------------------------------------------
         HTTP_HOST versus SERVER_NAME
         -----------------------------------------------------------------------
-        https://stackoverflow.com/questions/2297403/what-is-the-difference-between-http-host-and-server-name-in-php  # noqa
+        https://stackoverflow.com/questions/2297403/what-is-the-difference-between-http-host-and-server-name-in-php
 
         -----------------------------------------------------------------------
         REWRITING THE PROTOCOL
@@ -527,7 +527,7 @@ class ReverseProxiedMiddleware(object):
 
             from pprint import pformat; import logging; log = logging.getLogger(__name__); log.critical("Request headers:\n" + pformat(req.inheaders))
 
-        """  # noqa
+        """  # noqa: E501
         if self.debug:
             log.debug("Starting WSGI environment: \n{}", pformat(environ))
             oldenv = environ.copy()
@@ -564,7 +564,7 @@ class ReverseProxiedMiddleware(object):
                 newpath = path_info[len(script_name) :]
                 if (
                     not newpath
-                ):  # e.g. trailing slash omitted from incoming path  # noqa
+                ):  # e.g. trailing slash omitted from incoming path
                     newpath = "/"
                 environ[WsgiEnvVar.PATH_INFO] = newpath
 

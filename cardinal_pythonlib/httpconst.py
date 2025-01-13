@@ -49,7 +49,7 @@ https://docs.python.org/3.6/library/mimetypes.html.
     >>> print(mimetypes.guess_type("thing.xlsx"))
     ('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', None)
 
-"""  # noqa
+"""  # noqa: E501
 
 
 # =============================================================================
@@ -215,14 +215,14 @@ class MimeType(object):
       - https://www.openoffice.org/framework/documentation/mimetypes/mimetypes.html
       - https://stackoverflow.com/questions/31489757/what-is-correct-mimetype-with-apache-openoffice-files-like-odt-ods-odp
 
-    """  # noqa
+    """  # noqa: E501
 
     BINARY = "application/octet-stream"
     CSV = "text/csv"
     DOC = "application/msword"
-    DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"  # noqa
+    DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"  # noqa: E501
     DOT = DOC
-    DOTX = "application/vnd.openxmlformats-officedocument.wordprocessingml.template"  # noqa
+    DOTX = "application/vnd.openxmlformats-officedocument.wordprocessingml.template"  # noqa: E501
     FORCE_DOWNLOAD = "application/force-download"
     HTML = "text/html"
     JSON = "application/json"

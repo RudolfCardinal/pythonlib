@@ -160,7 +160,7 @@ class MultiTimer(object):
                     "total": total_sec,
                     "description": (
                         f"- {name}: {total_sec:.3f} s "
-                        f"({(100 * total_sec / grand_total.total_seconds()):.2f}%, "  # noqa
+                        f"({(100 * total_sec / grand_total.total_seconds()):.2f}%, "  # noqa: E501
                         f"n={n}, mean={mean:.3f}s)"
                     ),
                 }

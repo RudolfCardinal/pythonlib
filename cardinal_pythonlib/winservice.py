@@ -716,7 +716,7 @@ class ProcessManager(object):
           https://stackoverflow.com/questions/1230669/subprocess-deleting-child-processes-in-windows,
           which uses ``psutil``.
 
-        """  # noqa
+        """
         self.warning("Using a recursive hard kill; will assume it worked")
         pid = self.process.pid
         gone, still_alive = kill_proc_tree(

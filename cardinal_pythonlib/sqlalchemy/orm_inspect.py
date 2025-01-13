@@ -45,7 +45,7 @@ from sqlalchemy.orm.relationships import RelationshipProperty
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.schema import Column, MetaData
 from sqlalchemy.sql.type_api import TypeEngine
-from sqlalchemy.sql.visitors import VisitableType
+from sqlalchemy.sql.visitors import Visitable
 from sqlalchemy.util import OrderedProperties
 
 from cardinal_pythonlib.classes import gen_all_subclasses
@@ -58,6 +58,13 @@ if TYPE_CHECKING:
     from sqlalchemy.sql.schema import Table
 
 log = get_brace_style_log_with_null_handler(__name__)
+
+
+# =============================================================================
+# Constants
+# =============================================================================
+
+VisitableType = Type[Visitable]  # for SQLAlchemy 2.0
 
 
 # =============================================================================
@@ -78,9 +85,14 @@ def coltype_as_typeengine(
 
     .. code-block:: python
 
+        from sqlalchemy.sql.schema import Column
+        from sqlalchemy.sql.sqltypes import Integer, String, TypeEngine
+
         a = Column("a", Integer)
         b = Column("b", Integer())
         c = Column("c", String(length=50))
+
+        # In SQLAlchemy to 1.4:
 
         isinstance(Integer, TypeEngine)  # False
         isinstance(Integer(), TypeEngine)  # True
@@ -91,11 +103,30 @@ def coltype_as_typeengine(
         type(String)  # <class 'sqlalchemy.sql.visitors.VisitableType'>
         type(String(length=50))  # <class 'sqlalchemy.sql.sqltypes.String'>
 
+        # In SQLAlchemy 2.0, VisitableType has gone. Though there is Visitable.
+        # (So we can also recreate VisitableType, as above, although only for
+        # type hints, not e.g. isinstance.)
+
+        from sqlalchemy.sql.visitors import Visitable
+
+        isinstance(Integer, TypeEngine)  # False
+        isinstance(Integer(), TypeEngine)  # True
+        isinstance(String(length=50), TypeEngine)  # True
+
+        type(Integer)  # <class 'type'>
+        issubclass(Integer, Visitable)  # True
+        type(Integer())  # <class 'sqlalchemy.sql.sqltypes.Integer'>
+        type(String)  # <class 'type'>
+        issubclass(String, Visitable)  # True
+        type(String(length=50))  # <class 'sqlalchemy.sql.sqltypes.String'>
+
     This function coerces things to a :class:`TypeEngine`.
     """
     if isinstance(coltype, TypeEngine):
         return coltype
-    return coltype()
+    instance = coltype()
+    assert isinstance(instance, TypeEngine)
+    return instance
 
 
 # =============================================================================
@@ -200,16 +231,16 @@ def walk_orm_tree(
     # http://docs.sqlalchemy.org/en/latest/faq/sessions.html#faq-walk-objects
     skip_relationships_always = (
         skip_relationships_always or []
-    )  # type: List[str]  # noqa
+    )  # type: List[str]
     skip_relationships_by_tablename = (
         skip_relationships_by_tablename or {}
-    )  # type: Dict[str, List[str]]  # noqa
+    )  # type: Dict[str, List[str]]
     skip_all_relationships_for_tablenames = (
         skip_all_relationships_for_tablenames or []
-    )  # type: List[str]  # noqa
+    )  # type: List[str]
     skip_all_objects_for_tablenames = (
         skip_all_objects_for_tablenames or []
-    )  # type: List[str]  # noqa
+    )  # type: List[str]
     stack = [obj]
     if seen is None:
         seen = set()
@@ -227,7 +258,7 @@ def walk_orm_tree(
         insp = inspect(obj)  # type: InstanceState
         for (
             relationship
-        ) in insp.mapper.relationships:  # type: RelationshipProperty  # noqa
+        ) in insp.mapper.relationships:  # type: RelationshipProperty
             attrname = relationship.key
             # Skip?
             if attrname in skip_relationships_always:
@@ -260,7 +291,7 @@ def walk_orm_tree(
 # dependent upon X, i.e. traverse relationships.
 #
 # https://groups.google.com/forum/#!topic/sqlalchemy/wb2M_oYkQdY
-# https://groups.google.com/forum/#!searchin/sqlalchemy/cascade%7Csort:date/sqlalchemy/eIOkkXwJ-Ms/JLnpI2wJAAAJ  # noqa
+# https://groups.google.com/forum/#!searchin/sqlalchemy/cascade%7Csort:date/sqlalchemy/eIOkkXwJ-Ms/JLnpI2wJAAAJ  # noqa: E501
 
 
 def copy_sqla_object(
@@ -385,13 +416,13 @@ def rewrite_relationships(
         attrname_rel
     ) in (
         insp.mapper.relationships.items()
-    ):  # type: Tuple[str, RelationshipProperty]  # noqa
+    ):  # type: Tuple[str, RelationshipProperty]
         attrname = attrname_rel[0]
         rel_prop = attrname_rel[1]
         if rel_prop.viewonly:
             if debug:
                 log.debug("Skipping viewonly relationship")
-            continue  # don't attempt to write viewonly relationships  # noqa
+            continue  # don't attempt to write viewonly relationships
         related_class = rel_prop.mapper.class_
         related_table_name = related_class.__tablename__  # type: str
         if related_table_name in skip_table_names:
@@ -627,7 +658,7 @@ def gen_columns_for_uninstrumented_class(
         SAWarning: Unmanaged access of declarative attribute id from non-mapped class GenericTabletRecordMixin
 
     Try to use :func:`gen_columns` instead.
-    """  # noqa
+    """  # noqa: E501
     for attrname in dir(cls):
         potential_column = getattr(cls, attrname)
         if isinstance(potential_column, Column):
@@ -677,12 +708,9 @@ def gen_relationships(
         rel_prop,
     ) in (
         insp.mapper.relationships.items()
-    ):  # type: Tuple[str, RelationshipProperty]  # noqa
+    ):  # type: Tuple[str, RelationshipProperty]
         # noinspection PyUnresolvedReferences
         related_class = rel_prop.mapper.class_
-        # log.critical("gen_relationships: attrname={!r}, "
-        #              "rel_prop={!r}, related_class={!r}, rel_prop.info={!r}",
-        #              attrname, rel_prop, related_class, rel_prop.info)
         yield attrname, rel_prop, related_class
 
 
@@ -698,9 +726,9 @@ def get_orm_columns(cls: Type) -> List[Column]:
     """
     mapper = inspect(cls)  # type: Mapper
     # ... returns InstanceState if called with an ORM object
-    #     http://docs.sqlalchemy.org/en/latest/orm/session_state_management.html#session-object-states  # noqa
+    #     http://docs.sqlalchemy.org/en/latest/orm/session_state_management.html#session-object-states  # noqa: E501
     # ... returns Mapper if called with an ORM class
-    #     http://docs.sqlalchemy.org/en/latest/orm/mapping_api.html#sqlalchemy.orm.mapper.Mapper  # noqa
+    #     http://docs.sqlalchemy.org/en/latest/orm/mapping_api.html#sqlalchemy.orm.mapper.Mapper  # noqa: E501
     colmap = mapper.columns  # type: OrderedProperties
     return colmap.values()
 

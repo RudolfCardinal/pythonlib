@@ -185,9 +185,9 @@ class IsoDateTimeTzField(models.CharField):
 
         https://docs.djangoproject.com/en/1.8/ref/databases/#fractional-seconds-support-for-time-and-datetime-fields
 
-    """  # noqa
+    """  # noqa: E501
 
-    # https://docs.djangoproject.com/en/1.8/ref/models/fields/#field-api-reference  # noqa
+    # https://docs.djangoproject.com/en/1.8/ref/models/fields/#field-api-reference  # noqa: E501
 
     description = "ISO-8601 date/time field with timezone, stored as text"
 

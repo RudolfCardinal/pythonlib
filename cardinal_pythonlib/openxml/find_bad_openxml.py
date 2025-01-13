@@ -305,7 +305,7 @@ ones.
             # result.get()  # will re-raise any child exceptions
             # ... but it waits for the process to complete! That's no help.
             # log.critical("next")
-            # ... https://stackoverflow.com/questions/22094852/how-to-catch-exceptions-in-workers-in-multiprocessing  # noqa
+            # ... https://stackoverflow.com/questions/22094852/how-to-catch-exceptions-in-workers-in-multiprocessing  # noqa: E501
         pool.close()
         pool.join()
 

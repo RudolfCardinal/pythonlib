@@ -245,7 +245,7 @@ def make_blank_pdf(filename: str, paper: str = "A4") -> None:
     NOT USED.
     Makes a blank single-page PDF, using ImageMagick's ``convert``.
     """
-    # https://unix.stackexchange.com/questions/277892/how-do-i-create-a-blank-pdf-from-the-command-line  # noqa
+    # https://unix.stackexchange.com/questions/277892/how-do-i-create-a-blank-pdf-from-the-command-line  # noqa: E501
     require(CONVERT, HELP_MISSING_IMAGEMAGICK)
     run([CONVERT, "xc:none", "-page", paper, filename])
 

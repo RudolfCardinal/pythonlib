@@ -226,7 +226,7 @@ def get_all_dependencies(
     """
     extra_dependencies = (
         extra_dependencies or []
-    )  # type: List[TableDependency]  # noqa
+    )  # type: List[TableDependency]
     for td in extra_dependencies:
         td.set_metadata_if_none(metadata)
     dependencies = set([td.sqla_tuple() for td in extra_dependencies])
@@ -236,7 +236,7 @@ def get_all_dependencies(
     for table in tables:
         for fkc in table.foreign_key_constraints:
             if fkc.use_alter is True:
-                # http://docs.sqlalchemy.org/en/latest/core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint.params.use_alter  # noqa
+                # http://docs.sqlalchemy.org/en/latest/core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint.params.use_alter  # noqa: E501
                 continue
 
             dependent_on = fkc.referred_table
@@ -698,16 +698,16 @@ def merge_db(
     only_tables = only_tables or []  # type: List[TableIdentity]
     tables_to_keep_pks_for = (
         tables_to_keep_pks_for or []
-    )  # type: List[TableIdentity]  # noqa
+    )  # type: List[TableIdentity]
     extra_table_dependencies = (
         extra_table_dependencies or []
-    )  # type: List[TableDependency]  # noqa
+    )  # type: List[TableDependency]
     trcon_info = trcon_info or {}  # type: Dict[str, Any]
 
     # We need both Core and ORM for the source.
     # noinspection PyUnresolvedReferences
     metadata = base_class.metadata  # type: MetaData
-    src_session = sessionmaker(bind=src_engine)()  # type: Session
+    src_session = sessionmaker(bind=src_engine, future=True)()  # type: Session
     dst_engine = get_engine_from_session(dst_session)
     tablename_to_ormclass = get_orm_classes_by_table_name_from_base(base_class)
 
@@ -723,7 +723,7 @@ def merge_db(
     only_table_names = [ti.tablename for ti in only_tables]
     tables_to_keep_pks_for = [
         ti.tablename for ti in tables_to_keep_pks_for
-    ]  # type: List[str]  # noqa
+    ]  # type: List[str]
     # ... now all are of type List[str]
 
     # Safety check: this is an imperfect check for source == destination, but
@@ -899,7 +899,7 @@ def merge_db(
         # This doesn't work:
         # - process tables in order of dependencies, eager-loading
         #   relationships with
-        #       for relationship in insp.mapper.relationships:  # type: RelationshipProperty  # noqa
+        #       for relationship in insp.mapper.relationships:  # type: RelationshipProperty  # noqa: E501
         #           related_col = getattr(orm_class, relationship.key)
         #           query = query.options(joinedload(related_col))
         # - expunge from old session / make_transient / wipe_primary_key/ add
@@ -937,7 +937,7 @@ def merge_db(
                 # simply move the instance from one session to the other,
                 # blanking primary keys.
 
-                # https://stackoverflow.com/questions/14636192/sqlalchemy-modification-of-detached-object  # noqa
+                # https://stackoverflow.com/questions/14636192/sqlalchemy-modification-of-detached-object  # noqa: E501
                 src_session.expunge(instance)
                 make_transient(instance)
                 if wipe_pk:

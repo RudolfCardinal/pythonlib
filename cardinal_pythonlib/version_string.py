@@ -31,5 +31,5 @@ For changelog, see changelog.rst
 
 """
 
-VERSION_STRING = "1.1.27"
-# Use semantic versioning: http://semver.org/
+VERSION_STRING = "2.0.0"
+# Use semantic versioning: https://semver.org/

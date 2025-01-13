@@ -622,7 +622,7 @@ class BraceMessage(object):
     ) -> None:
         # This version uses args and kwargs, not *args and **kwargs, for
         # performance reasons:
-        # https://stackoverflow.com/questions/31992424/performance-implications-of-unpacking-dictionaries-in-python  # noqa
+        # https://stackoverflow.com/questions/31992424/performance-implications-of-unpacking-dictionaries-in-python  # noqa: E501
         # ... and since we control creation entirely, we may as well go fast
         self.fmt = fmt
         self.args = args
@@ -671,7 +671,7 @@ class BraceStyleAdapter(logging.LoggerAdapter):
             log.info("Hello {}, {title} {surname}!", "world", title="Mr", surname="Smith")
             # 2018-09-17 16:13:50.404 __main__:INFO: Hello world, Mr Smith!
 
-        """  # noqa
+        """  # noqa: E501
         # noinspection PyTypeChecker
         super().__init__(logger=logger, extra=None)
         self.pass_special_logger_args = pass_special_logger_args
@@ -686,7 +686,7 @@ class BraceStyleAdapter(logging.LoggerAdapter):
         #   ... defaults = tuple of default argument values, or None
         # signature() returns a Signature object:
         #   ... parameters: ordered mapping of name -> Parameter
-        #   ... ... https://docs.python.org/3/library/inspect.html#inspect.Parameter  # noqa
+        #   ... ... https://docs.python.org/3/library/inspect.html#inspect.Parameter  # noqa: E501
         # Direct equivalence:
         #   https://github.com/praw-dev/praw/issues/541
         # So, old:

@@ -215,7 +215,7 @@ Test within R:
     # HOWEVER, NOTE THAT LITHIUM IS CURRENTLY OVER-INCLUSIVE and will include
     # lithium chloride for LiDCO measurement.
 
-"""  # noqa
+"""  # noqa: E501
 
 import re
 from typing import List, Optional, Pattern, Union
@@ -256,7 +256,7 @@ class Drug(object):
         add_preceding_word_boundary: bool = True,
         add_following_wildcards: bool = True,
         # Psychiatry
-        psychotropic: bool = None,  # special; can be used as override if False  # noqa
+        psychotropic: bool = None,  # special; can be used as override if False
         antidepressant: bool = False,
         conventional_antidepressant: bool = False,
         ssri: bool = False,
@@ -603,7 +603,7 @@ class Drug(object):
                 option_groups = bracketed.split("|")
                 options = [c for group in option_groups for c in group]
                 split_and_append(options)
-                working = working[close_bracket + 1 :]  # noqa: E203
+                working = working[close_bracket + 1 :]
             elif len(working) > 1 and working[1] == "?":
                 # e.g. "r?azole"
                 split_and_append(["", working[0]])
@@ -1033,13 +1033,13 @@ DRUGS = [
         ["phenylethylhydrazine", "Alazin", "Nardil"],
         monoamine_oxidase_inhibitor=True,
         slam_antidepressant_finder=True
-        # - SLAM code (see e-mail to self 2016-12-02) also has %Alazin%; not sure  # noqa
+        # - SLAM code (see e-mail to self 2016-12-02) also has %Alazin%; not sure  # noqa: E501
         #   that's right; see also
         #   http://www.druglib.com/activeingredient/phenelzine/
         # - oh, yes, it is right:
-        #   https://www.pharmacompass.com/active-pharmaceutical-ingredients/alazin  # noqa
+        #   https://www.pharmacompass.com/active-pharmaceutical-ingredients/alazin  # noqa: E501
         # - phenylethylhydrazine is a synonym; see
-        #   http://www.minclinic.ru/drugs/drugs_eng/B/Beta-phenylethylhydrazine.html  # noqa
+        #   http://www.minclinic.ru/drugs/drugs_eng/B/Beta-phenylethylhydrazine.html  # noqa: E501
     ),
     # not included: pheniprazine
     Drug(

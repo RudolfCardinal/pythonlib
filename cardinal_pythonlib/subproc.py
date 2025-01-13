@@ -302,7 +302,7 @@ def run_multiple_processes(
     #                 f"(indicating failure); its args were: "
     #                 f"{args_list[procidx]!r}")
     #             if die_on_failure:
-    #                 # https://stackoverflow.com/questions/29177490/how-do-you-kill-futures-once-they-have-started  # noqa
+    #                 # https://stackoverflow.com/questions/29177490/how-do-you-kill-futures-once-they-have-started  # noqa: E501
     #                 for f2 in future_to_procidx.keys():
     #                     f2.cancel()
     #                     # ... prevents more jobs being scheduled, except the
@@ -516,7 +516,7 @@ def mimic_user_input(
                          print_stdout=show_zip_output,
                          print_stdin=show_zip_output)
 
-    """  # noqa
+    """  # noqa: E501
     line_terminators = line_terminators or ["\n"]  # type: List[str]
     stdin_encoding = stdin_encoding or sys.getdefaultencoding()
     stdout_encoding = stdout_encoding or sys.getdefaultencoding()

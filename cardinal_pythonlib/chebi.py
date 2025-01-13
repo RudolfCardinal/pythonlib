@@ -105,7 +105,7 @@ using files like these:
 
     agomelatine, antidepressant
 
-"""  # noqa
+"""  # noqa: E501
 
 import argparse
 import csv
@@ -911,7 +911,7 @@ def main() -> None:
     add_entities(parser_describe)
     add_exact(parser_describe)
     parser_describe.set_defaults(
-        func=lambda args: search_and_describe_multiple(  # noqa
+        func=lambda args: search_and_describe_multiple(
             search_terms=args.entity,
             exact_search=args.exact_search,
             exact_match=args.exact_match,

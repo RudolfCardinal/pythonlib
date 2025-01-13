@@ -72,7 +72,7 @@ def all_same(items: Iterable[Any]) -> bool:
     https://stackoverflow.com/questions/3787908/python-determine-if-all-items-of-a-list-are-the-same-item
 
     ... though we will also allow "no items" to pass the test.
-    """  # noqa: E501
+    """
     return len(set(items)) <= 1
 
 
@@ -564,7 +564,7 @@ class SheetHolder(object):
         Reads a datetime from an Excel spreadsheet via xlrd.
 
         https://stackoverflow.com/questions/32430679/how-to-read-dates-using-xlrd
-        """  # noqa: E501
+        """
         v = self.read_value(row, col, check_header=check_header)
         if none_or_blank_string(v):
             return default
@@ -891,9 +891,8 @@ class RowHolder(object):
     def __init__(self, sheetholder: SheetHolder, row: int) -> None:
         self.sheetholder = sheetholder
         self.row = row  # zero-based index of our row
-        self._next_col = (
-            0  # zero-based column index of the next column to read  # noqa
-        )
+        self._next_col = 0
+        # ... zero-based column index of the next column to read
 
     # -------------------------------------------------------------------------
     # Information

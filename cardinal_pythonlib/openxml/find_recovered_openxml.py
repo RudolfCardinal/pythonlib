@@ -364,8 +364,8 @@ def process_file(
         )
         raise
         # See also good advice, not implemented here, at
-        # https://stackoverflow.com/questions/19924104/python-multiprocessing-handling-child-errors-in-parent  # noqa
-        # https://stackoverflow.com/questions/6126007/python-getting-a-traceback-from-a-multiprocessing-process/26096355#26096355  # noqa
+        # https://stackoverflow.com/questions/19924104/python-multiprocessing-handling-child-errors-in-parent  # noqa: E501
+        # https://stackoverflow.com/questions/6126007/python-getting-a-traceback-from-a-multiprocessing-process/26096355#26096355  # noqa: E501
     # log.critical("process_file: end")
 
 
@@ -560,7 +560,7 @@ garbage appended to them.
             # result.get()  # will re-raise any child exceptions
             # ... but it waits for the process to complete! That's no help.
             # log.critical("next")
-            # ... https://stackoverflow.com/questions/22094852/how-to-catch-exceptions-in-workers-in-multiprocessing  # noqa
+            # ... https://stackoverflow.com/questions/22094852/how-to-catch-exceptions-in-workers-in-multiprocessing  # noqa: E501
         pool.close()
         pool.join()
 

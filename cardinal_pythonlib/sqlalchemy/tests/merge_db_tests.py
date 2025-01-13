@@ -72,13 +72,17 @@ class MergeTestMixin(object):
     def setUp(self) -> None:
         super().setUp()
 
-        self.src_engine = create_engine(SQLITE_MEMORY_URL)  # type: Engine
-        self.dst_engine = create_engine(SQLITE_MEMORY_URL)  # type: Engine
+        self.src_engine = create_engine(
+            SQLITE_MEMORY_URL, future=True
+        )  # type: Engine
+        self.dst_engine = create_engine(
+            SQLITE_MEMORY_URL, future=True
+        )  # type: Engine
         self.src_session = sessionmaker(
-            bind=self.src_engine
+            bind=self.src_engine, future=True
         )()  # type: Session
         self.dst_session = sessionmaker(
-            bind=self.dst_engine
+            bind=self.dst_engine, future=True
         )()  # type: Session
 
     def do_merge(self, dummy_run: bool = False) -> None:
@@ -121,7 +125,7 @@ class MergeTestPlain(MergeTestMixin, unittest.TestCase):
     - If you use mixins, they go AFTER :class:`unittest.TestCase`; see
       https://stackoverflow.com/questions/1323455/python-unit-test-with-base-and-sub-class
 
-    """  # noqa: E501
+    """
 
     def setUp(self) -> None:
         super().setUp()

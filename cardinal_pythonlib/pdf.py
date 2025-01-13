@@ -621,11 +621,11 @@ def append_pdf(input_pdf: bytes, output_writer: PdfWriter):
 #     serve the result (e.g. in one go), then delete the temporary file.
 #     This may be more memory-efficient.
 #     However, there can be problems:
-#       https://stackoverflow.com/questions/7543452/how-to-launch-a-pdftk-subprocess-while-in-wsgi  # noqa
+#       https://stackoverflow.com/questions/7543452/how-to-launch-a-pdftk-subprocess-while-in-wsgi  # noqa: E501
 # Others' examples:
 #   https://gist.github.com/zyegfryed/918403
 #   https://gist.github.com/grantmcconnaughey/ce90a689050c07c61c96
-#   https://stackoverflow.com/questions/3582414/removing-tmp-file-after-return-httpresponse-in-django  # noqa
+#   https://stackoverflow.com/questions/3582414/removing-tmp-file-after-return-httpresponse-in-django  # noqa: E501
 
 
 def get_concatenated_pdf_from_disk(
@@ -642,7 +642,7 @@ def get_concatenated_pdf_from_disk(
         concatenated PDF, as ``bytes``
 
     """
-    # https://stackoverflow.com/questions/17104926/pypdf-merging-multiple-pdf-files-into-one-pdf  # noqa
+    # https://stackoverflow.com/questions/17104926/pypdf-merging-multiple-pdf-files-into-one-pdf  # noqa: E501
     # https://en.wikipedia.org/wiki/Recto_and_verso
     # PdfMerger deprecated as of pypdf==5.0.0; use PdfWriter instead.
     # - https://pypdf.readthedocs.io/en/stable/modules/PdfMerger.html

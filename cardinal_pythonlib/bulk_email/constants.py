@@ -31,7 +31,7 @@ DB_URL_ENVVAR = "CARDINAL_PYTHONLIB_BULK_EMAIL_DB_URL"
 CONTENT_TYPE_MAX_LENGTH = 255
 # Can be quite long; see cardinal_pythonlib.httpconst.MimeType
 # 255 is the formal limit:
-# https://stackoverflow.com/questions/643690/maximum-mimetype-length-when-storing-type-in-db  # noqa
+# https://stackoverflow.com/questions/643690/maximum-mimetype-length-when-storing-type-in-db  # noqa: E501
 
 DEFAULT_TIME_BETWEEN_EMAILS_S = 0.5
 

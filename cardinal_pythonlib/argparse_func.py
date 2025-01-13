@@ -55,7 +55,7 @@ class ShowAllSubparserHelpAction(_HelpAction):
     shows help for all subparsers. As per
 
     https://stackoverflow.com/questions/20094215/argparse-subparser-monolithic-help-output
-    """  # noqa: E501
+    """
 
     def __call__(
         self,
@@ -147,7 +147,7 @@ def str2bool(v: str) -> bool:
             default=NICE,  # if the argument is entirely absent
             help="Activate nice mode.")
 
-    """  # noqa: E501
+    """
     lv = v.lower()
     if lv in ("yes", "true", "t", "y", "1"):
         return True

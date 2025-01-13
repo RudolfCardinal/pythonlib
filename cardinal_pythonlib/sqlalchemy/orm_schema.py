@@ -26,18 +26,20 @@
 
 """
 
-from typing import TYPE_CHECKING
+import logging
+from typing import Type, TYPE_CHECKING
 
-from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
-from cardinal_pythonlib.sqlalchemy.session import get_safe_url_from_engine
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import DeclarativeMeta
 from sqlalchemy.schema import CreateTable
 
+from cardinal_pythonlib.sqlalchemy.schema import execute_ddl
+from cardinal_pythonlib.sqlalchemy.session import get_safe_url_from_engine
+
 if TYPE_CHECKING:
     from sqlalchemy.sql.schema import Table
 
-log = get_brace_style_log_with_null_handler(__name__)
+log = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -47,7 +49,7 @@ log = get_brace_style_log_with_null_handler(__name__)
 
 def create_table_from_orm_class(
     engine: Engine,
-    ormclass: DeclarativeMeta,
+    ormclass: Type[DeclarativeMeta],
     without_constraints: bool = False,
 ) -> None:
     """
@@ -61,12 +63,11 @@ def create_table_from_orm_class(
     """
     table = ormclass.__table__  # type: Table
     log.info(
-        "Creating table {} on engine {}{}",
-        table.name,
-        get_safe_url_from_engine(engine),
-        " (omitting constraints)" if without_constraints else "",
+        f"Creating table {table.name} "
+        f"on engine {get_safe_url_from_engine(engine)}"
+        f"{' (omitting constraints)' if without_constraints else ''}"
     )
-    # https://stackoverflow.com/questions/19175311/how-to-create-only-one-table-with-sqlalchemy  # noqa
+    # https://stackoverflow.com/questions/19175311/how-to-create-only-one-table-with-sqlalchemy  # noqa: E501
     if without_constraints:
         include_foreign_key_constraints = []
     else:
@@ -74,4 +75,4 @@ def create_table_from_orm_class(
     creator = CreateTable(
         table, include_foreign_key_constraints=include_foreign_key_constraints
     )
-    creator.execute(bind=engine)
+    execute_ddl(engine, ddl=creator)

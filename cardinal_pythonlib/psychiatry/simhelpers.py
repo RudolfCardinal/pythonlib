@@ -142,7 +142,7 @@ def gen_params_around_centre(
 
         from cardinal_pythonlib.psychiatry.simhelpers import gen_params_around_centre
         list(gen_params_around_centre(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9], d=[10]))
-    """  # noqa
+    """  # noqa: E501
     param_order = param_order or []  # type: Sequence[str]
 
     def _sorter(x: str) -> Tuple[bool, Union[int, str]]:
