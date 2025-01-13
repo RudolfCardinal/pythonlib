@@ -18,3 +18,9 @@ python:
     - method: pip
       path: .
     - requirements: docs/docs_requirements.txt
+
+# sphinx.configuration required from Jan 2025:
+# https://about.readthedocs.com/blog/2024/12/deprecate-config-files-without-sphinx-or-mkdocs-config/
+sphinx:
+  # Path to your Sphinx configuration file.
+  configuration: docs/source/conf.py
