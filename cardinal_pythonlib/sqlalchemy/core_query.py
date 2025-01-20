@@ -147,7 +147,7 @@ def get_rows_fieldnames_from_select(
                 f"{select_query.column_descriptions}"
             )
 
-    result = session.execute(select_query)
+    result = session.execute(select_query).mappings()
 
     fieldnames_rmkview = result.keys()
     # ... of type RMKeyView, e.g. RMKeyView(['a', 'b'])

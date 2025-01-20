@@ -117,8 +117,8 @@ class CoreQueryTests(TestCase):
         rows, fieldnames = get_rows_fieldnames_from_select(self.session, query)
         self.assertEqual(fieldnames, [self.a, self.b])
         self.assertEqual(len(rows), 2)
-        self.assertEqual(rows[0], (self.a_val1, self.b_val1))
-        self.assertEqual(rows[1], (self.a_val2, self.b_val2))
+        self.assertEqual(rows[0], {"a": self.a_val1, "b": self.b_val1})
+        self.assertEqual(rows[1], {"a": self.a_val2, "b": self.b_val2})
 
     def test_count_star_and_max(self) -> None:
         count, maximum = count_star_and_max(
