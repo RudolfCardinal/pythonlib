@@ -68,7 +68,6 @@ from sqlalchemy.sql.sqltypes import (
     Boolean,
     Date,
     DateTime,
-    Double,
     Float,
     Integer,
     Numeric,
@@ -76,6 +75,12 @@ from sqlalchemy.sql.sqltypes import (
     Text,
     TypeEngine,
 )
+
+try:
+    from sqlalchemy.sql.sqltypes import Double
+except ImportError:
+    from sqlalchemy.sql.sqltypes import Float as Double
+
 from sqlalchemy.sql.visitors import Visitable
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
