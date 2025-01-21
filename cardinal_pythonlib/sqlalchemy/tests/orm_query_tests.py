@@ -119,7 +119,7 @@ class OrmQueryTests(TestCase):
         query = select(Pet.id, Pet.name).select_from(Pet.__table__)
         rows, fieldnames = get_rows_fieldnames_from_select(self.session, query)
         self.assertEqual(fieldnames, ["id", "name"])
-        self.assertEqual(rows, [{"id": 1, "name": self._pet_1_name}])
+        self.assertEqual(rows, [(1, self._pet_1_name)])
 
     def test_get_rows_fieldnames_whole_object_q_fails(self) -> None:
         # We want to disallow querying
