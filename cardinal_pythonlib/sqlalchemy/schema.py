@@ -385,9 +385,11 @@ def execute_ddl(
     Previously we would use DDL(sql, bind=engine).execute(), but this has gone
     in SQLAlchemy 2.0.
 
-    If you want dialect-conditional execution, create the DDL object with e.g.
-    ddl = DDL(sql).execute_if(dialect=SqlaDialectName.SQLSERVER), and pass that
-    DDL object to this function.
+    Note that creating the DDL object with e.g. ddl =
+    DDL(sql).execute_if(dialect=SqlaDialectName.SQLSERVER), and passing that
+    DDL object to this function, does NOT make execution condition; it executes
+    regardless. The execute_if() construct is used for listeners; see
+    https://docs.sqlalchemy.org/en/20/core/ddl.html#sqlalchemy.schema.ExecutableDDLElement.execute_if
     """
     assert bool(sql) ^ (ddl is not None)  # one or the other.
     if sql:

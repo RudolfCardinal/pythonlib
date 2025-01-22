@@ -846,3 +846,9 @@ Quick links:
     was apply filters (if required) and execute.
 
   - Multiple internal changes to support SQLAlchemy 2.
+
+**2.0.1 (2025-01-22)**
+
+- Bugfix to ``cardinal_pythonlib.sqlalchemy.sqlserver`` functions as they
+  were executing unconditionally, regardless of SQLAlchemy dialect (they should
+  have been conditional to SQL Server).
