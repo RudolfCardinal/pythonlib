@@ -28,6 +28,7 @@
 
 import logging
 import unittest
+import sys
 
 from sqlalchemy import event, inspect, select
 from sqlalchemy.dialects.mssql.base import MSDialect, DECIMAL as MS_DECIMAL
@@ -697,6 +698,12 @@ class YetMoreSchemaTests(unittest.TestCase):
             bind=self.engine, future=True
         )()  # type: Session
 
+        if sys.version_info < (3, 10):
+            log.warning(
+                "Unable to use unittest.TestCase.assertNoLogs; "
+                "needs Python 3.10; skipping test"
+            )
+            return
         with self.assertNoLogs(level=logging.INFO):
             with if_sqlserver_disable_constraints(session, tablename="person"):
                 pass
