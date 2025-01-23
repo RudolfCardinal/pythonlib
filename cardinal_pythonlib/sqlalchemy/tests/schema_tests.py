@@ -28,6 +28,7 @@
 
 import logging
 import unittest
+import sys
 
 from sqlalchemy import event, inspect, select
 from sqlalchemy.dialects.mssql.base import MSDialect, DECIMAL as MS_DECIMAL
@@ -35,10 +36,11 @@ from sqlalchemy.dialects.mysql.base import MySQLDialect
 from sqlalchemy.engine import create_engine
 from sqlalchemy.exc import NoSuchTableError, OperationalError
 from sqlalchemy.ext import compiler
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, Session, sessionmaker
 from sqlalchemy.schema import (
     Column,
     CreateTable,
+    DDL,
     DDLElement,
     Index,
     MetaData,
@@ -59,6 +61,10 @@ from sqlalchemy.sql.sqltypes import (
     Time,
 )
 
+from cardinal_pythonlib.sqlalchemy.engine_func import (
+    get_dialect_name,
+    SqlaDialectName,
+)
 from cardinal_pythonlib.sqlalchemy.schema import (
     add_index,
     column_creation_ddl,
@@ -98,6 +104,9 @@ from cardinal_pythonlib.sqlalchemy.schema import (
     view_exists,
 )
 from cardinal_pythonlib.sqlalchemy.session import SQLITE_MEMORY_URL
+from cardinal_pythonlib.sqlalchemy.sqlserver import (
+    if_sqlserver_disable_constraints,
+)
 
 Base = declarative_base()
 log = logging.getLogger(__name__)
@@ -485,7 +494,7 @@ class MoreSchemaTests(unittest.TestCase):
 
 
 class YetMoreSchemaTests(unittest.TestCase):
-    def __init__(self, *args, echo: bool = False, **kwargs) -> None:
+    def __init__(self, *args, echo: bool = True, **kwargs) -> None:
         self.echo = echo
         super().__init__(*args, **kwargs)
 
@@ -630,6 +639,75 @@ class YetMoreSchemaTests(unittest.TestCase):
             execute_ddl(self.engine, sql=sql, ddl=ddl)  # both
         with self.assertRaises(AssertionError):
             execute_ddl(self.engine)  # neither
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Dialect conditionality for DDL
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    @staticmethod
+    def _present_in_log_output(_cm, msg: str) -> bool:
+        """
+        Detects whether a string is present, INCLUDING AS A SUBSTRING, in
+        log output captured from an assertLogs() context manager.
+        """
+        return any(msg in line for line in _cm.output)
+
+    def test_ddl_dialect_conditionality_1(self) -> None:
+        self.engine.echo = True  # will write to log at INFO level
+
+        # 1. Check that logging capture works, and our _present_in_log_output
+        # function.
+        with self.assertLogs(level=logging.INFO) as cm:
+            log.info("dummy call")
+            self.assertTrue(self._present_in_log_output(cm, "dummy"))
+
+        # 2. Check our dialect is as expected: SQLite.
+        dialect_name = get_dialect_name(self.engine)
+        self.assertEqual(dialect_name, SqlaDialectName.SQLITE)
+
+        # 3. Seeing if DDL built with execute_if() will execute "directly" when
+        # set to execute-if-SQLite. It executes - but not conditionally!
+        ddl_yes = DDL("CREATE TABLE yesplease (a INT)").execute_if(
+            dialect=SqlaDialectName.SQLITE
+        )
+        with self.assertLogs(level=logging.INFO) as cm:
+            execute_ddl(self.engine, ddl=ddl_yes)
+            self.assertTrue(
+                self._present_in_log_output(cm, "CREATE TABLE yesplease")
+            )
+
+        # 4. Seeing if DDL built with execute_if() will execute "directly" when
+        # set to execute-if-MySQL. It executes - therefore not conditionally!
+        # I'd misunderstood this: it is NOT conditionally executed.
+        ddl_no = DDL("CREATE TABLE nothanks (a INT)").execute_if(
+            dialect=SqlaDialectName.MYSQL
+        )
+        with self.assertLogs(level=logging.INFO) as cm:
+            execute_ddl(self.engine, ddl=ddl_no)
+            self.assertTrue(
+                self._present_in_log_output(cm, "CREATE TABLE nothanks")
+            )
+            # I'd thought this would be false, but it is true.
+
+    def test_ddl_dialect_conditionality_2(self) -> None:
+        # Therefore:
+        self.engine.echo = True  # will write to log at INFO level
+        # The test above (test_ddl_dialect_conditionality_1) proves that
+        # this code will log something if SQL is emitted.
+
+        session = sessionmaker(
+            bind=self.engine, future=True
+        )()  # type: Session
+
+        if sys.version_info < (3, 10):
+            log.warning(
+                "Unable to use unittest.TestCase.assertNoLogs; "
+                "needs Python 3.10; skipping test"
+            )
+            return
+        with self.assertNoLogs(level=logging.INFO):
+            with if_sqlserver_disable_constraints(session, tablename="person"):
+                pass
+            # Should do nothing, therefore emit no logs.
 
 
 class SchemaAbstractTests(unittest.TestCase):

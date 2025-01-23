@@ -33,6 +33,7 @@ from sqlalchemy.orm.session import Session as SqlASession
 from sqlalchemy.schema import DDL
 
 from cardinal_pythonlib.sqlalchemy.dialect import (
+    get_dialect_name,
     quote_identifier,
     SqlaDialectName,
 )
@@ -49,7 +50,12 @@ def _exec_ddl_if_sqlserver(engine: Engine, sql: str) -> None:
     """
     Execute DDL only if we are running on Microsoft SQL Server.
     """
-    ddl = DDL(sql).execute_if(dialect=SqlaDialectName.SQLSERVER)
+    # DO NOT USE DDL(sql).execute_if(dialect=SqlaDialectName.SQLSERVER).
+    # IT IS NOT EXECUTED CONDITIONALLY VIA THIS METHOD.
+    dialect_name = get_dialect_name(engine)
+    if dialect_name != SqlaDialectName.SQLSERVER:
+        return
+    ddl = DDL(sql)
     execute_ddl(engine, ddl=ddl)
 
 
