@@ -104,10 +104,10 @@ def get_current_revision(
         version_table: table name for Alembic versions
     """
     engine = create_engine(database_url, future=True)
-    conn = engine.connect()
-    opts = {"version_table": version_table}
-    mig_context = MigrationContext.configure(conn, opts=opts)
-    return mig_context.get_current_revision()
+    with engine.connect() as conn:
+        opts = {"version_table": version_table}
+        mig_context = MigrationContext.configure(conn, opts=opts)
+        return mig_context.get_current_revision()
 
 
 def get_current_and_head_revision(
