@@ -852,3 +852,10 @@ Quick links:
 - Bugfix to ``cardinal_pythonlib.sqlalchemy.sqlserver`` functions as they
   were executing unconditionally, regardless of SQLAlchemy dialect (they should
   have been conditional to SQL Server).
+
+**2.0.2**
+
+- Bugfix to
+  :func:`cardinal_pythonlib.sqlalchemy.alembic_func.get_current_revision` where
+  since SQLAlchemy 2.0, the database connection was persisting, resulting in a
+  metadata lock.
