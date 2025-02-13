@@ -307,12 +307,14 @@ def _attach_view(
     of "selectable") is created after the table is created, and dropped before
     the table is dropped, via listeners.
     """
-    t = table(tablename)
-
-    # noinspection PyProtectedMember
-    t._columns._populate_separate_keys(
-        col._make_proxy(t) for col in selectable.selected_columns
+    t = table(
+        tablename,
+        *(
+            Column(c.name, c.type, primary_key=c.primary_key)
+            for c in selectable.selected_columns
+        ),
     )
+    t.primary_key.update(c for c in t.c if c.primary_key)
 
     event.listen(
         metadata,
