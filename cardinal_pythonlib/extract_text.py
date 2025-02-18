@@ -29,8 +29,14 @@ Prerequisites:
 
 .. code-block:: bash
 
-    sudo apt-get install antiword
-    pip install docx pdfminer
+    sudo apt-get install antiword  # required for DOC
+    sudo apt-get install pdftotext  # optional, but best way for PDF
+    sudo apt-get install strings  # strings/strings2 needed as generic fallback
+    sudo apt-get install strings2  # as above
+    sudo apt-get install unrtf  # required for RTF
+
+    pip install chardet  # improves character type detection
+    pip install pdfminer.six  # optional, backup optional for PDF
 
 - Author: Rudolf Cardinal (rudolf@pobox.com)
 - Created: Feb 2015
@@ -71,7 +77,7 @@ See also:
 # =============================================================================
 
 import argparse
-from io import StringIO  # Python 3
+from io import StringIO
 import io
 import logging
 import os
@@ -88,7 +94,6 @@ from typing import (
     Iterator,
     List,
     Optional,
-    Union,
 )
 from xml.etree import ElementTree as ElementTree
 
@@ -101,8 +106,6 @@ import bs4
 import prettytable
 from semantic_version import Version
 
-# import texttable  # ... can't deal with Unicode properly
-
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 try:
@@ -114,44 +117,11 @@ except ImportError:
 
 try:
     # noinspection PyPackageRequirements
-    import docx  # pip install python-docx (NOT docx) - BUT python-docx requires lxml which has C dependencies  # noqa: E501
-
-    # noinspection PyPackageRequirements
-    import docx.document
-
-    # noinspection PyPackageRequirements
-    import docx.oxml.table
-
-    # noinspection PyPackageRequirements
-    import docx.oxml.text.paragraph
-
-    # noinspection PyPackageRequirements
-    import docx.table
-
-    # noinspection PyPackageRequirements
-    import docx.text.paragraph
-
-    DOCX_DOCUMENT_TYPE = "docx.document.Document"
-    DOCX_TABLE_TYPE = Union["docx.table.Table", "CustomDocxTable"]
-    DOCX_CONTAINER_TYPE = Union[DOCX_DOCUMENT_TYPE, "docx.table._Cell"]
-    DOCX_BLOCK_ITEM_TYPE = Union[
-        "docx.text.paragraph.Paragraph", "docx.table.Table"
-    ]
-except ImportError:
-    docx = None
-    DOCX_DOCUMENT_TYPE = None
-    DOCX_TABLE_TYPE = "CustomDocxTable"
-    DOCX_CONTAINER_TYPE = None
-    DOCX_BLOCK_ITEM_TYPE = None
-
-try:
-    import docx2txt  # pip install docx2txt
-except ImportError:
-    docx2txt = None
-
-try:
-    # noinspection PyPackageRequirements
     import pdfminer  # pip install pdfminer
+
+    assert (
+        int(pdfminer.__version__) > 20191010
+    ), "pdfminer installed but too old"  # version string is e.g. '20191125'
 
     # noinspection PyPackageRequirements
     import pdfminer.pdfinterp
@@ -167,19 +137,8 @@ try:
 except ImportError:
     pdfminer = None
 
-try:
-    # noinspection PyPackageRequirements
-    import pyth  # pip install pyth (PYTHON 2 ONLY; https://pypi.python.org/pypi/pyth/0.5.4)  # noqa: E501
-
-    # noinspection PyPackageRequirements
-    import pyth.plugins.rtf15.reader
-
-    # noinspection PyPackageRequirements
-    import pyth.plugins.plaintext.writer
-except ImportError:
-    pyth = None
-
 log = get_brace_style_log_with_null_handler(__name__)
+
 
 # =============================================================================
 # Constants
@@ -191,6 +150,7 @@ DEFAULT_WIDTH = 120
 DEFAULT_MIN_COL_WIDTH = 15
 SYS_ENCODING = sys.getdefaultencoding()
 ENCODING = "utf-8"
+
 
 # =============================================================================
 # External tool map
@@ -542,6 +502,7 @@ def rstrip_all_lines(text: str) -> str:
 # PDF
 # =============================================================================
 
+
 # noinspection PyUnresolvedReferences,PyUnusedLocal
 def convert_pdf_to_txt(
     filename: str = None,
@@ -561,11 +522,11 @@ def convert_pdf_to_txt(
     elif pdfminer:  # Memory-hogging method
         with get_filelikeobject(filename, blob) as fp:
             rsrcmgr = pdfminer.pdfinterp.PDFResourceManager()
-            retstr = StringIO()
+            str_io = StringIO()
             codec = ENCODING
             laparams = pdfminer.layout.LAParams()
             device = pdfminer.converter.TextConverter(
-                rsrcmgr, retstr, codec=codec, laparams=laparams
+                rsrcmgr, str_io, codec=codec, laparams=laparams
             )
             interpreter = pdfminer.pdfinterp.PDFPageInterpreter(
                 rsrcmgr, device
@@ -583,7 +544,7 @@ def convert_pdf_to_txt(
                 check_extractable=True,
             ):
                 interpreter.process_page(page)
-            text = retstr.getvalue().decode(ENCODING)
+            text = str_io.getvalue()
         return text
     else:
         raise AssertionError("No PDF-reading tool available")
@@ -949,7 +910,7 @@ def wordwrap(text: str, width: int) -> str:
 
 
 def docx_process_table(
-    table: DOCX_TABLE_TYPE, config: TextProcessingConfig
+    table: CustomDocxTable, config: TextProcessingConfig
 ) -> str:
     """
     Converts a DOCX table to text.
@@ -1061,68 +1022,8 @@ def docx_process_table(
 
 
 # -----------------------------------------------------------------------------
-# With the docx library
+# DOCX
 # -----------------------------------------------------------------------------
-
-_ = '''
-# noinspection PyProtectedMember,PyUnresolvedReferences
-def docx_docx_iter_block_items(parent: DOCX_CONTAINER_TYPE) \
-        -> Iterator[DOCX_BLOCK_ITEM_TYPE]:
-    """
-    Iterate through items of a DOCX file.
-
-    See https://github.com/python-openxml/python-docx/issues/40.
-
-    Yield each paragraph and table child within ``parent``, in document order.
-    Each returned value is an instance of either :class:`Table` or
-    :class:`Paragraph`. ``parent`` would most commonly be a reference to a main
-    :class:`Document` object, but also works for a :class:`_Cell` object, which
-    itself can contain paragraphs and tables.
-
-    NOTE: uses internals of the ``python-docx`` (``docx``) library; subject to
-    change; this version works with ``docx==0.8.5``.
-    """
-    if isinstance(parent, docx.document.Document):
-        parent_elm = parent.element.body
-    elif isinstance(parent, docx.table._Cell):
-        parent_elm = parent._tc
-    else:
-        raise ValueError("something's not right")
-
-    for child in parent_elm.iterchildren():
-        if isinstance(child, docx.oxml.text.paragraph.CT_P):
-            yield docx.text.paragraph.Paragraph(child, parent)
-        elif isinstance(child, docx.oxml.table.CT_Tbl):
-            yield docx.table.Table(child, parent)
-
-
-# noinspection PyUnresolvedReferences
-def docx_docx_gen_text(doc: DOCX_DOCUMENT_TYPE,
-                       config: TextProcessingConfig) -> Iterator[str]:
-    """
-    Iterate through a DOCX file and yield text.
-
-    Args:
-        doc: DOCX document to process
-        config: :class:`TextProcessingConfig` control object
-
-    Yields:
-        pieces of text (paragraphs)
-
-    """
-    if in_order:
-        for thing in docx_docx_iter_block_items(doc):
-            if isinstance(thing, docx.text.paragraph.Paragraph):
-                yield docx_process_simple_text(thing.text, config.width)
-            elif isinstance(thing, docx.table.Table):
-                yield docx_process_table(thing, config)
-    else:
-        for paragraph in doc.paragraphs:
-            yield docx_process_simple_text(paragraph.text, config.width)
-        for table in doc.tables:
-            yield docx_process_table(table, config)
-'''
-
 
 # noinspection PyUnusedLocal
 def convert_docx_to_text(
@@ -1211,24 +1112,11 @@ def convert_docx_to_text(
             text += docx_text_from_xml(xml, config)
     return text
 
-    # elif docx:
-    #     with get_filelikeobject(filename, blob) as fp:
-    #         # noinspection PyUnresolvedReferences
-    #         document = docx.Document(fp)
-    #         return '\n\n'.join(
-    #             docx_docx_gen_text(document, config))
-    # elif docx2txt:
-    #     if filename:
-    #         return docx2txt.process(filename)
-    #     else:
-    #         raise NotImplementedError("docx2txt BLOB handling not written")
-    # else:
-    #     raise AssertionError("No DOCX-reading tool available")
-
 
 # =============================================================================
 # ODT
 # =============================================================================
+
 
 # noinspection PyUnusedLocal
 def convert_odt_to_text(
@@ -1259,6 +1147,7 @@ def convert_odt_to_text(
 # HTML
 # =============================================================================
 
+
 # noinspection PyUnusedLocal
 def convert_html_to_text(
     filename: str = None,
@@ -1277,6 +1166,7 @@ def convert_html_to_text(
 # XML
 # =============================================================================
 
+
 # noinspection PyUnusedLocal
 def convert_xml_to_text(
     filename: str = None,
@@ -1294,6 +1184,7 @@ def convert_xml_to_text(
 # =============================================================================
 # RTF
 # =============================================================================
+
 
 # noinspection PyUnresolvedReferences,PyUnusedLocal
 def convert_rtf_to_text(
@@ -1314,13 +1205,6 @@ def convert_rtf_to_text(
             return get_cmd_output(*args)
         else:
             return get_cmd_output_from_stdin(blob, *args)
-    elif pyth:  # Very memory-consuming:
-        # https://github.com/brendonh/pyth/blob/master/pyth/plugins/rtf15/reader.py  # noqa: E501
-        with get_filelikeobject(filename, blob) as fp:
-            doc = pyth.plugins.rtf15.reader.Rtf15Reader.read(fp)
-        return pyth.plugins.plaintext.writer.PlaintextWriter.write(
-            doc
-        ).getvalue()
     else:
         raise AssertionError("No RTF-reading tool available")
 
@@ -1332,11 +1216,6 @@ def availability_rtf() -> bool:
     unrtf = tools["unrtf"]
     if unrtf:
         return True
-    elif pyth:
-        log.warning(
-            "RTF conversion: unrtf missing; " "using pyth (less efficient)"
-        )
-        return True
     else:
         return False
 
@@ -1344,6 +1223,7 @@ def availability_rtf() -> bool:
 # =============================================================================
 # DOC
 # =============================================================================
+
 
 # noinspection PyUnusedLocal
 def convert_doc_to_text(
@@ -1377,6 +1257,7 @@ def availability_doc() -> bool:
 # =============================================================================
 # Anything
 # =============================================================================
+
 
 # noinspection PyUnusedLocal
 def convert_anything_to_text(
@@ -1523,7 +1404,7 @@ def is_text_extractor_available(extension: str) -> bool:
     if info is None:
         return False
     availability = info[AVAILABILITY]
-    if type(availability) == bool:
+    if type(availability) is bool:
         return availability
     elif callable(availability):
         return availability()
@@ -1551,7 +1432,6 @@ def main() -> None:
     """
     Command-line processor. See ``--help`` for details.
     """
-    logging.basicConfig(level=logging.DEBUG)
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
@@ -1582,7 +1462,13 @@ def main() -> None:
         default=DEFAULT_MIN_COL_WIDTH,
         help="Minimum column width for tables",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Be verbose",
+    )
     args = parser.parse_args()
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
     if args.availability:
         for ext in args.availability:
             if ext.lower() == "none":
