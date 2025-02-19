@@ -859,3 +859,8 @@ Quick links:
   :func:`cardinal_pythonlib.sqlalchemy.alembic_func.get_current_revision` where
   since SQLAlchemy 2.0, the database connection was persisting, resulting in a
   metadata lock.
+
+- Bugfix to :func:`cardinal_pythonlib.extract_text.convert_pdf_to_txt` where
+  ``pdftotext`` was unavailable. Also remove antique ``pyth`` support. And
+  shift from unmaintained ``pdfminer`` to maintained ``pdfminer.six``. Also
+  removed unused code around importing ``docx`` and ``docx2txt``.
