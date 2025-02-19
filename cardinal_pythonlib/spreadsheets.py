@@ -38,24 +38,16 @@ from decimal import Decimal
 import logging
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
+import xlrd
+from xlrd import Book
+from xlrd.sheet import Cell, Sheet
+
 from cardinal_pythonlib.datetimefunc import (
     coerce_to_pendulum,
     pendulum_to_datetime_stripping_tz,
 )
 from cardinal_pythonlib.progress import ActivityCounter
 from cardinal_pythonlib.reprfunc import simple_repr
-
-try:
-    # noinspection PyPackageRequirements
-    import xlrd
-
-    # noinspection PyPackageRequirements
-    from xlrd import Book
-
-    # noinspection PyPackageRequirements
-    from xlrd.sheet import Cell, Sheet
-except ImportError:
-    raise ImportError("You must install the 'xlrd' package.")
 
 log = logging.getLogger(__name__)
 

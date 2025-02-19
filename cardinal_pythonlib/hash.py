@@ -64,14 +64,6 @@ try:
 except ImportError:
     mmh3 = None
 
-# try:
-#     import xxhash
-#     pyhashxx = None
-# except ImportError:
-#     xxhash = None
-#     import pyhashxx
-
-
 # https://docs.python.org/3/library/platform.html#platform.architecture
 IS_64_BIT = sys.maxsize > 2**32
 TIMING_HASH = "hash"

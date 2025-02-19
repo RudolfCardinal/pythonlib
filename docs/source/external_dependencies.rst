@@ -18,17 +18,21 @@
 External libraries
 ------------------
 
-
-This package also installs (and uses or extends):
+This package also installs (and uses or extends) the following packages, which
+are generally "pure Python", meaning that they can easily be installed e.g. on
+a Windows computer with no C compiler system installed.
 
 - ``alembic``: http://alembic.zzzcomputing.com/
 - ``appdirs``: https://pypi.org/project/appdirs/
+- ``arrow``: https://arrow.readthedocs.io/
 - ``beautifulsoup4``: https://www.crummy.com/software/BeautifulSoup/bs4/doc/
+- ``chardet``: https://chardet.readthedocs.io/en/latest/
 - ``colorlog``: https://pypi.org/project/colorlog/
 - ``isodate``: https://pypi.org/project/isodate/
 - ``numpy``: http://www.numpy.org/
 - ``openpyxl``: https://openpyxl.readthedocs.io/
 - ``pandas``: https://pandas.pydata.org/
+- ``pdfminer.six``: https://pdfminersix.readthedocs.io/en/latest/
 - ``pendulum``: https://pendulum.eustace.io/
 - ``prettytable``: https://pypi.org/project/PrettyTable/
 - ``psutil``: https://pypi.org/project/psutil/
@@ -40,26 +44,40 @@ This package also installs (and uses or extends):
 - ``semantic_version``: https://pypi.org/project/semantic_version/
 - ``SQLAlchemy``: https://www.sqlalchemy.org/
 - ``sqlparse``: https://sqlparse.readthedocs.io/
+- ``xlrd``: https://pypi.org/project/xlrd/
 
-The following will be used, if present (and an exception raised if you use
-library code that requires one of these packages without it being installed):
+The following packages will be used, if present, and an exception raised if you
+use library code that requires one of these packages without it being
+installed. They include large packages (e.g. Django), some other "less core"
+aspects, and packages that require a C compiler and so may be harder to install
+in some contexts.
 
-- ``arrow``: https://arrow.readthedocs.io/
-- ``bcrypt``: https://pypi.org/project/bcrypt/
+- ``bcrypt``: https://pypi.org/project/bcrypt/ (C-based)
 - ``colander``: https://docs.pylonsproject.org/projects/colander/
+- ``cryptography``: https://cryptography.io/
 - ``deform``: https://docs.pylonsproject.org/projects/deform/
-- ``Django``: https://www.djangoproject.com/
+- ``Django`` >= 4.2: https://www.djangoproject.com/
 - ``dogpile.cache``: https://dogpilecache.readthedocs.io/
+- ``libChEBIpy``: https://pypi.org/project/libChEBIpy/ (Python 2 only?)
 - ``pyramid``: https://trypyramid.com/
-- ``webob``: https://webob.org/ (used by Pyramid)
+- ``webob``: https://webob.org/ (used and installed by Pyramid)
 
-The following will be used, but the library code won't complain if not:
+The following packages will be used sometimes, but the library code won't
+complain much if they are absent. They include some other C-based packages, one
+that is specific to Windows and won't install on other platforms, and a
+selection of PDF-handling libraries where there is not a clear best choice.
 
-- ``mmh3``: https://pypi.org/project/mmh3/
+- ``brotlipy``: https://pypi.org/project/brotlipy/ (C-based)
+- ``mmh3``: https://pypi.org/project/mmh3/ (C-based)
+- ``matplotlib``: https://matplotlib.org/
 - ``pdfkit``: https://pypi.org/project/pdfkit/
-- ``pdfminer``: https://pypi.org/project/pdfminer/
-- ``pypiwin32``: https://pypi.org/project/pypiwin32/
-- ``pyth``: https://pyth.readthedocs.io/
-- ``python-docx`` (``import docx``): https://python-docx.readthedocs.io/
+- ``pypiwin32``: https://pypi.org/project/pypiwin32/ (Windows only)
 - ``weasyprint``: https://weasyprint.org/
 - ``xhtml2pdf``: https://xhtml2pdf.readthedocs.io/
+
+To *build* the library distribution (most people won't need this!), a few other
+development libraries are required:
+
+- ``sphinx``: https://www.sphinx-doc.org/
+- ``sphinx_rtd_theme``: https://github.com/readthedocs/sphinx_rtd_theme
+- ``twine``: https://pypi.org/project/twine/

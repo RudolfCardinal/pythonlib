@@ -49,7 +49,9 @@ REQUIREMENTS = [
     # - SEE ALSO external_dependencies.rst
     "alembic",
     "appdirs>=1.4.0",
+    "arrow>=0.15",
     "beautifulsoup4",  # "import bs4" or "from bs4 import ..."
+    "chardet>=5.0.0",
     "colorlog",
     "isodate>=0.5.4",
     "numba",  # just-in-time compilation
@@ -57,6 +59,7 @@ REQUIREMENTS = [
     "openpyxl",
     "pandas",
     "pendulum>=2.1.1",
+    "pdfminer.six>=20191010",  # "import pdfminer"
     "prettytable",
     "psutil",
     "pygments",
@@ -68,6 +71,7 @@ REQUIREMENTS = [
     "semantic-version",
     "SQLAlchemy>=1.4,<3.0",
     "sqlparse",
+    "xlrd>=2.0.0",
 ]
 
 NOTES_RE_OTHER_REQUIREMENTS = """
@@ -79,45 +83,8 @@ NOTES_RE_OTHER_REQUIREMENTS = """
 
 
 # -----------------------------------------------------------------------------
-# The following are NOT HANDLED GRACEFULLY; their absence will cause a runtime
-# ImportError, but we don't make them requirements as they need a compiler to
-# install (and one might want to use the rest of the library without them).
+# FOR OTHER REQUIREMENTS, AND OPTIONAL EXTRAS: SEE external_dependencies.rst
 # -----------------------------------------------------------------------------
-# - SEE ALSO external_dependencies.rst
-
-# arrow
-# bcrypt
-# colander
-# deform
-# Django>=4.2
-# dogpile.cache
-# pyramid
-# webob  # installed by pyramid
-
-
-# -----------------------------------------------------------------------------
-# The following are OPTIONAL; their absence will be handled gracefully, so
-# they are not requirements, but we note them here:
-# -----------------------------------------------------------------------------
-# - SEE ALSO external_dependencies.rst
-
-# mmh3
-# pdfkit
-# pdfminer
-# pypiwin32
-# pyth
-# python-docx   # "import docx"
-# weasyprint
-# xhtml2pdf
-
-
-# -----------------------------------------------------------------------------
-# FOR LIBRARY DEVELOPMENT
-# -----------------------------------------------------------------------------
-
-# sphinx
-# sphinx_rtd_theme
-# twine
 
 """
 
