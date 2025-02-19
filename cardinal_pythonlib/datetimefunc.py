@@ -46,35 +46,19 @@ import logging
 from string import Formatter
 from typing import Any, Optional, Union
 
-try:
-    # noinspection PyPackageRequirements
-    from arrow import Arrow
-except ImportError:
-    Arrow = None
-
-try:
-    import dateutil.parser
-except ImportError:
-    dateutil = None
-
+from arrow import Arrow
+import dateutil.parser
 from isodate.isoduration import parse_duration, Duration as IsodateDuration
 import pendulum
 from pendulum import Date, DateTime, Duration, Time
 from pendulum.tz import local_timezone
 from pendulum.tz.timezone import Timezone
 
-if Arrow is not None:
-    PotentialDatetimeType = Union[
-        None, datetime.datetime, datetime.date, DateTime, str, Arrow
-    ]
-    DateTimeLikeType = Union[datetime.datetime, DateTime, Arrow]
-    DateLikeType = Union[datetime.date, DateTime, Arrow]
-else:
-    PotentialDatetimeType = Union[
-        None, datetime.datetime, datetime.date, DateTime, str
-    ]
-    DateTimeLikeType = Union[datetime.datetime, DateTime]
-    DateLikeType = Union[datetime.date, DateTime]
+PotentialDatetimeType = Union[
+    None, datetime.datetime, datetime.date, DateTime, str, Arrow
+]
+DateTimeLikeType = Union[datetime.datetime, DateTime, Arrow]
+DateLikeType = Union[datetime.date, DateTime, Arrow]
 
 log = logging.getLogger(__name__)
 

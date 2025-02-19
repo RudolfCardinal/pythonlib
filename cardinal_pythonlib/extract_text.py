@@ -96,46 +96,21 @@ from typing import (
     Optional,
 )
 from xml.etree import ElementTree as ElementTree
-
-# ... cElementTree used to be the fast implementation; now ElementTree is fast
-# and cElementTree is deprecated; see
-# https://docs.python.org/3.4/library/xml.etree.elementtree.html
 import zipfile
 
 import bs4
+import chardet
+from chardet.universaldetector import UniversalDetector
+import pdfminer  # pip install pdfminer.six
+import pdfminer.pdfinterp
+import pdfminer.converter
+import pdfminer.layout
+import pdfminer.pdfpage
 import prettytable
 from semantic_version import Version
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
-try:
-    import chardet
-    from chardet.universaldetector import UniversalDetector
-except ImportError:
-    chardet = None
-    UniversalDetector = None
-
-try:
-    # noinspection PyPackageRequirements
-    import pdfminer  # pip install pdfminer
-
-    assert (
-        int(pdfminer.__version__) > 20191010
-    ), "pdfminer installed but too old"  # version string is e.g. '20191125'
-
-    # noinspection PyPackageRequirements
-    import pdfminer.pdfinterp
-
-    # noinspection PyPackageRequirements
-    import pdfminer.converter
-
-    # noinspection PyPackageRequirements
-    import pdfminer.layout
-
-    # noinspection PyPackageRequirements
-    import pdfminer.pdfpage
-except ImportError:
-    pdfminer = None
 
 log = get_brace_style_log_with_null_handler(__name__)
 

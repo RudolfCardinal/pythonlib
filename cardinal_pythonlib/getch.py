@@ -34,13 +34,13 @@ import select
 import sys
 
 try:
-    import msvcrt  # Windows only
+    import msvcrt  # Windows only, but part of core Python under Windows
 
     termios = None
     tty = None
 except ImportError:
     msvcrt = None
-    import termios  # Unix only
+    import termios  # Unix only; tty/termios are part of core Python under Unix
     import tty  # requires termios, so Unix only  # noqa: F401
 
 
