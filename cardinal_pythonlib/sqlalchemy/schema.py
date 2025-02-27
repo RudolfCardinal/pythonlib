@@ -61,14 +61,15 @@ from sqlalchemy.schema import (
     Index,
     Table,
 )
-from sqlalchemy.sql import sqltypes, text
+from sqlalchemy.sql import sqltypes
+from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.ddl import DDLElement
 from sqlalchemy.sql.sqltypes import (
     BigInteger,
     Boolean,
     Date,
     DateTime,
-    Double,
+    # todo: uncomment *** # Double,
     Float,
     Integer,
     Numeric,
@@ -110,7 +111,7 @@ DATABRICKS_SQLCOLTYPE_TO_SQLALCHEMY_GENERIC = {
     "BOOLEAN": Boolean,
     "DATE": Date,
     "TIMESTAMP_NTZ": DateTime,
-    "DOUBLE": Double,
+    # todo: uncomment *** # "DOUBLE": Double,
     "FLOAT": Float,
     "INT": Integer,
     "DECIMAL": Numeric,
