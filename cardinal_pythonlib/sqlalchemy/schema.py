@@ -68,7 +68,6 @@ from sqlalchemy.sql.sqltypes import (
     Boolean,
     Date,
     DateTime,
-    Double,
     Enum,
     Float,
     Integer,
@@ -94,6 +93,16 @@ if TYPE_CHECKING:
     from sqlalchemy.engine.interfaces import ReflectedIndex
 
 log = get_brace_style_log_with_null_handler(__name__)
+
+try:
+    from sqlalchemy.sql.sqltypes import Double
+except ImportError:
+    # This code present to allow testing with older SQLAlchemy 1.4.
+    log.warning(
+        "Can't import sqlalchemy.sql.sqltypes.Double "
+        "(are you using SQLAlchemy prior to 2.0?)"
+    )
+    Double = None
 
 
 # =============================================================================
@@ -123,7 +132,7 @@ DATABRICKS_SQLCOLTYPE_TO_SQLALCHEMY_GENERIC = {
     "BOOLEAN": Boolean,
     "DATE": Date,
     "TIMESTAMP_NTZ": DateTime,
-    "DOUBLE": Double,
+    "DOUBLE": Double if Double is not None else Float,
     "FLOAT": Float,
     "INT": Integer,
     "DECIMAL": Numeric,
@@ -1183,7 +1192,6 @@ def is_sqlatype_binary(coltype: Union[TypeEngine, VisitableType]) -> bool:
     # Several binary types inherit internally from _Binary, making that the
     # easiest to check. We obtain BinaryBaseClass (= _Binary) as above.
     coltype = coltype_as_typeengine(coltype)
-    # noinspection PyProtectedMember
     return isinstance(coltype, BinaryBaseClass)
 
 

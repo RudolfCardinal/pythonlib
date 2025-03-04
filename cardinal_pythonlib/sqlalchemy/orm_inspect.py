@@ -26,6 +26,7 @@
 
 """
 
+import logging
 from typing import (
     Dict,
     Generator,
@@ -37,7 +38,6 @@ from typing import (
     Union,
 )
 
-# noinspection PyProtectedMember
 from sqlalchemy import inspect
 from sqlalchemy.orm.base import class_mapper
 from sqlalchemy.orm.mapper import Mapper
@@ -51,13 +51,12 @@ from sqlalchemy.util import OrderedProperties
 from cardinal_pythonlib.classes import gen_all_subclasses
 from cardinal_pythonlib.enumlike import OrderedNamespace
 from cardinal_pythonlib.dicts import reversedict
-from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 if TYPE_CHECKING:
     from sqlalchemy.orm.state import InstanceState
     from sqlalchemy.sql.schema import Table
 
-log = get_brace_style_log_with_null_handler(__name__)
+log = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -253,7 +252,7 @@ def walk_orm_tree(
             continue
         seen.add(obj)
         if debug:
-            log.debug("walk: yielding {!r}", obj)
+            log.debug(f"walk: yielding {obj!r}")
         yield obj
         insp = inspect(obj)  # type: InstanceState
         for (
@@ -272,10 +271,10 @@ def walk_orm_tree(
                 continue
             # Process relationship
             if debug:
-                log.debug("walk: following relationship {}", relationship)
+                log.debug(f"walk: following relationship {relationship}")
             related = getattr(obj, attrname)
             if debug and related:
-                log.debug("walk: queueing {!r}", related)
+                log.debug(f"walk: queueing {related!r}")
             if relationship.uselist:
                 stack.extend(related)
             elif related is not None:
@@ -331,7 +330,7 @@ def copy_sqla_object(
         prohibited |= fk_keys
     prohibited |= set(omit_attrs)
     if debug:
-        log.debug("copy_sqla_object: skipping: {}", prohibited)
+        log.debug(f"copy_sqla_object: skipping: {prohibited}")
     for k in [
         p.key for p in mapper.iterate_properties if p.key not in prohibited
     ]:
@@ -339,12 +338,12 @@ def copy_sqla_object(
             value = getattr(obj, k)
             if debug:
                 log.debug(
-                    "copy_sqla_object: processing attribute {} = {}", k, value
+                    f"copy_sqla_object: processing attribute {k} = {value}"
                 )
             setattr(newobj, k, value)
         except AttributeError:
             if debug:
-                log.debug("copy_sqla_object: failed attribute {}", k)
+                log.debug(f"copy_sqla_object: failed attribute {k}")
             pass
     return newobj
 
@@ -428,8 +427,8 @@ def rewrite_relationships(
         if related_table_name in skip_table_names:
             if debug:
                 log.debug(
-                    "Skipping relationship for related table {!r}",
-                    related_table_name,
+                    f"Skipping relationship for related table "
+                    f"{related_table_name!r}"
                 )
             continue
         # The relationship is an abstract object (so getting the
@@ -439,17 +438,25 @@ def rewrite_relationships(
         #       rel_key = rel.key  # type: str
         # ... but also available from the mapper as attrname, above
         related_old = getattr(oldobj, attrname)
-        if rel_prop.uselist:
-            related_new = [objmap[r] for r in related_old]
-        elif related_old is not None:
-            related_new = objmap[related_old]
-        else:
-            related_new = None
+        try:
+            if rel_prop.uselist:
+                related_new = [objmap[r] for r in related_old]
+            elif related_old is not None:
+                related_new = objmap[related_old]
+            else:
+                related_new = None
+        except KeyError as e:
+            # Often long messages; caps makes it slightly easier to read.
+            log.critical(
+                f"WHILE PROCESSING {oldobj = !r}, AN ATTRIBUTE FROM "
+                f"{related_old = !r}, ACCESSED AS oldobj.{attrname}, "
+                f"IS MISSING FROM {objmap = !r}. ERROR WAS: KeyError: {e}"
+            )
+            raise
         if debug:
             log.debug(
-                "rewrite_relationships: relationship {} -> {}",
-                attrname,
-                related_new,
+                f"rewrite_relationships: relationship "
+                f"{attrname} -> {related_new}"
             )
         setattr(newobj, attrname, related_new)
 
@@ -508,7 +515,7 @@ def deepcopy_sqla_objects(
     for startobj in startobjs:
         for oldobj in walk_orm_tree(startobj, seen=seen, debug=debug_walk):
             if debug:
-                log.debug("deepcopy_sqla_objects: copying {}", oldobj)
+                log.debug(f"deepcopy_sqla_objects: copying {oldobj}")
             newobj = copy_sqla_object(oldobj, omit_pk=True, omit_fk=True)
             # Don't insert the new object into the session here; it may trigger
             # an autoflush as the relationships are queried, and the new
@@ -525,7 +532,7 @@ def deepcopy_sqla_objects(
         log.debug("deepcopy_sqla_objects: pass 2: set relationships")
     for oldobj, newobj in objmap.items():
         if debug:
-            log.debug("deepcopy_sqla_objects: newobj: {}", newobj)
+            log.debug(f"deepcopy_sqla_objects: newobj: {newobj}")
         rewrite_relationships(oldobj, newobj, objmap, debug=debug_rewrite_rel)
 
     # Now we can do session insert.

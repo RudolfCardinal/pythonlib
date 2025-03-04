@@ -986,7 +986,12 @@ def merge_db(
                     # new PK will be created when session is flushed
 
                 if tdc.is_parent:
-                    objmap[oldobj] = newobj  # for its children's benefit
+                    try:
+                        objmap[oldobj] = newobj  # for its children's benefit
+                    except KeyError:
+                        raise KeyError(
+                            f"Missing attribute {oldobj=} in {objmap=}"
+                        )
 
             if flush_per_record:
                 flush()
