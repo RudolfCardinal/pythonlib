@@ -411,24 +411,29 @@ def rewrite_relationships(
     # insp.mapper.relationships is of type
     # sqlalchemy.utils._collections.ImmutableProperties, which is basically
     # a sort of AttrDict.
-    for (
-        attrname_rel
-    ) in (
+    attrname_rel_list = list(
         insp.mapper.relationships.items()
-    ):  # type: Tuple[str, RelationshipProperty]
+    )  # type: List[Tuple[str, RelationshipProperty]]
+    if debug:
+        log.debug(
+            f"rewrite_relationships: relationships are {attrname_rel_list}"
+        )
+    for attrname_rel in attrname_rel_list:
         attrname = attrname_rel[0]
         rel_prop = attrname_rel[1]
         if rel_prop.viewonly:
             if debug:
-                log.debug("Skipping viewonly relationship")
+                log.debug(
+                    "rewrite_relationships: Skipping viewonly relationship"
+                )
             continue  # don't attempt to write viewonly relationships
         related_class = rel_prop.mapper.class_
         related_table_name = related_class.__tablename__  # type: str
         if related_table_name in skip_table_names:
             if debug:
                 log.debug(
-                    f"Skipping relationship for related table "
-                    f"{related_table_name!r}"
+                    f"rewrite_relationships: Skipping relationship for "
+                    f"related table {related_table_name!r}"
                 )
             continue
         # The relationship is an abstract object (so getting the
@@ -448,9 +453,14 @@ def rewrite_relationships(
         except KeyError as e:
             # Often long messages; caps makes it slightly easier to read.
             log.critical(
-                f"WHILE PROCESSING {oldobj = !r}, AN ATTRIBUTE FROM "
-                f"{related_old = !r}, ACCESSED AS oldobj.{attrname}, "
-                f"IS MISSING FROM {objmap = !r}. ERROR WAS: KeyError: {e}"
+                f"rewrite_relationships: WHILE PROCESSING {oldobj = !r}, "
+                f"THE ATTRIBUTE ACCESSED AS oldobj.{attrname}, "
+                f"NAMELY {related_old = !r},  "
+                f"IS MISSING AS A KEY FROM {objmap = !r}. "
+                f"ERROR WAS: KeyError: {e}. "
+                f"POSSIBLE REASON: If you called via merge_db(), perhaps this "
+                f"is not properly handled in the 'translate_fn' function; or "
+                f"perhaps the tables are being dealt with in the wrong order."
             )
             raise
         if debug:
@@ -492,14 +502,21 @@ def deepcopy_sqla_objects(
     ``args``/``kwargs``, since we are copying a tree of arbitrary objects.)
 
     Args:
-        startobjs: SQLAlchemy ORM objects to copy
-        session: destination SQLAlchemy :class:`Session` into which to insert
-            the copies
-        flush: flush the session when we've finished?
-        debug: be verbose?
-        debug_walk: be extra verbose when walking the ORM tree?
-        debug_rewrite_rel: be extra verbose when rewriting relationships?
-        objmap: starting object map from source-session to destination-session
+        startobjs:
+            SQLAlchemy ORM objects to copy
+        session:
+            destination SQLAlchemy :class:`Session` into which to insert the
+            copies
+        flush:
+            flush the session when we've finished?
+        debug:
+            be verbose?
+        debug_walk:
+            be extra verbose when walking the ORM tree?
+        debug_rewrite_rel:
+            be extra verbose when rewriting relationships?
+        objmap:
+            starting object map from source-session to destination-session
             objects (see :func:`rewrite_relationships` for more detail);
             usually ``None`` to begin with.
     """
