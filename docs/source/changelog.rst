@@ -869,3 +869,5 @@ Quick links:
 
 - Improvements to ``merge_db``, including the option to ignore SQLAlchemy's
   default table dependency order and calculate another.
+
+- Improve ability of Alembic support code to take a database URL.
