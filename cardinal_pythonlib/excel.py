@@ -83,8 +83,8 @@ def convert_for_openpyxl(x: Any) -> Any:
         if isinstance(x, DateTime):
             return pendulum_to_datetime(x)
     However, conversion of pendulum.datetime.Datetime to datetime.datetime is
-    insufficient, because you can still end up with this error from
-    openpyxl/utils/datetime.py, line 97, in to_excel:
+    insufficient, because with openpyxl==3.0.7 you can still end up with this
+    error from openpyxl/utils/datetime.py, line 97, in to_excel:
             days = (dt - epoch).days
         TypeError: can't subtract offset-naive and offset-aware datetimes
     The "epoch" variable does NOT have a timezone attribute. So we need to
@@ -96,7 +96,9 @@ def convert_for_openpyxl(x: Any) -> Any:
     information, preserving all data but letting the user sort out the meaning.
     Since ``convert_for_pyexcel_ods3`` was already converting
     pendulum.datetime.DateTime and datetime.datetime values to a standard
-    string, via strftime, let's do that too.
+    string, via strftime, let's do that too. Note that this also anticipates
+    the deprecation of timezone-aware dates from openpyxl==3.0.7
+    (https://foss.heptapod.net/openpyxl/openpyxl/-/issues/1645).
     """
     if isinstance(x, (DateTime, datetime.datetime)):
         return x.strftime(ISO8601_STRFTIME_FORMAT)
@@ -117,12 +119,19 @@ def convert_for_pyexcel_ods3(x: Any) -> Any:
     - ``None``
     - :class:`numpy.float64`
     - :class:`uuid.UUID`
+    - subclasses of `str`
 
     Args:
         x: a data value
 
     Returns:
         the same thing, or a more suitable value!
+
+    2025-03-06 update: With pyexcel-ods3==0.6.0, we were getting a KeyError
+    from pyexcel_ods3/odsw.py, in ODSSheetWriter.write_row. It does this:
+        value_type = service.ODS_WRITE_FORMAT_COVERSION[type(cell)]
+    and we had a cell that looked like 'aq' but had the type <class
+    'sqlalchemy.sql.elements.quoted_name'>, a subclass of str.
     """
     if isinstance(x, (DateTime, datetime.datetime)):
         return x.strftime(ISO8601_STRFTIME_FORMAT)
@@ -132,5 +141,7 @@ def convert_for_pyexcel_ods3(x: Any) -> Any:
         return str(x)
     elif isinstance(x, float64):
         return float(x)
+    elif isinstance(x, str):
+        return str(x)
     else:
         return x
