@@ -80,13 +80,21 @@ def convert_for_openpyxl(x: Any) -> Any:
         the same thing, or a more suitable value!
 
     2025-03-06 update: We were doing this:
+
+    .. code-block:: python
+
         if isinstance(x, DateTime):
             return pendulum_to_datetime(x)
+
     However, conversion of pendulum.datetime.Datetime to datetime.datetime is
     insufficient, because with openpyxl==3.0.7 you can still end up with this
     error from openpyxl/utils/datetime.py, line 97, in to_excel:
-            days = (dt - epoch).days
-        TypeError: can't subtract offset-naive and offset-aware datetimes
+
+    .. code-block:: python
+
+        days = (dt - epoch).days
+        # TypeError: can't subtract offset-naive and offset-aware datetimes
+
     The "epoch" variable does NOT have a timezone attribute. So we need to
     ensure that what we produce here doesn't, either. In principle, there are
     three alternatives: (a) convert to a standard timezone (UTC), making things
@@ -129,7 +137,11 @@ def convert_for_pyexcel_ods3(x: Any) -> Any:
 
     2025-03-06 update: With pyexcel-ods3==0.6.0, we were getting a KeyError
     from pyexcel_ods3/odsw.py, in ODSSheetWriter.write_row. It does this:
+
+    .. code-block:: python
+
         value_type = service.ODS_WRITE_FORMAT_COVERSION[type(cell)]
+
     and we had a cell that looked like 'aq' but had the type <class
     'sqlalchemy.sql.elements.quoted_name'>, a subclass of str.
     """
