@@ -864,3 +864,10 @@ Quick links:
   ``pdftotext`` was unavailable. Also remove antique ``pyth`` support. And
   shift from unmaintained ``pdfminer`` to maintained ``pdfminer.six``. Also
   removed unused code around importing ``docx`` and ``docx2txt``.
+
+- Add some back-compatibility with SQLAlchemy 1.4+ for testing.
+
+- Improvements to ``merge_db``, including the option to ignore SQLAlchemy's
+  default table dependency order and calculate another.
+
+- Improve ability of Alembic support code to take a database URL.

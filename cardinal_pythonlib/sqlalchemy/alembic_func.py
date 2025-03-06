@@ -76,13 +76,15 @@ def get_head_revision_from_alembic(
 ) -> str:
     """
     Ask Alembic what its head revision is (i.e. where the Python code would
-    like the database to be at).
+    like the database to be at). This does not read the database.
 
     Arguments:
-        alembic_config_filename: config filename
-        alembic_base_dir: directory to start in, so relative paths in the
-            config file work.
-        version_table: table name for Alembic versions
+        alembic_config_filename:
+            config filename
+        alembic_base_dir:
+            directory to start in, so relative paths in the config file work.
+        version_table:
+            table name for Alembic versions
     """
     if alembic_base_dir is None:
         alembic_base_dir = os.path.dirname(alembic_config_filename)
@@ -148,6 +150,7 @@ def get_current_and_head_revision(
 @preserve_cwd
 def upgrade_database(
     alembic_config_filename: str,
+    db_url: str = None,
     alembic_base_dir: str = None,
     starting_revision: str = None,
     destination_revision: str = "head",
@@ -163,6 +166,9 @@ def upgrade_database(
     Arguments:
         alembic_config_filename:
             config filename
+
+        db_url:
+            Optional database URL to use, by way of override.
 
         alembic_base_dir:
             directory to start in, so relative paths in the config file work
@@ -187,6 +193,8 @@ def upgrade_database(
         alembic_base_dir = os.path.dirname(alembic_config_filename)
     os.chdir(alembic_base_dir)  # so the directory in the config file works
     config = Config(alembic_config_filename)
+    if db_url:
+        config.set_main_option("sqlalchemy.url", db_url)
     script = ScriptDirectory.from_config(config)
 
     # noinspection PyUnusedLocal,PyProtectedMember
@@ -217,6 +225,7 @@ def upgrade_database(
 def downgrade_database(
     alembic_config_filename: str,
     destination_revision: str,
+    db_url: str = None,
     alembic_base_dir: str = None,
     starting_revision: str = None,
     version_table: str = DEFAULT_ALEMBIC_VERSION_TABLE,
@@ -232,6 +241,9 @@ def downgrade_database(
     Arguments:
         alembic_config_filename:
             config filename
+
+        db_url:
+            Optional database URL to use, by way of override.
 
         alembic_base_dir:
             directory to start in, so relative paths in the config file work
@@ -255,6 +267,8 @@ def downgrade_database(
         alembic_base_dir = os.path.dirname(alembic_config_filename)
     os.chdir(alembic_base_dir)  # so the directory in the config file works
     config = Config(alembic_config_filename)
+    if db_url:
+        config.set_main_option("sqlalchemy.url", db_url)
     script = ScriptDirectory.from_config(config)
 
     # noinspection PyUnusedLocal,PyProtectedMember
@@ -403,6 +417,9 @@ def stamp_allowing_unusual_version_table(
     This function is a clone of ``alembic.command.stamp()``, but allowing
     ``version_table`` to change. See
     https://alembic.zzzcomputing.com/en/latest/api/commands.html#alembic.command.stamp
+
+    Note that the Config object can include the database URL; use
+    ``config.set_main_option("sqlalchemy.url", db_url)``.
     """
 
     script = ScriptDirectory.from_config(config)
