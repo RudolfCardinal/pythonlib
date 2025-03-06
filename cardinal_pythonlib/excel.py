@@ -26,6 +26,10 @@
 
 """
 
+# =============================================================================
+# Imports
+# =============================================================================
+
 import datetime
 import io
 from typing import Any
@@ -36,7 +40,18 @@ from openpyxl import Workbook
 from pendulum.datetime import DateTime
 from semantic_version import Version
 
-from cardinal_pythonlib.datetimefunc import pendulum_to_datetime
+
+# =============================================================================
+# Constants
+# =============================================================================
+
+# ISO 8601, e.g. 2013-07-24T20:04:07+0100)
+ISO8601_STRFTIME_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
+
+
+# =============================================================================
+# Conversion functions
+# =============================================================================
 
 
 def excel_to_bytes(wb: Workbook) -> bytes:
@@ -63,9 +78,28 @@ def convert_for_openpyxl(x: Any) -> Any:
 
     Returns:
         the same thing, or a more suitable value!
+
+    2025-03-06 update: We were doing this:
+        if isinstance(x, DateTime):
+            return pendulum_to_datetime(x)
+    However, conversion of pendulum.datetime.Datetime to datetime.datetime is
+    insufficient, because you can still end up with this error from
+    openpyxl/utils/datetime.py, line 97, in to_excel:
+            days = (dt - epoch).days
+        TypeError: can't subtract offset-naive and offset-aware datetimes
+    The "epoch" variable does NOT have a timezone attribute. So we need to
+    ensure that what we produce here doesn't, either. In principle, there are
+    three alternatives: (a) convert to a standard timezone (UTC), making things
+    slightly and silently unhappier for those working outside UTC; (b) strip
+    timezone information, causing errors if datetime values are subtracted; or
+    (c) convert to a standard textual representation, including timezone
+    information, preserving all data but letting the user sort out the meaning.
+    Since ``convert_for_pyexcel_ods3`` was already converting
+    pendulum.datetime.DateTime and datetime.datetime values to a standard
+    string, via strftime, let's do that too.
     """
-    if isinstance(x, DateTime):
-        return pendulum_to_datetime(x)
+    if isinstance(x, (DateTime, datetime.datetime)):
+        return x.strftime(ISO8601_STRFTIME_FORMAT)
     elif isinstance(x, (Version, uuid.UUID)):
         return str(x)
     else:
@@ -90,10 +124,8 @@ def convert_for_pyexcel_ods3(x: Any) -> Any:
     Returns:
         the same thing, or a more suitable value!
     """
-
     if isinstance(x, (DateTime, datetime.datetime)):
-        # ISO 8601, e.g. 2013-07-24T20:04:07+0100)
-        return x.strftime("%Y-%m-%dT%H:%M:%S%z")
+        return x.strftime(ISO8601_STRFTIME_FORMAT)
     elif x is None:
         return ""
     elif isinstance(x, (Version, uuid.UUID)):
