@@ -61,20 +61,24 @@ from sqlalchemy.schema import (
     Index,
     Table,
 )
-from sqlalchemy.sql import sqltypes, text
 from sqlalchemy.sql.ddl import DDLElement
+from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import (
     BigInteger,
     Boolean,
     Date,
     DateTime,
-    Double,
+    Enum,
     Float,
     Integer,
+    LargeBinary,
     Numeric,
     SmallInteger,
+    String,
     Text,
     TypeEngine,
+    Unicode,
+    UnicodeText,
 )
 from sqlalchemy.sql.visitors import Visitable
 
@@ -90,10 +94,28 @@ if TYPE_CHECKING:
 
 log = get_brace_style_log_with_null_handler(__name__)
 
+try:
+    from sqlalchemy.sql.sqltypes import Double
+except ImportError:
+    # This code present to allow testing with older SQLAlchemy 1.4.
+    log.warning(
+        "Can't import sqlalchemy.sql.sqltypes.Double "
+        "(are you using SQLAlchemy prior to 2.0?)"
+    )
+    Double = None
+
 
 # =============================================================================
 # Constants
 # =============================================================================
+
+# To avoid importing _Binary directly:
+if len(LargeBinary.__bases__) != 1:
+    raise NotImplementedError(
+        "Unexpectedly, SQLAlchemy's LargeBinary class has more than one base "
+        "class"
+    )
+BinaryBaseClass = LargeBinary.__bases__[0]
 
 VisitableType = Type[Visitable]  # for SQLAlchemy 2.0
 
@@ -110,7 +132,7 @@ DATABRICKS_SQLCOLTYPE_TO_SQLALCHEMY_GENERIC = {
     "BOOLEAN": Boolean,
     "DATE": Date,
     "TIMESTAMP_NTZ": DateTime,
-    "DOUBLE": Double,
+    "DOUBLE": Double if Double is not None else Float,
     "FLOAT": Float,
     "INT": Integer,
     "DECIMAL": Numeric,
@@ -1100,29 +1122,29 @@ def convert_sqla_type_for_dialect(
     # -------------------------------------------------------------------------
     # Text
     # -------------------------------------------------------------------------
-    if isinstance(coltype, sqltypes.Enum):
-        return sqltypes.String(length=coltype.length)
-    if isinstance(coltype, sqltypes.UnicodeText):
+    if isinstance(coltype, Enum):
+        return String(length=coltype.length)
+    if isinstance(coltype, UnicodeText):
         # Unbounded Unicode text.
         # Includes derived classes such as mssql.base.NTEXT.
-        return sqltypes.UnicodeText()
-    if isinstance(coltype, sqltypes.Text):
+        return UnicodeText()
+    if isinstance(coltype, Text):
         # Unbounded text, more generally. (UnicodeText inherits from Text.)
         # Includes sqltypes.TEXT.
-        return sqltypes.Text()
+        return Text()
     # Everything inheriting from String has a length property, but can be None.
     # There are types that can be unlimited in SQL Server, e.g. VARCHAR(MAX)
     # and NVARCHAR(MAX), that MySQL needs a length for. (Failure to convert
     # gives e.g.: 'NVARCHAR requires a length on dialect mysql'.)
-    if isinstance(coltype, sqltypes.Unicode):
+    if isinstance(coltype, Unicode):
         # Includes NVARCHAR(MAX) in SQL -> NVARCHAR() in SQLAlchemy.
         if (coltype.length is None and to_mysql) or expand_for_scrubbing:
-            return sqltypes.UnicodeText()
+            return UnicodeText()
     # The most general case; will pick up any other string types.
-    if isinstance(coltype, sqltypes.String):
+    if isinstance(coltype, String):
         # Includes VARCHAR(MAX) in SQL -> VARCHAR() in SQLAlchemy
         if (coltype.length is None and to_mysql) or expand_for_scrubbing:
-            return sqltypes.Text()
+            return Text()
         if strip_collation:
             return remove_collation(coltype)
         return coltype
@@ -1168,10 +1190,9 @@ def is_sqlatype_binary(coltype: Union[TypeEngine, VisitableType]) -> bool:
     Is the SQLAlchemy column type a binary type?
     """
     # Several binary types inherit internally from _Binary, making that the
-    # easiest to check.
+    # easiest to check. We obtain BinaryBaseClass (= _Binary) as above.
     coltype = coltype_as_typeengine(coltype)
-    # noinspection PyProtectedMember
-    return isinstance(coltype, sqltypes._Binary)
+    return isinstance(coltype, BinaryBaseClass)
 
 
 def is_sqlatype_date(coltype: Union[TypeEngine, VisitableType]) -> bool:
@@ -1179,9 +1200,7 @@ def is_sqlatype_date(coltype: Union[TypeEngine, VisitableType]) -> bool:
     Is the SQLAlchemy column type a date type?
     """
     coltype = coltype_as_typeengine(coltype)
-    return isinstance(coltype, sqltypes.DateTime) or isinstance(
-        coltype, sqltypes.Date
-    )
+    return isinstance(coltype, DateTime) or isinstance(coltype, Date)
 
 
 def is_sqlatype_integer(coltype: Union[TypeEngine, VisitableType]) -> bool:
@@ -1189,7 +1208,7 @@ def is_sqlatype_integer(coltype: Union[TypeEngine, VisitableType]) -> bool:
     Is the SQLAlchemy column type an integer type?
     """
     coltype = coltype_as_typeengine(coltype)
-    return isinstance(coltype, sqltypes.Integer)
+    return isinstance(coltype, Integer)
 
 
 def is_sqlatype_numeric(coltype: Union[TypeEngine, VisitableType]) -> bool:
@@ -1200,7 +1219,7 @@ def is_sqlatype_numeric(coltype: Union[TypeEngine, VisitableType]) -> bool:
     Note that integers don't count as Numeric!
     """
     coltype = coltype_as_typeengine(coltype)
-    return isinstance(coltype, sqltypes.Numeric)  # includes Float, Decimal
+    return isinstance(coltype, Numeric)  # includes Float, Decimal
 
 
 def is_sqlatype_string(coltype: Union[TypeEngine, VisitableType]) -> bool:
@@ -1208,7 +1227,7 @@ def is_sqlatype_string(coltype: Union[TypeEngine, VisitableType]) -> bool:
     Is the SQLAlchemy column type a string type?
     """
     coltype = coltype_as_typeengine(coltype)
-    return isinstance(coltype, sqltypes.String)
+    return isinstance(coltype, String)
 
 
 def is_sqlatype_text_of_length_at_least(
@@ -1220,7 +1239,7 @@ def is_sqlatype_text_of_length_at_least(
     length?
     """
     coltype = coltype_as_typeengine(coltype)
-    if not isinstance(coltype, sqltypes.String):
+    if not isinstance(coltype, String):
         return False  # not a string/text type at all
     if coltype.length is None:
         return True  # string of unlimited length
@@ -1260,9 +1279,9 @@ def does_sqlatype_require_index_len(
     https://dev.mysql.com/doc/refman/5.7/en/create-index.html.)
     """
     coltype = coltype_as_typeengine(coltype)
-    if isinstance(coltype, sqltypes.Text):
+    if isinstance(coltype, Text):
         return True
-    if isinstance(coltype, sqltypes.LargeBinary):
+    if isinstance(coltype, LargeBinary):
         return True
     return False
 

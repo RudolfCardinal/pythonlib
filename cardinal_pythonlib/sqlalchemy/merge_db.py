@@ -61,13 +61,12 @@ So the best type hints we have are:
 
 """
 
+from functools import total_ordering
 import logging
-from typing import Any, Callable, Dict, List, Tuple, Type
+from typing import Any, Callable, Dict, List, Set, Tuple, Type
 
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import lazyload, load_only
-
-# noinspection PyProtectedMember
 from sqlalchemy.orm.session import make_transient, Session, sessionmaker
 from sqlalchemy.schema import sort_tables
 from sqlalchemy.sql.schema import MetaData, Table
@@ -100,6 +99,7 @@ log = logging.getLogger(__name__)
 # =============================================================================
 
 
+@total_ordering
 class TableDependency(object):
     """
     Stores a table dependency for use in functions such as
@@ -153,6 +153,21 @@ class TableDependency(object):
             f"depends on {self.parent_tablename!r})"
         )
 
+    def __lt__(self, other: "TableDependency") -> bool:
+        """
+        Define a sort order.
+        """
+        return (self.child_tablename, self.parent_tablename) < (
+            other.child_tablename,
+            other.parent_tablename,
+        )
+
+    def __eq__(self, other: "TableDependency") -> bool:
+        return (
+            self.child_tablename == other.child_tablename
+            and self.parent_tablename == other.parent_tablename
+        )
+
     def set_metadata(self, metadata: MetaData) -> None:
         """
         Sets the metadata for the parent and child tables.
@@ -204,10 +219,55 @@ class TableDependency(object):
         return self.parent_table, self.child_table
 
 
+def _get_dependencies_for_table(
+    table: Table, even_use_alter: bool = False
+) -> Set[Tuple[Table, Table]]:
+    """
+    Returns dependencies for a single table.
+
+    Args:
+        table:
+            A SQLAlchemy Table object.
+        even_use_alter:
+            Even include relationships with ``use_alter`` set. See
+            https://docs.sqlalchemy.org/en/latest/core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint.params.use_alter
+
+    Returns:
+        A set of tuples of Tables: (parent_that_this_table_dependent_on,
+        this_table_child).
+
+    See :func:`sqlalchemy.sql.ddl.sort_tables_and_constraints` for method.
+    """
+    dependencies: Set[Tuple[Table, Table]] = set()
+    # Add via (a) foreign_key_constraints, and (b) _extra_dependencies. This is
+    # an SQLAlchemy internal; see its sort_tables_and_constraints function as
+    # above.
+    # log.debug(
+    #     f"_get_dependencies_for_table: {table.name=}; "
+    #     f"{len(table.foreign_key_constraints)=}"
+    # )
+    for fkc in table.foreign_key_constraints:
+        # log.debug(f"- {fkc.use_alter=}; {fkc.referred_table.name=}")
+        if fkc.use_alter is True and not even_use_alter:
+            continue
+        dependent_on = fkc.referred_table
+        if dependent_on is not table:
+            dependencies.add((dependent_on, table))
+    if hasattr(table, "_extra_dependencies"):
+        # noinspection PyProtectedMember
+        dependencies.update(
+            (parent, table) for parent in table._extra_dependencies
+        )
+    return dependencies
+
+
 def get_all_dependencies(
     metadata: MetaData,
     extra_dependencies: List[TableDependency] = None,
-    sort: bool = True,
+    skip_dependencies: List[TableDependency] = None,
+    sort: bool = False,
+    even_use_alter: bool = False,
+    debug: bool = False,
 ) -> List[TableDependency]:
     """
     Describes how the tables found in the metadata depend on each other.
@@ -215,41 +275,55 @@ def get_all_dependencies(
     on A.)
 
     Args:
-        metadata: the metadata to inspect
-        extra_dependencies: additional table dependencies to specify manually
-        sort: sort into alphabetical order of (parent, child) table names?
+        metadata:
+            The metadata to inspect.
+        extra_dependencies:
+            Additional table dependencies to specify manually.
+        skip_dependencies:
+            Additional table dependencies to IGNORE.
+        sort:
+            Sort into alphabetical order of (parent, child) table names?
+        even_use_alter:
+            Even include relationships with ``use_alter`` set. See SQLAlchemy
+            documentation.
+        debug:
+            Show debugging information.
 
     Returns:
         a list of :class:`TableDependency` objects
-
-    See :func:`sort_tables_and_constraints` for method.
     """
-    extra_dependencies = (
-        extra_dependencies or []
-    )  # type: List[TableDependency]
+    # First deal with user-specified dependencies.
+    extra_dependencies: List[TableDependency] = extra_dependencies or []
     for td in extra_dependencies:
         td.set_metadata_if_none(metadata)
-    dependencies = set([td.sqla_tuple() for td in extra_dependencies])
+    dependencies: Set[Tuple[Table, Table]] = set(
+        [td.sqla_tuple() for td in extra_dependencies]
+    )
+    if debug:
+        readable = [str(td) for td in extra_dependencies]
+        log.debug(f"get_all_dependencies: user specified: {readable!r}")
 
-    tables = list(metadata.tables.values())  # type: List[Table]
-
+    # Add dependencies from tables.
+    tables: List[Table] = list(metadata.tables.values())
     for table in tables:
-        for fkc in table.foreign_key_constraints:
-            if fkc.use_alter is True:
-                # http://docs.sqlalchemy.org/en/latest/core/constraints.html#sqlalchemy.schema.ForeignKeyConstraint.params.use_alter  # noqa: E501
-                continue
-
-            dependent_on = fkc.referred_table
-            if dependent_on is not table:
-                dependencies.add((dependent_on, table))
-
-        if hasattr(table, "_extra_dependencies"):
-            # noinspection PyProtectedMember
-            dependencies.update(
-                (parent, table) for parent in table._extra_dependencies
+        tdep = _get_dependencies_for_table(
+            table, even_use_alter=even_use_alter
+        )
+        if debug:
+            parents = [tt[0].name for tt in tdep]
+            log.debug(
+                f"get_all_dependencies: for table {table.name!r}, "
+                f"adding dependencies: {parents}"
             )
+        dependencies.update(tdep)
 
-    dependencies = [
+    # Remove explicitly specified dependencies to skip.
+    skip_dependencies: List[TableDependency] = skip_dependencies or []
+    for sd in skip_dependencies:
+        dependencies.remove(sd.sqla_tuple())
+
+    # Convert from set to list
+    dependencies: List[TableDependency] = [
         TableDependency(parent_table=parent, child_table=child)
         for parent, child in dependencies
     ]
@@ -282,11 +356,11 @@ class TableDependencyClassification(object):
             children: its children (things that depend on it)
             parents: its parents (things that it depends on)
         """
-        self.table = table
-        self.children = children or []  # type: List[Table]
-        self.parents = parents or []  # type: List[Table]
-        self.circular = False
-        self.circular_chain = []  # type: List[Table]
+        self.table: Table = table
+        self.children: List[Table] = children or []
+        self.parents: List[Table] = parents or []
+        self.circular: bool = False
+        self.circular_chain: List[Table] = []
 
     @property
     def is_child(self) -> bool:
@@ -340,7 +414,7 @@ class TableDependencyClassification(object):
                 participating in the circular chain
         """
         self.circular = circular
-        self.circular_chain = chain or []  # type: List[Table]
+        self.circular_chain = chain or []
 
     @property
     def circular_description(self) -> str:
@@ -367,7 +441,11 @@ class TableDependencyClassification(object):
         return desc
 
     def __str__(self) -> str:
-        return f"{self.tablename}:{self.description}"
+        ptxt = ", ".join(sorted(p.name for p in self.parents))
+        circ = (
+            f"; CIRCULAR({self.circular_description})" if self.circular else ""
+        )
+        return f"{self.tablename}(depends on [{ptxt}]{circ})"
 
     def __repr__(self) -> str:
         return (
@@ -379,6 +457,9 @@ class TableDependencyClassification(object):
 def classify_tables_by_dependency_type(
     metadata: MetaData,
     extra_dependencies: List[TableDependency] = None,
+    skip_dependencies: List[TableDependency] = None,
+    all_dependencies: List[TableDependency] = None,
+    even_use_alter: bool = False,
     sort: bool = True,
 ) -> List[TableDependencyClassification]:
     """
@@ -386,18 +467,36 @@ def classify_tables_by_dependency_type(
     and returns a list of objects describing their dependencies.
 
     Args:
-        metadata: the :class:`MetaData` to inspect
-        extra_dependencies: additional dependencies
-        sort: sort the results by table name?
+        metadata:
+            the :class:`MetaData` to inspect
+        extra_dependencies:
+            Additional dependencies. (Not used if you specify
+            all_dependencies.)
+        skip_dependencies:
+            Additional table dependencies to IGNORE. (Not used if you specify
+            all_dependencies.)
+        all_dependencies:
+            If you have precalculated all dependencies, you can pass that in
+            here, to save redoing the work.
+        even_use_alter:
+            Even include relationships with ``use_alter`` set. See SQLAlchemy
+            documentation. (Not used if you specify all_dependencies.)
+        sort:
+            sort the results by table name?
 
     Returns:
         list of :class:`TableDependencyClassification` objects, one for each
         table
 
     """
-    tables = list(metadata.tables.values())  # type: List[Table]
-    all_deps = get_all_dependencies(metadata, extra_dependencies)
-    tdcmap = {}  # type: Dict[Table, TableDependencyClassification]
+    tables: List[Table] = list(metadata.tables.values())
+    all_deps = all_dependencies or get_all_dependencies(
+        metadata=metadata,
+        extra_dependencies=extra_dependencies,
+        skip_dependencies=skip_dependencies,
+        even_use_alter=even_use_alter,
+    )
+    tdcmap: Dict[Table, TableDependencyClassification] = {}
     for table in tables:
         parents = [
             td.parent_table for td in all_deps if td.child_table == table
@@ -411,25 +510,37 @@ def classify_tables_by_dependency_type(
 
     # Check for circularity
     def parents_contain(
-        start: Table, probe: Table
+        start: Table, probe: Table, seen: Set[Table] = None
     ) -> Tuple[bool, List[Table]]:
+        seen = seen or set()
         tdc_ = tdcmap[start]
         if probe in tdc_.parents:
             return True, [start, probe]
         for parent in tdc_.parents:
-            contains_, chain_ = parents_contain(start=parent, probe=probe)
+            if parent in seen:
+                continue  # avoid infinite recursion
+            seen.add(parent)
+            contains_, chain_ = parents_contain(
+                start=parent, probe=probe, seen=seen
+            )
             if contains_:
                 return True, [start] + chain_
         return False, []
 
     def children_contain(
-        start: Table, probe: Table
+        start: Table, probe: Table, seen: Set[Table] = None
     ) -> Tuple[bool, List[Table]]:
+        seen = seen or set()
         tdc_ = tdcmap[start]
         if probe in tdc_.children:
             return True, [start, probe]
         for child in tdc_.children:
-            contains_, chain_ = children_contain(start=child, probe=probe)
+            if child in seen:
+                continue  # avoid infinite recursion
+            seen.add(child)
+            contains_, chain_ = children_contain(
+                start=child, probe=probe, seen=seen
+            )
             if contains_:
                 return True, [start] + chain_
         return False, []
@@ -548,8 +659,51 @@ class TranslationContext(object):
         self.src_engine = src_engine
         self.dst_engine = dst_engine
         self.src_table_names = src_table_names
-        self.missing_src_columns = missing_src_columns or []  # type: List[str]
-        self.info = info or {}  # type: Dict[str, Any]
+        self.missing_src_columns: List[str] = missing_src_columns or []
+        self.info: Dict[str, Any] = info or {}
+
+
+# =============================================================================
+# suggest_table_order (for merge_db)
+# =============================================================================
+
+
+def suggest_table_order(
+    classified_tables: List[TableDependencyClassification],
+) -> List[Table]:
+    """
+    Suggest an order to process tables in, according to precalculated
+    dependencies.
+
+    Args:
+        classified_tables:
+            The tables, with dependency information.
+
+    Returns:
+        A list of the tables, sorted into a sensible order.
+    """
+    # We can't handle a circular situation:
+    assert not any(
+        tdc.circular for tdc in classified_tables
+    ), "Can't handle circular references between tables"
+    # Keeping track. With a quasi-arbitrary starting order:
+    to_do: Set[TableDependencyClassification] = set(classified_tables)
+    tables_done: Set[Table] = set()
+    final_order: List[TableDependencyClassification] = []
+
+    # Now, iteratively:
+    while to_do:
+        suitable = [
+            tdc for tdc in to_do if all(p in tables_done for p in tdc.parents)
+        ]
+        if not suitable:
+            raise ValueError("suggest_table_order: Unable to solve")
+        suitable.sort(key=lambda ct: ct.table.name)
+        final_order.extend(suitable)
+        to_do -= set(suitable)
+        tables_done.update(tdc.table for tdc in suitable)
+
+    return [tdc.table for tdc in final_order]
 
 
 # =============================================================================
@@ -568,6 +722,7 @@ def merge_db(
     only_tables: List[TableIdentity] = None,
     tables_to_keep_pks_for: List[TableIdentity] = None,
     extra_table_dependencies: List[TableDependency] = None,
+    skip_table_dependencies: List[TableDependency] = None,
     dummy_run: bool = False,
     info_only: bool = False,
     report_every: int = 1000,
@@ -577,6 +732,12 @@ def merge_db(
     commit_at_end: bool = True,
     prevent_eager_load: bool = True,
     trcon_info: Dict[str, Any] = None,
+    even_use_alter_relationships: bool = False,
+    debug_table_structure: bool = False,
+    debug_table_dependencies: bool = False,
+    debug_copy_sqla_object: bool = False,
+    debug_rewrite_relationships: bool = False,
+    use_sqlalchemy_order: bool = True,
 ) -> None:
     """
     Copies an entire database as far as it is described by ``metadata`` and
@@ -652,7 +813,11 @@ def merge_db(
             :class:`TableIdentity`)
 
         extra_table_dependencies:
-            optional list of :class:`TableDependency` objects (q.v.)
+            optional list of :class:`TableDependency` objects (q.v.) to include
+
+        skip_table_dependencies:
+            optional list of :class:`TableDependency` objects (q.v.) to IGNORE;
+            unusual
 
         dummy_run:
             don't alter the destination database
@@ -682,6 +847,26 @@ def merge_db(
         trcon_info:
             additional dictionary passed to ``TranslationContext.info``
             (see :class:`.TranslationContext`)
+
+        even_use_alter_relationships:
+            Even include relationships with ``use_alter`` set. See SQLAlchemy
+            documentation.
+
+        debug_table_structure:
+            Debug table structure? Can be long-winded.
+
+        debug_table_dependencies:
+            Debug calculating table dependencies?
+
+        debug_copy_sqla_object:
+            Debug copying objects?
+
+        debug_rewrite_relationships:
+            Debug rewriting ORM relationships?
+
+        use_sqlalchemy_order:
+            If true, use the table order suggested by SQLAlchemy. If false,
+            calculate our own.
     """
 
     log.info("merge_db(): starting")
@@ -694,20 +879,21 @@ def merge_db(
         return
 
     # Finalize parameters
-    skip_tables = skip_tables or []  # type: List[TableIdentity]
-    only_tables = only_tables or []  # type: List[TableIdentity]
-    tables_to_keep_pks_for = (
-        tables_to_keep_pks_for or []
-    )  # type: List[TableIdentity]
-    extra_table_dependencies = (
+    skip_tables: List[TableIdentity] = skip_tables or []
+    only_tables: List[TableIdentity] = only_tables or []
+    tables_to_keep_pks_for: List[TableIdentity] = tables_to_keep_pks_for or []
+    extra_table_dependencies: List[TableDependency] = (
         extra_table_dependencies or []
-    )  # type: List[TableDependency]
-    trcon_info = trcon_info or {}  # type: Dict[str, Any]
+    )
+    skip_table_dependencies: List[TableDependency] = (
+        skip_table_dependencies or []
+    )
+    trcon_info: Dict[str, Any] = trcon_info or {}
 
     # We need both Core and ORM for the source.
     # noinspection PyUnresolvedReferences
-    metadata = base_class.metadata  # type: MetaData
-    src_session = sessionmaker(bind=src_engine, future=True)()  # type: Session
+    metadata: MetaData = base_class.metadata
+    src_session: Session = sessionmaker(bind=src_engine, future=True)()
     dst_engine = get_engine_from_session(dst_session)
     tablename_to_ormclass = get_orm_classes_by_table_name_from_base(base_class)
 
@@ -717,13 +903,15 @@ def merge_db(
             ti.set_metadata_if_none(metadata)
     for td in extra_table_dependencies:
         td.set_metadata_if_none(metadata)
+    for td in skip_table_dependencies:
+        td.set_metadata_if_none(metadata)
 
     # Get all lists of tables as their names
     skip_table_names = [ti.tablename for ti in skip_tables]
     only_table_names = [ti.tablename for ti in only_tables]
-    tables_to_keep_pks_for = [
+    tables_to_keep_pks_for: List[str] = [
         ti.tablename for ti in tables_to_keep_pks_for
-    ]  # type: List[str]
+    ]
     # ... now all are of type List[str]
 
     # Safety check: this is an imperfect check for source == destination, but
@@ -754,37 +942,47 @@ def merge_db(
     table_num = 0
     overall_record_num = 0
 
-    tables = list(metadata.tables.values())  # type: List[Table]
-    # Very helpfully, MetaData.sorted_tables produces tables in order of
-    # relationship dependency ("each table is preceded by all tables which
-    # it references");
-    # http://docs.sqlalchemy.org/en/latest/core/metadata.html
-    # HOWEVER, it only works if you specify ForeignKey relationships
-    # explicitly.
-    # We can also add in user-specified dependencies, and therefore can do the
-    # sorting in one step with sqlalchemy.schema.sort_tables:
-    ordered_tables = sort_tables(
-        tables,
-        extra_dependencies=[
-            td.sqla_tuple() for td in extra_table_dependencies
-        ],
+    all_dependencies = get_all_dependencies(
+        metadata=metadata,
+        extra_dependencies=extra_table_dependencies,
+        skip_dependencies=skip_table_dependencies,
+        debug=debug_table_dependencies,
+        even_use_alter=even_use_alter_relationships,
     )
-    # Note that the ordering is NOT NECESSARILY CONSISTENT, though (in that
-    # the order of stuff it doesn't care about varies across runs).
-    all_dependencies = get_all_dependencies(metadata, extra_table_dependencies)
     dep_classifications = classify_tables_by_dependency_type(
-        metadata, extra_table_dependencies
+        metadata,
+        all_dependencies=all_dependencies,
+        even_use_alter=even_use_alter_relationships,
     )
     circular = [tdc for tdc in dep_classifications if tdc.circular]
     assert not circular, f"Circular dependencies! {circular!r}"
+    all_dependencies.sort()  # cosmetic
     log.debug(
         "All table dependencies: "
-        + "; ".join(str(td) for td in all_dependencies)
-    )
-    log.debug(
-        "Table dependency classifications: "
         + "; ".join(str(c) for c in dep_classifications)
     )
+    tables: List[Table] = list(metadata.tables.values())
+    if use_sqlalchemy_order:
+        # Very helpfully, MetaData.sorted_tables produces tables in order of
+        # relationship dependency ("each table is preceded by all tables which
+        # it references");
+        # http://docs.sqlalchemy.org/en/latest/core/metadata.html
+        # HOWEVER, it only works if you specify ForeignKey relationships
+        # explicitly.
+        # We can also add in user-specified dependencies, and therefore can do
+        # the sorting in one step with sqlalchemy.schema.sort_tables:
+        log.debug("Using SQLAlchemy's suggested table order")
+        ordered_tables = sort_tables(
+            tables,
+            extra_dependencies=[
+                td.sqla_tuple() for td in extra_table_dependencies
+            ],
+        )
+        # Note that the ordering is NOT NECESSARILY CONSISTENT, though (in that
+        # the order of stuff it doesn't care about varies across runs).
+    else:
+        log.debug("Calculating table order without SQLAlchemy")
+        ordered_tables = suggest_table_order(dep_classifications)
     log.info(
         "Processing tables in the order: "
         + repr([table.name for table in ordered_tables])
@@ -829,15 +1027,13 @@ def merge_db(
         tablename = table.name
 
         if tablename in skip_table_names:
-            log.info(f"... skipping table {tablename!r} (as per skip_tables)")
+            log.info(f"Skipping table {tablename!r} (as per skip_tables)")
             continue
         if only_table_names and tablename not in only_table_names:
-            log.info(f"... ignoring table {tablename!r} (as per only_tables)")
+            log.info(f"Ignoring table {tablename!r} (as per only_tables)")
             continue
         if allow_missing_src_tables and tablename not in src_tables:
-            log.info(
-                f"... ignoring table {tablename!r} (not in source database)"
-            )
+            log.info(f"Ignoring table {tablename!r} (not in source database)")
             continue
         table_num += 1
         table_record_num = 0
@@ -859,18 +1055,21 @@ def merge_db(
         tdc = [tdc for tdc in dep_classifications if tdc.table == table][0]
 
         log.info(f"Processing table {tablename!r} via ORM class {orm_class!r}")
-        log.debug(f"PK attributes: {pk_attrs!r}")
-        log.debug(f"Table: {table!r}")
-        log.debug(
-            f"Dependencies: parents = {tdc.parent_names!r}; "
-            f"children = {tdc.child_names!r}"
-        )
+        if debug_table_structure:
+            log.debug(f"PK attributes: {pk_attrs!r}")
+            log.debug(f"Table: {table!r}")
+        if debug_table_dependencies:
+            log.debug(
+                f"Dependencies: parents = {tdc.parent_names!r}; "
+                f"children = {tdc.child_names!r}"
+            )
 
         if info_only:
             log.debug("info_only; skipping table contents")
             continue
 
         def wipe_primary_key(inst: object) -> None:
+            # Defined here because it uses pk_attrs
             for attrname in pk_attrs:
                 setattr(inst, attrname, None)
 
@@ -920,7 +1119,9 @@ def merge_db(
         # maintain a copy of the old object, make a copy using
         # copy_sqla_object, and re-assign relationships accordingly.
 
-        for instance in query.all():
+        instances = list(query.all())
+        log.info(f"... processing {len(instances)} records")
+        for instance in instances:
             # log.debug(f"Source instance: {instance!r}")
             table_record_num += 1
             overall_record_num += 1
@@ -966,14 +1167,14 @@ def merge_db(
                     omit_pk=wipe_pk,
                     omit_fk=True,
                     omit_attrs=missing_attrs,
-                    debug=False,
+                    debug=debug_copy_sqla_object,
                 )
 
                 rewrite_relationships(
                     oldobj,
                     newobj,
                     objmap,
-                    debug=False,
+                    debug=debug_rewrite_relationships,
                     skip_table_names=skip_table_names,
                 )
 
@@ -986,7 +1187,12 @@ def merge_db(
                     # new PK will be created when session is flushed
 
                 if tdc.is_parent:
-                    objmap[oldobj] = newobj  # for its children's benefit
+                    try:
+                        objmap[oldobj] = newobj  # for its children's benefit
+                    except KeyError:
+                        raise KeyError(
+                            f"Missing attribute {oldobj=} in {objmap=}"
+                        )
 
             if flush_per_record:
                 flush()

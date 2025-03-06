@@ -24,6 +24,31 @@
 
 **Query helper functions using the SQLAlchemy Core.**
 
+Example of result types in SQLAlchemy 1.4+ and higher:
+
+.. code-block:: python
+
+    from typing import List
+    from sqlalchemy.engine.cursor import CursorResult
+    from sqlalchemy.engine.result import MappingResult, Result
+    from sqlalchemy.engine.row import Row, RowMapping
+
+    query = (
+        select(text("*"))
+        .select_from(table(some_tablename))
+    )
+
+    # As tuples:
+    result_1: CursorResult = session.execute(query)
+    # ... or, more generically, of type Result
+    like_unnamed_tuples: List[Row] = result_1.fetchall()
+
+    # Or:
+    result_2: Result = session.execute(query)
+    mapping_result: Mapping_Result = result_2.mappings()
+    like_dicts: List[RowMapping] = list(mapping_result)  # implicit fetchall()
+    # ... or could have done: like_dicts = result_2.mappings().fetchall()
+
 """
 
 from typing import Any, List, Optional, Tuple, Union
