@@ -33,6 +33,7 @@ Quick links:
 - :ref:`2022 <changelog_2022>`
 - :ref:`2023 <changelog_2023>`
 - :ref:`2024 <changelog_2024>`
+- :ref:`2025 <changelog_2025>`
 
 
 .. _changelog_2017:
@@ -853,7 +854,7 @@ Quick links:
   were executing unconditionally, regardless of SQLAlchemy dialect (they should
   have been conditional to SQL Server).
 
-**2.0.2**
+**2.0.2 (2025-03-06)**
 
 - Bugfix to
   :func:`cardinal_pythonlib.sqlalchemy.alembic_func.get_current_revision` where
@@ -871,3 +872,8 @@ Quick links:
   default table dependency order and calculate another.
 
 - Improve ability of Alembic support code to take a database URL.
+
+**2.0.3**
+
+- Reinstate BIT and similar datatypes in the list of valid datatypes. Broken
+  since v2.0.0.
