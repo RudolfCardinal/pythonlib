@@ -26,12 +26,15 @@
 
 """
 
+from configparser import ConfigParser
+import logging
 import os
 import re
 import subprocess
+from tempfile import NamedTemporaryFile
 from typing import Tuple
 
-from alembic.config import Config
+from alembic.config import Config as AlembicConfig
 from alembic.util.exc import CommandError
 from alembic.runtime.migration import MigrationContext
 from alembic.runtime.environment import EnvironmentContext
@@ -39,9 +42,9 @@ from alembic.script import ScriptDirectory
 from sqlalchemy.engine import create_engine
 
 from cardinal_pythonlib.fileops import preserve_cwd
-from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+from cardinal_pythonlib.sqlalchemy.session import get_safe_url_from_url
 
-log = get_brace_style_log_with_null_handler(__name__)
+log = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -80,7 +83,7 @@ def get_head_revision_from_alembic(
 
     Arguments:
         alembic_config_filename:
-            config filename
+            config filename (usually a full path to an alembic.ini file)
         alembic_base_dir:
             directory to start in, so relative paths in the config file work.
         version_table:
@@ -89,9 +92,9 @@ def get_head_revision_from_alembic(
     if alembic_base_dir is None:
         alembic_base_dir = os.path.dirname(alembic_config_filename)
     os.chdir(alembic_base_dir)  # so the directory in the config file works
-    config = Config(alembic_config_filename)
-    script = ScriptDirectory.from_config(config)
-    with EnvironmentContext(config, script, version_table=version_table):
+    alembic_cfg = AlembicConfig(alembic_config_filename)
+    script = ScriptDirectory.from_config(alembic_cfg)
+    with EnvironmentContext(alembic_cfg, script, version_table=version_table):
         return script.get_current_head()
 
 
@@ -123,11 +126,14 @@ def get_current_and_head_revision(
     :func:`get_current_revision` and :func:`get_head_revision_from_alembic`.
 
     Arguments:
-        database_url: SQLAlchemy URL for the database
-        alembic_config_filename: config filename
-        alembic_base_dir: directory to start in, so relative paths in the
-            config file work.
-        version_table: table name for Alembic versions
+        database_url:
+            SQLAlchemy URL for the database
+        alembic_config_filename:
+            config filename (usually a full path to an alembic.ini file)
+        alembic_base_dir:
+            directory to start in, so relative paths in the config file work.
+        version_table:
+            table name for Alembic versions
     """
     # Where we are
     head_revision = get_head_revision_from_alembic(
@@ -135,13 +141,13 @@ def get_current_and_head_revision(
         alembic_base_dir=alembic_base_dir,
         version_table=version_table,
     )
-    log.debug("Intended database version: {}", head_revision)
+    log.debug(f"Intended database version: {head_revision}")
 
     # Where we want to be
     current_revision = get_current_revision(
         database_url=database_url, version_table=version_table
     )
-    log.debug("Current database version: {}", current_revision)
+    log.debug(f"Current database version: {current_revision}")
 
     # Are we where we want to be?
     return current_revision, head_revision
@@ -165,49 +171,43 @@ def upgrade_database(
 
     Arguments:
         alembic_config_filename:
-            config filename
-
+            config filename (usually a full path to an alembic.ini file)
         db_url:
             Optional database URL to use, by way of override.
-
         alembic_base_dir:
             directory to start in, so relative paths in the config file work
-
         starting_revision:
             revision to start at (typically ``None`` to ask the database)
-
         destination_revision:
             revision to aim for (typically ``"head"`` to migrate to the latest
             structure)
-
-        version_table: table name for Alembic versions
-
+        version_table:
+            table name for Alembic versions
         as_sql:
             run in "offline" mode: print the migration SQL, rather than
             modifying the database. See
             https://alembic.zzzcomputing.com/en/latest/offline.html
-
     """
 
     if alembic_base_dir is None:
         alembic_base_dir = os.path.dirname(alembic_config_filename)
     os.chdir(alembic_base_dir)  # so the directory in the config file works
-    config = Config(alembic_config_filename)
+    alembic_cfg = AlembicConfig(alembic_config_filename)
     if db_url:
-        config.set_main_option("sqlalchemy.url", db_url)
-    script = ScriptDirectory.from_config(config)
+        alembic_cfg.set_main_option("sqlalchemy.url", db_url)
+    script = ScriptDirectory.from_config(alembic_cfg)
 
     # noinspection PyUnusedLocal,PyProtectedMember
     def upgrade(rev, context):
         return script._upgrade_revs(destination_revision, rev)
 
     log.info(
-        "Upgrading database to revision {!r} using Alembic",
-        destination_revision,
+        f"Upgrading database to revision {destination_revision!r} "
+        f"using Alembic"
     )
 
     with EnvironmentContext(
-        config,
+        alembic_cfg,
         script,
         fn=upgrade,
         as_sql=as_sql,
@@ -240,48 +240,42 @@ def downgrade_database(
 
     Arguments:
         alembic_config_filename:
-            config filename
-
+            config filename (usually a full path to an alembic.ini file)
         db_url:
             Optional database URL to use, by way of override.
-
         alembic_base_dir:
             directory to start in, so relative paths in the config file work
-
         starting_revision:
             revision to start at (typically ``None`` to ask the database)
-
         destination_revision:
             revision to aim for
-
-        version_table: table name for Alembic versions
-
+        version_table:
+            table name for Alembic versions
         as_sql:
             run in "offline" mode: print the migration SQL, rather than
             modifying the database. See
             https://alembic.zzzcomputing.com/en/latest/offline.html
-
     """
 
     if alembic_base_dir is None:
         alembic_base_dir = os.path.dirname(alembic_config_filename)
     os.chdir(alembic_base_dir)  # so the directory in the config file works
-    config = Config(alembic_config_filename)
+    alembic_cfg = AlembicConfig(alembic_config_filename)
     if db_url:
-        config.set_main_option("sqlalchemy.url", db_url)
-    script = ScriptDirectory.from_config(config)
+        alembic_cfg.set_main_option("sqlalchemy.url", db_url)
+    script = ScriptDirectory.from_config(alembic_cfg)
 
     # noinspection PyUnusedLocal,PyProtectedMember
     def downgrade(rev, context):
         return script._downgrade_revs(destination_revision, rev)
 
     log.info(
-        "Downgrading database to revision {!r} using Alembic",
-        destination_revision,
+        f"Downgrading database to revision {destination_revision!r} "
+        f"using Alembic"
     )
 
     with EnvironmentContext(
-        config,
+        alembic_cfg,
         script,
         fn=downgrade,
         as_sql=as_sql,
@@ -301,6 +295,7 @@ def create_database_migration_numbered_style(
     alembic_versions_dir: str,
     message: str,
     n_sequence_chars: int = 4,
+    db_url: str = None,
 ) -> None:
     """
      Create a new Alembic migration script.
@@ -331,26 +326,34 @@ def create_database_migration_numbered_style(
 
     See https://alembic.zzzcomputing.com/en/latest/autogenerate.html.
 
-     Regarding filenames: the default ``n_sequence_chars`` of 4 is like Django
-     and gives files with names like
+    Regarding filenames: the default ``n_sequence_chars`` of 4 is like Django
+    and gives files with names like
 
-     .. code-block:: none
+    .. code-block:: none
 
-         0001_x.py, 0002_y.py, ...
+        0001_x.py, 0002_y.py, ...
 
-     NOTE THAT TO USE A NON-STANDARD ALEMBIC VERSION TABLE, YOU MUST SPECIFY
-     THAT IN YOUR ``env.py`` (see e.g. CamCOPS).
+    NOTE THAT TO USE A NON-STANDARD ALEMBIC VERSION TABLE, YOU MUST SPECIFY
+    THAT IN YOUR ``env.py`` (see e.g. CamCOPS).
 
-     Args:
-         alembic_ini_file: filename of Alembic ``alembic.ini`` file
-         alembic_versions_dir: directory in which you keep your Python scripts,
-             one per Alembic revision
-         message: message to be associated with this revision
-         n_sequence_chars: number of numerical sequence characters to use in the
-             filename/revision (see above).
+    Args:
+        alembic_ini_file:
+            filename (full path) of Alembic ``alembic.ini`` file
+        alembic_versions_dir:
+            directory in which you keep your Python scripts, one per Alembic
+            revision
+        message:
+            message to be associated with this revision
+        n_sequence_chars:
+            number of numerical sequence characters to use in the
+            filename/revision (see above).
+        db_url:
+            Optional database URL to use, by way of override. We achieve this
+            via a temporary config file; not ideal.
     """  # noqa: E501
-    file_regex = r"\d{" + str(n_sequence_chars) + r"}_\S*\.py$"
 
+    # Calculate current_seq_str, new_seq_str:
+    file_regex = r"\d{" + str(n_sequence_chars) + r"}_\S*\.py$"
     _, _, existing_version_filenames = next(
         os.walk(alembic_versions_dir), (None, None, [])
     )
@@ -358,8 +361,8 @@ def create_database_migration_numbered_style(
         x for x in existing_version_filenames if re.match(file_regex, x)
     ]
     log.debug(
-        "Existing Alembic version script filenames: {!r}",
-        existing_version_filenames,
+        f"Existing Alembic version script filenames: "
+        f"{existing_version_filenames!r}"
     )
     current_seq_strs = [
         x[:n_sequence_chars] for x in existing_version_filenames
@@ -374,37 +377,59 @@ def create_database_migration_numbered_style(
     new_seq_str = str(new_seq_no).zfill(n_sequence_chars)
 
     log.info(
-        """
+        f"""
 Generating new revision with Alembic...
-    Last revision was: {}
-    New revision will be: {}
+    Last revision was: {current_seq_str}
+    New revision will be: {new_seq_str}
     [If it fails with "Can't locate revision identified by...", you might need
     to DROP the Alembic version table (by default named 'alembic_version', but
-    you may have elected to change that in your env.py.]
-        """,
-        current_seq_str,
-        new_seq_str,
+    you may have elected to change that in your env.py).]
+"""
     )
 
     alembic_ini_dir = os.path.dirname(alembic_ini_file)
-    os.chdir(alembic_ini_dir)
-    cmdargs = [
-        "alembic",
-        "-c",
-        alembic_ini_file,
-        "revision",
-        "--autogenerate",
-        "-m",
-        message,
-        "--rev-id",
-        new_seq_str,
-    ]
-    log.info("From directory {!r}, calling: {!r}", alembic_ini_dir, cmdargs)
-    subprocess.call(cmdargs)
+
+    def _call_alembic(_alembic_ini_filename):
+        os.chdir(alembic_ini_dir)
+        cmdargs = [
+            "alembic",
+            "-c",
+            _alembic_ini_filename,
+            "revision",
+            "--autogenerate",
+            "-m",
+            message,
+            "--rev-id",
+            new_seq_str,
+        ]
+        log.info(f"From directory {alembic_ini_dir!r}, calling: {cmdargs!r}")
+        subprocess.call(cmdargs)
+
+    if db_url:
+        # Override the database URL. This is a bit ugly, because it's not
+        # obvious how to pass a URL directly to the "alembic revision" command.
+        # I don't think there's an API for that, and "alembic revision --help"
+        # doesn't show any URL options. So, a temporary config:
+        safe_url = get_safe_url_from_url(db_url)
+        alembic_cfg = AlembicConfig(alembic_ini_file)
+        alembic_cfg.set_main_option("sqlalchemy.url", db_url)
+        with NamedTemporaryFile(
+            mode="w+t", dir=alembic_ini_dir, suffix=".ini"
+        ) as tmpfile:
+            log.info(
+                f"Overriding database URL with {safe_url}, "
+                f"via temporary file {tmpfile.name}"
+            )
+            cfgparser: ConfigParser = alembic_cfg.file_config
+            cfgparser.write(tmpfile)
+            tmpfile.flush()
+            _call_alembic(tmpfile.name)
+    else:
+        _call_alembic(alembic_ini_file)
 
 
 def stamp_allowing_unusual_version_table(
-    config: Config,
+    config: AlembicConfig,
     revision: str,
     sql: bool = False,
     tag: str = None,
