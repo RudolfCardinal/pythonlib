@@ -400,7 +400,7 @@ Generating new revision with Alembic...
         new_seq_str,
     ]
     log.info("From directory {!r}, calling: {!r}", alembic_ini_dir, cmdargs)
-    subprocess.call(cmdargs)
+    subprocess.run(cmdargs, check=True)
 
 
 def stamp_allowing_unusual_version_table(
