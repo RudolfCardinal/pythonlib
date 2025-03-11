@@ -28,10 +28,10 @@
 
 import os
 import re
-import subprocess
 from typing import Tuple
 
-from alembic.config import Config
+from alembic.command import revision
+from alembic.config import CommandLine, Config
 from alembic.util.exc import CommandError
 from alembic.runtime.migration import MigrationContext
 from alembic.runtime.environment import EnvironmentContext
@@ -301,6 +301,7 @@ def create_database_migration_numbered_style(
     alembic_versions_dir: str,
     message: str,
     n_sequence_chars: int = 4,
+    db_url: str = None,
 ) -> None:
     """
      Create a new Alembic migration script.
@@ -388,19 +389,13 @@ Generating new revision with Alembic...
 
     alembic_ini_dir = os.path.dirname(alembic_ini_file)
     os.chdir(alembic_ini_dir)
-    cmdargs = [
-        "alembic",
-        "-c",
-        alembic_ini_file,
-        "revision",
-        "--autogenerate",
-        "-m",
-        message,
-        "--rev-id",
-        new_seq_str,
-    ]
-    log.info("From directory {!r}, calling: {!r}", alembic_ini_dir, cmdargs)
-    subprocess.run(cmdargs, check=True)
+    # https://github.com/sqlalchemy/alembic/discussions/1089
+    namespace = CommandLine().parser.parse_args(["revision", "--autogenerate"])
+    config = Config(alembic_ini_file, cmd_opts=namespace)
+    if db_url:
+        config.set_main_option("sqlalchemy.url", db_url)
+
+    revision(config, message=message, autogenerate=True, rev_id=new_seq_str)
 
 
 def stamp_allowing_unusual_version_table(
