@@ -873,7 +873,10 @@ Quick links:
 
 - Improve ability of Alembic support code to take a database URL.
 
-**2.0.3**
+**2.0.3 (2023-03-11)**
 
 - Reinstate BIT and similar datatypes in the list of valid datatypes. Broken
   since v2.0.0.
+
+- Allow ``db_url`` parameter to
+  ``cardinal_pythonlib.sqlalchemy.alembic_func.create_database_migration_numbered_style``.
