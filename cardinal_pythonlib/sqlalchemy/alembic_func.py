@@ -26,23 +26,20 @@
 
 """
 
-from configparser import ConfigParser
 import logging
 import os
 import re
-import subprocess
-from tempfile import NamedTemporaryFile
 from typing import Tuple
 
-from alembic.config import Config as AlembicConfig
-from alembic.util.exc import CommandError
+from alembic.command import revision as mk_revision
+from alembic.config import CommandLine, Config as AlembicConfig
 from alembic.runtime.migration import MigrationContext
 from alembic.runtime.environment import EnvironmentContext
 from alembic.script import ScriptDirectory
+from alembic.util.exc import CommandError
 from sqlalchemy.engine import create_engine
 
 from cardinal_pythonlib.fileops import preserve_cwd
-from cardinal_pythonlib.sqlalchemy.session import get_safe_url_from_url
 
 log = logging.getLogger(__name__)
 
@@ -377,55 +374,25 @@ def create_database_migration_numbered_style(
     new_seq_str = str(new_seq_no).zfill(n_sequence_chars)
 
     log.info(
-        f"""
-Generating new revision with Alembic...
-    Last revision was: {current_seq_str}
-    New revision will be: {new_seq_str}
-    [If it fails with "Can't locate revision identified by...", you might need
-    to DROP the Alembic version table (by default named 'alembic_version', but
-    you may have elected to change that in your env.py).]
-"""
+        f"Generating new revision with Alembic. "
+        f"Last revision was: {current_seq_str}. "
+        f"New revision will be: {new_seq_str}. "
+        f"(If the process fails with \"Can't locate revision identified "
+        f'by...", you might need to DROP the Alembic version table; by '
+        f"default that is named {DEFAULT_ALEMBIC_VERSION_TABLE!r}, but you "
+        f"may have elected to change that in your 'env.py' file.)"
     )
 
     alembic_ini_dir = os.path.dirname(alembic_ini_file)
+    os.chdir(alembic_ini_dir)
 
-    def _call_alembic(_alembic_ini_filename):
-        os.chdir(alembic_ini_dir)
-        cmdargs = [
-            "alembic",
-            "-c",
-            _alembic_ini_filename,
-            "revision",
-            "--autogenerate",
-            "-m",
-            message,
-            "--rev-id",
-            new_seq_str,
-        ]
-        log.info(f"From directory {alembic_ini_dir!r}, calling: {cmdargs!r}")
-        subprocess.call(cmdargs)
-
+    # https://github.com/sqlalchemy/alembic/discussions/1089
+    namespace = CommandLine().parser.parse_args(["revision", "--autogenerate"])
+    config = AlembicConfig(alembic_ini_file, cmd_opts=namespace)
     if db_url:
-        # Override the database URL. This is a bit ugly, because it's not
-        # obvious how to pass a URL directly to the "alembic revision" command.
-        # I don't think there's an API for that, and "alembic revision --help"
-        # doesn't show any URL options. So, a temporary config:
-        safe_url = get_safe_url_from_url(db_url)
-        alembic_cfg = AlembicConfig(alembic_ini_file)
-        alembic_cfg.set_main_option("sqlalchemy.url", db_url)
-        with NamedTemporaryFile(
-            mode="w+t", dir=alembic_ini_dir, suffix=".ini"
-        ) as tmpfile:
-            log.info(
-                f"Overriding database URL with {safe_url}, "
-                f"via temporary file {tmpfile.name}"
-            )
-            cfgparser: ConfigParser = alembic_cfg.file_config
-            cfgparser.write(tmpfile)
-            tmpfile.flush()
-            _call_alembic(tmpfile.name)
-    else:
-        _call_alembic(alembic_ini_file)
+        config.set_main_option("sqlalchemy.url", db_url)
+
+    mk_revision(config, message=message, autogenerate=True, rev_id=new_seq_str)
 
 
 def stamp_allowing_unusual_version_table(
