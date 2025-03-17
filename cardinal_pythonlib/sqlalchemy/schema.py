@@ -417,8 +417,18 @@ def execute_ddl(
     if sql:
         ddl = DDL(sql)
     with engine.connect() as connection:
-        # DDL doesn't need a COMMIT.
         connection.execute(ddl)
+        # DDL may need a commit for some dialects:
+        #
+        # Generic (but generic may not be useful)
+        #     https://stackoverflow.com/questions/730621/do-ddl-statements-always-give-you-an-implicit-commit-or-can-you-get-an-implicit
+        # Oracle - autocommitted?
+        #     https://docs.oracle.com/cd/A97335_02/apps.102/a83723/keyprog6.htm
+        # but not Postgres?
+        #     https://dba.stackexchange.com/questions/340916/why-must-i-commit-after-the-alter-table-ddl-to-make-changes-visible
+        # and in SQL Server they are "batched" so not entirely autocommitted
+        #     https://www.mssqltips.com/sqlservertip/4591/ddl-commands-in-transactions-in-sql-server-versus-oracle/
+        connection.commit()
 
 
 # =============================================================================
