@@ -880,3 +880,8 @@ Quick links:
 
 - Allow ``db_url`` parameter to
   ``cardinal_pythonlib.sqlalchemy.alembic_func.create_database_migration_numbered_style``.
+
+**2.0.4**
+
+- Fix :func:`cardinal_pythonlib.sqlalchemy.schema.execute_ddl` so that it always
+  commits. Not all dialects commit automatically.
