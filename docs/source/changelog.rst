@@ -873,7 +873,7 @@ Quick links:
 
 - Improve ability of Alembic support code to take a database URL.
 
-**2.0.3 (2023-03-11)**
+**2.0.3 (2025-03-11)**
 
 - Reinstate BIT and similar datatypes in the list of valid datatypes. Broken
   since v2.0.0.
@@ -881,7 +881,7 @@ Quick links:
 - Allow ``db_url`` parameter to
   ``cardinal_pythonlib.sqlalchemy.alembic_func.create_database_migration_numbered_style``.
 
-**2.0.4**
+**2.0.4 (2025-03-17)**
 
 - Fix :func:`cardinal_pythonlib.sqlalchemy.schema.execute_ddl` so that it always
   commits. Not all dialects commit automatically.
