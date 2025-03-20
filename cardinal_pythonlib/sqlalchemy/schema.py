@@ -138,6 +138,7 @@ DATABRICKS_SQLCOLTYPE_TO_SQLALCHEMY_GENERIC = {
     "DECIMAL": Numeric,
     "SMALLINT": SmallInteger,
     "STRING": Text,
+    "VARCHAR": String,
 }
 
 
