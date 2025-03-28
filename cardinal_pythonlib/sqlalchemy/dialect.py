@@ -148,7 +148,7 @@ def get_preparer(
     """
     dialect = get_dialect(mixed)
     # noinspection PyUnresolvedReferences
-    return dialect.preparer(dialect)  # type: IdentifierPreparer
+    return dialect.preparer(dialect)
 
 
 def quote_identifier(
