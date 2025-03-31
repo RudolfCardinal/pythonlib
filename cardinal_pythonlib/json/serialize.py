@@ -807,7 +807,7 @@ def dict_to_pendulumdate(
     # noinspection PyTypeChecker
     dt = pendulum.parse(d["iso"])  # type: pendulum.DateTime
     # noinspection PyTypeChecker
-    return dt.date()  # type: pendulum.Date
+    return dt.date()
 
 
 register_class_for_json(
