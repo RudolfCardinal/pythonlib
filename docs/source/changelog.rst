@@ -885,3 +885,7 @@ Quick links:
 
 - Fix :func:`cardinal_pythonlib.sqlalchemy.schema.execute_ddl` so that it always
   commits. Not all dialects commit automatically.
+
+**2.0.5 (2025-04-07)**
+
+- Add VARCHAR to valid Databricks types.
