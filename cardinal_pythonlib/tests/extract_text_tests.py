@@ -26,13 +26,34 @@
 """
 
 import os
+import subprocess
 from tempfile import TemporaryDirectory, NamedTemporaryFile
-from unittest import TestCase
+from unittest import mock, TestCase
 
-from cardinal_pythonlib.extract_text import document_to_text
+from cardinal_pythonlib.extract_text import (
+    document_to_text,
+    TextProcessingConfig,
+    update_external_tools,
+)
 
 
 class DocumentToTextTests(TestCase):
+    def setUp(self) -> None:
+        update_external_tools(
+            {
+                "antiword": "/path/to/antiword",
+            }
+        )
+
+        self.config = TextProcessingConfig()
+
+        mock_decode = mock.Mock(return_value="")
+        mock_stdout = mock.Mock(decode=mock_decode)
+        mock_communicate = mock.Mock(return_value=(mock_stdout, None))
+        self.mock_popen = mock.Mock(
+            return_value=mock.Mock(communicate=mock_communicate)
+        )
+
     def test_raises_when_no_filename_or_blob(self) -> None:
         with self.assertRaises(ValueError) as cm:
             document_to_text()
@@ -68,3 +89,25 @@ class DocumentToTextTests(TestCase):
             text = document_to_text(temp_file.name)
 
         self.assertEqual(text, content)
+
+    def test_doc_converted_with_antiword(self) -> None:
+        with mock.patch.multiple(
+            "cardinal_pythonlib.extract_text.subprocess",
+            Popen=self.mock_popen,
+        ):
+            with NamedTemporaryFile(suffix=".doc", delete=False) as temp_file:
+                temp_file.close()
+                document_to_text(temp_file.name)
+
+        expected_calls = [
+            mock.call(
+                (
+                    "/path/to/antiword",
+                    "-w",
+                    str(self.config.width),
+                    temp_file.name,
+                ),
+                stdout=subprocess.PIPE,
+            ),
+        ]
+        self.mock_popen.assert_has_calls(expected_calls)
