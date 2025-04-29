@@ -38,6 +38,8 @@ from cardinal_pythonlib.extract_text import (
 
 
 class DocumentToTextTests(TestCase):
+    # For external tools we assume the tools are running correctly
+    # and we just check that they are invoked with the correct arguments.
     def setUp(self) -> None:
         update_external_tools(
             {
@@ -47,6 +49,7 @@ class DocumentToTextTests(TestCase):
 
         self.config = TextProcessingConfig()
 
+        # Some mock empty output that we don't check
         mock_decode = mock.Mock(return_value="")
         mock_stdout = mock.Mock(decode=mock_decode)
         mock_communicate = mock.Mock(return_value=(mock_stdout, None))
@@ -96,6 +99,28 @@ class DocumentToTextTests(TestCase):
             Popen=self.mock_popen,
         ):
             with NamedTemporaryFile(suffix=".doc", delete=False) as temp_file:
+                temp_file.close()
+                document_to_text(temp_file.name)
+
+        expected_calls = [
+            mock.call(
+                (
+                    "/path/to/antiword",
+                    "-w",
+                    str(self.config.width),
+                    temp_file.name,
+                ),
+                stdout=subprocess.PIPE,
+            ),
+        ]
+        self.mock_popen.assert_has_calls(expected_calls)
+
+    def test_dot_converted_with_antiword(self) -> None:
+        with mock.patch.multiple(
+            "cardinal_pythonlib.extract_text.subprocess",
+            Popen=self.mock_popen,
+        ):
+            with NamedTemporaryFile(suffix=".dot", delete=False) as temp_file:
                 temp_file.close()
                 document_to_text(temp_file.name)
 
