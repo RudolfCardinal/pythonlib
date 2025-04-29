@@ -26,7 +26,7 @@
 """
 
 import os
-from tempfile import TemporaryDirectory
+from tempfile import TemporaryDirectory, NamedTemporaryFile
 from unittest import TestCase
 
 from cardinal_pythonlib.extract_text import document_to_text
@@ -58,3 +58,13 @@ class DocumentToTextTests(TestCase):
                 document_to_text(filename=filename)
 
         self.assertIn("no such file", str(cm.exception))
+
+    def test_csv_converted(self) -> None:
+        content = "one,two,three"
+
+        with NamedTemporaryFile(suffix=".csv", delete=False) as temp_file:
+            temp_file.write(content.encode("utf-8"))
+            temp_file.close()
+            text = document_to_text(temp_file.name)
+
+        self.assertEqual(text, content)
