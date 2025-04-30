@@ -232,3 +232,33 @@ class DocumentToTextTests(TestCase):
             ),
         ]
         self.mock_popen.assert_has_calls(expected_calls)
+
+    def test_rtf_converted(self) -> None:
+        with mock.patch(
+            "cardinal_pythonlib.extract_text.UNRTF_SUPPORTS_QUIET", True
+        ):
+            with mock.patch.multiple(
+                "cardinal_pythonlib.extract_text.subprocess",
+                Popen=self.mock_popen,
+            ):
+                with NamedTemporaryFile(
+                    suffix=".rtf", delete=False
+                ) as temp_file:
+                    temp_file.close()
+                    document_to_text(
+                        filename=temp_file.name, config=self.config
+                    )
+
+        expected_calls = [
+            mock.call(
+                (
+                    f"{self.empty_dir}/unrtf",
+                    "--text",
+                    "--nopict",
+                    "--quiet",
+                    temp_file.name,
+                ),
+                stdout=subprocess.PIPE,
+            ),
+        ]
+        self.mock_popen.assert_has_calls(expected_calls)
