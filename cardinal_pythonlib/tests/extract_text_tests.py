@@ -170,3 +170,15 @@ class DocumentToTextTests(TestCase):
             blob=html.encode("utf-8"), extension="htm", config=self.config
         )
         self.assertEqual(text.strip(), content)
+
+    def test_log_converted(self) -> None:
+        content = """
+2025-04-02 06:05:43,772 INFO Starting unattended upgrades script
+2025-04-02 06:05:43,772 INFO Allowed origins are: o=Ubuntu,a=focal, o=Ubuntu,a=focal-security, o=UbuntuESMApps,a=focal-apps-security, o=UbuntuESM,a=focal-infra-security
+"""  # noqa: E501
+
+        text = document_to_text(
+            blob=content.encode("utf-8"), extension="log", config=self.config
+        )
+
+        self.assertEqual(text.strip(), content.strip())
