@@ -6,6 +6,8 @@ deform
 dogpile.cache==0.9.2
 # CRATE is on 4.2
 Django>=4.2,<5.0
+faker==13.3.1
+faker-file[common]==0.17.13
 libChEBIpy
 pdfkit
 pyramid==1.10.8
