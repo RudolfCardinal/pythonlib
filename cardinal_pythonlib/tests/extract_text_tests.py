@@ -30,6 +30,9 @@ import subprocess
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from unittest import mock, TestCase
 
+from faker import Faker
+from faker_file.providers.docx_file import DocxFileProvider
+
 from cardinal_pythonlib.extract_text import (
     document_to_text,
     TextProcessingConfig,
@@ -56,6 +59,9 @@ class DocumentToTextTests(TestCase):
         self.mock_popen = mock.Mock(
             return_value=mock.Mock(communicate=mock_communicate)
         )
+
+        self.fake = Faker()
+        self.fake.add_provider(DocxFileProvider)
 
     def test_raises_when_no_filename_or_blob(self) -> None:
         with self.assertRaises(ValueError) as cm:
@@ -89,7 +95,7 @@ class DocumentToTextTests(TestCase):
         with NamedTemporaryFile(suffix=".csv", delete=False) as temp_file:
             temp_file.write(content.encode("utf-8"))
             temp_file.close()
-            text = document_to_text(temp_file.name)
+            text = document_to_text(filename=temp_file.name)
 
         self.assertEqual(text, content)
 
@@ -100,7 +106,7 @@ class DocumentToTextTests(TestCase):
         ):
             with NamedTemporaryFile(suffix=".doc", delete=False) as temp_file:
                 temp_file.close()
-                document_to_text(temp_file.name)
+                document_to_text(filename=temp_file.name, config=self.config)
 
         expected_calls = [
             mock.call(
@@ -122,7 +128,7 @@ class DocumentToTextTests(TestCase):
         ):
             with NamedTemporaryFile(suffix=".dot", delete=False) as temp_file:
                 temp_file.close()
-                document_to_text(temp_file.name)
+                document_to_text(filename=temp_file.name)
 
         expected_calls = [
             mock.call(
@@ -136,3 +142,14 @@ class DocumentToTextTests(TestCase):
             ),
         ]
         self.mock_popen.assert_has_calls(expected_calls)
+
+    def test_docx_converted(self) -> None:
+        content = self.fake.paragraph(nb_sentences=10)
+
+        docx = self.fake.docx_file(content=content)
+        self.config.width = 0
+        text = document_to_text(
+            docx.data["filename"], extension="docx", config=self.config
+        )
+
+        self.assertEqual(text.strip(), content)
