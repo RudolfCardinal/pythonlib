@@ -148,8 +148,25 @@ class DocumentToTextTests(TestCase):
 
         docx = self.fake.docx_file(content=content)
         self.config.width = 0
-        text = document_to_text(
-            docx.data["filename"], extension="docx", config=self.config
-        )
+        text = document_to_text(docx.data["filename"], config=self.config)
 
+        self.assertEqual(text.strip(), content)
+
+    def test_htm_converted(self) -> None:
+        content = self.fake.paragraph(nb_sentences=10)
+
+        html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+{content}
+</body>
+</html>
+"""
+
+        text = document_to_text(
+            blob=html.encode("utf-8"), extension="htm", config=self.config
+        )
         self.assertEqual(text.strip(), content)
