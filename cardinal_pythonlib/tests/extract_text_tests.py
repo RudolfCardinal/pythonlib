@@ -32,6 +32,7 @@ from unittest import mock, TestCase
 
 from faker import Faker
 from faker_file.providers.docx_file import DocxFileProvider
+from faker_file.providers.odt_file import OdtFileProvider
 
 from cardinal_pythonlib.extract_text import (
     document_to_text,
@@ -62,6 +63,7 @@ class DocumentToTextTests(TestCase):
 
         self.fake = Faker()
         self.fake.add_provider(DocxFileProvider)
+        self.fake.add_provider(OdtFileProvider)
 
     def test_raises_when_no_filename_or_blob(self) -> None:
         with self.assertRaises(ValueError) as cm:
@@ -182,3 +184,12 @@ class DocumentToTextTests(TestCase):
         )
 
         self.assertEqual(text.strip(), content.strip())
+
+    def test_odt_converted(self) -> None:
+        content = self.fake.paragraph(nb_sentences=10)
+
+        odt = self.fake.odt_file(content=content)
+        self.config.width = 0
+        text = document_to_text(odt.data["filename"], config=self.config)
+
+        self.assertEqual(text.strip(), content)
