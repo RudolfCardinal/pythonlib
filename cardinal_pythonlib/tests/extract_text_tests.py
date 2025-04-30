@@ -35,6 +35,7 @@ from faker_file.providers.docx_file import DocxFileProvider
 from faker_file.providers.odt_file import OdtFileProvider
 from faker_file.providers.pdf_file import PdfFileProvider
 from faker_file.providers.txt_file import TxtFileProvider
+from faker_file.providers.xml_file import XmlFileProvider
 
 from cardinal_pythonlib.extract_text import (
     document_to_text,
@@ -62,11 +63,12 @@ class DocumentToTextTests(TestCase):
         )
 
     def _register_faker_providers(self) -> None:
-        self.fake = Faker()
+        self.fake = Faker("en-GB")
         self.fake.add_provider(DocxFileProvider)
         self.fake.add_provider(OdtFileProvider)
         self.fake.add_provider(PdfFileProvider)
         self.fake.add_provider(TxtFileProvider)
+        self.fake.add_provider(XmlFileProvider)
 
     def _replace_external_tools_with_fakes(self) -> None:
         # For external tools we assume the tools are running correctly
@@ -275,3 +277,38 @@ class DocumentToTextTests(TestCase):
         text = document_to_text(filename=txt_file.data["filename"])
 
         self.assertEqual(text.strip(), content)
+
+    def test_xml_converted(self) -> None:
+        name = self.fake.name()
+        address = self.fake.address()
+
+        xml_file = self.fake.xml_file(
+            num_rows=1,
+            data_columns={
+                "name": name,
+                "address": address,
+            },
+        )
+        text = document_to_text(filename=xml_file.data["filename"])
+
+        self.assertEqual(text.strip(), f"{name}{address}")
+
+    def test_unsupported_converted(self) -> None:
+        with mock.patch.multiple(
+            "cardinal_pythonlib.extract_text.subprocess",
+            Popen=self.mock_popen,
+        ):
+            with NamedTemporaryFile(suffix=".exe", delete=False) as temp_file:
+                temp_file.close()
+                document_to_text(filename=temp_file.name, config=self.config)
+
+        expected_calls = [
+            mock.call(
+                (
+                    f"{self.empty_dir}/strings",
+                    temp_file.name,
+                ),
+                stdout=subprocess.PIPE,
+            ),
+        ]
+        self.mock_popen.assert_has_calls(expected_calls)
