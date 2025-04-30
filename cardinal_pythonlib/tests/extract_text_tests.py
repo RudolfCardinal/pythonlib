@@ -34,6 +34,7 @@ from faker import Faker
 from faker_file.providers.docx_file import DocxFileProvider
 from faker_file.providers.odt_file import OdtFileProvider
 from faker_file.providers.pdf_file import PdfFileProvider
+from faker_file.providers.txt_file import TxtFileProvider
 
 from cardinal_pythonlib.extract_text import (
     document_to_text,
@@ -65,6 +66,7 @@ class DocumentToTextTests(TestCase):
         self.fake.add_provider(DocxFileProvider)
         self.fake.add_provider(OdtFileProvider)
         self.fake.add_provider(PdfFileProvider)
+        self.fake.add_provider(TxtFileProvider)
 
     def _replace_external_tools_with_fakes(self) -> None:
         # For external tools we assume the tools are running correctly
@@ -168,7 +170,9 @@ class DocumentToTextTests(TestCase):
 
         docx = self.fake.docx_file(content=content)
         self.config.width = 0
-        text = document_to_text(docx.data["filename"], config=self.config)
+        text = document_to_text(
+            filename=docx.data["filename"], config=self.config
+        )
 
         self.assertEqual(text.strip(), content)
 
@@ -208,7 +212,9 @@ class DocumentToTextTests(TestCase):
 
         odt = self.fake.odt_file(content=content)
         self.config.width = 0
-        text = document_to_text(odt.data["filename"], config=self.config)
+        text = document_to_text(
+            filename=odt.data["filename"], config=self.config
+        )
 
         self.assertEqual(text.strip(), content)
 
@@ -262,3 +268,10 @@ class DocumentToTextTests(TestCase):
             ),
         ]
         self.mock_popen.assert_has_calls(expected_calls)
+
+    def test_txt_converted(self) -> None:
+        content = self.fake.paragraph(nb_sentences=10)
+        txt_file = self.fake.txt_file(content=content)
+        text = document_to_text(filename=txt_file.data["filename"])
+
+        self.assertEqual(text.strip(), content)
