@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/json/__init__.py
+# cardinal_pythonlib/json_utils/typing_helpers.py
 
 """
 ===============================================================================
@@ -21,4 +21,22 @@
     limitations under the License.
 
 ===============================================================================
+
+Type hints for JSON.
+
 """
+
+from typing import Dict, List, Union
+
+# =============================================================================
+# Type definitions; see https://www.json.org/
+# =============================================================================
+
+# Types for the Python representation of JSON:
+JsonLiteralType = Union[str, int, float, bool, None]
+JsonValueType = Union[JsonLiteralType, Dict, List]
+JsonObjectType = Dict[str, JsonValueType]
+JsonArrayType = List[JsonValueType]
+
+# Type for the string representation of JSON:
+JsonAsStringType = str

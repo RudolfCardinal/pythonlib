@@ -36,7 +36,7 @@ from typing import Any, Callable, Dict, Tuple
 from django.core.cache import cache  # default cache
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
-from cardinal_pythonlib.json.serialize import json_encode
+from cardinal_pythonlib.json_utils.serialize import json_encode
 
 log = get_brace_style_log_with_null_handler(__name__)
 

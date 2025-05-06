@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/json/serialize.py
+# cardinal_pythonlib/json_utils/serialize.py
 
 """
 ===============================================================================
