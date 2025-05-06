@@ -17,7 +17,7 @@ To install in development mode:
 """
 
 from setuptools import setup, find_packages
-from codecs import open
+from codecs import open  # noqa: A004
 from os import path
 
 from cardinal_pythonlib.version_string import VERSION_STRING
