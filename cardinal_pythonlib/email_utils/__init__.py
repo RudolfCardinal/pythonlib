@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/email/__init__.py
+# cardinal_pythonlib/email_utils/__init__.py
 
 """
 ===============================================================================

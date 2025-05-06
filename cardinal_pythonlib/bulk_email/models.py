@@ -63,7 +63,7 @@ from cardinal_pythonlib.bulk_email.constants import (
     USERNAME_MAX_LENGTH,
 )
 from cardinal_pythonlib.colander_utils import EMAIL_ADDRESS_MAX_LEN
-from cardinal_pythonlib.email.sendmail import (
+from cardinal_pythonlib.email_utils.sendmail import (
     ASCII,
     CONTENT_TYPE_TEXT,
     is_email_valid,

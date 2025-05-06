@@ -192,7 +192,7 @@ setup(
             "cardinalpythonlib_chebi=cardinal_pythonlib.chebi:main",
             (
                 "cardinalpythonlib_email="
-                "cardinal_pythonlib.email.sendmail:main"
+                "cardinal_pythonlib.email_utils.sendmail:main"
             ),
             (
                 "cardinalpythonlib_extract_text="

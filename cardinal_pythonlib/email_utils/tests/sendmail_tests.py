@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/email/tests/sendmail_tests.py
+# cardinal_pythonlib/email_utils/tests/sendmail_tests.py
 
 """
 ===============================================================================
@@ -28,7 +28,7 @@
 
 import unittest
 
-from cardinal_pythonlib.email.sendmail import is_email_valid
+from cardinal_pythonlib.email_utils.sendmail import is_email_valid
 
 
 class TestIsEmailValid(unittest.TestCase):

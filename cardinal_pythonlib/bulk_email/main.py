@@ -57,7 +57,7 @@ from cardinal_pythonlib.bulk_email.models import (
     Recipient,
     SendAttempt,
 )
-from cardinal_pythonlib.email.sendmail import (
+from cardinal_pythonlib.email_utils.sendmail import (
     CONTENT_TYPE_HTML,
     CONTENT_TYPE_TEXT,
     is_email_valid,

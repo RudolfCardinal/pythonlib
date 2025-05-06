@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/profile.py
+# cardinal_pythonlib/profiling.py
 
 """
 ===============================================================================

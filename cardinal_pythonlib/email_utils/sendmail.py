@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/email/sendmail.py
+# cardinal_pythonlib/email_utils/sendmail.py
 
 """
 ===============================================================================
