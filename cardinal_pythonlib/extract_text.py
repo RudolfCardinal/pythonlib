@@ -87,6 +87,7 @@ import subprocess
 import sys
 import textwrap
 from typing import (
+    Any,
     BinaryIO,
     Dict,
     Generator,
@@ -205,9 +206,9 @@ class TextProcessingConfig(object):
         plain: bool = False,
         semiplain: bool = False,
         docx_in_order: bool = True,
-        horizontal_char="─",
-        vertical_char="│",
-        junction_char="┼",
+        horizontal_char: str = "─",
+        vertical_char: str = "│",
+        junction_char: str = "┼",
         plain_table_start: str = None,
         plain_table_end: str = None,
         plain_table_col_boundary: str = None,
@@ -445,7 +446,7 @@ def get_file_contents_text(
     )
 
 
-def get_cmd_output(*args, encoding: str = SYS_ENCODING) -> str:
+def get_cmd_output(*args: Any, encoding: str = SYS_ENCODING) -> str:
     """
     Returns text output of a command.
     """
@@ -456,7 +457,7 @@ def get_cmd_output(*args, encoding: str = SYS_ENCODING) -> str:
 
 
 def get_cmd_output_from_stdin(
-    stdint_content_binary: bytes, *args, encoding: str = SYS_ENCODING
+    stdint_content_binary: bytes, *args: Any, encoding: str = SYS_ENCODING
 ) -> str:
     """
     Returns text output of a command, passing binary data in via stdin.
@@ -559,7 +560,7 @@ DOCX_SCHEMA_URL = (
 )
 
 
-def docx_qn(tagroot):
+def docx_qn(tagroot: str) -> str:
     return f"{{{DOCX_SCHEMA_URL}}}{tagroot}"
 
 
@@ -624,7 +625,7 @@ def docx_gen_wordwrapped_fragments(
     """
     to_wrap = []  # type: List[DocxFragment]
 
-    def yield_wrapped():
+    def yield_wrapped() -> Generator[str, None, None]:
         """
         Yield the word-wrapped stuff to date.
         """
@@ -1267,7 +1268,7 @@ def availability_anything() -> bool:
 # Decider
 # =============================================================================
 
-ext_map = {
+ext_map: dict[str, dict[str, Any]] = {
     # Converter functions must be of the form: func(filename, blob, config).
     # Availability must be either a boolean literal or a function that takes no
     # params.
