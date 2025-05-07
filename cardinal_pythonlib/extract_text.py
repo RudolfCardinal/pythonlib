@@ -1134,7 +1134,7 @@ def convert_html_to_text(
     Converts HTML to text.
     """
     with get_filelikeobject(filename, blob) as fp:
-        soup = bs4.BeautifulSoup(fp)
+        soup = bs4.BeautifulSoup(fp, "html.parser")
         return soup.get_text()
 
 
