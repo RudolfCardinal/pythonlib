@@ -25,6 +25,8 @@
 
 """
 
+from email import message_from_string, policy
+from email.message import EmailMessage
 import os
 import subprocess
 from tempfile import mkdtemp, NamedTemporaryFile
@@ -32,8 +34,12 @@ from unittest import mock, TestCase
 
 from faker import Faker
 from faker_file.providers.docx_file import DocxFileProvider
+from faker_file.providers.eml_file import EmlFileProvider
+from faker_file.providers.helpers.inner import (
+    create_inner_docx_file,
+    create_inner_eml_file,
+)
 from faker_file.providers.odt_file import OdtFileProvider
-from faker_file.providers.pdf_file import PdfFileProvider
 from faker_file.providers.txt_file import TxtFileProvider
 from faker_file.providers.xml_file import XmlFileProvider
 
@@ -63,10 +69,11 @@ class DocumentToTextTests(TestCase):
         )
 
     def _register_faker_providers(self) -> None:
-        self.fake = Faker("en-GB")
+        self.fake = Faker("en-US")  # To avoid Lorem Ipsum
+        self.fake.seed_instance(12345)
         self.fake.add_provider(DocxFileProvider)
+        self.fake.add_provider(EmlFileProvider)
         self.fake.add_provider(OdtFileProvider)
-        self.fake.add_provider(PdfFileProvider)
         self.fake.add_provider(TxtFileProvider)
         self.fake.add_provider(XmlFileProvider)
 
@@ -292,6 +299,130 @@ class DocumentToTextTests(TestCase):
         text = document_to_text(filename=xml_file.data["filename"])
 
         self.assertEqual(text.strip(), f"{name}{address}")
+
+    def test_eml_converted(self) -> None:
+        content = self.fake.paragraph(nb_sentences=10)
+        eml_file = self.fake.eml_file(content=content)
+        text = document_to_text(filename=eml_file.data["filename"])
+
+        self.assertEqual(text.strip(), content)
+
+    def test_eml_with_docx_attachment_converted(self) -> None:
+        body_content = self.fake.paragraph(nb_sentences=10)
+        docx_content = self.fake.paragraph(nb_sentences=10)
+
+        docx_file_args = dict(content=docx_content)
+        options = dict(
+            count=1,
+            create_inner_file_func=create_inner_docx_file,
+            create_inner_file_args=docx_file_args,
+        )
+
+        eml_file = self.fake.eml_file(
+            content=body_content,
+            options=options,
+        )
+        self.config.width = 0
+        text = document_to_text(
+            filename=eml_file.data["filename"], config=self.config
+        )
+
+        self.assertIn(body_content, text)
+        self.assertIn(docx_content, text)
+
+    def test_eml_with_nested_docx_attachment_converted(self) -> None:
+        outer_email_content = self.fake.paragraph(nb_sentences=10)
+        inner_email_content = self.fake.paragraph(nb_sentences=10)
+
+        docx_content = self.fake.paragraph(nb_sentences=10)
+
+        docx_file_args = dict(content=docx_content)
+        docx_options = dict(
+            count=1,
+            create_inner_file_func=create_inner_docx_file,
+            create_inner_file_args=docx_file_args,
+        )
+        eml_file_args = dict(
+            content=inner_email_content,
+            options=docx_options,
+        )
+        eml_options = dict(
+            count=1,
+            create_inner_file_func=create_inner_eml_file,
+            create_inner_file_args=eml_file_args,
+        )
+
+        eml_file = self.fake.eml_file(
+            content=outer_email_content,
+            options=eml_options,
+        )
+
+        self.config.width = 0
+        text = document_to_text(
+            filename=eml_file.data["filename"], config=self.config
+        )
+
+        self.assertIn(outer_email_content, text)
+        self.assertIn(inner_email_content, text)
+        self.assertIn(docx_content, text)
+
+    def test_eml_html_body_preferred_over_text(self) -> None:
+        # Contrived example. Normally these would have the same content
+        text_content = self.fake.paragraph(nb_sentences=10)
+        html_content = self.fake.paragraph(nb_sentences=10)
+        html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+{html_content}
+</body>
+</html>
+"""
+        # faker-file can't do this yet
+        message = EmailMessage()
+        message.set_content(text_content)
+        message.add_alternative(html, subtype="html")
+        blob = message.as_bytes()
+
+        text = document_to_text(
+            blob=blob, extension=".eml", config=self.config
+        )
+
+        self.assertIn(html_content, text)
+        self.assertNotIn(text_content, text)
+
+    def test_eml_latin1_html_decoded_correctly(self) -> None:
+        content = """From: foo@example.org
+To: bar@example.org
+Subject: Latin-1 test
+Content-Type: multipart/mixed; boundary="==="
+MIME-Version: 1.0
+
+--===
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html><head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-8859-=
+1">
+</head>
+<body lang=3D"EN-GB">
+Caf=E9
+</body>
+</html>
+--===--
+"""
+
+        message = message_from_string(content, policy=policy.default)
+        blob = message.as_bytes()
+
+        text = document_to_text(
+            blob=blob, extension=".eml", config=self.config
+        )
+
+        self.assertIn("Café", text)
 
     def test_unsupported_converted(self) -> None:
         with mock.patch.multiple(

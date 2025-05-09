@@ -77,9 +77,14 @@ See also:
 # =============================================================================
 
 import argparse
+import base64
+from email import policy
+from email.message import EmailMessage
+from email.parser import BytesParser
 from io import StringIO
 import io
 import logging
+from mimetypes import guess_extension
 import os
 import re
 import shutil
@@ -1231,6 +1236,69 @@ def availability_doc() -> bool:
 
 
 # =============================================================================
+# EML
+# =============================================================================
+
+
+def convert_eml_to_text(
+    filename: str = None,
+    blob: bytes = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
+    email_content_list: list[str] = []
+
+    with get_filelikeobject(filename, blob) as fp:
+        parser = BytesParser(policy=policy.default)  # type: ignore[arg-type]
+        message = parser.parse(fp)
+
+        for email_content in _gen_email_content(message, config):
+            if email_content is not None:
+                email_content_list.append(email_content)
+
+    text = "\n".join(email_content_list)
+
+    return text
+
+
+def _gen_email_content(
+    message: EmailMessage, config: TextProcessingConfig
+) -> Generator[Optional[str], None, None]:
+    body = message.get_body(
+        preferencelist=(
+            "html",
+            "plain",
+        )
+    )  # type: ignore[attr-defined]
+    if body is not None:
+        yield _get_email_content(body, config)
+
+    for part in message.iter_attachments():  # type: ignore[attr-defined]
+        yield _get_email_content(part, config)
+
+
+def _get_email_content(
+    message: EmailMessage,
+    config: TextProcessingConfig,
+) -> Optional[str]:
+    content_type = message.get_content_type()
+    ext = guess_extension(content_type)
+
+    if ext is not None and ext in ext_map:
+        content = message.get_content()
+        if isinstance(content, str):
+            charset = message["Content-Type"].params["charset"]
+            blob = content.encode(charset)
+        elif isinstance(content, EmailMessage):
+            blob = content.as_bytes()
+            if message.get("Content-Transfer-Encoding") == "base64":
+                blob = base64.b64decode(blob)
+        else:
+            blob = content
+
+        return document_to_text(blob=blob, extension=ext, config=config)
+
+
+# =============================================================================
 # Anything
 # =============================================================================
 
@@ -1277,6 +1345,7 @@ ext_map: dict[str, dict[str, Any]] = {
     ".docm": {CONVERTER: convert_docx_to_text, AVAILABILITY: True},
     ".docx": {CONVERTER: convert_docx_to_text, AVAILABILITY: True},
     ".dot": {CONVERTER: convert_doc_to_text, AVAILABILITY: availability_doc},
+    ".eml": {CONVERTER: convert_eml_to_text, AVAILABILITY: True},
     ".htm": {CONVERTER: convert_html_to_text, AVAILABILITY: True},
     ".html": {CONVERTER: convert_html_to_text, AVAILABILITY: True},
     ".log": {CONVERTER: get_file_contents_text, AVAILABILITY: True},
