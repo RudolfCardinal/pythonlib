@@ -1158,7 +1158,7 @@ def convert_xml_to_text(
     Converts XML to text.
     """
     with get_filelikeobject(filename, blob) as fp:
-        soup = bs4.BeautifulStoneSoup(fp)
+        soup = bs4.BeautifulSoup(fp, features="xml")
         return soup.get_text()
 
 
