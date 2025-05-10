@@ -1286,7 +1286,10 @@ def _get_email_content(
     if ext is not None and ext in ext_map:
         content = message.get_content()
         if isinstance(content, str):
-            charset = message["Content-Type"].params.get("charset", "utf-8")
+            charset = "utf-8"
+            content_type_header = message.get("Content-Type")
+            if content_type_header:
+                charset = content_type_header.params.get("charset", "utf-8")
             blob = content.encode(charset)
         elif isinstance(content, EmailMessage):
             blob = content.as_bytes()

@@ -451,6 +451,32 @@ Content-Type: text/plain
 
         self.assertIn(text_content, text)
 
+    def test_eml_with_no_content_type_converted(self) -> None:
+        text_content = self.fake.paragraph(nb_sentences=10)
+
+        content = f"""From: bar@example.org
+Subject: No content type
+To: foo@example.org
+Mime-Version: 1.0
+Content-Type: multipart/mixed;boundary="==="
+
+--===
+
+{text_content}
+
+--===--
+
+"""
+
+        message = message_from_string(content, policy=policy.default)
+        blob = message.as_bytes()
+
+        text = document_to_text(
+            blob=blob, extension=".eml", config=self.config
+        )
+
+        self.assertIn(text_content, text)
+
     def test_unsupported_converted(self) -> None:
         with mock.patch.multiple(
             "cardinal_pythonlib.extract_text.subprocess",
