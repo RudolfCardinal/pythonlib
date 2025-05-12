@@ -1302,6 +1302,8 @@ def _get_email_content(
 
         return document_to_text(blob=blob, extension=ext, config=config)
 
+    return None
+
 
 # =============================================================================
 # Anything
