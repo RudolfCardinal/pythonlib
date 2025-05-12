@@ -603,7 +603,7 @@ def gen_xml_files_from_docx(fp: BinaryIO) -> Iterator[str]:
                 yield z.read(filename).decode("utf8")
         for filename in filelist:
             if DOCX_DOCUMENT_FILE_REGEX.match(filename):
-                yield z.read(filename)
+                yield z.read(filename).decode("utf8")
         for filename in filelist:
             if DOCX_FOOTER_FILE_REGEX.match(filename):
                 yield z.read(filename).decode("utf8")
