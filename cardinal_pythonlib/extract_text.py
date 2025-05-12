@@ -1141,6 +1141,7 @@ def convert_html_to_text(
     Converts HTML to text.
     """
 
+    # https://bugs.launchpad.net/beautifulsoup/+bug/2110492
     # beautifulsoup4==4.13.4 returns "b''" for an empty bytes array
     # So we just workaround this here:
     if bytes is not None and len(blob) == 0:
