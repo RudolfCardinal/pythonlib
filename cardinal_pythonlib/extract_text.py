@@ -358,7 +358,7 @@ def get_filelikeobject(filename: str = None, blob: bytes = None) -> BinaryIO:
     Returns:
         a :class:`BinaryIO` object
     """
-    if not filename and not blob:
+    if filename is None and blob is None:
         raise ValueError("no filename and no blob")
     if filename and blob:
         raise ValueError("specify either filename or blob")
@@ -373,11 +373,11 @@ def get_file_contents(filename: str = None, blob: bytes = None) -> bytes:
     """
     Returns the binary contents of a file, or of a BLOB.
     """
-    if not filename and not blob:
+    if filename is None and blob is None:
         raise ValueError("no filename and no blob")
     if filename and blob:
         raise ValueError("specify either filename or blob")
-    if blob:
+    if blob is not None:
         return blob
     with open(filename, "rb") as f:
         return f.read()
@@ -1408,7 +1408,7 @@ def document_to_text(
         Raises an exception for malformed arguments, missing files, bad
         filetypes, etc.
     """
-    if not filename and not blob:
+    if filename is None and blob is None:
         raise ValueError("document_to_text: no filename and no blob")
     if filename and blob:
         raise ValueError("document_to_text: specify either filename or blob")

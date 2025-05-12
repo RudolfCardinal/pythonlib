@@ -204,6 +204,12 @@ class DocumentToTextTests(TestCase):
         )
         self.assertEqual(text.strip(), content)
 
+    def test_empty_htm_converted(self) -> None:
+        text = document_to_text(
+            blob="".encode("utf-8"), extension="htm", config=self.config
+        )
+        self.assertEqual(text, "")
+
     def test_log_converted(self) -> None:
         content = """
 2025-04-02 06:05:43,772 INFO Starting unattended upgrades script
@@ -476,6 +482,25 @@ Content-Type: multipart/mixed;boundary="==="
         )
 
         self.assertIn(text_content, text)
+
+    def test_eml_with_empty_body_converted(self) -> None:
+        content = """From: bar@example.org
+Subject: No body
+To: foo@example.org
+Mime-Version: 1.0
+Content-Type: multipart/mixed;boundary="==="
+
+--===
+--===--
+"""
+        message = message_from_string(content, policy=policy.default)
+        blob = message.as_bytes()
+
+        text = document_to_text(
+            blob=blob, extension=".eml", config=self.config
+        )
+
+        self.assertEqual("", text)
 
     def test_unsupported_converted(self) -> None:
         with mock.patch.multiple(
