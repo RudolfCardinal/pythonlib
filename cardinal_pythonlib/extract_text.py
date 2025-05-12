@@ -1140,6 +1140,12 @@ def convert_html_to_text(
     """
     Converts HTML to text.
     """
+
+    # beautifulsoup4==4.13.4 returns "b''" for an empty bytes array
+    # So we just workaround this here:
+    if bytes is not None and len(blob) == 0:
+        return ""
+
     with get_filelikeobject(filename, blob) as fp:
         soup = bs4.BeautifulSoup(fp, "html.parser")
         return soup.get_text()
