@@ -555,10 +555,10 @@ def availability_pdf() -> bool:
 # -----------------------------------------------------------------------------
 # In a D.I.Y. fashion
 # -----------------------------------------------------------------------------
-# DOCX specification: http://www.ecma-international.org/news/TC45_current_work/TC45_available_docs.htm  # noqa: E501
+# DOCX specification: https://ecma-international.org/publications-and-standards/standards/ecma-376/  # noqa: E501
 
 DOCX_HEADER_FILE_REGEX = re.compile("word/header[0-9]*.xml")
-DOCX_DOC_FILE = "word/document.xml"
+DOCX_DOCUMENT_FILE_REGEX = re.compile("word/document[0-9]*.xml")
 DOCX_FOOTER_FILE_REGEX = re.compile("word/footer[0-9]*.xml")
 DOCX_SCHEMA_URL = (
     "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
@@ -601,7 +601,9 @@ def gen_xml_files_from_docx(fp: BinaryIO) -> Iterator[str]:
         for filename in filelist:
             if DOCX_HEADER_FILE_REGEX.match(filename):
                 yield z.read(filename).decode("utf8")
-        yield z.read(DOCX_DOC_FILE)
+        for filename in filelist:
+            if DOCX_DOCUMENT_FILE_REGEX.match(filename):
+                yield z.read(filename)
         for filename in filelist:
             if DOCX_FOOTER_FILE_REGEX.match(filename):
                 yield z.read(filename).decode("utf8")
