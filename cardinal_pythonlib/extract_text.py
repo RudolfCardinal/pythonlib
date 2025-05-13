@@ -1299,7 +1299,7 @@ def _get_email_content(
             content_type_header = message.get("Content-Type")
             if content_type_header:
                 charset = content_type_header.params.get("charset", "utf-8")
-            blob = content.encode(charset)
+            blob = content.encode(charset, "replace")
         elif isinstance(content, EmailMessage):
             blob = content.as_bytes()
             if message.get("Content-Transfer-Encoding") == "base64":

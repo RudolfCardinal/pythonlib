@@ -502,6 +502,35 @@ Content-Type: multipart/mixed;boundary="==="
 
         self.assertEqual("", text)
 
+    def test_eml_with_illegal_multibyte_sequence_replaced(self) -> None:
+        content = """From: bar@example.org
+Subject: Illegal multibyte sequence
+To: foo@example.org
+Mime-Version: 1.0
+Content-Type: multipart/mixed;boundary="==="
+
+--===
+Content-Type: text/html; charset="big5"
+Content-Transfer-Encoding: quoted-printable
+
+<html><head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dbig5">
+</head>
+<body>
+=F9=F9
+</body>
+</html>
+--===--
+"""
+        message = message_from_string(content, policy=policy.default)
+        blob = message.as_bytes()
+
+        text = document_to_text(
+            blob=blob, extension=".eml", config=self.config
+        )
+
+        self.assertEqual(text.strip(), "??")
+
     def test_unsupported_converted(self) -> None:
         with mock.patch.multiple(
             "cardinal_pythonlib.extract_text.subprocess",
