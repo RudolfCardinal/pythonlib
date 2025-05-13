@@ -1,4 +1,4 @@
-# cardinal_pythonlib/tests/datetimefunc_tests.py
+# cardinal_pythonlib/tests/extract_text_tests.py
 
 """
 ===============================================================================
