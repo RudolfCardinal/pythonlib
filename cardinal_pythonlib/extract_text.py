@@ -1149,7 +1149,15 @@ def convert_html_to_text(
 
     with get_filelikeobject(filename, blob) as fp:
         soup = bs4.BeautifulSoup(fp, "html.parser")
-        return soup.get_text()
+
+        # In the real world we can end up with UTF-16 characters embedded as
+        # numbered entities in Windows-1252 encoded HTML such as
+        # &#55357;&#56898; "Slightly smiling face". Replacing these here
+        # avoids "UnicodeEncodeError: 'utf-8' codec can't encode characters in
+        # position ... surrogates not allowed".
+        text = soup.get_text().encode(errors="replace").decode()
+
+        return text
 
 
 # =============================================================================
