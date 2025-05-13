@@ -130,7 +130,7 @@ class DocumentToTextTests(TestCase):
 
         self.assertEqual(text, content)
 
-    def test_doc_converted_with_antiword(self) -> None:
+    def test_doc_will_be_converted_with_antiword(self) -> None:
         with mock.patch.multiple(
             "cardinal_pythonlib.extract_text.subprocess",
             Popen=self.mock_popen,
@@ -152,7 +152,7 @@ class DocumentToTextTests(TestCase):
         ]
         self.mock_popen.assert_has_calls(expected_calls)
 
-    def test_dot_converted_with_antiword(self) -> None:
+    def test_dot_will_be_converted_with_antiword(self) -> None:
         with mock.patch.multiple(
             "cardinal_pythonlib.extract_text.subprocess",
             Popen=self.mock_popen,
@@ -233,7 +233,7 @@ class DocumentToTextTests(TestCase):
 
         self.assertEqual(text.strip(), content)
 
-    def test_pdf_converted(self) -> None:
+    def test_pdf_will_be_converted_with_pdftotext(self) -> None:
         with mock.patch.multiple(
             "cardinal_pythonlib.extract_text.subprocess",
             Popen=self.mock_popen,
@@ -254,7 +254,7 @@ class DocumentToTextTests(TestCase):
         ]
         self.mock_popen.assert_has_calls(expected_calls)
 
-    def test_rtf_converted(self) -> None:
+    def test_rtf_will_be_converted_with_unrtf(self) -> None:
         with mock.patch(
             "cardinal_pythonlib.extract_text.UNRTF_SUPPORTS_QUIET", True
         ):
@@ -561,7 +561,7 @@ Content-Transfer-Encoding: quoted-printable
 
         self.assertEqual(text.strip(), "??")
 
-    def test_unsupported_converted(self) -> None:
+    def test_unsupported_will_be_converted_with_strings(self) -> None:
         with mock.patch.multiple(
             "cardinal_pythonlib.extract_text.subprocess",
             Popen=self.mock_popen,
