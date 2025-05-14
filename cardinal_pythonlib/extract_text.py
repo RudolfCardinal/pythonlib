@@ -358,7 +358,7 @@ def get_filelikeobject(filename: str = None, blob: bytes = None) -> BinaryIO:
     Returns:
         a :class:`BinaryIO` object
     """
-    if filename is None and blob is None:
+    if not filename and blob is None:
         raise ValueError("no filename and no blob")
     if filename and blob:
         raise ValueError("specify either filename or blob")
@@ -1425,7 +1425,7 @@ def document_to_text(
         Raises an exception for malformed arguments, missing files, bad
         filetypes, etc.
     """
-    if filename is None and blob is None:
+    if not filename and blob is None:
         raise ValueError("document_to_text: no filename and no blob")
     if filename and blob:
         raise ValueError("document_to_text: specify either filename or blob")

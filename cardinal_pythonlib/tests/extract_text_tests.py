@@ -101,6 +101,12 @@ class DocumentToTextTests(TestCase):
 
         self.assertIn("no filename and no blob", str(cm.exception))
 
+    def test_raises_when_filename_empty(self) -> None:
+        with self.assertRaises(ValueError) as cm:
+            document_to_text(filename="")
+
+        self.assertIn("no filename and no blob", str(cm.exception))
+
     def test_raises_when_filename_and_blob(self) -> None:
         with self.assertRaises(ValueError) as cm:
             document_to_text(filename="foo", blob="bar")
