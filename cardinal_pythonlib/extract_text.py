@@ -77,9 +77,14 @@ See also:
 # =============================================================================
 
 import argparse
+import base64
+from email import policy
+from email.message import EmailMessage
+from email.parser import BytesParser
 from io import StringIO
 import io
 import logging
+from mimetypes import guess_extension
 import os
 import re
 import shutil
@@ -87,6 +92,7 @@ import subprocess
 import sys
 import textwrap
 from typing import (
+    Any,
     BinaryIO,
     Dict,
     Generator,
@@ -205,9 +211,9 @@ class TextProcessingConfig(object):
         plain: bool = False,
         semiplain: bool = False,
         docx_in_order: bool = True,
-        horizontal_char="─",
-        vertical_char="│",
-        junction_char="┼",
+        horizontal_char: str = "─",
+        vertical_char: str = "│",
+        junction_char: str = "┼",
         plain_table_start: str = None,
         plain_table_end: str = None,
         plain_table_col_boundary: str = None,
@@ -352,7 +358,7 @@ def get_filelikeobject(filename: str = None, blob: bytes = None) -> BinaryIO:
     Returns:
         a :class:`BinaryIO` object
     """
-    if not filename and not blob:
+    if not filename and blob is None:
         raise ValueError("no filename and no blob")
     if filename and blob:
         raise ValueError("specify either filename or blob")
@@ -367,11 +373,11 @@ def get_file_contents(filename: str = None, blob: bytes = None) -> bytes:
     """
     Returns the binary contents of a file, or of a BLOB.
     """
-    if not filename and not blob:
+    if filename is None and blob is None:
         raise ValueError("no filename and no blob")
     if filename and blob:
         raise ValueError("specify either filename or blob")
-    if blob:
+    if blob is not None:
         return blob
     with open(filename, "rb") as f:
         return f.read()
@@ -445,7 +451,7 @@ def get_file_contents_text(
     )
 
 
-def get_cmd_output(*args, encoding: str = SYS_ENCODING) -> str:
+def get_cmd_output(*args: Any, encoding: str = SYS_ENCODING) -> str:
     """
     Returns text output of a command.
     """
@@ -456,7 +462,7 @@ def get_cmd_output(*args, encoding: str = SYS_ENCODING) -> str:
 
 
 def get_cmd_output_from_stdin(
-    stdint_content_binary: bytes, *args, encoding: str = SYS_ENCODING
+    stdint_content_binary: bytes, *args: Any, encoding: str = SYS_ENCODING
 ) -> str:
     """
     Returns text output of a command, passing binary data in via stdin.
@@ -549,17 +555,17 @@ def availability_pdf() -> bool:
 # -----------------------------------------------------------------------------
 # In a D.I.Y. fashion
 # -----------------------------------------------------------------------------
-# DOCX specification: http://www.ecma-international.org/news/TC45_current_work/TC45_available_docs.htm  # noqa: E501
+# DOCX specification: https://ecma-international.org/publications-and-standards/standards/ecma-376/  # noqa: E501
 
 DOCX_HEADER_FILE_REGEX = re.compile("word/header[0-9]*.xml")
-DOCX_DOC_FILE = "word/document.xml"
+DOCX_DOCUMENT_FILE_REGEX = re.compile("word/document[0-9]*.xml")
 DOCX_FOOTER_FILE_REGEX = re.compile("word/footer[0-9]*.xml")
 DOCX_SCHEMA_URL = (
     "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 )
 
 
-def docx_qn(tagroot):
+def docx_qn(tagroot: str) -> str:
     return f"{{{DOCX_SCHEMA_URL}}}{tagroot}"
 
 
@@ -595,7 +601,9 @@ def gen_xml_files_from_docx(fp: BinaryIO) -> Iterator[str]:
         for filename in filelist:
             if DOCX_HEADER_FILE_REGEX.match(filename):
                 yield z.read(filename).decode("utf8")
-        yield z.read(DOCX_DOC_FILE)
+        for filename in filelist:
+            if DOCX_DOCUMENT_FILE_REGEX.match(filename):
+                yield z.read(filename).decode("utf8")
         for filename in filelist:
             if DOCX_FOOTER_FILE_REGEX.match(filename):
                 yield z.read(filename).decode("utf8")
@@ -624,7 +632,7 @@ def docx_gen_wordwrapped_fragments(
     """
     to_wrap = []  # type: List[DocxFragment]
 
-    def yield_wrapped():
+    def yield_wrapped() -> Generator[str, None, None]:
         """
         Yield the word-wrapped stuff to date.
         """
@@ -1132,9 +1140,24 @@ def convert_html_to_text(
     """
     Converts HTML to text.
     """
+
+    # https://bugs.launchpad.net/beautifulsoup/+bug/2110492
+    # beautifulsoup4==4.13.4 returns "b''" for an empty bytes array
+    # So we just workaround this here:
+    if bytes is not None and len(blob) == 0:
+        return ""
+
     with get_filelikeobject(filename, blob) as fp:
-        soup = bs4.BeautifulSoup(fp)
-        return soup.get_text()
+        soup = bs4.BeautifulSoup(fp, "html.parser")
+
+        # In the real world we can end up with UTF-16 characters embedded as
+        # numbered entities in Windows-1252 encoded HTML such as
+        # &#55357;&#56898; "Slightly smiling face". Replacing these here
+        # avoids "UnicodeEncodeError: 'utf-8' codec can't encode characters in
+        # position ... surrogates not allowed".
+        text = soup.get_text().encode(errors="replace").decode()
+
+        return text
 
 
 # =============================================================================
@@ -1152,7 +1175,7 @@ def convert_xml_to_text(
     Converts XML to text.
     """
     with get_filelikeobject(filename, blob) as fp:
-        soup = bs4.BeautifulStoneSoup(fp)
+        soup = bs4.BeautifulSoup(fp, features="xml")
         return soup.get_text()
 
 
@@ -1230,6 +1253,74 @@ def availability_doc() -> bool:
 
 
 # =============================================================================
+# EML
+# =============================================================================
+
+
+def convert_eml_to_text(
+    filename: str = None,
+    blob: bytes = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
+    email_content_list: list[str] = []
+
+    with get_filelikeobject(filename, blob) as fp:
+        parser = BytesParser(policy=policy.default)  # type: ignore[arg-type]
+        message = parser.parse(fp)
+
+        for email_content in _gen_email_content(message, config):
+            if email_content is not None:
+                email_content_list.append(email_content)
+
+    text = "\n".join(email_content_list)
+
+    return text
+
+
+def _gen_email_content(
+    message: EmailMessage, config: TextProcessingConfig
+) -> Generator[Optional[str], None, None]:
+    body = message.get_body(
+        preferencelist=(
+            "html",
+            "plain",
+        )
+    )  # type: ignore[attr-defined]
+    if body is not None:
+        yield _get_email_content(body, config)
+
+    for part in message.iter_attachments():  # type: ignore[attr-defined]
+        yield _get_email_content(part, config)
+
+
+def _get_email_content(
+    message: EmailMessage,
+    config: TextProcessingConfig,
+) -> Optional[str]:
+    content_type = message.get_content_type()
+    ext = guess_extension(content_type)
+
+    if ext is not None and ext in ext_map:
+        content = message.get_content()
+        if isinstance(content, str):
+            charset = "utf-8"
+            content_type_header = message.get("Content-Type")
+            if content_type_header:
+                charset = content_type_header.params.get("charset", "utf-8")
+            blob = content.encode(charset, "replace")
+        elif isinstance(content, EmailMessage):
+            blob = content.as_bytes()
+            if message.get("Content-Transfer-Encoding") == "base64":
+                blob = base64.b64decode(blob)
+        else:
+            blob = content
+
+        return document_to_text(blob=blob, extension=ext, config=config)
+
+    return None
+
+
+# =============================================================================
 # Anything
 # =============================================================================
 
@@ -1267,7 +1358,7 @@ def availability_anything() -> bool:
 # Decider
 # =============================================================================
 
-ext_map = {
+ext_map: dict[str, dict[str, Any]] = {
     # Converter functions must be of the form: func(filename, blob, config).
     # Availability must be either a boolean literal or a function that takes no
     # params.
@@ -1276,6 +1367,7 @@ ext_map = {
     ".docm": {CONVERTER: convert_docx_to_text, AVAILABILITY: True},
     ".docx": {CONVERTER: convert_docx_to_text, AVAILABILITY: True},
     ".dot": {CONVERTER: convert_doc_to_text, AVAILABILITY: availability_doc},
+    ".eml": {CONVERTER: convert_eml_to_text, AVAILABILITY: True},
     ".htm": {CONVERTER: convert_html_to_text, AVAILABILITY: True},
     ".html": {CONVERTER: convert_html_to_text, AVAILABILITY: True},
     ".log": {CONVERTER: get_file_contents_text, AVAILABILITY: True},
@@ -1333,7 +1425,7 @@ def document_to_text(
         Raises an exception for malformed arguments, missing files, bad
         filetypes, etc.
     """
-    if not filename and not blob:
+    if not filename and blob is None:
         raise ValueError("document_to_text: no filename and no blob")
     if filename and blob:
         raise ValueError("document_to_text: specify either filename or blob")

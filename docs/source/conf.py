@@ -32,7 +32,7 @@ from cardinal_pythonlib.version_string import VERSION_STRING
 
 project = "cardinal_pythonlib"
 # noinspection PyShadowingBuiltins
-copyright = "2009-2020, Rudolf Cardinal"
+copyright = "2009-2020, Rudolf Cardinal"  # noqa: A001
 author = "Rudolf Cardinal"
 
 # The short X.Y version

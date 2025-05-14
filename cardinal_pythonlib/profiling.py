@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/module_version.py
+# cardinal_pythonlib/profiling.py
 
 """
 ===============================================================================
@@ -22,19 +22,34 @@
 
 ===============================================================================
 
-**Ensure that a library module is executed properly, and not via a way that
-breaks imports.**
+**Profiling assistance functions.**
 
 """
 
-try:
-    # we want the stdlib email package!
-    from email import message_from_string  # noqa: F401
-except ImportError:
-    raise ImportError(
-        "A test of importing 'email' has found "
-        "cardinal_pythonlib/email/__init__.py, not the email package from "
-        "stdlib. You are probably running a cardinal_pythonlib file directly, "
-        "e.g. with 'python somefile.py' or '/path/somefile.py'. Instead, use "
-        "'python -m cardinal_pythonlib.somefile'."
-    )
+import cProfile
+from typing import Any, Callable
+
+
+def do_cprofile(func: Callable, sort: str = "tottime") -> Callable:
+    """
+    Print profile stats to screen. To be used as a decorator for the function
+    or method you want to profile. For example:
+
+    .. code-block:: python
+
+        profiled_func = do_cprofile(original_func)
+        profiled_func(args_to_original_func)
+
+    """
+
+    def profiled_func(*args, **kwargs) -> Any:
+        profile = cProfile.Profile()
+        try:
+            profile.enable()
+            result = func(*args, **kwargs)
+            profile.disable()
+            return result
+        finally:
+            profile.print_stats(sort=sort)
+
+    return profiled_func

@@ -28,7 +28,7 @@
 
 import logging
 import os
-from re import compile
+import re
 import sys
 from typing import Optional
 
@@ -107,9 +107,9 @@ https://onecreativeblog.com/post/59051248/django-login-required-middleware
 Modified according to: https://djangosnippets.org/snippets/2845/
 """
 
-# EXEMPT_URLS = [compile(settings.LOGIN_URL.lstrip('/'))]
+# EXEMPT_URLS = [re.compile(settings.LOGIN_URL.lstrip('/'))]
 # if hasattr(settings, 'LOGIN_EXEMPT_URLS'):
-#     EXEMPT_URLS += [compile(expr) for expr in settings.LOGIN_EXEMPT_URLS]
+#     EXEMPT_URLS += [re.compile(expr) for expr in settings.LOGIN_EXEMPT_URLS]
 #
 #
 # class LoginRequiredMiddleware:
@@ -166,10 +166,10 @@ Modified according to: https://djangosnippets.org/snippets/2845/
 # 3. RNC; composite of those patterns.
 # -----------------------------------------------------------------------------
 
-EXEMPT_URLS = [compile(settings.LOGIN_URL.lstrip("/"))]
+EXEMPT_URLS = [re.compile(settings.LOGIN_URL.lstrip("/"))]
 if hasattr(settings, "LOGIN_EXEMPT_URLS"):
     EXEMPT_URLS += [
-        compile(expr.lstrip("/")) for expr in settings.LOGIN_EXEMPT_URLS
+        re.compile(expr.lstrip("/")) for expr in settings.LOGIN_EXEMPT_URLS
     ]
 
 

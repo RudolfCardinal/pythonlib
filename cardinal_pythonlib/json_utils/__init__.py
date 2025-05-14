@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/email/__init__.py
+# cardinal_pythonlib/json_utils/__init__.py
 
 """
 ===============================================================================
@@ -21,8 +21,4 @@
     limitations under the License.
 
 ===============================================================================
-
-The mere existence of this file makes Python treat the directory as a
-package.
-
 """

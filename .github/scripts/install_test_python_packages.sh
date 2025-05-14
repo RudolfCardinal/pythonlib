@@ -10,3 +10,4 @@ ${PYTHON} -m pip install xlrd
 ${PYTHON} -m pip install dogpile.cache==0.9.2  # Later versions incompatible
 ${PYTHON} -m pip install pytest
 ${PYTHON} -m pip install xhtml2pdf weasyprint pdfkit  # For PDF tests
+${PYTHON} -m pip install faker==13.3.1 faker-file'[common]'==0.18.3

@@ -69,7 +69,7 @@ SYMBOLS = {
 
 def bytes2human(
     n: Union[int, float],
-    format: str = "%(value).1f %(symbol)s",
+    format: str = "%(value).1f %(symbol)s",  # noqa: A002
     symbols: str = "customary",
 ) -> str:
     """

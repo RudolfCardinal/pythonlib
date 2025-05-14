@@ -889,3 +889,16 @@ Quick links:
 **2.0.5 (2025-04-07)**
 
 - Add VARCHAR to valid Databricks types.
+
+**2.1.0 (2025-05-13)**
+
+- **BREAKING CHANGE**: Rename modules to avoid conflicts with the Python
+  standard library:
+
+   - :mod:`cardinal_pythonlib.email` is now :mod:`cardinal_pythonlib.email_utils`
+   - :mod:`cardinal_pythonlib.json` is now :mod:`cardinal_pythonlib.json_utils`
+   - :mod:`cardinal_pythonlib.profile` is now :mod:`cardinal_pythonlib.profiling`
+
+- Add support for ``.eml`` files with attachments processed by supported
+  document converters (``.docx``, ``.pdf``, ``.odt`` etc.) to
+  :func:`cardinal_pythonlib.extract_text.document_to_text`.

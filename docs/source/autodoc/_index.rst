@@ -66,10 +66,9 @@ Automatic documentation of source code
     docker.py.rst
     dogpile_cache.py.rst
     dsp.py.rst
-    email/mailboxpurge.py.rst
-    email/sendmail.py.rst
-    email/tests/sendmail_tests.py.rst
-    ensure_test_executed_correctly.py.rst
+    email_utils/mailboxpurge.py.rst
+    email_utils/sendmail.py.rst
+    email_utils/tests/sendmail_tests.py.rst
     enumlike.py.rst
     excel.py.rst
     exceptions.py.rst
@@ -82,8 +81,8 @@ Automatic documentation of source code
     httpconst.py.rst
     interval.py.rst
     iterhelp.py.rst
-    json/serialize.py.rst
-    json/typing_helpers.py.rst
+    json_utils/serialize.py.rst
+    json_utils/typing_helpers.py.rst
     lang.py.rst
     lists.py.rst
     logs.py.rst
@@ -104,7 +103,7 @@ Automatic documentation of source code
     plot.py.rst
     probability.py.rst
     process.py.rst
-    profile.py.rst
+    profiling.py.rst
     progress.py.rst
     psychiatry/drugs.py.rst
     psychiatry/mk_r_druglists.py.rst
@@ -178,6 +177,7 @@ Automatic documentation of source code
     tee.py.rst
     tests/datetimefunc_tests.py.rst
     tests/dogpile_cache_tests.py.rst
+    tests/extract_text_tests.py.rst
     tests/interval_tests.py.rst
     tests/lists_tests.py.rst
     tests/pdf_tests.py.rst

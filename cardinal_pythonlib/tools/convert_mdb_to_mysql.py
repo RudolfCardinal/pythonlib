@@ -156,9 +156,9 @@ class PasswordPromptAction(argparse.Action):
         nargs: Union[int, str] = "?",  # 0 or 1
         default: Any = None,
         required: bool = False,
-        type: Callable[[str], Any] = None,
+        type: Callable[[str], Any] = None,  # noqa: A002
         metavar: str = None,
-        help: str = None,
+        help: str = None,  # noqa: A002
     ) -> None:
         super(PasswordPromptAction, self).__init__(
             option_strings=option_strings,

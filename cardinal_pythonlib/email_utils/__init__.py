@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# cardinal_pythonlib/json/typing_helpers.py
+# cardinal_pythonlib/email_utils/__init__.py
 
 """
 ===============================================================================
@@ -22,21 +22,7 @@
 
 ===============================================================================
 
-Type hints for JSON.
+The mere existence of this file makes Python treat the directory as a
+package.
 
 """
-
-from typing import Dict, List, Union
-
-# =============================================================================
-# Type definitions; see https://www.json.org/
-# =============================================================================
-
-# Types for the Python representation of JSON:
-JsonLiteralType = Union[str, int, float, bool, None]
-JsonValueType = Union[JsonLiteralType, Dict, List]
-JsonObjectType = Dict[str, JsonValueType]
-JsonArrayType = List[JsonValueType]
-
-# Type for the string representation of JSON:
-JsonAsStringType = str

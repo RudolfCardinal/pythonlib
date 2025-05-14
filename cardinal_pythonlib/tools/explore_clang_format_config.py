@@ -60,7 +60,11 @@ def monitor_diff(filenames: List[str], meld_exe: str) -> subprocess.Popen:
 
 
 def clang_format(
-    config: str, src: str, dest: str, dir: str, clang_format_exe: str
+    config: str,
+    src: str,
+    dest: str,
+    dir: str,  # noqa: A002
+    clang_format_exe: str,
 ) -> None:
     """
     Rungs clang-format, formatting a source file to a destination file using a

@@ -39,9 +39,6 @@ from importlib.metadata import version  # structure for Python 3.8 or higher
 
 from semantic_version import Version
 
-# noinspection PyUnresolvedReferences
-import cardinal_pythonlib.ensure_test_executed_correctly  # noqa: F401
-
 
 # =============================================================================
 # Report Python module versions
