@@ -27,6 +27,7 @@
 
 from email import message_from_string, policy
 from email.message import EmailMessage
+from io import BytesIO
 import os
 import subprocess
 from tempfile import mkdtemp, NamedTemporaryFile
@@ -44,18 +45,26 @@ from faker_file.providers.txt_file import TxtFileProvider
 from faker_file.providers.xml_file import XmlFileProvider
 
 from cardinal_pythonlib.extract_text import (
+    convert_msg_to_text,
     document_to_text,
     TextProcessingConfig,
     update_external_tools,
 )
 
 
-class DocumentToTextTests(TestCase):
+class ExtractTextTestCase(TestCase):
     def setUp(self) -> None:
+        self.config = TextProcessingConfig()
+        self.fake = Faker("en-US")  # en-US to avoid Lorem Ipsum from en-GB
+        self.fake.seed_instance(12345)
+
+
+class DocumentToTextTests(ExtractTextTestCase):
+    def setUp(self) -> None:
+        super().setUp()
         self.empty_dir = mkdtemp()
 
         self._replace_external_tools_with_fakes()
-        self.config = TextProcessingConfig()
         self._create_mock_objects()
         self._register_faker_providers()
 
@@ -69,8 +78,6 @@ class DocumentToTextTests(TestCase):
         )
 
     def _register_faker_providers(self) -> None:
-        self.fake = Faker("en-US")  # To avoid Lorem Ipsum
-        self.fake.seed_instance(12345)
         self.fake.add_provider(DocxFileProvider)
         self.fake.add_provider(EmlFileProvider)
         self.fake.add_provider(OdtFileProvider)
@@ -586,3 +593,102 @@ Content-Transfer-Encoding: quoted-printable
             ),
         ]
         self.mock_popen.assert_has_calls(expected_calls)
+
+
+class ConvertMsgToTextTests(ExtractTextTestCase):
+    # There is no easy way to create test Outlook msg files and we don't want
+    # to store real ones so we mock the interface to extract-msg and assume the
+    # library itself is working correctly.
+    def setUp(self) -> None:
+        super().setUp()
+        self.dummy_filename = "dummy_filename.msg"
+
+    def test_blob_not_supported(self) -> None:
+        with self.assertRaises(ValueError) as cm:
+            convert_msg_to_text(blob=b"foo")
+
+        self.assertIn("Blob not currently supported", str(cm.exception))
+
+    def test_file_opened_with_attachments(self) -> None:
+        content = self.fake.paragraph(nb_sentences=10)
+
+        mock_msgfile = mock.Mock(body=content, htmlBody=None, attachments=[])
+        mock_openmsg = mock.Mock(return_value=mock_msgfile)
+        with mock.patch.multiple(
+            "cardinal_pythonlib.extract_text",
+            openMsg=mock_openmsg,
+        ):
+            convert_msg_to_text(self.dummy_filename, config=self.config)
+
+        expected_calls = [
+            mock.call(self.dummy_filename, delayAttachments=False)
+        ]
+        mock_openmsg.assert_has_calls(expected_calls)
+
+    def test_text_body_converted(self) -> None:
+        content = self.fake.paragraph(nb_sentences=10)
+
+        mock_msgfile = mock.Mock(body=content, htmlBody=None, attachments=[])
+        mock_openmsg = mock.Mock(return_value=mock_msgfile)
+        with mock.patch.multiple(
+            "cardinal_pythonlib.extract_text",
+            openMsg=mock_openmsg,
+        ):
+            converted = convert_msg_to_text(
+                self.dummy_filename, config=self.config
+            )
+
+        self.assertEqual(converted, content)
+
+    def test_html_body_converted(self) -> None:
+        content = self.fake.paragraph(nb_sentences=10)
+        html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+{content}
+</body>
+</html>
+"""
+
+        mock_msgfile = mock.Mock(
+            body=None, htmlBody=html.encode("utf-8"), attachments=[]
+        )
+        mock_openmsg = mock.Mock(return_value=mock_msgfile)
+        with mock.patch.multiple(
+            "cardinal_pythonlib.extract_text",
+            openMsg=mock_openmsg,
+        ):
+            converted = convert_msg_to_text(
+                self.dummy_filename, config=self.config
+            )
+
+        self.assertEqual(converted.strip(), content)
+
+    def test_attachment_converted(self) -> None:
+        self.fake.add_provider(DocxFileProvider)
+
+        dummy_filename = "dummy_filename.msg"
+
+        content = self.fake.paragraph(nb_sentences=10)
+        docx = self.fake.docx_file(content=content, raw=True)
+        mock_attachment = mock.Mock(
+            # null termination seen in the real world
+            # https://github.com/TeamMsgExtractor/msg-extractor/issues/464
+            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document\x00",  # noqa: E501
+            data=BytesIO(docx).read(),
+        )
+        mock_msgfile = mock.Mock(
+            body=None, htmlBody=None, attachments=[mock_attachment]
+        )
+        mock_openmsg = mock.Mock(return_value=mock_msgfile)
+        with mock.patch.multiple(
+            "cardinal_pythonlib.extract_text",
+            openMsg=mock_openmsg,
+        ):
+            self.config.width = 0
+            converted = convert_msg_to_text(dummy_filename, config=self.config)
+
+        self.assertEqual(converted.strip(), content)
