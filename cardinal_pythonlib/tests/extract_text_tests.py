@@ -700,7 +700,7 @@ class ConvertMsgToTextTests(ExtractTextTestCase):
         mock_attachment = mock.Mock(
             # null termination seen in the real world
             # https://github.com/TeamMsgExtractor/msg-extractor/issues/464
-            extension=".docx",
+            extension=".docx\x00",
             data=BytesIO(docx).read(),
         )
         mock_msgfile = mock.Mock(
