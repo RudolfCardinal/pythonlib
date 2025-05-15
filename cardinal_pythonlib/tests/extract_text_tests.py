@@ -602,14 +602,21 @@ class ConvertMsgToTextTests(ExtractTextTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.dummy_filename = "dummy_filename.msg"
+        self.dummy_blob = b"dummy blob"
 
-    def test_blob_not_supported(self) -> None:
+    def test_raises_when_no_filename_or_blob(self) -> None:
         with self.assertRaises(ValueError) as cm:
-            convert_msg_to_text(blob=b"foo")
+            convert_msg_to_text()
 
-        self.assertIn("Blob not currently supported", str(cm.exception))
+        self.assertIn("no filename and no blob", str(cm.exception))
 
-    def test_file_opened_with_attachments(self) -> None:
+    def test_raises_when_filename_and_blob(self) -> None:
+        with self.assertRaises(ValueError) as cm:
+            convert_msg_to_text(filename="foo", blob=b"bar")
+
+        self.assertIn("specify either filename or blob", str(cm.exception))
+
+    def test_blob_passed_to_openmsg(self) -> None:
         content = self.fake.paragraph(nb_sentences=10)
 
         mock_msgfile = mock.Mock(body=content, htmlBody=None, attachments=[])
@@ -618,7 +625,23 @@ class ConvertMsgToTextTests(ExtractTextTestCase):
             "cardinal_pythonlib.extract_text",
             openMsg=mock_openmsg,
         ):
-            convert_msg_to_text(self.dummy_filename, config=self.config)
+            convert_msg_to_text(blob=self.dummy_blob, config=self.config)
+
+        expected_calls = [mock.call(self.dummy_blob, delayAttachments=False)]
+        mock_openmsg.assert_has_calls(expected_calls)
+
+    def test_file_passed_to_openmsg(self) -> None:
+        content = self.fake.paragraph(nb_sentences=10)
+
+        mock_msgfile = mock.Mock(body=content, htmlBody=None, attachments=[])
+        mock_openmsg = mock.Mock(return_value=mock_msgfile)
+        with mock.patch.multiple(
+            "cardinal_pythonlib.extract_text",
+            openMsg=mock_openmsg,
+        ):
+            convert_msg_to_text(
+                filename=self.dummy_filename, config=self.config
+            )
 
         expected_calls = [
             mock.call(self.dummy_filename, delayAttachments=False)
@@ -635,7 +658,7 @@ class ConvertMsgToTextTests(ExtractTextTestCase):
             openMsg=mock_openmsg,
         ):
             converted = convert_msg_to_text(
-                self.dummy_filename, config=self.config
+                filename=self.dummy_filename, config=self.config
             )
 
         self.assertEqual(converted, content)
@@ -662,7 +685,7 @@ class ConvertMsgToTextTests(ExtractTextTestCase):
             openMsg=mock_openmsg,
         ):
             converted = convert_msg_to_text(
-                self.dummy_filename, config=self.config
+                filename=self.dummy_filename, config=self.config
             )
 
         self.assertEqual(converted.strip(), content)

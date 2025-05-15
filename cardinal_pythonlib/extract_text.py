@@ -1336,10 +1336,19 @@ def convert_msg_to_text(
 ) -> str:
     message_content_list: list[str] = []
 
-    if blob is not None:
-        raise ValueError("Blob not currently supported for Outlook msg format")
+    if not filename and blob is None:
+        raise ValueError("convert_msg_to_text: no filename and no blob")
+    if filename and blob:
+        raise ValueError(
+            "convert_msg_to_text: specify either filename or blob"
+        )
 
-    message = openMsg(filename, delayAttachments=False)
+    if blob is not None:
+        filename_or_blob = blob
+    else:
+        filename_or_blob = filename
+
+    message = openMsg(filename_or_blob, delayAttachments=False)
     for message_content in _gen_msg_content(message, config=config):
         if message_content_list is not None:
             message_content_list.append(message_content)
