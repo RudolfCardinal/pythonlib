@@ -677,7 +677,7 @@ class ConvertMsgToTextTests(ExtractTextTestCase):
         mock_attachment = mock.Mock(
             # null termination seen in the real world
             # https://github.com/TeamMsgExtractor/msg-extractor/issues/464
-            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document\x00",  # noqa: E501
+            extension=".docx",
             data=BytesIO(docx).read(),
         )
         mock_msgfile = mock.Mock(

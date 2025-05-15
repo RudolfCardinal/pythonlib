@@ -1362,8 +1362,7 @@ def _gen_msg_content(
     for attachment in message.attachments:
         # null termination seen in the real world
         # https://github.com/TeamMsgExtractor/msg-extractor/issues/464
-        content_type = attachment.mimetype.replace("\x00", "")
-        ext = guess_extension(content_type)
+        ext = attachment.extension.replace("\x00", "")
         if ext is not None and ext in ext_map:
             yield document_to_text(
                 blob=attachment.data, extension=ext, config=config
