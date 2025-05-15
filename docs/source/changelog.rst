@@ -903,7 +903,7 @@ Quick links:
   document converters (``.docx``, ``.pdf``, ``.odt`` etc.) to
   :func:`cardinal_pythonlib.extract_text.document_to_text`.
 
-**2.1.1**
+**2.1.1 (2025-05-15)**
 
 - Add support for Outlook ``.msg`` files with attachments processed by supported
   document converters (``.docx``, ``.pdf``, ``.odt`` etc.) to
