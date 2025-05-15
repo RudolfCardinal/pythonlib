@@ -116,13 +116,13 @@ class DocumentToTextTests(ExtractTextTestCase):
 
     def test_raises_when_filename_and_blob(self) -> None:
         with self.assertRaises(ValueError) as cm:
-            document_to_text(filename="foo", blob="bar")
+            document_to_text(filename="foo", blob=b"bar")
 
         self.assertIn("specify either filename or blob", str(cm.exception))
 
     def test_raises_when_blob_but_no_extension(self) -> None:
         with self.assertRaises(ValueError) as cm:
-            document_to_text(blob="bar")
+            document_to_text(blob=b"bar")
 
         self.assertIn("need extension hint for blob", str(cm.exception))
 
