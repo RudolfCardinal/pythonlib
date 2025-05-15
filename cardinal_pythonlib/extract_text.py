@@ -100,6 +100,7 @@ from typing import (
     Iterator,
     List,
     Optional,
+    TYPE_CHECKING,
 )
 from xml.etree import ElementTree as ElementTree
 import zipfile
@@ -107,6 +108,7 @@ import zipfile
 import bs4
 import chardet
 from chardet.universaldetector import UniversalDetector
+from extract_msg import openMsg
 import pdfminer  # pip install pdfminer.six
 import pdfminer.pdfinterp
 import pdfminer.converter
@@ -117,6 +119,8 @@ from semantic_version import Version
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
+if TYPE_CHECKING:
+    from extract_msg import MSGFile
 
 log = get_brace_style_log_with_null_handler(__name__)
 
@@ -1321,6 +1325,60 @@ def _get_email_content(
 
 
 # =============================================================================
+# MSG (Outlook binary format)
+# =============================================================================
+
+
+def convert_msg_to_text(
+    filename: str = None,
+    blob: bytes = None,
+    config: TextProcessingConfig = _DEFAULT_CONFIG,
+) -> str:
+    message_content_list: list[str] = []
+
+    if not filename and blob is None:
+        raise ValueError("convert_msg_to_text: no filename and no blob")
+    if filename and blob:
+        raise ValueError(
+            "convert_msg_to_text: specify either filename or blob"
+        )
+
+    if blob is not None:
+        filename_or_blob = blob
+    else:
+        filename_or_blob = filename
+
+    message = openMsg(filename_or_blob, delayAttachments=False)
+    for message_content in _gen_msg_content(message, config=config):
+        if message_content_list is not None:
+            message_content_list.append(message_content)
+
+    text = "\n".join(message_content_list)
+
+    return text
+
+
+def _gen_msg_content(
+    message: "MSGFile", config: TextProcessingConfig
+) -> Generator[Optional[str], None, None]:
+    if message.body is not None:
+        yield message.body
+    elif message.htmlBody is not None:
+        yield document_to_text(
+            blob=message.htmlBody, extension=".htm", config=config
+        )
+
+    for attachment in message.attachments:
+        # null termination seen in the real world
+        # https://github.com/TeamMsgExtractor/msg-extractor/issues/464
+        ext = attachment.extension.replace("\x00", "")
+        if ext is not None and ext in ext_map:
+            yield document_to_text(
+                blob=attachment.data, extension=ext, config=config
+            )
+
+
+# =============================================================================
 # Anything
 # =============================================================================
 
@@ -1371,12 +1429,7 @@ ext_map: dict[str, dict[str, Any]] = {
     ".htm": {CONVERTER: convert_html_to_text, AVAILABILITY: True},
     ".html": {CONVERTER: convert_html_to_text, AVAILABILITY: True},
     ".log": {CONVERTER: get_file_contents_text, AVAILABILITY: True},
-    # .msg is often Outlook binary, not text
-    #
-    # '.msg': {
-    #     CONVERTER: get_file_contents_text,
-    #     AVAILABILITY: True,
-    # },
+    ".msg": {CONVERTER: convert_msg_to_text, AVAILABILITY: True},
     ".odt": {CONVERTER: convert_odt_to_text, AVAILABILITY: True},
     ".pdf": {CONVERTER: convert_pdf_to_txt, AVAILABILITY: availability_pdf},
     ".rtf": {CONVERTER: convert_rtf_to_text, AVAILABILITY: availability_rtf},

@@ -53,6 +53,7 @@ REQUIREMENTS = [
     "beautifulsoup4",  # "import bs4" or "from bs4 import ..."
     "chardet>=5.0.0",
     "colorlog",
+    "extract_msg",
     "isodate>=0.5.4",
     "numba",  # just-in-time compilation
     "numpy>=1.20.0,<2.0",  # 1.20.0 required for numpy.typing
