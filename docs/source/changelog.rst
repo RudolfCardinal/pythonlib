@@ -902,3 +902,9 @@ Quick links:
 - Add support for ``.eml`` files with attachments processed by supported
   document converters (``.docx``, ``.pdf``, ``.odt`` etc.) to
   :func:`cardinal_pythonlib.extract_text.document_to_text`.
+
+**2.1.1**
+
+- Add support for Outlook ``.msg`` files with attachments processed by supported
+  document converters (``.docx``, ``.pdf``, ``.odt`` etc.) to
+  :func:`cardinal_pythonlib.extract_text.document_to_text`.
