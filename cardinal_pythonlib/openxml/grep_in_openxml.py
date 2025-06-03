@@ -42,19 +42,19 @@ import multiprocessing
 import os
 import re
 from sys import argv, getdefaultencoding, stdin
-from typing import Pattern
+from typing import Pattern, Union
+from xml.etree import ElementTree
 from zipfile import BadZipFile, ZipFile
 import zlib
 
 from rich_argparse import RawDescriptionRichHelpFormatter
 
 from cardinal_pythonlib.logs import (
-    BraceStyleAdapter,
     main_only_quicksetup_rootlogger,
 )
 from cardinal_pythonlib.fileops import gen_filenames
 
-log = BraceStyleAdapter(logging.getLogger(__name__))
+log = logging.getLogger(__name__)
 
 
 def report_hit_filename(
@@ -87,7 +87,10 @@ def report_miss_filename(zipfilename: str) -> None:
 
 
 def report_line(
-    zipfilename: str, contentsfilename: str, line: str, show_inner_file: bool
+    zipfilename: str,
+    contentsfilename: str,
+    line: Union[bytes, str],
+    show_inner_file: bool,
 ) -> None:
     """
     Prints a line from a file, with the ``.zip`` filename and optionally also
@@ -113,6 +116,7 @@ def parse_zip(
     files_with_matches: bool,
     files_without_match: bool,
     grep_inner_file_name: bool,
+    grep_raw_text: bool,
     show_inner_file: bool,
 ) -> None:
     """
@@ -120,83 +124,168 @@ def parse_zip(
     is by definition a ``.zip`` file.
 
     Args:
-        zipfilename: name of the OpenXML (zip) file
-        regex: regular expression to match
-        invert_match: find files that do NOT match, instead of ones that do?
-        files_with_matches: show filenames of files with a match?
-        files_without_match: show filenames of files with no match?
-        grep_inner_file_name: search the names of "inner" files, rather than
-            their contents?
-        show_inner_file: show the names of the "inner" files, not just the
-            "outer" (OpenXML) file?
+        zipfilename:
+            Name of the OpenXML (zip) file.
+        regex:
+            Regular expression to match.
+        invert_match:
+            Find files that do NOT match, instead of ones that do?
+        files_with_matches:
+            Show filenames of OpenXML (zip) files with a match?
+        files_without_match:
+            Show filenames of OpenXML (zip) files with no match?
+        grep_inner_file_name:
+            Search the names of "inner" files, rather than their contents?
+        grep_raw_text:
+            Search the raw text, not the XML node text contents.
+        show_inner_file:
+            Show the names of the "inner" files, not just the "outer" (OpenXML)
+            file?
     """
+    # Check arguments
     assert not (files_without_match and files_with_matches)
-    report_lines = (not files_without_match) and (not files_with_matches)
-    report_hit_lines = report_lines and not invert_match
-    report_miss_lines = report_lines and invert_match
-    log.debug("Checking ZIP: " + zipfilename)
+    assert not (grep_inner_file_name and grep_raw_text)
+
+    # Precalculate some reporting flags
+    _report_lines = (not files_without_match) and (not files_with_matches)
+    report_hit_lines = _report_lines and not invert_match
+    report_miss_lines = _report_lines and invert_match
+
+    log.debug(f"Checking OpenXML ZIP: {zipfilename}")
     found_in_zip = False
+    # ... Have we found something in this zip file? May be used for early
+    #     abort.
+
+    def _report(
+        _found_in_zip: bool,
+        _found_locally: bool,
+        _contentsfilename: str,
+        _to_report: Union[bytes, str],
+    ) -> bool:
+        """
+        Reporting function. This gets called more often than you might think,
+        including for lines that do not need reporting, but this is to simplify
+        the handling of "invert_match" (which may require all non-match lines
+        to be reported).
+
+        Arguments:
+            _found_in_zip:
+                Have we found a match in this ZIP file?
+            _found_locally:
+                Have we found a match in a current line?
+            _contentsfilename:
+                The name of the inner file we are currently searching.
+            _to_report:
+                The text (usually a line, possibly the inner filename) that
+                should be reported, if we report something. It might be
+                matching text, or non-matching text.
+
+        Returns:
+            Ae we done for this ZIP file (should the outer function return)?
+        """
+        if files_with_matches and _found_in_zip:
+            report_hit_filename(
+                zipfilename, _contentsfilename, show_inner_file
+            )
+            return True
+        if (report_hit_lines and _found_locally) or (
+            report_miss_lines and not _found_locally
+        ):
+            report_line(
+                zipfilename,
+                _contentsfilename,
+                _to_report,
+                show_inner_file,
+            )
+        return False
+
     try:
         with ZipFile(zipfilename, "r") as zf:
+            # Iterate through inner files
             for contentsfilename in zf.namelist():
-                log.debug("... checking file: " + contentsfilename)
+                log.debug(f"... checking inner file: {contentsfilename}")
                 if grep_inner_file_name:
+                    # ---------------------------------------------------------
+                    # Search the (inner) filename
+                    # ---------------------------------------------------------
+                    log.debug("... ... searching filename")
                     found_in_filename = bool(regex.search(contentsfilename))
                     found_in_zip = found_in_zip or found_in_filename
-                    if files_with_matches and found_in_zip:
-                        report_hit_filename(
-                            zipfilename, contentsfilename, show_inner_file
-                        )
+                    done = _report(
+                        _found_in_zip=found_in_zip,
+                        _found_locally=found_in_filename,
+                        _contentsfilename=contentsfilename,
+                        _to_report=contentsfilename,
+                    )
+                    if done:
                         return
-                    if (report_hit_lines and found_in_filename) or (
-                        report_miss_lines and not found_in_filename
-                    ):
-                        report_line(
-                            zipfilename,
-                            contentsfilename,
-                            contentsfilename,
-                            show_inner_file,
-                        )
-                else:
+                elif grep_raw_text:
+                    # ---------------------------------------------------------
+                    # Search textually, line by line
+                    # ---------------------------------------------------------
+                    # log.debug("... ... searching plain text")
                     try:
                         with zf.open(contentsfilename, "r") as file:
                             try:
                                 for line in file.readlines():
-                                    # log.debug("line: {!r}", line)
+                                    # "line" is of type "bytes"
                                     found_in_line = bool(regex.search(line))
                                     found_in_zip = (
                                         found_in_zip or found_in_line
                                     )
-                                    if files_with_matches and found_in_zip:
-                                        report_hit_filename(
-                                            zipfilename,
-                                            contentsfilename,
-                                            show_inner_file,
-                                        )
+                                    done = _report(
+                                        _found_in_zip=found_in_zip,
+                                        _found_locally=found_in_line,
+                                        _contentsfilename=contentsfilename,
+                                        _to_report=line,
+                                    )
+                                    if done:
                                         return
-                                    if (
-                                        report_hit_lines and found_in_line
-                                    ) or (
-                                        report_miss_lines and not found_in_line
-                                    ):
-                                        report_line(
-                                            zipfilename,
-                                            contentsfilename,
-                                            line,
-                                            show_inner_file,
-                                        )
                             except EOFError:
                                 pass
                     except RuntimeError as e:
                         log.warning(
-                            "RuntimeError whilst processing {} [{}]: probably "
-                            "encrypted contents; error was {!r}",
-                            zipfilename,
-                            contentsfilename,
-                            e,
+                            f"RuntimeError whilst processing {zipfilename} "
+                            f"[{contentsfilename}]: probably encrypted "
+                            f"contents; error was {e!r}"
+                        )
+                else:
+                    # ---------------------------------------------------------
+                    # Search the text contents of XML
+                    # ---------------------------------------------------------
+                    # log.debug("... ... searching XML contents")
+                    try:
+                        with zf.open(contentsfilename, "r") as file:
+                            data_str = file.read()
+                            try:
+                                tree = ElementTree.fromstring(data_str)
+                            except ElementTree.ParseError:
+                                log.debug(
+                                    f"... ... skipping (not XML): "
+                                    f"{contentsfilename}"
+                                )
+                            for elem in tree.iter():
+                                line = elem.text
+                                if not line:
+                                    continue
+                                found_in_line = bool(regex.search(line))
+                                found_in_zip = found_in_zip or found_in_line
+                                done = _report(
+                                    _found_in_zip=found_in_zip,
+                                    _found_locally=found_in_line,
+                                    _contentsfilename=contentsfilename,
+                                    _to_report=line,
+                                )
+                                if done:
+                                    return
+                    except RuntimeError as e:
+                        log.warning(
+                            f"RuntimeError whilst processing {zipfilename} "
+                            f"[{contentsfilename}]: probably encrypted "
+                            f"contents; error was {e!r}"
                         )
     except (zlib.error, BadZipFile) as e:
-        log.debug("Invalid zip: {}; error was {!r}", zipfilename, e)
+        log.debug(f"Invalid zip: {zipfilename}; error was {e!r}")
     if files_without_match and not found_in_zip:
         report_miss_filename(zipfilename)
 
@@ -275,6 +364,11 @@ CHAINING. Note that you can chain. For example, to find both "Laurel" and
         help="Search the NAMES of the inner files, not their contents.",
     )
     parser.add_argument(
+        "--grep_raw_text",
+        action="store_true",
+        help="Search the raw text, not the XML node text contents.",
+    )
+    parser.add_argument(
         "--show_inner_file",
         action="store_true",
         help="For hits, show the filenames of inner files, within each ZIP.",
@@ -303,45 +397,61 @@ CHAINING. Note that you can chain. For example, to find both "Laurel" and
             "command line, but not both"
         )
 
+    if args.grep_raw_text and args.grep_inner_file_name:
+        raise ValueError(
+            "Can't specify both --grep_raw_text and --grep_inner_file_name"
+        )
+
     # Compile regular expression
-    if args.grep_inner_file_name:
-        final_pattern = args.pattern
-    else:
+    if args.grep_raw_text:
+        # Create a regex for type: bytes
         encoding = getdefaultencoding()
         final_pattern = args.pattern.encode(encoding)
+    else:
+        # Create a regex for type: str
+        final_pattern = args.pattern
     flags = re.IGNORECASE if args.ignore_case else 0
     log.debug(
-        "Using regular expression {!r} with flags {!r}", final_pattern, flags
+        f"Using regular expression {final_pattern!r} with flags {flags!r}"
     )
     regex = re.compile(final_pattern, flags)
 
-    # Set up pool for parallel processing
-    pool = multiprocessing.Pool(processes=args.nprocesses)
-
     # Iterate through files
+    # - Common arguments
     parse_kwargs = dict(
         regex=regex,
         invert_match=args.invert_match,
         files_with_matches=args.files_with_matches,
         files_without_match=args.files_without_match,
         grep_inner_file_name=args.grep_inner_file_name,
+        grep_raw_text=args.grep_raw_text,
         show_inner_file=args.show_inner_file,
     )
+    # - Filenames, as iterator
     if args.filenames_from_stdin:
-        for line in stdin.readlines():
-            zipfilename = line.strip()
-            parallel_kwargs = {"zipfilename": zipfilename}
-            parallel_kwargs.update(**parse_kwargs)
-            pool.apply_async(parse_zip, [], parallel_kwargs)
+        zipfilename_it = (line.strip() for line in stdin.readlines())
     else:
-        for zipfilename in gen_filenames(
+        zipfilename_it = gen_filenames(
             starting_filenames=args.filename, recursive=args.recursive
-        ):
-            parallel_kwargs = {"zipfilename": zipfilename}
-            parallel_kwargs.update(**parse_kwargs)
-            pool.apply_async(parse_zip, [], parallel_kwargs)
+        )
+    # - Combined arguments, as iterator
+    arg_it = (
+        dict(zipfilename=zipfilename, **parse_kwargs)
+        for zipfilename in zipfilename_it
+    )
+    # - Set up pool for parallel processing
+    pool = multiprocessing.Pool(processes=args.nprocesses)
+    # - Launch in parallel
+    jobs = [pool.apply_async(parse_zip, [], kwargs) for kwargs in arg_it]
+    # - Stop entry to the pool (close) and wait for children (join).
+    #   https://stackoverflow.com/questions/38271547/
     pool.close()
     pool.join()
+    # - Collect results, re-raising any exceptions.
+    #   (Otherwise they will be invisible.)
+    #   https://stackoverflow.com/questions/6728236/
+    for j in jobs:
+        j.get()
 
 
 if __name__ == "__main__":
