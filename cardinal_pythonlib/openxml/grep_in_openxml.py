@@ -78,13 +78,13 @@ class GrepMode:
         ignore_case: bool = False,
         search_mode: Optional[GrepSearchSubstrate] = None,
         search_raw_text: bool = False,
-        search_inner_file_name: bool = False,
+        search_inner_filename: bool = False,
         report_mode: Optional[GrepReportContent] = None,
         report_invert_match: bool = False,
         report_files_with_matches: bool = False,
         report_files_without_match: bool = False,
-        report_no_filename: bool = False,
-        report_inner_filename: bool = False,
+        display_no_filename: bool = False,
+        display_inner_filename: bool = False,
     ) -> None:
         """
         Args:
@@ -98,8 +98,8 @@ class GrepMode:
             search_raw_text:
                 Boolean flag alternative to search_mode. Search raw text
                 (rather than the default of XML node text)? (Cannot be combined
-                with search_mode, or search_inner_file_name.)
-            search_inner_file_name:
+                with search_mode, or search_inner_filename.)
+            search_inner_filename:
                 Boolean flag alternative to search_mode. Search inner filename
                 (rather than the default of XML node text)? (Cannot be combined
                 with search_mode, or search_raw_text.)
@@ -120,29 +120,29 @@ class GrepMode:
                 files without matches. (Cannot be combined with invert_match or
                 report_files_with_matches.)
 
-            report_no_filename:
+            display_no_filename:
                 For hits, omit the filename of the OpenXML (ZIP) file.
-            report_inner_filename:
+            display_inner_filename:
                 For hits, show the filenames of inner files, within each
                 OpenXML (ZIP) file.
         """
         # self.search_mode: what to search
         if search_mode is not None:
-            if search_raw_text or search_inner_file_name:
+            if search_raw_text or search_inner_filename:
                 raise ValueError(
-                    "Can't specify grep_raw_text or grep_inner_file_name "
-                    "if you specify text_mode"
+                    "Can't specify search_raw_text or search_inner_filename "
+                    "if you specify search_mode"
                 )
             self.search_mode = search_mode
         else:
-            if search_raw_text and search_inner_file_name:
+            if search_raw_text and search_inner_filename:
                 raise ValueError(
-                    "Can't specify both 'grep_raw_text' and "
-                    "'grep_inner_file_name' options"
+                    "Can't specify both 'search_raw_text' and "
+                    "'search_inner_filename' options"
                 )
             if search_raw_text:
                 self.search_mode = GrepSearchSubstrate.RAW_TEXT
-            elif search_inner_file_name:
+            elif search_inner_filename:
                 self.search_mode = GrepSearchSubstrate.INNER_FILENAME
             else:
                 # Default is nothing is specified
@@ -174,14 +174,15 @@ class GrepMode:
         if report_mode is not None:
             if n_report_booleans > 0:
                 raise ValueError(
-                    "Can't specify invert_match, report_files_with_matches, "
-                    "or report_files_without_match if you specify report_mode"
+                    "Can't specify report_invert_match, "
+                    "report_files_with_matches, or report_files_without_match "
+                    "if you specify report_mode"
                 )
             self.report_mode = report_mode
         else:
             if n_report_booleans > 1:
                 raise ValueError(
-                    "Specify at most one of: invert_match, "
+                    "Specify at most one of: report_invert_match, "
                     "report_files_with_matches, report_files_without_match"
                 )
             if report_invert_match:
@@ -194,8 +195,8 @@ class GrepMode:
                 # default
                 self.report_mode = GrepReportContent.CONTENTS_MATCHING
 
-        self.report_no_filename = report_no_filename
-        self.report_inner_filename = report_inner_filename
+        self.display_no_filename = display_no_filename
+        self.display_inner_filename = display_inner_filename
 
     def __repr__(self) -> str:
         return (
@@ -203,8 +204,8 @@ class GrepMode:
             f"ignore_case={self.ignore_case}, "
             f"search_mode={self.search_mode}, "
             f"report_mode={self.report_mode}, "
-            f"report_no_filename={self.report_no_filename}, "
-            f"report_inner_filename={self.report_inner_filename})"
+            f"display_no_filename={self.display_no_filename}, "
+            f"display_inner_filename={self.display_inner_filename})"
         )
 
     def __str__(self) -> str:
@@ -232,7 +233,7 @@ class GrepMode:
 
 
 def report_hit_filename(
-    zipfilename: str, contentsfilename: str, show_inner_file: bool
+    zipfilename: str, inner_filename: str, display_inner_filename: bool
 ) -> None:
     """
     For "hits": prints either the ``.zip`` filename, or the ``.zip`` filename
@@ -241,14 +242,14 @@ def report_hit_filename(
     Args:
         zipfilename:
             Filename of the outer OpenXML/zip file.
-        contentsfilename:
+        inner_filename:
             Filename of the inner file.
-        show_inner_file:
+        display_inner_filename:
             If True, show both outer and inner filename; if False, show just
             the outer (OpenXML/zip) filename.
     """
-    if show_inner_file:
-        print(f"{zipfilename} [{contentsfilename}]")
+    if display_inner_filename:
+        print(f"{zipfilename} [{inner_filename}]")
     else:
         print(zipfilename)
 
@@ -262,10 +263,10 @@ def report_miss_filename(zipfilename: str) -> None:
 
 def report_line(
     zipfilename: str,
-    contentsfilename: str,
+    inner_filename: str,
     line: Union[bytes, str],
-    no_filename: bool,
-    inner_filename: bool,
+    display_no_filename: bool,
+    display_inner_filename: bool,
 ) -> None:
     """
     Prints a line from a file, with the ``.zip`` filename and optionally also
@@ -274,29 +275,26 @@ def report_line(
     Args:
         zipfilename:
             Filename of the ``.zip`` file.
-        contentsfilename:
+        inner_filename:
             Filename of the inner file.
         line:
             The line from the inner file.
-        no_filename:
+        display_no_filename:
             Skip display of the outer filename.
-        inner_filename:
+        display_inner_filename:
             (Only applicable if no_filename is False.) If True, show both
             outer and inner filename; if False, show just the outer
             (OpenXML/zip) filename.
     """
-    if no_filename:
+    if display_no_filename:
         print(line)
-    elif inner_filename:
-        print(f"{zipfilename} [{contentsfilename}]: {line}")
+    elif display_inner_filename:
+        print(f"{zipfilename} [{inner_filename}]: {line}")
     else:
         print(f"{zipfilename}: {line}")
 
 
-def parse_zip(
-    zipfilename: str,
-    mode: GrepMode,
-) -> None:
+def parse_zip(zipfilename: str, mode: GrepMode) -> None:
     """
     Implement a "grep within an OpenXML file" for a single OpenXML file, which
     is by definition a ``.zip`` file.
@@ -307,7 +305,6 @@ def parse_zip(
         mode:
             Object configuring grep-type mode.
     """
-
     log.debug(f"Checking OpenXML ZIP: {zipfilename}")
 
     # Cache for speed:
@@ -316,8 +313,8 @@ def parse_zip(
     report_files_with_matches = mode.report_files_with_matches
     report_hit_lines = mode.report_hit_lines
     report_miss_lines = mode.report_miss_lines
-    report_no_filename = mode.report_no_filename
-    report_inner_filename = mode.report_inner_filename
+    display_no_filename = mode.display_no_filename
+    display_inner_filename = mode.display_inner_filename
 
     # Local data:
     found_in_zip = False
@@ -325,7 +322,7 @@ def parse_zip(
 
     def _report(
         _found_locally: bool,
-        _contentsfilename: str,
+        _innerfilename: str,
         _to_report: Union[bytes, str],
     ) -> bool:
         """
@@ -337,7 +334,7 @@ def parse_zip(
         Arguments:
             _found_locally:
                 Have we found a match in a current line?
-            _contentsfilename:
+            _innerfilename:
                 The name of the inner file we are currently searching.
             _to_report:
                 The text (usually a line, possibly the inner filename) that
@@ -350,8 +347,8 @@ def parse_zip(
         if report_files_with_matches and found_in_zip:
             report_hit_filename(
                 zipfilename=zipfilename,
-                contentsfilename=_contentsfilename,
-                show_inner_file=report_inner_filename,
+                inner_filename=_innerfilename,
+                display_inner_filename=display_inner_filename,
             )
             return True
         if (report_hit_lines and _found_locally) or (
@@ -359,95 +356,117 @@ def parse_zip(
         ):
             report_line(
                 zipfilename=zipfilename,
-                contentsfilename=_contentsfilename,
+                inner_filename=_innerfilename,
                 line=_to_report,
-                no_filename=report_no_filename,
-                inner_filename=report_inner_filename,
+                display_no_filename=display_no_filename,
+                display_inner_filename=display_inner_filename,
             )
         return False
 
+    def _search_inner_file(zf: ZipFile, innerfilename: str) -> bool:
+        """
+        Deal with a single inner file.
+
+        Arguments:
+            zf:
+                zip file
+            innerfilename:
+                inner filename
+
+        Returns:
+            Ae we done for this ZIP file (should the outer function return)?
+        """
+        nonlocal found_in_zip
+        if search_mode == GrepSearchSubstrate.INNER_FILENAME:
+            # -----------------------------------------------------------------
+            # Search the (inner) filename
+            # -----------------------------------------------------------------
+            # log.debug("... ... searching filename")
+            found_in_filename = bool(regex_search(innerfilename))
+            found_in_zip |= found_in_filename
+            done = _report(
+                _found_locally=found_in_filename,
+                _innerfilename=innerfilename,
+                _to_report=innerfilename,
+            )
+            return done
+
+        if search_mode == GrepSearchSubstrate.RAW_TEXT:
+            # -----------------------------------------------------------------
+            # Search textually, line by line
+            # ---------------------------------------------------------
+            # log.debug("... ... searching plain text")
+            try:
+                with zf.open(innerfilename, "r") as file:
+                    try:
+                        for line in file.readlines():
+                            # "line" is of type "bytes"
+                            found_in_line = bool(regex_search(line))
+                            found_in_zip |= found_in_line
+                            done = _report(
+                                _found_locally=found_in_line,
+                                _innerfilename=innerfilename,
+                                _to_report=line,
+                            )
+                            if done:
+                                return True
+                    except EOFError:
+                        pass
+            except RuntimeError as e:
+                log.warning(
+                    f"RuntimeError whilst processing {zipfilename} "
+                    f"[{innerfilename}]: probably encrypted contents; "
+                    f"error was {e!r}"
+                )
+        else:
+            # -----------------------------------------------------------------
+            # Search the text contents of XML
+            # -----------------------------------------------------------------
+            # log.debug("... ... searching XML contents")
+            try:
+                with zf.open(innerfilename, "r") as file:
+                    data_str = file.read()
+                    try:
+                        tree = ElementTree.fromstring(data_str)
+                    except ElementTree.ParseError:
+                        log.debug(
+                            f"... ... skipping (not XML): " f"{innerfilename}"
+                        )
+                        return False
+                    for elem in tree.iter():
+                        line = elem.text
+                        if not line:
+                            continue
+                        found_in_line = bool(regex_search(line))
+                        found_in_zip |= found_in_line
+                        done = _report(
+                            _found_locally=found_in_line,
+                            _innerfilename=innerfilename,
+                            _to_report=line,
+                        )
+                        if done:
+                            return True
+            except RuntimeError as e:
+                log.warning(
+                    f"RuntimeError whilst processing {zipfilename} "
+                    f"[{innerfilename}]: probably encrypted contents; "
+                    f"error was {e!r}"
+                )
+        return False
+
+    # Process the zip file
     try:
-        with ZipFile(zipfilename, "r") as zf:
+        with ZipFile(zipfilename, "r") as _zf:
             # Iterate through inner files
-            for contentsfilename in zf.namelist():
-                log.debug(f"... checking inner file: {contentsfilename}")
-                if search_mode == GrepSearchSubstrate.INNER_FILENAME:
-                    # ---------------------------------------------------------
-                    # Search the (inner) filename
-                    # ---------------------------------------------------------
-                    # log.debug("... ... searching filename")
-                    found_in_filename = bool(regex_search(contentsfilename))
-                    found_in_zip |= found_in_filename
-                    done = _report(
-                        _found_locally=found_in_filename,
-                        _contentsfilename=contentsfilename,
-                        _to_report=contentsfilename,
-                    )
-                    if done:
-                        return
-                elif search_mode == GrepSearchSubstrate.RAW_TEXT:
-                    # ---------------------------------------------------------
-                    # Search textually, line by line
-                    # ---------------------------------------------------------
-                    # log.debug("... ... searching plain text")
-                    try:
-                        with zf.open(contentsfilename, "r") as file:
-                            try:
-                                for line in file.readlines():
-                                    # "line" is of type "bytes"
-                                    found_in_line = bool(regex_search(line))
-                                    found_in_zip |= found_in_line
-                                    done = _report(
-                                        _found_locally=found_in_line,
-                                        _contentsfilename=contentsfilename,
-                                        _to_report=line,
-                                    )
-                                    if done:
-                                        return
-                            except EOFError:
-                                pass
-                    except RuntimeError as e:
-                        log.warning(
-                            f"RuntimeError whilst processing {zipfilename} "
-                            f"[{contentsfilename}]: probably encrypted "
-                            f"contents; error was {e!r}"
-                        )
-                else:
-                    # ---------------------------------------------------------
-                    # Search the text contents of XML
-                    # ---------------------------------------------------------
-                    # log.debug("... ... searching XML contents")
-                    try:
-                        with zf.open(contentsfilename, "r") as file:
-                            data_str = file.read()
-                            try:
-                                tree = ElementTree.fromstring(data_str)
-                            except ElementTree.ParseError:
-                                log.debug(
-                                    f"... ... skipping (not XML): "
-                                    f"{contentsfilename}"
-                                )
-                            for elem in tree.iter():
-                                line = elem.text
-                                if not line:
-                                    continue
-                                found_in_line = bool(regex_search(line))
-                                found_in_zip |= found_in_line
-                                done = _report(
-                                    _found_locally=found_in_line,
-                                    _contentsfilename=contentsfilename,
-                                    _to_report=line,
-                                )
-                                if done:
-                                    return
-                    except RuntimeError as e:
-                        log.warning(
-                            f"RuntimeError whilst processing {zipfilename} "
-                            f"[{contentsfilename}]: probably encrypted "
-                            f"contents; error was {e!r}"
-                        )
-    except (zlib.error, BadZipFile) as e:
-        log.debug(f"Invalid zip: {zipfilename}; error was {e!r}")
+            for _innerfilename in _zf.namelist():
+                log.debug(f"... checking inner file: {_innerfilename}")
+                zip_done = _search_inner_file(_zf, _innerfilename)
+                if zip_done:
+                    return
+    except (zlib.error, BadZipFile) as exc:
+        log.warning(f"Invalid zip: {zipfilename}; error was {exc!r}")
+    except IsADirectoryError:
+        log.warning(f"Skipping directory: {zipfilename}")
     if mode.report_files_without_match and not found_in_zip:
         report_miss_filename(zipfilename)
 
@@ -478,7 +497,7 @@ directly, specifying a directory and "--recursive", as in
 CHAINING. Note that you can chain. For example, to find both "Laurel" and
 "Hardy" in DOC/DOCX documents, in case-insensitive fashion:
 
-    find . -type f -name "*.doc*" -exec {exe_name} -l -i "laurel" {{}} \; | {exe_name} -x -l -i "hardy"
+    find . -type f -iname "*.doc*" -exec {exe_name} -l -i "laurel" {{}} \; | {exe_name} -x -l -i "hardy"
 """,  # noqa: E501
     )
     parser.add_argument("pattern", help="Regular expression pattern to apply.")
@@ -586,12 +605,12 @@ CHAINING. Note that you can chain. For example, to find both "Laurel" and
         pattern=args.pattern,
         ignore_case=args.ignore_case,
         search_raw_text=args.grep_raw_text,
-        search_inner_file_name=args.grep_inner_file_name,
+        search_inner_filename=args.grep_inner_file_name,
         report_invert_match=args.invert_match,
         report_files_with_matches=args.files_with_matches,
         report_files_without_match=args.files_without_match,
-        report_no_filename=args.no_filename,
-        report_inner_filename=args.show_inner_filename,
+        display_no_filename=args.no_filename,
+        display_inner_filename=args.show_inner_filename,
     )
     log.debug(f"Mode: {mode}")
 
@@ -600,7 +619,8 @@ CHAINING. Note that you can chain. For example, to find both "Laurel" and
     common_kwargs = dict(mode=mode)
     # - Filenames, as iterator
     if args.filenames_from_stdin:
-        zipfilename_it = (line.strip() for line in stdin.readlines())
+        line_it = (line.strip() for line in stdin.readlines())
+        zipfilename_it = filter(None, line_it)  # remove any blanks
     else:
         zipfilename_it = gen_filenames(
             starting_filenames=args.filename, recursive=args.recursive
