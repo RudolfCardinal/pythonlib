@@ -342,7 +342,7 @@ def parse_zip(zipfilename: str, mode: GrepMode) -> None:
                 matching text, or non-matching text.
 
         Returns:
-            Ae we done for this ZIP file (should the outer function return)?
+            Are we done for this ZIP file (should the outer function return)?
         """
         if report_files_with_matches and found_in_zip:
             report_hit_filename(
