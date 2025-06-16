@@ -374,7 +374,7 @@ def parse_zip(zipfilename: str, mode: GrepMode) -> None:
                 inner filename
 
         Returns:
-            Ae we done for this ZIP file (should the outer function return)?
+            Are we done for this ZIP file (should the outer function return)?
         """
         nonlocal found_in_zip
         if search_mode == GrepSearchSubstrate.INNER_FILENAME:
