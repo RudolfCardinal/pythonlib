@@ -217,6 +217,26 @@ class DocumentToTextTests(ExtractTextTestCase):
         )
         self.assertEqual(text.strip(), content)
 
+    def test_htm_file_converted(self) -> None:
+        content = self.fake.paragraph(nb_sentences=10)
+
+        html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+{content}
+</body>
+</html>
+"""
+        with NamedTemporaryFile(suffix=".htm", delete=False) as temp_file:
+            temp_file.write(html.encode("utf-8"))
+            temp_file.close()
+            text = document_to_text(filename=temp_file.name)
+
+        self.assertEqual(text.strip(), content)
+
     def test_empty_htm_converted(self) -> None:
         text = document_to_text(
             blob="".encode("utf-8"), extension="htm", config=self.config
