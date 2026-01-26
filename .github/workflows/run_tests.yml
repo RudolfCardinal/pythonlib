@@ -25,6 +25,10 @@ jobs:
                   python-version: ${{ matrix.python-version }}
             - name: Change apt mirror
               run: ${GITHUB_WORKSPACE}/.github/scripts/change_apt_mirror.sh
+            - name: Install prerequisites
+              run: |
+                  set -euo pipefail
+                  sudo apt-get -y install libcairo2-dev pkg-config python3-dev
             - name: Create virtualenv
               run: ${GITHUB_WORKSPACE}/.github/scripts/create_virtualenv.sh
             - name: Install test Python packages
