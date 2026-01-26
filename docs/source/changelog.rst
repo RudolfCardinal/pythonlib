@@ -914,3 +914,6 @@ Quick links:
 - ``cardinalpythonlib_grep_in_openxml``: new facility to search XML node text
   (rather than raw file text), and this is now the default. Also, behind the
   scenes, exceptions in subprocesses are now reported.
+
+- Fix extraction of text from HTML files in
+  :func:`cardinal_pythonlib.extract_text.document_to_text`.
