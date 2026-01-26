@@ -1148,7 +1148,7 @@ def convert_html_to_text(
     # https://bugs.launchpad.net/beautifulsoup/+bug/2110492
     # beautifulsoup4==4.13.4 returns "b''" for an empty bytes array
     # So we just workaround this here:
-    if bytes is not None and len(blob) == 0:
+    if blob is not None and len(blob) == 0:
         return ""
 
     with get_filelikeobject(filename, blob) as fp:
