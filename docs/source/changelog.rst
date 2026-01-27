@@ -34,6 +34,7 @@ Quick links:
 - :ref:`2023 <changelog_2023>`
 - :ref:`2024 <changelog_2024>`
 - :ref:`2025 <changelog_2025>`
+- :ref:`2025 <changelog_2026>`
 
 
 .. _changelog_2017:
@@ -909,7 +910,7 @@ Quick links:
   document converters (``.docx``, ``.pdf``, ``.odt`` etc.) to
   :func:`cardinal_pythonlib.extract_text.document_to_text`.
 
-**2.1.2 (IN PROGRESS)**
+**2.1.2 (2026-01-27)**
 
 - ``cardinalpythonlib_grep_in_openxml``: new facility to search XML node text
   (rather than raw file text), and this is now the default. Also, behind the
@@ -917,3 +918,10 @@ Quick links:
 
 - Fix extraction of text from HTML files in
   :func:`cardinal_pythonlib.extract_text.document_to_text`.
+
+.. _changelog_2026:
+
+2026
+~~~~
+
+**2.1.3 (IN PROGRESS)**
