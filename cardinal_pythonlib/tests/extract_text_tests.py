@@ -33,6 +33,7 @@ import subprocess
 from tempfile import mkdtemp, NamedTemporaryFile
 from unittest import mock, TestCase
 
+from extract_msg import SignedAttachment
 from faker import Faker
 from faker_file.providers.docx_file import DocxFileProvider
 from faker_file.providers.eml_file import EmlFileProvider
@@ -736,7 +737,7 @@ class ConvertMsgToTextTests(ExtractTextTestCase):
 
         self.assertEqual(converted.strip(), content)
 
-    def test_attachment_with_no_extension_skipped(self) -> None:
+    def test_attachment_with_null_extension_skipped(self) -> None:
         self.fake.add_provider(DocxFileProvider)
 
         dummy_filename = "dummy_filename.msg"
@@ -745,6 +746,30 @@ class ConvertMsgToTextTests(ExtractTextTestCase):
         docx = self.fake.docx_file(content=content, raw=True)
         mock_attachment = mock.Mock(
             extension=None,
+            data=BytesIO(docx).read(),
+        )
+        mock_msgfile = mock.Mock(
+            body=None, htmlBody=None, attachments=[mock_attachment]
+        )
+        mock_openmsg = mock.Mock(return_value=mock_msgfile)
+        with mock.patch.multiple(
+            "cardinal_pythonlib.extract_text",
+            openMsg=mock_openmsg,
+        ):
+            self.config.width = 0
+            converted = convert_msg_to_text(dummy_filename, config=self.config)
+
+        self.assertEqual(converted.strip(), "")
+
+    def test_signed_attachment_with_no_extension_skipped(self) -> None:
+        self.fake.add_provider(DocxFileProvider)
+
+        dummy_filename = "dummy_filename.msg"
+
+        content = self.fake.paragraph(nb_sentences=10)
+        docx = self.fake.docx_file(content=content, raw=True)
+        mock_attachment = mock.Mock(
+            spec=SignedAttachment,
             data=BytesIO(docx).read(),
         )
         mock_msgfile = mock.Mock(
