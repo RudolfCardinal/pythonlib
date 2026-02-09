@@ -925,8 +925,10 @@ Quick links:
   :func:`cardinal_pythonlib.extract_text.document_to_text`.
 
 
-**2.1.3 (IN PROGRESS)**
+**2.1.3 (2026-02-09)**
 
 - Skip extraction of text from Outlook ``.msg`` files where the file extension
   is null or missing (SignedAttachment).
   :func:`cardinal_pythonlib.extract_text.document_to_text`.
+
+**2.1.4 (IN PROGRESS)**
