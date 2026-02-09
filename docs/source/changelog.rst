@@ -910,6 +910,11 @@ Quick links:
   document converters (``.docx``, ``.pdf``, ``.odt`` etc.) to
   :func:`cardinal_pythonlib.extract_text.document_to_text`.
 
+.. _changelog_2026:
+
+2026
+~~~~
+
 **2.1.2 (2026-01-27)**
 
 - ``cardinalpythonlib_grep_in_openxml``: new facility to search XML node text
@@ -919,9 +924,9 @@ Quick links:
 - Fix extraction of text from HTML files in
   :func:`cardinal_pythonlib.extract_text.document_to_text`.
 
-.. _changelog_2026:
-
-2026
-~~~~
 
 **2.1.3 (IN PROGRESS)**
+
+- Skip extraction of text from Outlook ``.msg`` files where the file extension
+  is null or missing (SignedAttachment).
+  :func:`cardinal_pythonlib.extract_text.document_to_text`.
