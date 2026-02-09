@@ -15,6 +15,9 @@ ${SYSTEM_PYTHON} -m venv "${VENV_DIR}"
 PYTHON=${VENV_DIR}/bin/python
 ${PYTHON} -VV
 ${PYTHON} -m site
-${PYTHON} -m pip install -U pip setuptools
+
+# ModuleNotFoundError: No module named 'pkg_resources' with later setuptools
+${PYTHON} -m pip install -U pip setuptools==80.3.1
+
 echo Dumping pre-installed packages
 ${PYTHON} -m pip freeze
