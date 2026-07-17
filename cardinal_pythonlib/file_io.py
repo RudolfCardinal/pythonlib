@@ -449,13 +449,16 @@ def remove_gzip_timestamp(
                 basezipfilename,
                 newzip,
             )
-            p1 = subprocess.Popen(
+            gunzip_popen = subprocess.Popen(
                 [gunzip_executable, "-c", filename], stdout=subprocess.PIPE
             )
-            p2 = subprocess.Popen(
-                [gzip_executable] + gzip_args, stdin=p1.stdout, stdout=z
+            gzip_popen = subprocess.Popen(
+                [gzip_executable] + gzip_args,
+                stdin=gunzip_popen.stdout,
+                stdout=z,
             )
-            p2.communicate()
+            gzip_popen.communicate()
+
         shutil.copyfile(newzip, filename)  # copy back
 
 
