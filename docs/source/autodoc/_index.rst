@@ -178,7 +178,6 @@ Automatic documentation of source code
     tests/datetimefunc_tests.py.rst
     tests/dogpile_cache_tests.py.rst
     tests/extract_text_tests.py.rst
-    tests/file_io_tests.py.rst
     tests/interval_tests.py.rst
     tests/lists_tests.py.rst
     tests/pdf_tests.py.rst
