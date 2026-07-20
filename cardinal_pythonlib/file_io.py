@@ -437,26 +437,28 @@ def remove_gzip_timestamp(
     """
     gzip_args = gzip_args or [
         "-9",  # maximum compression (or Lintian moans)
-        "-n",
+        "-n",  # do not save timestamp details
     ]
     # gzip/gunzip operate on SINGLE files
-    with tempfile.TemporaryDirectory() as dir_:
-        basezipfilename = os.path.basename(filename)
-        newzip = os.path.join(dir_, basezipfilename)
-        with open(newzip, "wb") as z:
-            log.info(
-                "Removing gzip timestamp: " "{} -> gunzip -c -> gzip -n -> {}",
-                basezipfilename,
-                newzip,
-            )
-            p1 = subprocess.Popen(
-                [gunzip_executable, "-c", filename], stdout=subprocess.PIPE
-            )
-            p2 = subprocess.Popen(
-                [gzip_executable] + gzip_args, stdin=p1.stdout, stdout=z
-            )
-            p2.communicate()
-        shutil.copyfile(newzip, filename)  # copy back
+    log.info("Removing gzip timestamp from {}", filename)
+
+    with tempfile.NamedTemporaryFile("wb", delete=False) as temp_unzipped_file:
+        subprocess.run(
+            [gunzip_executable, "-c", filename],
+            stdout=temp_unzipped_file,
+            check=True,
+        )
+
+    with tempfile.NamedTemporaryFile("wb", delete=False) as temp_zipped_file:
+        subprocess.run(
+            [gzip_executable] + gzip_args + ["-c", temp_unzipped_file.name],
+            stdout=temp_zipped_file,
+            check=True,
+        )
+
+    os.remove(temp_unzipped_file.name)
+    shutil.copyfile(temp_zipped_file.name, filename)  # copy back
+    os.remove(temp_zipped_file.name)
 
 
 # =============================================================================

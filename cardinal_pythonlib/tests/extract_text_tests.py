@@ -593,7 +593,9 @@ Content-Transfer-Encoding: quoted-printable
             blob=blob, extension=".eml", config=self.config
         )
 
-        self.assertEqual(text.strip(), "??")
+        # Beautiful Soup >= 4.14.3 returns double replacement char \ufffd
+        # earlier versions return ??
+        self.assertIn(text.strip(), ["??", "��"])
 
     def test_unsupported_will_be_converted_with_strings(self) -> None:
         with mock.patch.multiple(
