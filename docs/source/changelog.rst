@@ -932,3 +932,6 @@ Quick links:
   :func:`cardinal_pythonlib.extract_text.document_to_text`.
 
 **2.1.4 (IN PROGRESS)**
+
+- Fix :func:`cardinal_pythonlib.file_io.remove_gzip_timestamp` to raise an
+  exception if the gzip file does not exist.
