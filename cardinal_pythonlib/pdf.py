@@ -37,7 +37,6 @@ import tempfile
 from typing import Any, Dict, Iterable, Union
 
 from pypdf import PdfReader, PdfWriter
-from semantic_version import Version
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
@@ -224,22 +223,6 @@ def assert_processor_available(processor: str) -> None:
         raise RuntimeError("rnc_pdf: pdfkit requested, but not available")
 
 
-def get_default_fix_pdfkit_encoding_bug() -> bool:
-    """
-    Should we be trying to fix a ``pdfkit`` encoding bug, by default?
-
-    Returns:
-        should we? Yes if we have the specific buggy version of ``pdfkit``.
-
-    """
-    # Auto-determine.
-    if pdfkit is None:
-        return False
-    else:
-        # noinspection PyUnresolvedReferences
-        return bool(Version(pdfkit.__version__) == Version("0.5.0"))
-
-
 def make_pdf_from_html(
     # Mandatory parameters:
     on_disk: bool,
@@ -255,7 +238,6 @@ def make_pdf_from_html(
     debug_options: bool = False,
     debug_content: bool = False,
     debug_wkhtmltopdf_args: bool = True,
-    fix_pdfkit_encoding_bug: bool = None,
     processor: str = _DEFAULT_PROCESSOR,
 ) -> Union[bytes, bool]:
     """
@@ -294,12 +276,6 @@ def make_pdf_from_html(
         debug_wkhtmltopdf_args: log the final command-line arguments to
             that will be used by ``pdfkit`` when it calls ``wkhtmltopdf``?
 
-        fix_pdfkit_encoding_bug: attempt to work around bug in e.g.
-            ``pdfkit==0.5.0`` by encoding ``wkhtmltopdf_filename`` to UTF-8
-            before passing it to ``pdfkit``? If you pass ``None`` here, then
-            a default value is used, from
-            :func:`get_default_fix_pdfkit_encoding_bug`.
-
         processor: a PDF processor type from :class:`Processors`
 
     Returns:
@@ -320,9 +296,6 @@ def make_pdf_from_html(
         log.debug("html: {}", html)
         log.debug("header_html: {}", header_html)
         log.debug("footer_html: {}", footer_html)
-
-    if fix_pdfkit_encoding_bug is None:
-        fix_pdfkit_encoding_bug = get_default_fix_pdfkit_encoding_bug()
 
     if processor == Processors.XHTML2PDF:
 
@@ -358,21 +331,8 @@ def make_pdf_from_html(
         if not wkhtmltopdf_filename:
             config = None
         else:
-            if fix_pdfkit_encoding_bug:  # needs to be True for pdfkit==0.5.0
-                log.debug(
-                    "Attempting to fix bug in pdfkit (e.g. version 0.5.0)"
-                    " by encoding wkhtmltopdf_filename to UTF-8"
-                )
-                # noinspection PyUnresolvedReferences
-                config = pdfkit.configuration(
-                    wkhtmltopdf=wkhtmltopdf_filename.encode("utf-8")
-                )
-                # the bug is that pdfkit.pdfkit.PDFKit.__init__ will attempt to
-                # decode the string in its configuration object;
-                # https://github.com/JazzCore/python-pdfkit/issues/32
-            else:
-                # noinspection PyUnresolvedReferences
-                config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_filename)
+            # noinspection PyUnresolvedReferences
+            config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_filename)
 
         # Temporary files that a subprocess can read:
         #   https://stackoverflow.com/questions/15169101
@@ -442,7 +402,6 @@ def get_pdf_from_html(
     debug_options: bool = False,
     debug_content: bool = False,
     debug_wkhtmltopdf_args: bool = True,
-    fix_pdfkit_encoding_bug: bool = None,
     processor: str = _DEFAULT_PROCESSOR,
 ) -> bytes:
     """
@@ -464,7 +423,6 @@ def get_pdf_from_html(
         debug_options=debug_options,
         debug_content=debug_content,
         debug_wkhtmltopdf_args=debug_wkhtmltopdf_args,
-        fix_pdfkit_encoding_bug=fix_pdfkit_encoding_bug,
         processor=processor,
     )  # type: bytes
     return result
@@ -479,7 +437,6 @@ def pdf_from_html(
     file_encoding: str = "utf-8",
     debug_options: bool = False,
     debug_content: bool = False,
-    fix_pdfkit_encoding_bug: bool = True,
     processor: str = _DEFAULT_PROCESSOR,
 ) -> bytes:
     """
@@ -494,7 +451,6 @@ def pdf_from_html(
         file_encoding=file_encoding,
         debug_options=debug_options,
         debug_content=debug_content,
-        fix_pdfkit_encoding_bug=fix_pdfkit_encoding_bug,
         processor=processor,
     )
 
@@ -510,7 +466,6 @@ def make_pdf_on_disk_from_html(
     debug_options: bool = False,
     debug_content: bool = False,
     debug_wkhtmltopdf_args: bool = True,
-    fix_pdfkit_encoding_bug: bool = None,
     processor: str = _DEFAULT_PROCESSOR,
 ) -> bool:
     """
@@ -533,7 +488,6 @@ def make_pdf_on_disk_from_html(
         debug_options=debug_options,
         debug_content=debug_content,
         debug_wkhtmltopdf_args=debug_wkhtmltopdf_args,
-        fix_pdfkit_encoding_bug=fix_pdfkit_encoding_bug,
         processor=processor,
     )  # type: bool
     return result
