@@ -34,7 +34,7 @@ from pprint import pformat
 import shutil
 import sys
 import tempfile
-from typing import Any, Dict, Iterable, Union
+from typing import Any, Iterable, Union
 
 from pypdf import PdfReader, PdfWriter
 
@@ -129,7 +129,8 @@ class PdfPlan(object):
         header_html: str = None,
         footer_html: str = None,
         wkhtmltopdf_filename: str = None,
-        wkhtmltopdf_options: Dict[str, Any] = None,
+        wkhtmltopdf_options: dict[str, Any] = None,
+        weasyprint_options: dict[str, Any] = None,
         # Filename mode
         is_filename: bool = False,
         filename: str = None,
@@ -142,6 +143,7 @@ class PdfPlan(object):
             footer_html: for HTML mode, an optional page footer (in HTML)
             wkhtmltopdf_filename: filename of the ``wkhtmltopdf`` executable
             wkhtmltopdf_options: options for ``wkhtmltopdf``
+            weasyprint_options: options for ``weasyprint``
             is_filename: use file mode?
             filename: for file mode, the filename of the existing PDF on disk
 
@@ -156,6 +158,7 @@ class PdfPlan(object):
         self.footer_html = footer_html
         self.wkhtmltopdf_filename = wkhtmltopdf_filename
         self.wkhtmltopdf_options = wkhtmltopdf_options
+        self.weasyprint_options = weasyprint_options
 
         self.is_filename = is_filename
         # is_filename options
@@ -179,6 +182,7 @@ class PdfPlan(object):
                 footer_html=self.footer_html,
                 wkhtmltopdf_filename=self.wkhtmltopdf_filename,
                 wkhtmltopdf_options=self.wkhtmltopdf_options,
+                weasyprint_options=self.weasyprint_options,
             )
             append_memory_pdf_to_writer(pdf, writer, start_recto=start_recto)
         elif self.is_filename:
@@ -233,7 +237,8 @@ def make_pdf_from_html(
     header_html: str = None,
     footer_html: str = None,
     wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
-    wkhtmltopdf_options: Dict[str, Any] = None,
+    wkhtmltopdf_options: dict[str, Any] = None,
+    weasyprint_options: dict[str, Any] = None,
     file_encoding: str = "utf-8",
     debug_options: bool = False,
     debug_content: bool = False,
@@ -267,6 +272,8 @@ def make_pdf_from_html(
 
         wkhtmltopdf_options: options for ``wkhtmltopdf``
 
+        weasyprint_options: options for ``weasyprint``
+
         file_encoding: encoding to use when writing the header/footer to disk
 
         debug_options: log ``wkhtmltopdf`` config/options passed to ``pdfkit``?
@@ -289,7 +296,13 @@ def make_pdf_from_html(
     if wkhtmltopdf_options:
         wkhtmltopdf_options = wkhtmltopdf_options.copy()
     else:
-        wkhtmltopdf_options = {}  # type: Dict[str, Any]
+        wkhtmltopdf_options: dict[str, Any] = {}
+
+    if weasyprint_options:
+        weasyprint_options = weasyprint_options.copy()
+    else:
+        weasyprint_options: dict[str, Any] = {}
+
     assert_processor_available(processor)
 
     if debug_content:
@@ -319,11 +332,13 @@ def make_pdf_from_html(
 
         if on_disk:
             # noinspection PyUnresolvedReferences
-            return weasyprint.HTML(string=html).write_pdf(output_path)
+            return weasyprint.HTML(string=html).write_pdf(
+                target=output_path, **weasyprint_options
+            )
         else:
             # http://ampad.de/blog/generating-pdfs-django/
             # noinspection PyUnresolvedReferences
-            return weasyprint.HTML(string=html).write_pdf()
+            return weasyprint.HTML(string=html).write_pdf(**weasyprint_options)
 
     elif processor == Processors.PDFKIT:
 
@@ -397,7 +412,8 @@ def get_pdf_from_html(
     header_html: str = None,
     footer_html: str = None,
     wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
-    wkhtmltopdf_options: Dict[str, Any] = None,
+    wkhtmltopdf_options: dict[str, Any] = None,
+    weasyprint_options: dict[str, Any] = None,
     file_encoding: str = "utf-8",
     debug_options: bool = False,
     debug_content: bool = False,
@@ -419,6 +435,7 @@ def get_pdf_from_html(
         footer_html=footer_html,
         wkhtmltopdf_filename=wkhtmltopdf_filename,
         wkhtmltopdf_options=wkhtmltopdf_options,
+        weasyprint_options=weasyprint_options,
         file_encoding=file_encoding,
         debug_options=debug_options,
         debug_content=debug_content,
@@ -433,7 +450,8 @@ def pdf_from_html(
     header_html: str = None,
     footer_html: str = None,
     wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
-    wkhtmltopdf_options: Dict[str, Any] = None,
+    wkhtmltopdf_options: dict[str, Any] = None,
+    weasyprint_options: dict[str, Any] = None,
     file_encoding: str = "utf-8",
     debug_options: bool = False,
     debug_content: bool = False,
@@ -448,6 +466,7 @@ def pdf_from_html(
         footer_html=footer_html,
         wkhtmltopdf_filename=wkhtmltopdf_filename,
         wkhtmltopdf_options=wkhtmltopdf_options,
+        weasyprint_options=weasyprint_options,
         file_encoding=file_encoding,
         debug_options=debug_options,
         debug_content=debug_content,
@@ -461,7 +480,8 @@ def make_pdf_on_disk_from_html(
     header_html: str = None,
     footer_html: str = None,
     wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
-    wkhtmltopdf_options: Dict[str, Any] = None,
+    wkhtmltopdf_options: dict[str, Any] = None,
+    weasyprint_options: dict[str, Any] = None,
     file_encoding: str = "utf-8",
     debug_options: bool = False,
     debug_content: bool = False,
@@ -484,6 +504,7 @@ def make_pdf_on_disk_from_html(
         footer_html=footer_html,
         wkhtmltopdf_filename=wkhtmltopdf_filename,
         wkhtmltopdf_options=wkhtmltopdf_options,
+        weasyprint_options=weasyprint_options,
         file_encoding=file_encoding,
         debug_options=debug_options,
         debug_content=debug_content,
