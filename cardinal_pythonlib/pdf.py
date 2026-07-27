@@ -48,11 +48,6 @@ from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 log = get_brace_style_log_with_null_handler(__name__)
 
-pdfkit = None
-xhtml2pdf = None
-weasyprint = None
-
-# Preference 1
 try:
     log.debug("trying pdfkit...")
     # noinspection PyPackageRequirements
@@ -63,30 +58,27 @@ except ImportError:
     pdfkit = None
     log.debug("pdfkit: failed to load")
 
-if pdfkit:
-    log.debug("pdfkit found, so skipping other PDF rendering engines")
-else:
-    try:
-        # noinspection PyPackageRequirements
-        import xhtml2pdf  # pip install xhtml2pdf
+try:
+    # noinspection PyPackageRequirements
+    import xhtml2pdf  # pip install xhtml2pdf
 
-        # noinspection PyPackageRequirements
-        import xhtml2pdf.document  # pip install xhtml2pdf
+    # noinspection PyPackageRequirements
+    import xhtml2pdf.document  # pip install xhtml2pdf
 
-        log.debug("xhtml2pdf: loaded")
-    except ImportError:
-        xhtml2pdf = None
-        log.debug("xhtml2pdf: failed to load")
+    log.debug("xhtml2pdf: loaded")
+except ImportError:
+    xhtml2pdf = None
+    log.debug("xhtml2pdf: failed to load")
 
-    try:
-        log.debug("trying weasyprint...")
-        # noinspection PyPackageRequirements
-        import weasyprint
+try:
+    log.debug("trying weasyprint...")
+    # noinspection PyPackageRequirements
+    import weasyprint
 
-        log.debug("weasyprint: loaded")
-    except ImportError:
-        weasyprint = None
-        log.debug("weasyprint: failed to load")
+    log.debug("weasyprint: loaded")
+except ImportError:
+    weasyprint = None
+    log.debug("weasyprint: failed to load")
 
 # =============================================================================
 # Onwards
@@ -111,12 +103,12 @@ class Processors:
 
 _WKHTMLTOPDF_FILENAME = shutil.which("wkhtmltopdf")
 
-if pdfkit:
-    _DEFAULT_PROCESSOR = Processors.PDFKIT  # the best
-elif weasyprint:
-    _DEFAULT_PROCESSOR = Processors.WEASYPRINT  # imperfect tables
-else:
+if weasyprint:
+    _DEFAULT_PROCESSOR = Processors.WEASYPRINT  # Best maintained option
+elif xhtml2pdf:
     _DEFAULT_PROCESSOR = Processors.XHTML2PDF  # simple/slow
+else:
+    _DEFAULT_PROCESSOR = Processors.PDFKIT  # No longer maintained
 
 
 # =============================================================================
