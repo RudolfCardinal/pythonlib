@@ -939,3 +939,4 @@ Quick links:
 - Allow multiple PDF processors to co-exist. Change the default PDF processor
   from PDFKit to Weasyprint. Enable options to be passed to the Weasyprint PDF
   processor.
+  https://github.com/RudolfCardinal/pythonlib/issues/22
