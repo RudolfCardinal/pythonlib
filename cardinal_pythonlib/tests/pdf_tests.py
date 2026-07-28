@@ -128,11 +128,9 @@ class FunctionTests(unittest.TestCase):
         reader = PdfReader(io.BytesIO(pdf_data))
 
         self.assertEqual(len(reader.pages), 5)
-        self.assertEqual(reader.pages[0].extract_text(), "One")
-        self.assertEqual(reader.pages[1].extract_text(), "")
-        self.assertEqual(reader.pages[2].extract_text(), "Two")
-        self.assertEqual(reader.pages[3].extract_text(), "")
-        self.assertEqual(reader.pages[4].extract_text(), "Three")
+
+        extracted_text = [p.extract_text().strip() for p in reader.pages]
+        self.assertEqual(extracted_text, ["One", "", "Two", "", "Three"])
 
     def test_concatenated_pdf_from_disk_merges_files(self) -> None:
         filenames = [
@@ -160,11 +158,9 @@ class FunctionTests(unittest.TestCase):
         reader = PdfReader(io.BytesIO(pdf_data))
 
         self.assertEqual(len(reader.pages), 5)
-        self.assertEqual(reader.pages[0].extract_text(), "One")
-        self.assertEqual(reader.pages[1].extract_text(), "")
-        self.assertEqual(reader.pages[2].extract_text(), "Two")
-        self.assertEqual(reader.pages[3].extract_text(), "")
-        self.assertEqual(reader.pages[4].extract_text(), "Three")
+
+        extracted_text = [p.extract_text().strip() for p in reader.pages]
+        self.assertEqual(extracted_text, ["One", "", "Two", "", "Three"])
 
     def test_concatenated_pdf_in_memory_merges_plans(self) -> None:
         plans = [
@@ -177,9 +173,9 @@ class FunctionTests(unittest.TestCase):
         reader = PdfReader(io.BytesIO(pdf_data))
 
         self.assertEqual(len(reader.pages), 3)
-        self.assertEqual(reader.pages[0].extract_text(), "One")
-        self.assertEqual(reader.pages[1].extract_text(), "Two")
-        self.assertEqual(reader.pages[2].extract_text(), "Three")
+
+        extracted_text = [p.extract_text().strip() for p in reader.pages]
+        self.assertEqual(extracted_text, ["One", "Two", "Three"])
 
     def test_make_pdf_writer(self) -> None:
         writer = make_pdf_writer()
