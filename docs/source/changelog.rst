@@ -931,7 +931,12 @@ Quick links:
   is null or missing (SignedAttachment).
   :func:`cardinal_pythonlib.extract_text.document_to_text`.
 
-**2.1.4 (IN PROGRESS)**
+**2.2.0 (IN PROGRESS)**
 
 - Fix :func:`cardinal_pythonlib.file_io.remove_gzip_timestamp` to raise an
   exception if the gzip file does not exist.
+
+- Allow multiple PDF processors to co-exist. Change the default PDF processor
+  from PDFKit to Weasyprint. Enable options to be passed to the Weasyprint PDF
+  processor.
+  https://github.com/RudolfCardinal/pythonlib/issues/22

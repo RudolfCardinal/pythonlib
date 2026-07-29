@@ -34,10 +34,9 @@ from pprint import pformat
 import shutil
 import sys
 import tempfile
-from typing import Any, Dict, Iterable, Union
+from typing import Any, Iterable, Union
 
 from pypdf import PdfReader, PdfWriter
-from semantic_version import Version
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
@@ -48,11 +47,6 @@ from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
 
 log = get_brace_style_log_with_null_handler(__name__)
 
-pdfkit = None
-xhtml2pdf = None
-weasyprint = None
-
-# Preference 1
 try:
     log.debug("trying pdfkit...")
     # noinspection PyPackageRequirements
@@ -63,30 +57,27 @@ except ImportError:
     pdfkit = None
     log.debug("pdfkit: failed to load")
 
-if pdfkit:
-    log.debug("pdfkit found, so skipping other PDF rendering engines")
-else:
-    try:
-        # noinspection PyPackageRequirements
-        import xhtml2pdf  # pip install xhtml2pdf
+try:
+    # noinspection PyPackageRequirements
+    import xhtml2pdf  # pip install xhtml2pdf
 
-        # noinspection PyPackageRequirements
-        import xhtml2pdf.document  # pip install xhtml2pdf
+    # noinspection PyPackageRequirements
+    import xhtml2pdf.document  # pip install xhtml2pdf
 
-        log.debug("xhtml2pdf: loaded")
-    except ImportError:
-        xhtml2pdf = None
-        log.debug("xhtml2pdf: failed to load")
+    log.debug("xhtml2pdf: loaded")
+except ImportError:
+    xhtml2pdf = None
+    log.debug("xhtml2pdf: failed to load")
 
-    try:
-        log.debug("trying weasyprint...")
-        # noinspection PyPackageRequirements
-        import weasyprint
+try:
+    log.debug("trying weasyprint...")
+    # noinspection PyPackageRequirements
+    import weasyprint
 
-        log.debug("weasyprint: loaded")
-    except ImportError:
-        weasyprint = None
-        log.debug("weasyprint: failed to load")
+    log.debug("weasyprint: loaded")
+except ImportError:
+    weasyprint = None
+    log.debug("weasyprint: failed to load")
 
 # =============================================================================
 # Onwards
@@ -111,12 +102,12 @@ class Processors:
 
 _WKHTMLTOPDF_FILENAME = shutil.which("wkhtmltopdf")
 
-if pdfkit:
-    _DEFAULT_PROCESSOR = Processors.PDFKIT  # the best
-elif weasyprint:
-    _DEFAULT_PROCESSOR = Processors.WEASYPRINT  # imperfect tables
-else:
+if weasyprint:
+    _DEFAULT_PROCESSOR = Processors.WEASYPRINT  # Best maintained option
+elif xhtml2pdf:
     _DEFAULT_PROCESSOR = Processors.XHTML2PDF  # simple/slow
+else:
+    _DEFAULT_PROCESSOR = Processors.PDFKIT  # No longer maintained
 
 
 # =============================================================================
@@ -138,7 +129,8 @@ class PdfPlan(object):
         header_html: str = None,
         footer_html: str = None,
         wkhtmltopdf_filename: str = None,
-        wkhtmltopdf_options: Dict[str, Any] = None,
+        wkhtmltopdf_options: dict[str, Any] = None,
+        weasyprint_options: dict[str, Any] = None,
         # Filename mode
         is_filename: bool = False,
         filename: str = None,
@@ -151,6 +143,7 @@ class PdfPlan(object):
             footer_html: for HTML mode, an optional page footer (in HTML)
             wkhtmltopdf_filename: filename of the ``wkhtmltopdf`` executable
             wkhtmltopdf_options: options for ``wkhtmltopdf``
+            weasyprint_options: options for ``weasyprint``
             is_filename: use file mode?
             filename: for file mode, the filename of the existing PDF on disk
 
@@ -165,6 +158,7 @@ class PdfPlan(object):
         self.footer_html = footer_html
         self.wkhtmltopdf_filename = wkhtmltopdf_filename
         self.wkhtmltopdf_options = wkhtmltopdf_options
+        self.weasyprint_options = weasyprint_options
 
         self.is_filename = is_filename
         # is_filename options
@@ -188,6 +182,7 @@ class PdfPlan(object):
                 footer_html=self.footer_html,
                 wkhtmltopdf_filename=self.wkhtmltopdf_filename,
                 wkhtmltopdf_options=self.wkhtmltopdf_options,
+                weasyprint_options=self.weasyprint_options,
             )
             append_memory_pdf_to_writer(pdf, writer, start_recto=start_recto)
         elif self.is_filename:
@@ -232,22 +227,6 @@ def assert_processor_available(processor: str) -> None:
         raise RuntimeError("rnc_pdf: pdfkit requested, but not available")
 
 
-def get_default_fix_pdfkit_encoding_bug() -> bool:
-    """
-    Should we be trying to fix a ``pdfkit`` encoding bug, by default?
-
-    Returns:
-        should we? Yes if we have the specific buggy version of ``pdfkit``.
-
-    """
-    # Auto-determine.
-    if pdfkit is None:
-        return False
-    else:
-        # noinspection PyUnresolvedReferences
-        return bool(Version(pdfkit.__version__) == Version("0.5.0"))
-
-
 def make_pdf_from_html(
     # Mandatory parameters:
     on_disk: bool,
@@ -258,12 +237,12 @@ def make_pdf_from_html(
     header_html: str = None,
     footer_html: str = None,
     wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
-    wkhtmltopdf_options: Dict[str, Any] = None,
+    wkhtmltopdf_options: dict[str, Any] = None,
+    weasyprint_options: dict[str, Any] = None,
     file_encoding: str = "utf-8",
     debug_options: bool = False,
     debug_content: bool = False,
     debug_wkhtmltopdf_args: bool = True,
-    fix_pdfkit_encoding_bug: bool = None,
     processor: str = _DEFAULT_PROCESSOR,
 ) -> Union[bytes, bool]:
     """
@@ -293,6 +272,8 @@ def make_pdf_from_html(
 
         wkhtmltopdf_options: options for ``wkhtmltopdf``
 
+        weasyprint_options: options for ``weasyprint``
+
         file_encoding: encoding to use when writing the header/footer to disk
 
         debug_options: log ``wkhtmltopdf`` config/options passed to ``pdfkit``?
@@ -301,12 +282,6 @@ def make_pdf_from_html(
 
         debug_wkhtmltopdf_args: log the final command-line arguments to
             that will be used by ``pdfkit`` when it calls ``wkhtmltopdf``?
-
-        fix_pdfkit_encoding_bug: attempt to work around bug in e.g.
-            ``pdfkit==0.5.0`` by encoding ``wkhtmltopdf_filename`` to UTF-8
-            before passing it to ``pdfkit``? If you pass ``None`` here, then
-            a default value is used, from
-            :func:`get_default_fix_pdfkit_encoding_bug`.
 
         processor: a PDF processor type from :class:`Processors`
 
@@ -321,16 +296,19 @@ def make_pdf_from_html(
     if wkhtmltopdf_options:
         wkhtmltopdf_options = wkhtmltopdf_options.copy()
     else:
-        wkhtmltopdf_options = {}  # type: Dict[str, Any]
+        wkhtmltopdf_options: dict[str, Any] = {}
+
+    if weasyprint_options:
+        weasyprint_options = weasyprint_options.copy()
+    else:
+        weasyprint_options: dict[str, Any] = {}
+
     assert_processor_available(processor)
 
     if debug_content:
         log.debug("html: {}", html)
         log.debug("header_html: {}", header_html)
         log.debug("footer_html: {}", footer_html)
-
-    if fix_pdfkit_encoding_bug is None:
-        fix_pdfkit_encoding_bug = get_default_fix_pdfkit_encoding_bug()
 
     if processor == Processors.XHTML2PDF:
 
@@ -354,11 +332,13 @@ def make_pdf_from_html(
 
         if on_disk:
             # noinspection PyUnresolvedReferences
-            return weasyprint.HTML(string=html).write_pdf(output_path)
+            return weasyprint.HTML(string=html).write_pdf(
+                target=output_path, **weasyprint_options
+            )
         else:
             # http://ampad.de/blog/generating-pdfs-django/
             # noinspection PyUnresolvedReferences
-            return weasyprint.HTML(string=html).write_pdf()
+            return weasyprint.HTML(string=html).write_pdf(**weasyprint_options)
 
     elif processor == Processors.PDFKIT:
 
@@ -366,21 +346,8 @@ def make_pdf_from_html(
         if not wkhtmltopdf_filename:
             config = None
         else:
-            if fix_pdfkit_encoding_bug:  # needs to be True for pdfkit==0.5.0
-                log.debug(
-                    "Attempting to fix bug in pdfkit (e.g. version 0.5.0)"
-                    " by encoding wkhtmltopdf_filename to UTF-8"
-                )
-                # noinspection PyUnresolvedReferences
-                config = pdfkit.configuration(
-                    wkhtmltopdf=wkhtmltopdf_filename.encode("utf-8")
-                )
-                # the bug is that pdfkit.pdfkit.PDFKit.__init__ will attempt to
-                # decode the string in its configuration object;
-                # https://github.com/JazzCore/python-pdfkit/issues/32
-            else:
-                # noinspection PyUnresolvedReferences
-                config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_filename)
+            # noinspection PyUnresolvedReferences
+            config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_filename)
 
         # Temporary files that a subprocess can read:
         #   https://stackoverflow.com/questions/15169101
@@ -445,12 +412,12 @@ def get_pdf_from_html(
     header_html: str = None,
     footer_html: str = None,
     wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
-    wkhtmltopdf_options: Dict[str, Any] = None,
+    wkhtmltopdf_options: dict[str, Any] = None,
+    weasyprint_options: dict[str, Any] = None,
     file_encoding: str = "utf-8",
     debug_options: bool = False,
     debug_content: bool = False,
     debug_wkhtmltopdf_args: bool = True,
-    fix_pdfkit_encoding_bug: bool = None,
     processor: str = _DEFAULT_PROCESSOR,
 ) -> bytes:
     """
@@ -468,11 +435,11 @@ def get_pdf_from_html(
         footer_html=footer_html,
         wkhtmltopdf_filename=wkhtmltopdf_filename,
         wkhtmltopdf_options=wkhtmltopdf_options,
+        weasyprint_options=weasyprint_options,
         file_encoding=file_encoding,
         debug_options=debug_options,
         debug_content=debug_content,
         debug_wkhtmltopdf_args=debug_wkhtmltopdf_args,
-        fix_pdfkit_encoding_bug=fix_pdfkit_encoding_bug,
         processor=processor,
     )  # type: bytes
     return result
@@ -483,11 +450,11 @@ def pdf_from_html(
     header_html: str = None,
     footer_html: str = None,
     wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
-    wkhtmltopdf_options: Dict[str, Any] = None,
+    wkhtmltopdf_options: dict[str, Any] = None,
+    weasyprint_options: dict[str, Any] = None,
     file_encoding: str = "utf-8",
     debug_options: bool = False,
     debug_content: bool = False,
-    fix_pdfkit_encoding_bug: bool = True,
     processor: str = _DEFAULT_PROCESSOR,
 ) -> bytes:
     """
@@ -499,10 +466,10 @@ def pdf_from_html(
         footer_html=footer_html,
         wkhtmltopdf_filename=wkhtmltopdf_filename,
         wkhtmltopdf_options=wkhtmltopdf_options,
+        weasyprint_options=weasyprint_options,
         file_encoding=file_encoding,
         debug_options=debug_options,
         debug_content=debug_content,
-        fix_pdfkit_encoding_bug=fix_pdfkit_encoding_bug,
         processor=processor,
     )
 
@@ -513,12 +480,12 @@ def make_pdf_on_disk_from_html(
     header_html: str = None,
     footer_html: str = None,
     wkhtmltopdf_filename: str = _WKHTMLTOPDF_FILENAME,
-    wkhtmltopdf_options: Dict[str, Any] = None,
+    wkhtmltopdf_options: dict[str, Any] = None,
+    weasyprint_options: dict[str, Any] = None,
     file_encoding: str = "utf-8",
     debug_options: bool = False,
     debug_content: bool = False,
     debug_wkhtmltopdf_args: bool = True,
-    fix_pdfkit_encoding_bug: bool = None,
     processor: str = _DEFAULT_PROCESSOR,
 ) -> bool:
     """
@@ -537,11 +504,11 @@ def make_pdf_on_disk_from_html(
         footer_html=footer_html,
         wkhtmltopdf_filename=wkhtmltopdf_filename,
         wkhtmltopdf_options=wkhtmltopdf_options,
+        weasyprint_options=weasyprint_options,
         file_encoding=file_encoding,
         debug_options=debug_options,
         debug_content=debug_content,
         debug_wkhtmltopdf_args=debug_wkhtmltopdf_args,
-        fix_pdfkit_encoding_bug=fix_pdfkit_encoding_bug,
         processor=processor,
     )  # type: bool
     return result
