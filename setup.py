@@ -64,7 +64,7 @@ REQUIREMENTS = [
     "prettytable",
     "psutil",
     "pygments",
-    "pyparsing",
+    "pyparsing<3.3",  # Failing tests with later versions
     "pypdf>=3.1.0",  # https://pypdf.readthedocs.io/en/stable/
     "python-dateutil",  # "import dateutil"
     "rich-argparse>=0.5.0",  # colourful help
