@@ -4,8 +4,8 @@ colander
 cryptography
 deform
 dogpile.cache==0.9.2
-# CRATE is on 4.2
-Django>=4.2,<5.0
+# CRATE is on 5.2
+Django>=5.2,<6.0
 faker==13.3.1
 faker-file[common]==0.18.3
 libChEBIpy
