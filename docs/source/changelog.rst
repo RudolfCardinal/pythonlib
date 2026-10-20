@@ -942,3 +942,7 @@ Quick links:
   https://github.com/RudolfCardinal/pythonlib/issues/22
 
 **2.2.1 (IN PROGRESS)**
+
+- Fix issues with
+  :func:`cardinal_pythonlib.network.gen_binary_files_from_urls`. You can now
+  override the user agent and gzip Content-Encoding is now supported.
