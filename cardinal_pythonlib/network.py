@@ -39,7 +39,9 @@ https://stackoverflow.com/questions/316866/ping-a-site-in-python
 
 """
 
+import gzip
 import os
+import platform
 import ssl
 import subprocess
 import sys
@@ -48,6 +50,7 @@ from typing import BinaryIO, Dict, Generator, Iterable
 import urllib.request
 
 from cardinal_pythonlib.logs import get_brace_style_log_with_null_handler
+from cardinal_pythonlib.version_string import VERSION_STRING
 
 log = get_brace_style_log_with_null_handler(__name__)
 
@@ -123,7 +126,8 @@ def download(
             request headers (if not specified, a default will be used that
             mimics Mozilla 5.0 to avoid certain HTTP 403 errors)
     """
-    headers = {"User-Agent": "Mozilla/5.0"} if headers is None else headers
+    if headers is None:
+        headers = get_default_headers()
     log.info("Downloading from {} to {}", url, filename)
 
     # urllib.request.urlretrieve(url, filename)
@@ -151,13 +155,29 @@ def download(
         f.write(u.read())
 
 
+def get_default_headers() -> dict[str, str]:
+    return {"User-Agent": get_user_agent_string()}
+
+
+def get_user_agent_string() -> str:
+    uname = platform.uname()
+    us = f"cardinal_pythonlib/{VERSION_STRING}"
+    user_agent = f"Mozilla/5.0 ({uname.system} {uname.machine}) {us}"
+
+    return user_agent
+
+
 # =============================================================================
 # Generators
 # =============================================================================
 
 
 def gen_binary_files_from_urls(
-    urls: Iterable[str], on_disk: bool = False, show_info: bool = True
+    urls: Iterable[str],
+    on_disk: bool = False,
+    show_info: bool = True,
+    skip_cert_verify: bool = True,
+    headers: Dict[str, str] = None,
 ) -> Generator[BinaryIO, None, None]:
     """
     Generate binary files from a series of URLs (one per URL).
@@ -168,23 +188,51 @@ def gen_binary_files_from_urls(
             random access); if ``False``, yields in-memory files (which will
             not permit random access)
         show_info: show progress to the log?
+        skip_cert_verify:
+            skip SSL certificate check?
+        headers:
+            request headers (if not specified, a default will be used that
+            mimics Mozilla 5.0 to avoid certain HTTP 403 errors)
 
     Yields:
         files, each of type :class:`BinaryIO`
 
     """
+    if headers is None:
+        headers = get_default_headers()
+
     for url in urls:
         if on_disk:
             # Necessary for e.g. zip processing (random access)
             with tempfile.TemporaryDirectory() as tmpdir:
                 filename = os.path.join(tmpdir, "tempfile")
-                download(url=url, filename=filename)
+                download(
+                    url=url,
+                    filename=filename,
+                    skip_cert_verify=skip_cert_verify,
+                    headers=headers,
+                )
                 with open(filename, "rb") as f:
                     yield f
         else:
             if show_info:
                 log.info("Reading from URL: {}", url)
-            with urllib.request.urlopen(url) as f:
-                yield f
+            request = urllib.request.Request(url, headers=headers)
+
+            with urllib.request.urlopen(request) as response:
+                if (
+                    response.getheader("Content-Encoding", "").lower()
+                    == "gzip"
+                ):
+                    source = gzip.GzipFile(fileobj=response, mode="rb")
+                    with tempfile.TemporaryDirectory() as tmpdir:
+                        filename = os.path.join(tmpdir, "tempfile")
+                        with open(filename, "wb") as f:
+                            f.write(source.read())
+                        with open(filename, "rb") as f:
+                            yield f
+                else:
+                    yield response
+
         if show_info:
             log.info("... finished reading from URL: {}", url)
